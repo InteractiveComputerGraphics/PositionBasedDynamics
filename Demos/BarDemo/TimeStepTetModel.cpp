@@ -86,6 +86,7 @@ void TimeStepTetModel::constraintProjection(TetModel &model)
 
 	ParticleData &pd = model.getParticleMesh().getVertexData();
 	std::vector<TetModel::TetConstraint> &tetConstraints = model.getTetConstraints();
+	const IndexedTetMesh<ParticleData>::VertexTets *vTets = model.getParticleMesh().getVertexTets().data();
 
 	while (iter < maxIter)
 	{
@@ -187,6 +188,33 @@ void TimeStepTetModel::constraintProjection(TetModel &model)
 					model.getNormalizeStretch(),
 					model.getNormalizeShear(),
 					corr1, corr2, corr3, corr4);
+			}
+			else if (m_simulationMethod == 4)		// shape matching
+			{
+				Eigen::Vector3f &x1_0 = pd.getPosition0(v1);
+				Eigen::Vector3f &x2_0 = pd.getPosition0(v2);
+				Eigen::Vector3f &x3_0 = pd.getPosition0(v3);
+				Eigen::Vector3f &x4_0 = pd.getPosition0(v4);
+
+				Eigen::Vector3f x[4] = { x1, x2, x3, x4 };
+				Eigen::Vector3f x0[4] = { x1_0, x2_0, x3_0, x4_0 };
+				float w[4] = { invMass1, invMass2, invMass3, invMass4 };
+
+				Eigen::Vector3f corr[4];
+				res = PositionBasedDynamics::solveShapeMatchingConstraint(
+					x0, x, w, 4,
+					tetConstraints[i].restCm_SM,
+					tetConstraints[i].invRestMat_SM,
+					model.getStiffness(),
+					false, 
+					corr);
+
+				// Important: Divide position correction by the number of clusters 
+				// which contain the vertex. 
+				corr1 = (1.0f / vTets[v1].m_numTets) * corr[0];
+				corr2 = (1.0f / vTets[v2].m_numTets) * corr[1];
+				corr3 = (1.0f / vTets[v3].m_numTets) * corr[2];
+				corr4 = (1.0f / vTets[v4].m_numTets) * corr[3];
 			}
 
 			if (res)

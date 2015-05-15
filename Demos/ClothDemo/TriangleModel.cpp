@@ -59,8 +59,6 @@ void TriangleModel::setGeometry(const unsigned int nPoints, Eigen::Vector3f* coo
 	// Update normals
 	m_particleMesh.updateNormals();
 	m_particleMesh.updateVertexNormals();
-
-	initConstraints();
 }
 
 

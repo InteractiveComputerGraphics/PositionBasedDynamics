@@ -140,6 +140,114 @@ static void polarDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &R, Eig
 	R.col(2) = c2;
 }
 
+/** Return the one norm of the matrix.
+*/
+static float oneNorm(const Eigen::Matrix3f &A) 
+{
+	const float sum1 = fabs(A(0,0)) + fabs(A(1,0)) + fabs(A(2,0));
+	const float sum2 = fabs(A(0,1)) + fabs(A(1,1)) + fabs(A(2,1));
+	const float sum3 = fabs(A(0,2)) + fabs(A(1,2)) + fabs(A(2,2));
+	float maxSum = sum1;
+	if (sum2 > maxSum)
+		maxSum = sum2;
+	if (sum3 > maxSum)
+		maxSum = sum3;
+	return maxSum;
+}
+
+/** Return the inf norm of the matrix.
+*/
+static float infNorm(const Eigen::Matrix3f &A)
+{
+	const float sum1 = fabs(A(0, 0)) + fabs(A(0, 1)) + fabs(A(0, 2));
+	const float sum2 = fabs(A(1, 0)) + fabs(A(1, 1)) + fabs(A(1, 2));
+	const float sum3 = fabs(A(2, 0)) + fabs(A(2, 1)) + fabs(A(2, 2));
+	float maxSum = sum1;
+	if (sum2 > maxSum)
+		maxSum = sum2;
+	if (sum3 > maxSum)
+		maxSum = sum3;
+	return maxSum;
+}
+
+/** Perform a polar decomposition of matrix M and return the rotation matrix R. This method handles the degenerated cases.
+*/
+static void polarDecomposition2(const Eigen::Matrix3f &M, const float tolerance, Eigen::Matrix3f &R)
+{
+	Eigen::Matrix3f Mt = M.transpose();
+	float Mone = oneNorm(M);
+	float Minf = infNorm(M);
+	float Eone;
+	Eigen::Matrix3f MadjTt, Et;
+	do
+	{
+		MadjTt.row(0) = Mt.row(1).cross(Mt.row(2));
+		MadjTt.row(1) = Mt.row(2).cross(Mt.row(0));
+		MadjTt.row(2) = Mt.row(0).cross(Mt.row(1));
+
+		float det = Mt(0,0) * MadjTt(0,0) + Mt(0,1) * MadjTt(0,1) + Mt(0,2) * MadjTt(0,2);
+
+		if (fabs(det) < 1.0e-12)
+		{
+			Eigen::Vector3f len;
+			unsigned int index = 0xffffffff;
+			for (unsigned int i = 0; i < 3; i++)
+			{
+				len[i] = MadjTt.row(i).squaredNorm();
+				if (len[i] > 1.0e-12)
+				{
+					// index of valid cross product
+					// => is also the index of the vector in Mt that must be exchanged
+					index = i;
+					break;
+				}
+			}
+			if (index == 0xffffffff)
+			{
+				R.setIdentity();
+				return;
+			}
+			else
+			{
+				Mt.row(index) = Mt.row((index + 1) % 3).cross(Mt.row((index + 2) % 3));
+				MadjTt.row((index + 1) % 3) = Mt.row((index + 2) % 3).cross(Mt.row(index));
+				MadjTt.row((index + 2) % 3) = Mt.row(index).cross(Mt.row((index + 1) % 3));
+				Eigen::Matrix3f M2 = Mt.transpose();
+				Mone = oneNorm(M2);
+				Minf = infNorm(M2);
+				det = Mt(0,0) * MadjTt(0,0) + Mt(0,1) * MadjTt(0,1) + Mt(0,2) * MadjTt(0,2);
+			}
+		}
+
+		const float MadjTone = oneNorm(MadjTt);
+		const float MadjTinf = infNorm(MadjTt);
+
+		const float gamma = sqrt(sqrt((MadjTone*MadjTinf) / (Mone*Minf)) / fabs(det));
+
+		const float g1 = gamma*0.5f;
+		const float g2 = 0.5f / (gamma*det);
+
+		for (unsigned char i = 0; i < 3; i++)
+		{
+			for (unsigned char j = 0; j < 3; j++)
+			{
+				Et(i,j) = Mt(i,j);
+				Mt(i,j) = g1*Mt(i,j) + g2*MadjTt(i,j);
+				Et(i,j) -= Mt(i,j);
+			}
+		}
+
+		Eone = oneNorm(Et);
+
+		Mone = oneNorm(Mt);
+		Minf = infNorm(Mt);
+	} while (Eone > Mone * tolerance);
+
+	// Q = Mt^T 
+	R = Mt.transpose();
+}
+
+
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedDynamics::solveDistanceConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
@@ -653,7 +761,8 @@ bool PositionBasedDynamics::computeShapeMatchingRestInfo(
 	restCm /= wsum;
 
 	// A
-	invRestMat.setZero();
+	Eigen::Matrix3f A;
+	A.setZero();
 	for (int i = 0; i < numPoints; i++) {
 		const Eigen::Vector3f qi = x0[i] - restCm;
 		float wi = 1.0f / (invMasses[i] + eps);
@@ -663,21 +772,21 @@ bool PositionBasedDynamics::computeShapeMatchingRestInfo(
 		float xy = wi * qi[0] * qi[1];
 		float xz = wi * qi[0] * qi[2];
 		float yz = wi * qi[1] * qi[2];
-		invRestMat(0, 0) += x2; invRestMat(0, 1) += xy; invRestMat(0, 2) += xz;
-		invRestMat(1, 0) += xy; invRestMat(1, 1) += y2; invRestMat(1, 2) += yz;
-		invRestMat(2, 0) += xz; invRestMat(2, 1) += yz; invRestMat(2, 2) += z2;
+		A(0, 0) += x2; A(0, 1) += xy; A(0, 2) += xz;
+		A(1, 0) += xy; A(1, 1) += y2; A(1, 2) += yz;
+		A(2, 0) += xz; A(2, 1) += yz; A(2, 2) += z2;
 	}
-	float det = invRestMat.determinant();
+	float det = A.determinant();
 	if (fabs(det) > 1.0e-9)
 	{
-		invRestMat = invRestMat.inverse();
+		invRestMat = A.inverse();
 		return true;
 	}
 	return false;
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::shapeMatchingConstraint(
+bool PositionBasedDynamics::solveShapeMatchingConstraint(
 	const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], int numPoints,
 	Eigen::Vector3f &restCm, const Eigen::Matrix3f &invRestMat,
 	float stiffness,
@@ -692,7 +801,8 @@ bool PositionBasedDynamics::shapeMatchingConstraint(
 	// center of mass
 	Eigen::Vector3f cm(0.0f, 0.0f, 0.0f);
 	float wsum = 0.0f;
-	for (int i = 0; i < numPoints; i++) {
+	for (int i = 0; i < numPoints; i++) 
+	{
 		float wi = 1.0f / (invMasses[i] + eps);
 		cm += x[i] * wi;
 		wsum += wi;
@@ -723,7 +833,8 @@ bool PositionBasedDynamics::shapeMatchingConstraint(
 	if (allowStretch)
 		R = mat;
 	else
-		polarDecomposition(mat, R, U, D);
+		//polarDecomposition(mat, R, U, D);
+		polarDecomposition2(mat, 1e-6f, R);
 
 	for (int i = 0; i < numPoints; i++) {
 		Eigen::Vector3f goal = cm + R * (x0[i] - restCm);

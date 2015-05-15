@@ -40,17 +40,6 @@ namespace PBD
 			float posVolumeStiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
-		static bool computeShapeMatchingRestInfo(
-			const Eigen::Vector3f x0[], const float invMasses[], int numPoints,
-			Eigen::Vector3f &restCm, Eigen::Matrix3f &invRestMat);
-
-		static bool shapeMatchingConstraint(
-			const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], int numPoints,
-			Eigen::Vector3f &restCm, const Eigen::Matrix3f &invRestMat,
-			float stiffness,
-			bool allowStretch,		// default false
-			Eigen::Vector3f corr[], Eigen::Matrix3f *rot = NULL);
-
 		static bool solveEdgePointDistConstraint(
 			const Eigen::Vector3f &p, float invMass,
 			const Eigen::Vector3f &p0, float invMass0,
@@ -101,6 +90,20 @@ namespace PBD
 			const Eigen::Matrix4f &Q,
 			float stiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
+
+		// -------------- Shape Matching  -----------------------------------------------------
+
+		static bool computeShapeMatchingRestInfo(
+			const Eigen::Vector3f x0[], const float invMasses[], const int numPoints,
+			Eigen::Vector3f &restCm, Eigen::Matrix3f &invRestMat);
+
+		static bool solveShapeMatchingConstraint(
+			const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], const int numPoints,
+			Eigen::Vector3f &restCm, const Eigen::Matrix3f &invRestMat,
+			float stiffness,
+			bool allowStretch,		// default false
+			Eigen::Vector3f corr[], Eigen::Matrix3f *rot = NULL);
+
 
 		// -------------- Strain Based Dynamics  -----------------------------------------------------
 

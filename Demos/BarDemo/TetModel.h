@@ -17,10 +17,14 @@ namespace PBD
 				float tetVolume;
 				Eigen::Matrix3f invRestMat_SBD;
 				Eigen::Matrix3f invRestMat_FEM;
+				Eigen::Vector3f restCm_SM;
+				Eigen::Matrix3f invRestMat_SM;
 			};
 
 			TetModel();
 			virtual ~TetModel();
+
+			void initConstraints();
 
 			typedef IndexedFaceMesh<VertexData> VisMesh;
 			typedef IndexedTetMesh<ParticleData> ParticleMesh;
@@ -34,8 +38,7 @@ namespace PBD
 			float m_poissonRatio;
 			bool m_normalizeStretch;
 			bool m_normalizeShear;
-
-			void initConstraints();	
+			
 			void initTetConstraints();
 			void createVisMesh();
 

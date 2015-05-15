@@ -68,7 +68,8 @@ int main( int argc, char **argv )
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &pause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("SimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType, setSimulationMethod, getSimulationMethod, &simulation, " label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType, setSimulationMethod, getSimulationMethod, &simulation, 
+			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}' group=Simulation");
 	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_FLOAT, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Simulation' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "PoissonRatio", TW_TYPE_FLOAT, setPoissonRatio, getPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='Simulation' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, &model, " label='Normalize stretch' group='Strain based dynamics' ");
@@ -263,6 +264,7 @@ void createMesh()
 				pd.setMass(i*height*depth + j*depth + k, 0.0);
 		}
 	}
+	model.initConstraints();
 
 	std::cout << "Number of tets: " << indices.size() / 4 << "\n";
 	std::cout << "Number of vertices: " << width*height*depth << "\n";

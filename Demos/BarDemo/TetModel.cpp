@@ -50,8 +50,6 @@ void TetModel::setGeometry(const unsigned int nPoints, Eigen::Vector3f* coords, 
 	m_particleMesh.buildNeighbors();
 
 	createVisMesh();
-
-	initConstraints();
 }
 
 void TetModel::reset()
@@ -86,10 +84,18 @@ void TetModel::initTetConstraints()
 		const Eigen::Vector3f &x2 = pd.getPosition(tets[4 * i + 1]);
 		const Eigen::Vector3f &x3 = pd.getPosition(tets[4 * i + 2]);
 		const Eigen::Vector3f &x4 = pd.getPosition(tets[4 * i + 3]);
+		Eigen::Vector3f x[4] = { x1, x2, x3, x4 };
+		float w[4] = { 
+						pd.getInvMass(tets[4 * i]), 
+						pd.getInvMass(tets[4 * i + 1]), 
+						pd.getInvMass(tets[4 * i + 2]) , 
+						pd.getInvMass(tets[4 * i + 3]) 
+					};
  
  		TetConstraint tc;
  		PositionBasedDynamics::computeStrainTetraInvRestMat(x1, x2, x3, x4, tc.invRestMat_SBD);
  		PositionBasedDynamics::computeFEMTetraInvRestMat(x1, x2, x3, x4, tc.tetVolume, tc.invRestMat_FEM);
+		PositionBasedDynamics::computeShapeMatchingRestInfo(x, w, 4, tc.restCm_SM, tc.invRestMat_SM);
  		m_tetConstraints.push_back(tc);
  	}
 }

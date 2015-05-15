@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include "TriangleModel.h"
 #include "TimeStepTriangleModel.h"
+#include <iostream>
 
 // Enable memory leak detection
 #ifdef _DEBUG
@@ -281,6 +282,12 @@ void createMesh()
 	// Set mass of points to zero => make it static
 	pd.setMass(0, 0.0);
 	pd.setMass((nRows-1)*nCols, 0.0);
+
+	model.initConstraints();
+
+	std::cout << "Number of triangles: " << nIndices / 3 << "\n";
+	std::cout << "Number of vertices: " << nRows*nCols << "\n";
+
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)

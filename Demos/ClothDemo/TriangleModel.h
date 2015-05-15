@@ -47,14 +47,15 @@ namespace PBD
 			float m_yxPoissonRatio;
 			bool m_normalizeStretch;
 			bool m_normalizeShear;
-
-			void initConstraints();	
+			
 			void initBendingConstraints();
 			void initTriangleConstraints();
 
 		public:
 			ParticleMesh &getParticleMesh();
 			void cleanupModel();
+
+			void initConstraints();
 
 			float getStiffness() const { return m_stiffness; }
 			void setStiffness(float val) { m_stiffness = val; }
