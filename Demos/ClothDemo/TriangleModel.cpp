@@ -72,6 +72,7 @@ void TriangleModel::reset()
 		const Eigen::Vector3f& x0 = pd.getPosition0(i);
 		pd.getPosition(i) = x0;
 		pd.getLastPosition(i) = pd.getPosition(i);
+		pd.getOldPosition(i) = pd.getPosition(i);
 		pd.getVelocity(i).setZero();
 		pd.getAcceleration(i).setZero();
 	}

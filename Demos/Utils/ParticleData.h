@@ -92,6 +92,7 @@ namespace PBD
 			std::vector<Eigen::Vector3f> m_x;
 			std::vector<Eigen::Vector3f> m_v;
 			std::vector<Eigen::Vector3f> m_a;
+			std::vector<Eigen::Vector3f> m_oldX;
 			std::vector<Eigen::Vector3f> m_lastX;
 
 		public:
@@ -102,6 +103,7 @@ namespace PBD
 				  m_x(),
 				  m_v(),
 				  m_a(),
+				  m_oldX(),
 				  m_lastX()
 			{
 			}
@@ -114,6 +116,7 @@ namespace PBD
 				m_x.clear();
 				m_v.clear();
 				m_a.clear();
+				m_oldX.clear();
 				m_lastX.clear();
 			}
 
@@ -121,6 +124,7 @@ namespace PBD
 			{
 				m_x0.push_back(vertex);
 				m_x.push_back(vertex);
+				m_oldX.push_back(vertex);
 				m_lastX.push_back(vertex);
 				m_masses.push_back(1.0);
 				m_invMasses.push_back(1.0);
@@ -171,6 +175,21 @@ namespace PBD
 			FORCE_INLINE void setLastPosition(const unsigned int i, const Eigen::Vector3f &pos)
 			{
 				m_lastX[i] = pos;
+			}
+
+			FORCE_INLINE Eigen::Vector3f &getOldPosition(const unsigned int i)
+			{
+				return m_oldX[i];
+			}
+
+			FORCE_INLINE const Eigen::Vector3f &getOldPosition(const unsigned int i) const
+			{
+				return m_oldX[i];
+			}
+
+			FORCE_INLINE void setOldPosition(const unsigned int i, const Eigen::Vector3f &pos)
+			{
+				m_oldX[i] = pos;
 			}
 			
 			FORCE_INLINE Eigen::Vector3f &getVelocity(const unsigned int i)
@@ -242,6 +261,7 @@ namespace PBD
 				m_x.resize(newSize);
 				m_v.resize(newSize);
 				m_a.resize(newSize);
+				m_oldX.resize(newSize);
 				m_lastX.resize(newSize);
 			}
 
@@ -255,6 +275,7 @@ namespace PBD
 				m_x.reserve(newSize);
 				m_v.reserve(newSize);
 				m_a.reserve(newSize);
+				m_oldX.reserve(newSize);
 				m_lastX.reserve(newSize);
 			}
 
@@ -268,6 +289,7 @@ namespace PBD
 				m_x.clear();
 				m_v.clear();
 				m_a.clear();
+				m_oldX.clear();
 				m_lastX.clear();
 			}
 

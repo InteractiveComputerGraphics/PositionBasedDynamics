@@ -9,10 +9,10 @@ namespace PBD
 	class TimeStepTetModel 
 	{
 	protected:
+		unsigned int m_velocityUpdateMethod;
 		unsigned int m_simulationMethod;
 
 		void clearAccelerations(TetModel &model);
-		void semiImplicitEulerStep(TetModel &model, const float h);
 		void constraintProjection(TetModel &model);
 
 	public:
@@ -22,6 +22,8 @@ namespace PBD
 		void step(TetModel &model);
 		void reset(TetModel &model);	
 
+		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
+		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }
 		unsigned int getSimulationMethod() const { return m_simulationMethod; }
 		void setSimulationMethod(unsigned int val) { m_simulationMethod = val; }
 	};

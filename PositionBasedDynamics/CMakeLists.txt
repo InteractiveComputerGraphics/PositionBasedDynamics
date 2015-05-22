@@ -1,6 +1,8 @@
 ADD_LIBRARY(PositionBasedDynamics
 		PositionBasedDynamics.cpp
 		PositionBasedDynamics.h
+		TimeIntegration.cpp
+		TimeIntegration.h
 		CMakeLists.txt
 )
 

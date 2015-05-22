@@ -1,6 +1,7 @@
 #include "TimeStepTetModel.h"
 #include "Demos/Utils/TimeManager.h"
 #include "PositionBasedDynamics/PositionBasedDynamics.h"
+#include "PositionBasedDynamics/TimeIntegration.h"
 
 using namespace PBD;
 using namespace std;
@@ -18,17 +19,25 @@ void TimeStepTetModel::step(TetModel &model)
 {
 	TimeManager *tm = TimeManager::getCurrent ();
 	const float h = tm->getTimeStepSize();
+	ParticleData &pd = model.getParticleMesh().getVertexData();
 
 	clearAccelerations(model);
-	semiImplicitEulerStep(model, h);
+	for (unsigned int i = 0; i < pd.size(); i++)
+	{
+		pd.getLastPosition(i) = pd.getOldPosition(i);
+		pd.getOldPosition(i) = pd.getPosition(i);
+		TimeIntegration::semiImplicitEuler(h, pd.getMass(i), pd.getPosition(i), pd.getVelocity(i), pd.getAcceleration(i));
+	}
 
 	constraintProjection(model);
 
-	// Update velocities
-	ParticleData &pd = model.getParticleMesh().getVertexData();
+	// Update velocities	
 	for (unsigned int i = 0; i < pd.size(); i++)
 	{
-		pd.getVelocity(i) = 1.0f / h * (pd.getPosition(i) - pd.getLastPosition(i));
+		if (m_velocityUpdateMethod == 0)
+			TimeIntegration::velocityUpdateFirstOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getVelocity(i));
+		else
+			TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
 	}
 
 	// compute new time	
@@ -49,27 +58,6 @@ void TimeStepTetModel::clearAccelerations(TetModel &model)
 		{
 			Eigen::Vector3f &a = pd.getAcceleration(i);
 			a = grav;
-		}
-	}
-}
-
-void TimeStepTetModel::semiImplicitEulerStep(TetModel &model, const float h)
-{
-	ParticleData &pd = model.getParticleMesh().getVertexData();
-
-	// h * x'
-	for (unsigned int i=0; i < pd.size(); i++)
-	{
-		if (pd.getMass(i) != 0.0)
-		{
-			Eigen::Vector3f &pos = pd.getPosition(i);
-			Eigen::Vector3f &vel = pd.getVelocity(i);
-			const Eigen::Vector3f &accel = pd.getAcceleration(i);
-			Eigen::Vector3f &lastPos = pd.getLastPosition(i);
-			lastPos = pos;
-
-			vel += accel * h;
-			pos += vel * h;			
 		}
 	}
 }
@@ -114,13 +102,13 @@ void TimeStepTetModel::constraintProjection(TetModel &model)
 				float restLength = (x2_0 - x1_0).norm();
 
 				Eigen::Vector3f corr1, corr2;
-				const bool res = PositionBasedDynamics::solveDistanceConstraint(x1, invMass1, x2, invMass2, restLength, model.getStiffness(), model.getStiffness(), corr1, corr2);
+				const bool res = PositionBasedDynamics::solveDistanceConstraint(x1, invMass1, x2, invMass2, restLength, 0.0f, model.getStiffness(), corr1, corr2);
 
 				if (res)
 				{
-					if (invMass1 != 0)
+					if (invMass1 != 0.0f)
 						x1 += corr1;
-					if (invMass2 != 0)
+					if (invMass2 != 0.0f)
 						x2 += corr2;
 				}
 			}
@@ -219,13 +207,13 @@ void TimeStepTetModel::constraintProjection(TetModel &model)
 
 			if (res)
  			{
-				if (invMass1 != 0)
+				if (invMass1 != 0.0f)
  					x1 += corr1;
-				if (invMass2 != 0)
+				if (invMass2 != 0.0f)
  					x2 += corr2;
-				if (invMass3 != 0)
+				if (invMass3 != 0.0f)
 					x3 += corr3;
-				if (invMass4 != 0)
+				if (invMass4 != 0.0f)
 					x4 += corr4;
  			}
 		}	

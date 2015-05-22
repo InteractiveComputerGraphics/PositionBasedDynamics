@@ -60,8 +60,9 @@ void TetModel::reset()
 	for (unsigned int i = 0; i < nPoints; i++)
 	{
 		const Eigen::Vector3f& x0 = pd.getPosition0(i);
-		pd.getPosition(i) = x0;
+		pd.getPosition(i) = x0;		
 		pd.getLastPosition(i) = pd.getPosition(i);
+		pd.getOldPosition(i) = pd.getPosition(i);
 		pd.getVelocity(i).setZero();
 		pd.getAcceleration(i).setZero();
 	}

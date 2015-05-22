@@ -36,6 +36,8 @@ void TW_CALL setNormalizeShear(const void *value, void *clientData);
 void TW_CALL getNormalizeShear(void *value, void *clientData);
 void TW_CALL setSimulationMethod(const void *value, void *clientData);
 void TW_CALL getSimulationMethod(void *value, void *clientData);
+void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
+void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
 
 TetModel model;
 TimeStepTetModel simulation;
@@ -67,8 +69,10 @@ int main( int argc, char **argv )
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &pause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
-	TwType enumType = TwDefineEnum("SimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType, setSimulationMethod, getSimulationMethod, &simulation, 
+	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
+	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &simulation, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
+	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
+	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulation, 
 			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}' group=Simulation");
 	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_FLOAT, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Simulation' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "PoissonRatio", TW_TYPE_FLOAT, setPoissonRatio, getPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='Simulation' ");
@@ -335,4 +339,15 @@ void TW_CALL setSimulationMethod(const void *value, void *clientData)
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
 	*(short *)(value) = (short)((TimeStepTetModel*)clientData)->getSimulationMethod();
+}
+
+void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
+{
+	const short val = *(const short *)(value);
+	((TimeStepTetModel*)clientData)->setVelocityUpdateMethod((unsigned int)val);
+}
+
+void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
+{
+	*(short *)(value) = (short)((TimeStepTetModel*)clientData)->getVelocityUpdateMethod();
 }
