@@ -10,7 +10,12 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 INCLUDE(${PROJECT_PATH}/CMake/Common.cmake)
 INCLUDE(${PROJECT_PATH}/CMake/AntTweakBar.cmake)      
 
-SUBDIRS(extern/freeglut Demos PositionBasedDynamics)
+if(WIN32)
+  SUBDIRS(extern/freeglut Demos PositionBasedDynamics)
+else()
+  SUBDIRS(Demos PositionBasedDynamics)
+endif()
+
 
 
 

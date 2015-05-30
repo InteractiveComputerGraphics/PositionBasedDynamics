@@ -1,4 +1,5 @@
 #include "PositionBasedDynamics.h"
+#include <cfloat>
 
 using namespace PBD;
 

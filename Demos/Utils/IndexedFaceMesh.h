@@ -4,6 +4,8 @@
 #include <vector>
 #include <Eigen/Dense>
 
+
+
 namespace PBD 
 {
 	template <class VertexData>
@@ -39,8 +41,12 @@ namespace PBD
             {
                 m_numFaces = other.m_numFaces;
                 m_fIndices = new unsigned int[m_numFaces];
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)
                 std::copy(other.m_fIndices, other.m_fIndices + m_numFaces,
                     stdext::unchecked_array_iterator<unsigned int*>(m_fIndices));
+#else
+                std::copy(other.m_fIndices, other.m_fIndices + m_numFaces, m_fIndices);
+#endif
                 return *this;
             }
 
@@ -71,8 +77,12 @@ namespace PBD
             {
                 m_numEdges = other.m_numEdges;
                 m_eIndices = new unsigned int[m_numEdges];
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)
                 std::copy(other.m_eIndices, other.m_eIndices + m_numEdges,
                     stdext::unchecked_array_iterator<unsigned int*>(m_eIndices));
+#else
+                std::copy(other.m_eIndices, other.m_eIndices + m_numEdges, m_eIndices);
+#endif
                 return *this;
             }
 
@@ -179,19 +189,23 @@ namespace PBD
         m_normals          = other.m_normals;
         m_vertexNormals    = other.m_vertexNormals;
 
-        for (auto i(0u); i < m_faces.size(); ++i)
+        for (size_t i(0u); i < m_faces.size(); ++i)
         {
             m_faces[i].m_edges = new unsigned int[m_verticesPerFace];
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)
             std::copy(other.m_faces[i].m_edges, other.m_faces[i].m_edges + m_verticesPerFace,
                 stdext::unchecked_array_iterator<unsigned int*>(m_faces[i].m_edges));
+#else
+            std::copy(other.m_faces[i].m_edges, other.m_faces[i].m_edges + m_verticesPerFace, m_faces[i].m_edges);
+#endif
         }
 
         m_verticesEdges.resize(other.m_verticesEdges.size());
-        for (auto i(0u); i < m_verticesEdges.size(); ++i)
+        for (size_t i(0u); i < m_verticesEdges.size(); ++i)
             m_verticesEdges[i] = other.m_verticesEdges[i];
 
         m_verticesFaces.resize(other.m_verticesFaces.size());
-        for (auto i(0u); i < m_verticesFaces.size(); ++i)
+        for (size_t i(0u); i < m_verticesFaces.size(); ++i)
             m_verticesFaces[i] = other.m_verticesFaces[i];
 
         return *this;

@@ -12,6 +12,10 @@
 	#define REPORT_MEMORY_LEAKS
 #endif
 
+#ifdef _WIN32
 #define FORCE_INLINE __forceinline
+#else
+#define FORCE_INLINE __attribute__((always_inline))
+#endif
 
 #endif
