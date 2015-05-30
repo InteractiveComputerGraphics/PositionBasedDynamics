@@ -1,5 +1,5 @@
 #include "TetModel.h"
-#include "PositionBasedDynamics\PositionBasedDynamics.h"
+#include "PositionBasedDynamics/PositionBasedDynamics.h"
 
 using namespace PBD;
 

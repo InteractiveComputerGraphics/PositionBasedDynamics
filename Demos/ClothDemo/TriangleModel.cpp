@@ -1,5 +1,5 @@
 #include "TriangleModel.h"
-#include "PositionBasedDynamics\PositionBasedDynamics.h"
+#include "PositionBasedDynamics/PositionBasedDynamics.h"
 
 using namespace PBD;
 
