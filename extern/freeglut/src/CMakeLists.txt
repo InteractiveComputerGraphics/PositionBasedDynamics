@@ -1,5 +1,5 @@
 
-ADD_LIBRARY(freeglut SHARED
+add_library(freeglut SHARED
 	fg_callbacks.c
 	fg_cursor.c
 	fg_display.c
@@ -59,18 +59,18 @@ ADD_LIBRARY(freeglut SHARED
 	CMakeLists.txt
 )
 
-ADD_DEFINITIONS(-DFREEGLUT_EXPORTS)         
-ADD_DEFINITIONS(-D_USRDLL)  
-ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS) 
+add_definitions(-DFREEGLUT_EXPORTS)         
+add_definitions(-D_USRDLL)  
+add_definitions(-D_CRT_SECURE_NO_WARNINGS) 
 
-INCLUDE_DIRECTORIES(${PROJECT_PATH}/extern/freeglut/include)
+include_directories(${PROJECT_PATH}/extern/freeglut/include)
 
-SET_TARGET_PROPERTIES(freeglut PROPERTIES STATIC_LIBRARY_FLAGS_RELEASE ${IBDS_STATIC_LIBRARY_FLAGS_RELEASE})   
+set_target_properties(freeglut PROPERTIES STATIC_LIBRARY_FLAGS_RELEASE ${IBDS_STATIC_LIBRARY_FLAGS_RELEASE})   
  
-IF (WIN32)
-	ADD_CUSTOM_COMMAND(
+if (WIN32)
+	add_custom_command(
 	   TARGET freeglut
 	   POST_BUILD
 	   COMMAND xcopy /r /y \"$\(TargetPath\)" \"$\(TargetDir\)..\\..\\bin\\$\(ConfigurationName\)\\"
 	)                        
-ENDIF (WIN32)
+endif (WIN32)

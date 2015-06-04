@@ -45,7 +45,7 @@ TimeStepTetModel simulation;
 const unsigned int width = 30;
 const unsigned int depth = 5;
 const unsigned int height = 5; 
-bool pause = true;
+bool doPause = true;
 std::vector<unsigned int> selectedParticles;
 Eigen::Vector3f oldMousePos;
 
@@ -67,7 +67,7 @@ int main( int argc, char **argv )
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3f (5.0, -10.0, 30.0), Vector3f (5.0, 0.0, 0.0));
 
-	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &pause, " label='Pause' group=Simulation key=SPACE ");
+	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &simulation, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
@@ -131,7 +131,7 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 
 void timeStep ()
 {
-	if (pause)
+	if (doPause)
 		return;
 
 	// Simulation code

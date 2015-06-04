@@ -4,7 +4,7 @@
 #include "Demos/Utils/Config.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry> 
-#include "extern/AntTweakBar/AntTweakBar.h"
+#include "extern/AntTweakBar/include/AntTweakBar.h"
 
 
 namespace PBD
