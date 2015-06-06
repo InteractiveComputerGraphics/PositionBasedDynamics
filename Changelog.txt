@@ -1,0 +1,12 @@
+1.1.0
+
+ 	- added second order velocity update
+ 	- fixed build for Linux
+	- added AntTweakBar sources
+	- added second order velocity update
+	- added density constraint (position based fluids)
+	- added fluid demo
+
+1.0.0
+
+	- Initial release

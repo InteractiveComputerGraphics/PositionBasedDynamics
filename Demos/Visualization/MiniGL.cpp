@@ -6,6 +6,7 @@
 #include <cstdio>
 #endif
 
+#include "GL/glew.h"
 #include "GL/gl.h"
 #include "GL/glu.h"
 #include "GL/glut.h"
@@ -14,6 +15,7 @@
 #define _USE_MATH_DEFINES
 
 #include "math.h"
+#include <iostream>
 
 using namespace PBD;
 using namespace Eigen;
@@ -66,6 +68,12 @@ void MiniGL::unbindTexture()
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+void MiniGL::getOpenGLVersion(int &major_version, int &minor_version)
+{
+	sscanf((const char*)glGetString(GL_VERSION), "%d.%d", &major_version, &minor_version);
+}
+
 
 void MiniGL::coordinateSystem() 
 {
@@ -351,6 +359,31 @@ void MiniGL::init (int argc, char **argv, int width, int height, int posx, int p
 	glutInitWindowSize (width, height);
 	glutInitWindowPosition (posx, posy);
 
+	glutCreateWindow(name);
+
+	// Initialize GLEW
+	{
+		glewExperimental = GL_TRUE;
+		GLenum err = glewInit();
+
+		if (GLEW_OK != err)
+		{
+			std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		GLint context_major_version, context_minor_version, context_profile;
+		getOpenGLVersion(context_major_version, context_minor_version);
+		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &context_profile);
+
+		std::cout << "OpenGL version " << context_major_version << "." << context_minor_version << std::endl;
+		std::cout << "Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
+		std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
+		std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
+		std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
+	}
+
+
 	// Initialize AntTweakBar
 	// (note that AntTweakBar could also be initialized after GLUT, no matter)
 	if( !TwInit(TW_OPENGL, NULL) )
@@ -361,8 +394,6 @@ void MiniGL::init (int argc, char **argv, int width, int height, int posx, int p
 	}
 	TwWindowSize(width, height);
 	initTweakBar();
-
-	glutCreateWindow (name);
 
 	glEnable (GL_DEPTH_TEST);
 	glEnable (GL_NORMALIZE);

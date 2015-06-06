@@ -14,9 +14,9 @@ namespace PBD
 		static bool solveDistanceConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
-			float restLength,
-			float compressionStiffness,
-			float stretchStiffness,
+			const float restLength,
+			const float compressionStiffness,
+			const float stretchStiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1);
 
 
@@ -25,8 +25,8 @@ namespace PBD
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
 			const Eigen::Vector3f &p3, float invMass3,
-			float restAngle,
-			float stiffness,
+			const float restAngle,
+			const float stiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
 
@@ -35,18 +35,18 @@ namespace PBD
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
 			const Eigen::Vector3f &p3, float invMass3,
-			float restVolume,
-			float negVolumeStiffness,
-			float posVolumeStiffness,
+			const float restVolume,
+			const float negVolumeStiffness,
+			const float posVolumeStiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
 		static bool solveEdgePointDistConstraint(
 			const Eigen::Vector3f &p, float invMass,
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
-			float restDist,
-			float compressionStiffness,
-			float stretchStiffness,
+			const float restDist,
+			const float compressionStiffness,
+			const float stretchStiffness,
 			Eigen::Vector3f &corr, Eigen::Vector3f &corr0, Eigen::Vector3f &corr1);
 
 		static bool solveTrianglePointDistConstraint(
@@ -54,9 +54,9 @@ namespace PBD
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
-			float restDist,
-			float compressionStiffness,
-			float stretchStiffness,
+			const float restDist,
+			const float compressionStiffness,
+			const float stretchStiffness,
 			Eigen::Vector3f &corr, Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2);
 
 		static bool solveEdgeEdgeDistConstraint(
@@ -64,9 +64,9 @@ namespace PBD
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
 			const Eigen::Vector3f &p3, float invMass3,
-			float restDist,
-			float compressionStiffness,
-			float stretchStiffness,
+			const float restDist,
+			const float compressionStiffness,
+			const float stretchStiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
 
@@ -88,7 +88,7 @@ namespace PBD
 			const Eigen::Vector3f &p2, float invMass2,
 			const Eigen::Vector3f &p3, float invMass3,
 			const Eigen::Matrix4f &Q,
-			float stiffness,
+			const float stiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
 		// -------------- Shape Matching  -----------------------------------------------------
@@ -99,9 +99,10 @@ namespace PBD
 
 		static bool solveShapeMatchingConstraint(
 			const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], const int numPoints,
-			Eigen::Vector3f &restCm, const Eigen::Matrix3f &invRestMat,
-			float stiffness,
-			bool allowStretch,		// default false
+			const Eigen::Vector3f &restCm, 
+			const Eigen::Matrix3f &invRestMat,
+			const float stiffness,
+			const bool allowStretch,		// default false
 			Eigen::Vector3f corr[], Eigen::Matrix3f *rot = NULL);
 
 
@@ -119,9 +120,11 @@ namespace PBD
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
 			const Eigen::Matrix2f &invRestMat,
-			float xxStiffness, float yyStiffness, float xyStiffness,
-			bool normalizeStretch,		// use false as default
-			bool normalizeShear,		// use false as default
+			const float xxStiffness, 
+			const float yyStiffness, 
+			const float xyStiffness,
+			const bool normalizeStretch,		// use false as default
+			const bool normalizeShear,		// use false as default
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2);
 
 
@@ -144,8 +147,8 @@ namespace PBD
 			const Eigen::Matrix3f &invRestMat,
 			const Eigen::Vector3f &stretchStiffness,			// xx, yy, zz
 			const Eigen::Vector3f &shearStiffness,			// xy, xz, yz
-			bool normalizeStretch,		// use false as default
-			bool normalizeShear,		// use false as default
+			const bool normalizeStretch,		// use false as default
+			const bool normalizeShear,		// use false as default
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
 
@@ -165,11 +168,11 @@ namespace PBD
 			const Eigen::Vector3f &p2, float invMass2,
 			const float &area,
 			const Eigen::Matrix2f &invRestMat,
-			float youngsModulusX,
-			float youngsModulusY,
-			float youngsModulusShear,
-			float poissonRatioXY,
-			float poissonRatioYX,
+			const float youngsModulusX,
+			const float youngsModulusY,
+			const float youngsModulusShear,
+			const float poissonRatioXY,
+			const float poissonRatioYX,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2);
 
 
@@ -189,10 +192,55 @@ namespace PBD
 			const Eigen::Vector3f &p3, float invMass3,
 			const float restVolume,
 			const Eigen::Matrix3f &invRestMat,
-			float youngsModulus,
-			float poissonRatio,
-			bool  handleInversion,
+			const float youngsModulus,
+			const float poissonRatio,
+			const bool  handleInversion,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
+
+
+		// -------------- Position Based Fluids  -----------------------------------------------------
+		
+		static bool computePBFDensity(
+			const unsigned int particleIndex,				// current fluid particle	
+			const unsigned int numberOfParticles,			// number of fluid particles 
+			const Eigen::Vector3f x[],						// array of all particle positions
+			const float mass[],								// array of all particle masses
+			const Eigen::Vector3f boundaryX[],				// array of all boundary particles
+			const float boundaryPsi[],						// array of all boundary psi values (Akinci2012)
+			const unsigned int numNeighbors,				// number of neighbors 
+			const unsigned int neighbors[],					// array with indices of all neighbors (indices larger than numberOfParticles are boundary particles)
+			const float density0,							// rest density
+			const bool boundaryHandling,					// perform boundary handling (Akinci2012)
+			float &density_err,								// returns the clamped density error (can be used for enforcing a maximal global density error)
+			float &density);								// return the density
+
+		static bool computePBFLagrangeMultiplier(
+			const unsigned int particleIndex,				// current fluid particle	
+			const unsigned int numberOfParticles,			// number of fluid particles 
+			const Eigen::Vector3f x[],						// array of all particle positions
+			const float mass[],								// array of all particle masses
+			const Eigen::Vector3f boundaryX[],				// array of all boundary particles
+			const float boundaryPsi[],						// array of all boundary psi values (Akinci2012)
+			const float density,							// density of current fluid particle
+			const unsigned int numNeighbors,				// number of neighbors 
+			const unsigned int neighbors[],					// array with indices of all neighbors
+			const float density0,							// rest density
+			const bool boundaryHandling,					// perform boundary handling (Akinci2012)
+			float &lambda);									// returns the Lagrange multiplier
+
+		static bool solveDensityConstraint(
+			const unsigned int particleIndex,				// current fluid particle	
+			const unsigned int numberOfParticles,			// number of fluid particles 
+			const Eigen::Vector3f x[],						// array of all particle positions
+			const float mass[],								// array of all particle masses
+			const Eigen::Vector3f boundaryX[],				// array of all boundary particles
+			const float boundaryPsi[],						// array of all boundary psi values (Akinci2012)
+			const unsigned int numNeighbors,				// number of neighbors 
+			const unsigned int neighbors[],					// array with indices of all neighbors
+			const float density0,							// rest density
+			const bool boundaryHandling,					// perform boundary handling (Akinci2012)
+			const float lambda[],							// Lagrange multiplier
+			Eigen::Vector3f &corr);							// returns the position correction for the current fluid particle
 	};
 }
 

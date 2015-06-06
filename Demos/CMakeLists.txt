@@ -1,3 +1,3 @@
 include(Visualization/CMakeLists.txt)
 
-subdirs(BarDemo ClothDemo)
+subdirs(BarDemo ClothDemo FluidDemo)

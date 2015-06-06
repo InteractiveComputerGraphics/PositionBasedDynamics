@@ -65,8 +65,6 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 
-set_target_properties(freeglut PROPERTIES STATIC_LIBRARY_FLAGS_RELEASE ${IBDS_STATIC_LIBRARY_FLAGS_RELEASE})   
- 
 if (WIN32)
 	add_custom_command(
 	   TARGET freeglut

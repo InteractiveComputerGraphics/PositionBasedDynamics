@@ -15,20 +15,21 @@ else()
   )
 endif()
 
-add_executable(ClothDemo
+add_executable(FluidDemo
 	  main.cpp
 	  
-	  TimeStepTriangleModel.cpp
-	  TimeStepTriangleModel.h
-	  TriangleModel.cpp
-	  TriangleModel.h	  
+	  TimeStepFluidModel.cpp
+	  TimeStepFluidModel.h
+	  FluidModel.cpp
+	  FluidModel.h	  
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Demos/Utils/Config.h			
 	  ${PROJECT_PATH}/Demos/Utils/TimeManager.cpp	
 	  ${PROJECT_PATH}/Demos/Utils/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h
-	  ${PROJECT_PATH}/Demos/Utils/ParticleData.h		  
+	  ${PROJECT_PATH}/Demos/Utils/ParticleData.h	
+	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.cpp  
+	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.h
 	  
 	  CMakeLists.txt
 )
@@ -40,6 +41,6 @@ include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
-add_dependencies(ClothDemo ${SIMULATION_DEPENDENCIES})
-target_link_libraries(ClothDemo ${SIMULATION_LINK_LIBRARIES})
+add_dependencies(FluidDemo ${SIMULATION_DEPENDENCIES})
+target_link_libraries(FluidDemo ${SIMULATION_LINK_LIBRARIES})
 VIS_SOURCE_GROUPS()

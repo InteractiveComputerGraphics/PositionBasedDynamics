@@ -57,6 +57,7 @@ namespace PBD
 		static void mouseWheel(int button, int dir, int x, int y);
 		
 	public:
+		static void getOpenGLVersion(int &major_version, int &minor_version);
 		static void coordinateSystem ();
 		static void drawVector (const Eigen::Vector3f &a, const Eigen::Vector3f &b, const float w, float *color);
 		static void drawSphere (const Eigen::Vector3f &translation, float radius, float *color, const unsigned int subDivision =  16);
