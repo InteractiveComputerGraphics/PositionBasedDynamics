@@ -7,8 +7,14 @@
 #endif
 
 #include "GL/glew.h"
+#ifdef __APPLE__
+#include <OpenGL/GL.h>
+#include <OpenGL/GLU.h>
+#else
 #include "GL/gl.h"
 #include "GL/glu.h"
+#endif
+
 #include "GL/glut.h"
 #include "GL/freeglut_ext.h"
 
