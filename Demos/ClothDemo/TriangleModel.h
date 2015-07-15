@@ -32,12 +32,14 @@ namespace PBD
 			virtual ~TriangleModel();
 
 			typedef IndexedFaceMesh<ParticleData> ParticleMesh;
+			typedef std::vector<BendingConstraint, Eigen::aligned_allocator<BendingConstraint>> BendingConstraintVector;
+			typedef std::vector<TriangleConstraint, Eigen::aligned_allocator<TriangleConstraint>> TriangleConstraintVector;
 
 		protected:
 			/** Face mesh of particles which represents the simulation model */
 			ParticleMesh m_particleMesh;
-			std::vector<BendingConstraint> m_bendingConstraints;
-			std::vector<TriangleConstraint> m_triangleConstraints;
+			BendingConstraintVector m_bendingConstraints;
+			TriangleConstraintVector m_triangleConstraints;
 			float m_stiffness;			
 			float m_bendingStiffness;
 			float m_xxStiffness;			
@@ -81,8 +83,8 @@ namespace PBD
 			virtual void reset();
 			void updateMeshNormals();
 
-			std::vector<BendingConstraint> &getBendingConstraints();
-			std::vector<TriangleConstraint> &getTriangleConstraints();
+			BendingConstraintVector &getBendingConstraints();
+			TriangleConstraintVector &getTriangleConstraints();
 			
 	};
 }

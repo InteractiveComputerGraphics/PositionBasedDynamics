@@ -112,7 +112,7 @@ void TimeStepTriangleModel::constraintProjection(TriangleModel &model)
 		}
 		else if (m_simulationMethod == 2)		// strain energy constraint
 		{
-			std::vector<TriangleModel::TriangleConstraint> &triangleConstraints = model.getTriangleConstraints();
+			TriangleModel::TriangleConstraintVector &triangleConstraints = model.getTriangleConstraints();
 			const unsigned int *tris = model.getParticleMesh().getFaces().data();
 			const unsigned int nFaces = model.getParticleMesh().numFaces();
 			for (unsigned int i = 0; i < nFaces; i++)
@@ -152,7 +152,7 @@ void TimeStepTriangleModel::constraintProjection(TriangleModel &model)
 		}
 		else if (m_simulationMethod == 3)		// strain based dynamics
 		{
-			std::vector<TriangleModel::TriangleConstraint> &triangleConstraints = model.getTriangleConstraints();
+			TriangleModel::TriangleConstraintVector &triangleConstraints = model.getTriangleConstraints();
 			const unsigned int *tris = model.getParticleMesh().getFaces().data();
 			const unsigned int nFaces = model.getParticleMesh().numFaces();
 			for (unsigned int i = 0; i < nFaces; i++)
@@ -192,7 +192,7 @@ void TimeStepTriangleModel::constraintProjection(TriangleModel &model)
 
 		if (m_bendingMethod != 0)
 		{
-			std::vector<TriangleModel::BendingConstraint> &bendingConstraints = model.getBendingConstraints();
+			TriangleModel::BendingConstraintVector &bendingConstraints = model.getBendingConstraints();
 
 			for (unsigned int i = 0; i < (unsigned int)bendingConstraints.size(); i++)
 			{
