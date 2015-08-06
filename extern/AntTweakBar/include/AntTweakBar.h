@@ -42,7 +42,7 @@
 //  OS specific definitions
 // ----------------------------------------------------------------------------
 
-#if (defined(_WIN32) || defined(_WIN64)) && !defined(TW_STATIC)
+#if (defined(_WIN32) || defined(_WIN64)) //&& !defined(TW_STATIC)
 #   define TW_CALL          __stdcall
 #   define TW_CDECL_CALL    __cdecl
 #   define TW_EXPORT_API    __declspec(dllexport)

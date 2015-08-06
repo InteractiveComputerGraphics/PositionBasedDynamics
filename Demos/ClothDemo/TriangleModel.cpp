@@ -90,6 +90,7 @@ void TriangleModel::initTriangleConstraints()
 	unsigned int nFaces = getParticleMesh().numFaces();
 	const unsigned int *tris = getParticleMesh().getFaces().data();
 	const ParticleData &pd = getParticleMesh().getVertexData();
+	m_triangleConstraints.reserve(nFaces);
 	for (unsigned int i = 0; i < nFaces; i++)
 	{
 		const Eigen::Vector3f &x1 = pd.getPosition0(tris[3 * i]);
@@ -157,12 +158,12 @@ void TriangleModel::initBendingConstraints()
 	}
 }
 
-std::vector<TriangleModel::BendingConstraint> & TriangleModel::getBendingConstraints()
+TriangleModel::BendingConstraintVector & TriangleModel::getBendingConstraints()
 {
 	return m_bendingConstraints;
 }
 
-std::vector<TriangleModel::TriangleConstraint> & TriangleModel::getTriangleConstraints()
+TriangleModel::TriangleConstraintVector & TriangleModel::getTriangleConstraints()
 {
 	return m_triangleConstraints;
 }
