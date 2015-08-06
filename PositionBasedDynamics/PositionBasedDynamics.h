@@ -6,11 +6,46 @@
 // ------------------------------------------------------------------------------------
 namespace PBD
 {
+	class MathFunctions
+	{
+		// -------------- required methods -----------------------------------------------------
+	private:
+		static void jacobiRotate(Eigen::Matrix3f &A,
+			Eigen::Matrix3f &R,
+			int p,
+			int q);
+
+	public:
+		static float infNorm(const Eigen::Matrix3f &A);
+		static float oneNorm(const Eigen::Matrix3f &A);
+
+		static void eigenDecomposition(const Eigen::Matrix3f &A,
+			Eigen::Matrix3f &eigenVecs,
+			Eigen::Vector3f &eigenVals);
+
+		static void polarDecomposition(const Eigen::Matrix3f &A,
+			Eigen::Matrix3f &R,
+			Eigen::Matrix3f &U,
+			Eigen::Matrix3f &D);
+
+		static void polarDecompositionStable(const Eigen::Matrix3f &M,
+			const float tolerance,
+			Eigen::Matrix3f &R);
+
+		static void svdWithInversionHandling(const Eigen::Matrix3f &A,
+			Eigen::Vector3f &sigma,
+			Eigen::Matrix3f &U,
+			Eigen::Matrix3f &VT);
+
+		static float cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w);
+	};
+
+
 	class PositionBasedDynamics
 	{
 	public:
-		// -------------- standard PBD -----------------------------------------------------
 
+		// -------------- standard PBD -----------------------------------------------------
 		static bool solveDistanceConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
@@ -71,8 +106,6 @@ namespace PBD
 
 
 		// -------------- Isometric bending -----------------------------------------------------
-
-		static float cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w);
 
 		static bool computeQuadraticBendingMat(		// compute only when rest shape changes, angle on (p2, p3) between triangles (p0, p2, p3) and (p1, p3, p2)
 			const Eigen::Vector3f &p0,
@@ -153,7 +186,29 @@ namespace PBD
 
 
 		// -------------- FEM Based PBD  -----------------------------------------------------
+	private:
+		static void computeGradCGreen(
+			float restVolume, 
+			const Eigen::Matrix3f &invRestMat, 
+			const Eigen::Matrix3f &sigma, 
+			Eigen::Vector3f *J);
 
+		static void computeGreenStrainAndPiolaStress(
+			const Eigen::Vector3f &x1, const Eigen::Vector3f &x2, const Eigen::Vector3f &x3, const Eigen::Vector3f &x4,
+			const Eigen::Matrix3f &invRestMat,
+			const float restVolume,
+			const float mu, const float lambda,
+			Eigen::Matrix3f &epsilon, Eigen::Matrix3f &sigma, float &energy);
+
+		static void computeGreenStrainAndPiolaStressInversion(
+			const Eigen::Vector3f &x1, const Eigen::Vector3f &x2, const Eigen::Vector3f &x3, const Eigen::Vector3f &x4,
+			const Eigen::Matrix3f &invRestMat,
+			const float restVolume,
+			const float mu, const float lambda,
+			Eigen::Matrix3f &epsilon, Eigen::Matrix3f &sigma, float &energy);
+
+
+	public:
 		static bool computeFEMTriangleInvRestMat(		// compute only when rest shape changes
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,

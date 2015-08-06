@@ -4,8 +4,12 @@
 
 using namespace PBD;
 
+//////////////////////////////////////////////////////////////////////////
+// MathFunctions
+//////////////////////////////////////////////////////////////////////////
+
 // ----------------------------------------------------------------------------------------------
-static void jacobiRotate(Eigen::Matrix3f &A, Eigen::Matrix3f &R, int p, int q)
+void MathFunctions::jacobiRotate(Eigen::Matrix3f &A, Eigen::Matrix3f &R, int p, int q)
 {
 	// rotates A through phi in pq-plane to set A(p,q) = 0
 	// rotation stored in R whose columns are eigenvectors of A
@@ -40,7 +44,7 @@ static void jacobiRotate(Eigen::Matrix3f &A, Eigen::Matrix3f &R, int p, int q)
 }
 
 // ----------------------------------------------------------------------------------------------
-static void eigenDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &eigenVecs, Eigen::Vector3f &eigenVals)
+void MathFunctions::eigenDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &eigenVecs, Eigen::Vector3f &eigenVals)
 {
 	const int numJacobiIterations = 10;
 	const float epsilon = 1e-15f;
@@ -71,8 +75,9 @@ static void eigenDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &eigenV
 	eigenVals[2] = D(2, 2);
 }
 
-//---------------------------------------------------------------------
-static void polarDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &R, Eigen::Matrix3f &U, Eigen::Matrix3f &D)
+/** Perform polar decomposition A = (U D U^T) R
+*/
+void MathFunctions::polarDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &R, Eigen::Matrix3f &U, Eigen::Matrix3f &D)
 {
 	// A = SR, where S is symmetric and R is orthonormal
 	// -> S = (A A^T)^(1/2)
@@ -144,7 +149,7 @@ static void polarDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &R, Eig
 
 /** Return the one norm of the matrix.
 */
-static float oneNorm(const Eigen::Matrix3f &A) 
+float MathFunctions::oneNorm(const Eigen::Matrix3f &A)
 {
 	const float sum1 = fabs(A(0,0)) + fabs(A(1,0)) + fabs(A(2,0));
 	const float sum2 = fabs(A(0,1)) + fabs(A(1,1)) + fabs(A(2,1));
@@ -159,7 +164,7 @@ static float oneNorm(const Eigen::Matrix3f &A)
 
 /** Return the inf norm of the matrix.
 */
-static float infNorm(const Eigen::Matrix3f &A)
+float MathFunctions::infNorm(const Eigen::Matrix3f &A)
 {
 	const float sum1 = fabs(A(0, 0)) + fabs(A(0, 1)) + fabs(A(0, 2));
 	const float sum2 = fabs(A(1, 0)) + fabs(A(1, 1)) + fabs(A(1, 2));
@@ -174,7 +179,7 @@ static float infNorm(const Eigen::Matrix3f &A)
 
 /** Perform a polar decomposition of matrix M and return the rotation matrix R. This method handles the degenerated cases.
 */
-static void polarDecomposition2(const Eigen::Matrix3f &M, const float tolerance, Eigen::Matrix3f &R)
+void MathFunctions::polarDecompositionStable(const Eigen::Matrix3f &M, const float tolerance, Eigen::Matrix3f &R)
 {
 	Eigen::Matrix3f Mt = M.transpose();
 	float Mone = oneNorm(M);
@@ -249,8 +254,158 @@ static void polarDecomposition2(const Eigen::Matrix3f &M, const float tolerance,
 	R = Mt.transpose();
 }
 
+/** Perform a singular value decomposition of matrix A: A = U * sigma * V^T.
+* This function returns two proper rotation matrices U and V^T which do not 
+* contain a reflection. Reflections are corrected by the inversion handling
+* proposed by Irving et al. 2004.
+*/
+void MathFunctions::svdWithInversionHandling(const Eigen::Matrix3f &A, Eigen::Vector3f &sigma, Eigen::Matrix3f &U, Eigen::Matrix3f &VT)
+{
+
+	Eigen::Matrix3f AT_A, V;
+	AT_A = A.transpose() * A;
+
+	Eigen::Vector3f S;
+
+	// Eigen decomposition of A^T * A
+	eigenDecomposition(AT_A, V, S);
+
+	// Detect if V is a reflection .
+	// Make a rotation out of it by multiplying one column with -1.
+	const float detV = V.determinant();
+	if (detV < 0.0)
+	{
+		float minLambda = FLT_MAX;
+		unsigned char pos = 0;
+		for (unsigned char l = 0; l < 3; l++)
+		{
+			if (S[l] < minLambda)
+			{
+				pos = l;
+				minLambda = S[l];
+			}
+		}
+		V(0, pos) = -V(0, pos);
+		V(1, pos) = -V(1, pos);
+		V(2, pos) = -V(2, pos);
+	}
+
+	if (S[0] < 0.0f) S[0] = 0.0f;		// safety for sqrt
+	if (S[1] < 0.0f) S[1] = 0.0f;
+	if (S[2] < 0.0f) S[2] = 0.0f;
+
+	sigma[0] = sqrt(S[0]);
+	sigma[1] = sqrt(S[1]);
+	sigma[2] = sqrt(S[2]);
+
+	VT = V.transpose();
+
+	//
+	// Check for values of hatF near zero
+	//
+	unsigned char chk = 0;
+	unsigned char pos = 0;
+	for (unsigned char l = 0; l < 3; l++)
+	{
+		if (fabs(sigma[l]) < 1.0e-4)
+		{
+			pos = l;
+			chk++;
+		}
+	}
+
+	if (chk > 0)
+	{
+		if (chk > 1)
+		{
+			U.setIdentity();
+		}
+		else
+		{
+			U = A * V;
+			for (unsigned char l = 0; l < 3; l++)
+			{
+				if (l != pos)
+				{
+					for (unsigned char m = 0; m < 3; m++)
+					{
+						U(m, l) *= 1.0f / sigma[l];
+					}
+				}
+			}
+
+			Eigen::Vector3f v[2];
+			unsigned char index = 0;
+			for (unsigned char l = 0; l < 3; l++)
+			{
+				if (l != pos)
+				{
+					v[index++] = Eigen::Vector3f(U(0, l), U(1, l), U(2, l));
+				}
+			}
+			Eigen::Vector3f vec = v[0].cross(v[1]);
+			vec.normalize();
+			U(0, pos) = vec[0];
+			U(1, pos) = vec[1];
+			U(2, pos) = vec[2];
+		}
+	}
+	else
+	{
+		Eigen::Vector3f sigmaInv(1.0f / sigma[0], 1.0f / sigma[1], 1.0f / sigma[2]);
+		U = A * V;
+		for (unsigned char l = 0; l < 3; l++)
+		{
+			for (unsigned char m = 0; m < 3; m++)
+			{
+				U(m, l) *= sigmaInv[l];
+			}
+		}
+	}
+
+	const float detU = U.determinant();
+
+	// U is a reflection => inversion
+	if (detU < 0.0)
+	{
+		//std::cout << "Inversion!\n";
+		float minLambda = FLT_MAX;
+		unsigned char pos = 0;
+		for (unsigned char l = 0; l < 3; l++)
+		{
+			if (sigma[l] < minLambda)
+			{
+				pos = l;
+				minLambda = sigma[l];
+			}
+		}
+
+		// invert values of smallest singular value
+		sigma[pos] = -sigma[pos];
+		U(0, pos) = -U(0, pos);
+		U(1, pos) = -U(1, pos);
+		U(2, pos) = -U(2, pos);
+	}
+}
 
 // ----------------------------------------------------------------------------------------------
+float MathFunctions::cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w)
+{
+	const float cosTheta = v.dot(w);
+	const float sinTheta = (v.cross(w)).norm();
+	return (cosTheta / sinTheta);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+// PositionBasedDynamics
+//////////////////////////////////////////////////////////////////////////
+
+
+/** Return the position corrections for a distance constraint between 
+ * two particles: C=|p0-p1|-restLength = 0.
+ */
 bool PositionBasedDynamics::solveDistanceConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
@@ -279,7 +434,9 @@ bool PositionBasedDynamics::solveDistanceConstraint(
 }
 
 
-// ----------------------------------------------------------------------------------------------
+/** Return the position corrections for a dihedral bending constraint between
+* two triangles (p0, p2, p3) and (p1, p2, p3) with the common edge (p2, p3).
+*/
 bool PositionBasedDynamics::solveDihedralConstraint(
 	const Eigen::Vector3f &p0, float invMass0,		
 	const Eigen::Vector3f &p1, float invMass1,
@@ -347,7 +504,9 @@ bool PositionBasedDynamics::solveDihedralConstraint(
 	return true;
 }
 
-// ----------------------------------------------------------------------------------------------
+/** Return the position corrections for a tetrahedral volume constraint, 
+* where the tetrahedron (p0,p1,p2,p3) has the given rest volume.
+*/
 bool PositionBasedDynamics::solveVolumeConstraint(
 	const Eigen::Vector3f &p0, float invMass0,		
 	const Eigen::Vector3f &p1, float invMass1,
@@ -400,14 +559,6 @@ bool PositionBasedDynamics::solveVolumeConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-float PositionBasedDynamics::cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w)
-{
-	const float cosTheta = v.dot(w);
-	const float sinTheta = (v.cross(w)).norm();
-	return (cosTheta / sinTheta);
-}
-
-// ----------------------------------------------------------------------------------------------
 bool PositionBasedDynamics::computeQuadraticBendingMat(
 	const Eigen::Vector3f &p0, 
 	const Eigen::Vector3f &p1, 
@@ -424,10 +575,10 @@ bool PositionBasedDynamics::computeQuadraticBendingMat(
 	const Eigen::Vector3f e3 = *x[2] - *x[1];
 	const Eigen::Vector3f e4 = *x[3] - *x[1];
 
-	const float c01 = cotTheta(e0, e1);
-	const float c02 = cotTheta(e0, e2);
-	const float c03 = cotTheta(-e0, e3);
-	const float c04 = cotTheta(-e0, e4);
+	const float c01 = MathFunctions::cotTheta(e0, e1);
+	const float c02 = MathFunctions::cotTheta(e0, e2);
+	const float c03 = MathFunctions::cotTheta(-e0, e3);
+	const float c04 = MathFunctions::cotTheta(-e0, e4);
 
 	const float A0 = 0.5f * (e0.cross(e1)).norm();
 	const float A1 = 0.5f * (e0.cross(e2)).norm();
@@ -836,8 +987,8 @@ bool PositionBasedDynamics::solveShapeMatchingConstraint(
 	if (allowStretch)
 		R = mat;
 	else
-		//polarDecomposition(mat, R, U, D);
-		polarDecomposition2(mat, 1e-6f, R);
+		//MathFunctions::polarDecomposition(mat, R, U, D);
+		MathFunctions::polarDecompositionStable(mat, 1e-6f, R);
 
 	for (int i = 0; i < numPoints; i++) {
 		Eigen::Vector3f goal = cm + R * (x0[i] - restCm);
@@ -1248,7 +1399,7 @@ bool PositionBasedDynamics::computeFEMTetraInvRestMat(			// compute only when re
 }
 
 // ----------------------------------------------------------------------------------------------
-static void computeGreenStrainAndPiolaStress(
+void PositionBasedDynamics::computeGreenStrainAndPiolaStress(
 	const Eigen::Vector3f &x1, const Eigen::Vector3f &x2, const Eigen::Vector3f &x3, const Eigen::Vector3f &x4,
 	const Eigen::Matrix3f &invRestMat,
 	const float restVolume,
@@ -1301,7 +1452,7 @@ static void computeGreenStrainAndPiolaStress(
 }
 
 // ----------------------------------------------------------------------------------------------
-static void computeGradCGreen(float restVolume, const Eigen::Matrix3f &invRestMat, const Eigen::Matrix3f &sigma, Eigen::Vector3f *J)
+void PositionBasedDynamics::computeGradCGreen(float restVolume, const Eigen::Matrix3f &invRestMat, const Eigen::Matrix3f &sigma, Eigen::Vector3f *J)
 {
 	Eigen::Matrix3f H;
 	Eigen::Matrix3f T;
@@ -1324,7 +1475,7 @@ static void computeGradCGreen(float restVolume, const Eigen::Matrix3f &invRestMa
 }
 
 // ----------------------------------------------------------------------------------------------
-static void computeGreenStrainAndPiolaStressInversion(
+void PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(
 	const Eigen::Vector3f &x1, const Eigen::Vector3f &x2, const Eigen::Vector3f &x3, const Eigen::Vector3f &x4,
 	const Eigen::Matrix3f &invRestMat,
 	const float restVolume,
@@ -1347,132 +1498,9 @@ static void computeGreenStrainAndPiolaStressInversion(
 	F(2, 1) = p14[2]*invRestMat(0, 1) + p24[2]*invRestMat(1, 1) + p34[2]*invRestMat(2, 1);
 	F(2, 2) = p14[2]*invRestMat(0, 2) + p24[2]*invRestMat(1, 2) + p34[2]*invRestMat(2, 2);
 
-
-	Eigen::Matrix3f FT_F;
-	FT_F = F.transpose() * F;
-
-	// Inversion handling
-	Eigen::Matrix3f V;
-	Eigen::Vector3f S;
-	eigenDecomposition(FT_F, V, S);
-
-	if (S[0] < 0.0f) S[0] = 0.0f;		// safety for sqrt
-	if (S[1] < 0.0f) S[1] = 0.0f;
-	if (S[2] < 0.0f) S[2] = 0.0f;
-
-	// Detect if V is a reflection .
-	// Make a rotation out of it by multiplying one column with -1.
-	const float detV = V.determinant();
-	if (detV < 0.0)
-	{
-		float minLambda = FLT_MAX;
-		unsigned char pos = 0;
-		for (unsigned char l = 0; l < 3; l++)
-		{
-			if (S[l] < minLambda)
-			{
-				pos = l;
-				minLambda = S[l];
-			}
-		}
-		V(0, pos) = -V(0, pos);
-		V(1, pos) = -V(1, pos);
-		V(2, pos) = -V(2, pos);
-	}
-
+	Eigen::Matrix3f U, VT;
 	Eigen::Vector3f hatF;
-	hatF[0] = sqrtf(S[0]);
-	hatF[1] = sqrtf(S[1]);
-	hatF[2] = sqrtf(S[2]);
-
-	Eigen::Matrix3f VT;
-	VT = V.transpose();
-
-	//
-	// Check for values of hatF near zero
-	//
-	unsigned char chk = 0;
-	unsigned char pos = 0;
-	for (unsigned char l = 0; l < 3; l++)
-	{
-		if (fabs(hatF[l]) < 1.0e-4f)
-		{
-			pos = l;
-			chk++;
-		}
-	}
-
-	Eigen::Matrix3f U;
-	if (chk > 0)
-	{
-		if (chk > 1)
-		{
-			U.setIdentity();
-		}
-		else
-		{
-			U = F * V;
-			for (unsigned char l = 0; l < 3; l++)
-			{
-				if (l != pos)
-				{
-					for (unsigned char m = 0; m < 3; m++)
-					{
-						U(m, l) *= 1.0f / hatF[l];
-					}
-				}
-			}
-
-			Eigen::Vector3f v[2];
-			unsigned char index = 0;
-			for (unsigned char l = 0; l < 3; l++)
-			{
-				if (l != pos)
-				{
-					v[index++] = Eigen::Vector3f(U(0, l), U(1, l), U(2, l));
-				}
-			}
-			Eigen::Vector3f vec = v[0].cross(v[1]);
-			vec.normalize();
-			U(0, pos) = vec[0];
-			U(1, pos) = vec[1];
-			U(2, pos) = vec[2];
-		}
-	}
-	else
-	{
-		Eigen::Vector3f hatFInv(1.0f / hatF[0], 1.0f / hatF[1], 1.0f / hatF[2]);
-		U = F * V;
-		for (unsigned char l = 0; l < 3; l++)
-		{
-			for (unsigned char m = 0; m < 3; m++)
-			{
-				U(m, l) *= hatFInv[l];
-			}
-		}
-	}
-
-	const float detU = U.determinant();
-
-	// U is a reflection => tet is inverted
-	if (detU < 0.0f)
-	{
-		//std::cout << "Inverted tet!\n";
-		float minLambda = FLT_MAX;
-		unsigned char pos = 0;
-		for (unsigned char l = 0; l < 3; l++)
-		{
-			if (hatF[l] < minLambda)
-			{
-				pos = l;
-				minLambda = hatF[l];
-			}
-		}
-		hatF[pos] = -hatF[pos];
-		U(0, pos) = -U(0, pos);
-		U(1, pos) = -U(1, pos);
-		U(2, pos) = -U(2, pos);
-	}
+	MathFunctions::svdWithInversionHandling(F, hatF, U, VT);
 
 	// Clamp small singular values
 	const float minXVal = 0.577f;
