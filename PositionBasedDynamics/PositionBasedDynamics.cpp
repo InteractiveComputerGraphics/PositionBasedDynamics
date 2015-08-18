@@ -1736,3 +1736,88 @@ bool PositionBasedDynamics::solveDensityConstraint(
 	return true;
 }
 
+// ----------------------------------------------------------------------------------------------
+void PBD::PositionBasedDynamics::computeMatrixK(
+	const Eigen::Vector3f &connector,
+	const float mass,
+	const Eigen::Vector3f &x,
+	const Eigen::Matrix3f &inertiaInverseW,
+	const Eigen::Quaternionf &q, 
+	Eigen::Matrix3f &K)
+{
+	if (mass != 0.0f)
+	{
+		const Eigen::Vector3f v = connector - x;
+		const float a = v[0];
+		const float b = v[1];
+		const float c = v[2];
+
+		// J is symmetric
+		const float j11 = inertiaInverseW(0,0);
+		const float j12 = inertiaInverseW(0,1);
+		const float j13 = inertiaInverseW(0,2);
+		const float j22 = inertiaInverseW(1,1);
+		const float j23 = inertiaInverseW(1,2);
+		const float j33 = inertiaInverseW(2,2);
+
+		const float m = (1.0f / mass);
+		K(0,0) = c*c*j22 - b*c*(j23 + j23) + b*b*j33 + m;
+		K(0,1) = -(c*c*j12) + a*c*j23 + b*c*j13 - a*b*j33;
+		K(0,2) = b*c*j12 - a*c*j22 - b*b*j13 + a*b*j23;
+		K(1,0) = K(0,1);
+		K(1,1) = c*c*j11 - a*c*(j13 + j13) + a*a*j33 + m;
+		K(1,2) = -(b*c*j11) + a*c*j12 + a*b*j13 - a*a*j23;
+		K(2,0) = K(0,2);
+		K(2,1) = K(1,2);
+		K(2,2) = b*b*j11 - a*b*(j12 + j12) + a*a*j22 + m;
+	}
+	else
+		K.setZero();
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PBD::PositionBasedDynamics::solveRigidBodyBallJoint(
+	const Eigen::Vector3f &connector0,				
+	const float mass0,								
+	const Eigen::Vector3f &x0, 						
+	const Eigen::Matrix3f &inertiaInverseW0,		
+	const Eigen::Quaternionf &q0,					
+	const Eigen::Vector3f &connector1,				
+	const float mass1,								
+	const Eigen::Vector3f &x1, 						
+	const Eigen::Matrix3f &inertiaInverseW1,		
+	const Eigen::Quaternionf &q1,					
+	Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+	Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1)
+{
+	// Compute Kinv
+	Eigen::Matrix3f K1, K2;
+	computeMatrixK(connector0, mass0, x0, inertiaInverseW0, q0, K1);
+	computeMatrixK(connector1, mass1, x1, inertiaInverseW1, q1, K2);
+	const Eigen::Matrix3f Kinv = (K1 + K2).inverse();
+
+	const Eigen::Vector3f pt = Kinv * (connector1 - connector0);
+
+	if (mass0 != 0.0f)
+	{
+		const Eigen::Vector3f r0 = connector0 - x0;
+		corr_x0 = (1.0f / mass0)*pt;
+
+		Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt)));
+		Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
+		corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
+	}
+
+	if (mass1 != 0.0f)
+	{
+		const Eigen::Vector3f r1 = connector1 - x1;
+		corr_x1 = -(1.0f / mass1)*pt;
+
+		Eigen::Vector3f ot = (inertiaInverseW1 * (r1.cross(-pt)));
+		Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
+		corr_q1.coeffs() = 0.5f *(otQ*q1).coeffs();
+	}
+
+	return true;
+}
+

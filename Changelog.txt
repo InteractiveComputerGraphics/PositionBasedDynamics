@@ -1,3 +1,10 @@
+1.2.0
+	- added rigid body demo
+	- added balljoint constraint
+	- fixed WIN32 issues
+	- cleanup
+	- Ubuntu fix
+
 1.1.0
 
  	- added second order velocity update

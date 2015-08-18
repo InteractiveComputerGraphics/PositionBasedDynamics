@@ -32,8 +32,8 @@ namespace PBD
 			virtual ~TriangleModel();
 
 			typedef IndexedFaceMesh<ParticleData> ParticleMesh;
-			typedef std::vector<BendingConstraint, Eigen::aligned_allocator<BendingConstraint>> BendingConstraintVector;
-			typedef std::vector<TriangleConstraint, Eigen::aligned_allocator<TriangleConstraint>> TriangleConstraintVector;
+			typedef std::vector<BendingConstraint, Eigen::aligned_allocator<BendingConstraint> > BendingConstraintVector;
+			typedef std::vector<TriangleConstraint, Eigen::aligned_allocator<TriangleConstraint> > TriangleConstraintVector;
 
 		protected:
 			/** Face mesh of particles which represents the simulation model */

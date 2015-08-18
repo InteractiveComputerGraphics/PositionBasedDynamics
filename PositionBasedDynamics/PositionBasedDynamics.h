@@ -296,6 +296,32 @@ namespace PBD
 			const bool boundaryHandling,					// perform boundary handling (Akinci2012)
 			const float lambda[],							// Lagrange multiplier
 			Eigen::Vector3f &corr);							// returns the position correction for the current fluid particle
+
+
+		// -------------- Position Based Rigid Body Dynamics  -----------------------------------------------------
+	private:
+		static void computeMatrixK(
+			const Eigen::Vector3f &connector,
+			const float mass,
+			const Eigen::Vector3f &x,
+			const Eigen::Matrix3f &inertiaInverseW,
+			const Eigen::Quaternionf &q,
+			Eigen::Matrix3f &K);
+
+	public:
+		static bool solveRigidBodyBallJoint(
+			const Eigen::Vector3f &connector0,				// connector of balljoint in body 0
+			const float mass0,								// mass is zero if body is static
+			const Eigen::Vector3f &x0, 						// center of mass of body 0
+			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0			
+			const Eigen::Vector3f &connector1,				// connector of balljoint in body 1
+			const float mass1,								// mass is zero if body is static
+			const Eigen::Vector3f &x1, 						// center of mass of body 1
+			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
+			const Eigen::Quaternionf &q1,					// rotation of body 1
+			Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
 	};
 }
 
