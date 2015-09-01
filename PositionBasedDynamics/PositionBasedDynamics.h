@@ -305,7 +305,6 @@ namespace PBD
 			const float mass,
 			const Eigen::Vector3f &x,
 			const Eigen::Matrix3f &inertiaInverseW,
-			const Eigen::Quaternionf &q,
 			Eigen::Matrix3f &K);
 
 	public:

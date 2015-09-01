@@ -1742,7 +1742,6 @@ void PBD::PositionBasedDynamics::computeMatrixK(
 	const float mass,
 	const Eigen::Vector3f &x,
 	const Eigen::Matrix3f &inertiaInverseW,
-	const Eigen::Quaternionf &q, 
 	Eigen::Matrix3f &K)
 {
 	if (mass != 0.0f)
@@ -1792,8 +1791,8 @@ bool PBD::PositionBasedDynamics::solveRigidBodyBallJoint(
 {
 	// Compute Kinv
 	Eigen::Matrix3f K1, K2;
-	computeMatrixK(connector0, mass0, x0, inertiaInverseW0, q0, K1);
-	computeMatrixK(connector1, mass1, x1, inertiaInverseW1, q1, K2);
+	computeMatrixK(connector0, mass0, x0, inertiaInverseW0, K1);
+	computeMatrixK(connector1, mass1, x1, inertiaInverseW1, K2);
 	const Eigen::Matrix3f Kinv = (K1 + K2).inverse();
 
 	const Eigen::Vector3f pt = Kinv * (connector1 - connector0);

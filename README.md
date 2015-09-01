@@ -11,7 +11,7 @@ Until now the library was only tested on a Windows system. However, it should al
 ## Features
 
 * Physically-based simulation with position-based constraint handling.
-* Library supports many constraints: point-point, point-edge, point-triangle and edge-edge distance constraints, dihedral bending constraint, isometric bending, volume constraint, shape matching, FEM-based PBD (2D & 3D), strain-based dynamics (2D & 3D) and position-based fluids.
+* Library supports many constraints: point-point, point-edge, point-triangle and edge-edge distance constraints, dihedral bending constraint, isometric bending, volume constraint, shape matching, FEM-based PBD (2D & 3D), strain-based dynamics (2D & 3D), position-based fluids and position-based rigid body dynamics.
 * Simple interface
 * Demos 
 * Library is free even for commercial applications.
