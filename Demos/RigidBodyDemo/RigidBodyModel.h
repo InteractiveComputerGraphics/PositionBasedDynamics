@@ -4,6 +4,7 @@
 #include "Demos/Utils/Config.h"
 #include <vector>
 #include "Demos/Utils/RigidBody.h"
+#include <Eigen/StdVector>
 
 namespace PBD 
 {	

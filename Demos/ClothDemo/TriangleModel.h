@@ -5,6 +5,7 @@
 #include "Demos/Utils/IndexedFaceMesh.h"
 #include "Demos/Utils/ParticleData.h"
 #include <vector>
+#include <Eigen/StdVector>
 
 namespace PBD 
 {	
