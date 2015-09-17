@@ -167,7 +167,7 @@ namespace PBD
 		* @param x1 center of mass of second body
 		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
 		* @param q1 rotation of second body
-		* @param ballJointInfo Ball joint information which is required by the solver. This
+		* @param jointInfo Ball joint information which is required by the solver. This
 		* information must be generated in the beginning by calling initRigidBodyBallJointInfo()
 		* and updated each time the bodies change their state by updateRigidBodyBallJointInfo().
 		* @param corr_x0 position correction of center of mass of first body
@@ -187,8 +187,7 @@ namespace PBD
 			const Eigen::Matrix<float, 3, 10> &jointInfo,	// precomputed joint info
 			Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
 			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
-
-
+			
 		/** Initialize hinge joint and return info which is required by the solver step.
 		*
 		* @param x0 center of mass of first body

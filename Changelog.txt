@@ -1,3 +1,5 @@
+	- added documentation for position based fluids
+
 1.3.0
 	- added some documentation
 	- cleaned up project 
