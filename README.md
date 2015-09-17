@@ -8,6 +8,18 @@ Until now the library was only tested on a Windows system. However, it should al
 
 **Author**: [Jan Bender](http://www.interactive-graphics.de), **License**: MIT
 
+## Documentation
+
+The API documentation can be found here: 
+http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
+
+## Latest Important Changes
+
+* added new Joint demo
+* added HingeJoint
+* added BallOnLineJoint
+* started a doxygen documentation of the project
+
 ## Features
 
 * Physically-based simulation with position-based constraint handling.
