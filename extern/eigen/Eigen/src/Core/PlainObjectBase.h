@@ -573,6 +573,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                  : (rows() == other.rows() && cols() == other.cols())))
         && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
       EIGEN_ONLY_USED_FOR_DEBUG(other);
+      if(this->size()==0)
+        resizeLike(other);
       #else
       resizeLike(other);
       #endif

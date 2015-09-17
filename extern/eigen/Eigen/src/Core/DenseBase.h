@@ -266,11 +266,13 @@ template<typename Derived> class DenseBase
     template<typename OtherDerived>
     Derived& operator=(const ReturnByValue<OtherDerived>& func);
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
+    /** \internal Copies \a other into *this without evaluating other. \returns a reference to *this. */
     template<typename OtherDerived>
     Derived& lazyAssign(const DenseBase<OtherDerived>& other);
-#endif // not EIGEN_PARSED_BY_DOXYGEN
+
+    /** \internal Evaluates \a other into *this. \returns a reference to *this. */
+    template<typename OtherDerived>
+    Derived& lazyAssign(const ReturnByValue<OtherDerived>& other);
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
 

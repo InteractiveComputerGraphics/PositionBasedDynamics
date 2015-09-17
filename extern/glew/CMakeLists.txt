@@ -7,6 +7,7 @@ add_library(glew SHARED
 	include/GL/wglew.h
 )
 
+set_target_properties(glew PROPERTIES FOLDER "External Dependencies")
 add_definitions(-DGLEW_NO_GLU -DGLEW_BUILD)
 
 if (WIN32)

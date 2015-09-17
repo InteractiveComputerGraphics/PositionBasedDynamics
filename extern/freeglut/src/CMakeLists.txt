@@ -63,6 +63,7 @@ add_definitions(-DFREEGLUT_EXPORTS)
 add_definitions(-D_USRDLL)  
 add_definitions(-D_CRT_SECURE_NO_WARNINGS) 
 
+set_target_properties(freeglut PROPERTIES FOLDER "External Dependencies")
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 
 if (WIN32)
