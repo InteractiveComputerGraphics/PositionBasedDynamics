@@ -1,6 +1,6 @@
 #include "TimeStepFluidModel.h"
 #include "Demos/Utils/TimeManager.h"
-#include "PositionBasedDynamics/PositionBasedDynamics.h"
+#include "PositionBasedDynamics/PositionBasedFluids.h"
 #include "PositionBasedDynamics/TimeIntegration.h"
 #include "PositionBasedDynamics/SPHKernels.h"
 
@@ -97,7 +97,7 @@ void TimeStepFluidModel::computeDensities(FluidModel &model)
 		{
 			float &density = model.getDensity(i);
 			float density_err;
-			PositionBasedDynamics::computePBFDensity(i, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, density);
+			PositionBasedFluids::computePBFDensity(i, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, density);
 		}
 	}
 }
@@ -209,8 +209,8 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 			for (int i = 0; i < (int)nParticles; i++)
 			{
 				float density_err;
-				PositionBasedDynamics::computePBFDensity(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, model.getDensity(i));
-				PositionBasedDynamics::computePBFLagrangeMultiplier(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), model.getDensity(i), numNeighbors[i], neighbors[i], model.getDensity0(), true, model.getLambda(i));
+				PositionBasedFluids::computePBFDensity(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, model.getDensity(i));
+				PositionBasedFluids::computePBFLagrangeMultiplier(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), model.getDensity(i), numNeighbors[i], neighbors[i], model.getDensity0(), true, model.getLambda(i));
 			}
 		}
 		
@@ -220,7 +220,7 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 			for (int i = 0; i < (int)nParticles; i++)
 			{
 				Eigen::Vector3f corr;
-				PositionBasedDynamics::solveDensityConstraint(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, &model.getLambda(0), corr);
+				PositionBasedFluids::solveDensityConstraint(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, &model.getLambda(0), corr);
 				model.getDeltaX(i) = corr;
 			}
 		}

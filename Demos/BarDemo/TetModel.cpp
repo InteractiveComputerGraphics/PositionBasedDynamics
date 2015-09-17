@@ -94,9 +94,9 @@ void TetModel::initTetConstraints()
 					};
  
  		TetConstraint tc;
- 		PositionBasedDynamics::computeStrainTetraInvRestMat(x1, x2, x3, x4, tc.invRestMat_SBD);
- 		PositionBasedDynamics::computeFEMTetraInvRestMat(x1, x2, x3, x4, tc.tetVolume, tc.invRestMat_FEM);
-		PositionBasedDynamics::computeShapeMatchingRestInfo(x, w, 4, tc.restCm_SM, tc.invRestMat_SM);
+		PositionBasedDynamics::initStrainTetraInvRestMat(x1, x2, x3, x4, tc.invRestMat_SBD);
+ 		PositionBasedDynamics::initFEMTetraInvRestMat(x1, x2, x3, x4, tc.tetVolume, tc.invRestMat_FEM);
+		PositionBasedDynamics::initShapeMatchingRestInfo(x, w, 4, tc.restCm_SM, tc.invRestMat_SM);
  		m_tetConstraints.push_back(tc);
  	}
 }

@@ -11,8 +11,13 @@ namespace PBD
 	protected:
 		unsigned int m_velocityUpdateMethod;
 
+		/** Clear accelerations and add gravitation.
+		*/
 		void clearAccelerations(RigidBodyModel &model);
 		void constraintProjection(RigidBodyModel &model);
+		void constraintProjectionBallJoint(RigidBodyModel &model, const unsigned int index);
+		void constraintProjectionBallOnLineJoint(RigidBodyModel &model, const unsigned int index);
+		void constraintProjectionHingeJoint(RigidBodyModel &model, const unsigned int index);
 
 	public:
 		TimeStepRigidBodyModel();

@@ -103,8 +103,8 @@ void TriangleModel::initTriangleConstraints()
 		const Eigen::Vector3f y3(x3[0], x3[2], 0.0);
 
 		TriangleConstraint tc;
-		PositionBasedDynamics::computeStrainTriangleInvRestMat(y1, y2, y3, tc.invRestMat_SBD);
-		PositionBasedDynamics::computeFEMTriangleInvRestMat(x1, x2, x3, tc.triangleArea, tc.invRestMat_FEM);
+		PositionBasedDynamics::initStrainTriangleInvRestMat(y1, y2, y3, tc.invRestMat_SBD);
+		PositionBasedDynamics::initFEMTriangleInvRestMat(x1, x2, x3, tc.triangleArea, tc.invRestMat_FEM);
 		m_triangleConstraints.push_back(tc);
 	}
 }
@@ -151,7 +151,7 @@ void TriangleModel::initBendingConstraints()
 				bc.vertex3 = edges[i].m_vert[0];
 				bc.vertex4 = edges[i].m_vert[1];				
 				bc.restAngle = 0.0f;
-				PositionBasedDynamics::computeQuadraticBendingMat(pd.getPosition0(bc.vertex1), pd.getPosition0(bc.vertex2), pd.getPosition0(bc.vertex3), pd.getPosition0(bc.vertex4), bc.Q);
+				PositionBasedDynamics::initQuadraticBendingMat(pd.getPosition0(bc.vertex1), pd.getPosition0(bc.vertex2), pd.getPosition0(bc.vertex3), pd.getPosition0(bc.vertex4), bc.Q);
 				m_bendingConstraints.push_back(bc);
 			}
 		}

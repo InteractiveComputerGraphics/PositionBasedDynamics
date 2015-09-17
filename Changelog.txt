@@ -1,3 +1,11 @@
+	- added some documentation
+	- cleaned up project 
+	- added new Joint demo
+	- added HingeJoint
+	- added BallOnLineJoint
+	- separated deformable, fluid and rigid body dynamics in different classes
+	- cleaned up interface
+	- added doxygen files
 	- update to Eigen 3.2.5
 	- resolve compiler errors in Visual Studio 2010
 

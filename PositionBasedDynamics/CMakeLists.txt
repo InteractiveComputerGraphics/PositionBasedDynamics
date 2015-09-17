@@ -1,6 +1,12 @@
 add_library(PositionBasedDynamics
+		MathFunctions.cpp
+		MathFunctions.h
 		PositionBasedDynamics.cpp
 		PositionBasedDynamics.h
+		PositionBasedFluids.cpp
+		PositionBasedFluids.h
+		PositionBasedRigidBodyDynamics.cpp
+		PositionBasedRigidBodyDynamics.h
 		SPHKernels.cpp
 		SPHKernels.h
 		TimeIntegration.cpp

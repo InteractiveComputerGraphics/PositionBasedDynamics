@@ -74,6 +74,7 @@ namespace PBD
 				m_q0 = rotation;
 				m_lastQ = rotation;
 				m_oldQ = rotation;
+				m_rot = m_q.matrix();
 				rotationUpdated();
 				m_omega.setZero();
 				m_torque.setZero();

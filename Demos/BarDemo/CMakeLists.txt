@@ -41,6 +41,7 @@ include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
+set_target_properties(BarDemo PROPERTIES FOLDER "Demos")
 add_dependencies(BarDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(BarDemo ${SIMULATION_LINK_LIBRARIES})
 VIS_SOURCE_GROUPS()

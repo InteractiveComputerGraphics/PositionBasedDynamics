@@ -40,6 +40,7 @@ include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
+set_target_properties(ClothDemo PROPERTIES FOLDER "Demos")
 add_dependencies(ClothDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(ClothDemo ${SIMULATION_LINK_LIBRARIES})
 VIS_SOURCE_GROUPS()

@@ -134,6 +134,51 @@ void MiniGL::drawVector (const Vector3f &a, const Vector3f &b, const float w, fl
 	glLineWidth (1);
 }
 
+/**
+* Renders a closed cylinder between two points.
+*/
+void MiniGL::drawCylinder(const Vector3f &a, const Vector3f &b, const float *color, const float radius, const unsigned int subdivisions)
+{
+	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+	glColor3fv(color);
+
+	float vx = (float)(b.x() - a.x());
+	float vy = (float)(b.y() - a.y());
+	float vz = (float)(b.z() - a.z());
+	//handle the degenerate case with an approximation
+	if (vz == 0)
+		vz = .00000001f;
+	float v = sqrt(vx*vx + vy*vy + vz*vz);
+	float ax = 57.2957795f*acos(vz / v);
+	if (vz < 0.0)
+		ax = -ax;
+	float rx = -vy*vz;
+	float ry = vx*vz;
+
+	GLUquadricObj *quadric = gluNewQuadric();
+	gluQuadricNormals(quadric, GLU_SMOOTH);
+
+	glPushMatrix();
+	glTranslatef((float)a.x(), (float)a.y(), (float)a.z());
+	glRotatef(ax, rx, ry, 0.0);
+	//draw the cylinder
+	gluCylinder(quadric, radius, radius, v, subdivisions, 1);
+	gluQuadricOrientation(quadric, GLU_INSIDE);
+	//draw the first cap
+	gluDisk(quadric, 0.0, radius, subdivisions, 1);
+	glTranslatef(0, 0, v);
+	//draw the second cap
+	gluQuadricOrientation(quadric, GLU_OUTSIDE);
+	gluDisk(quadric, 0.0, radius, subdivisions, 1);
+	glPopMatrix();
+
+	gluDeleteQuadric(quadric);
+}
+
 void MiniGL::drawSphere (const Vector3f &translation, float radius, float *color, const unsigned int subDivision)
 {
 	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};

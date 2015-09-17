@@ -6,46 +6,26 @@
 // ------------------------------------------------------------------------------------
 namespace PBD
 {
-	class MathFunctions
-	{
-		// -------------- required methods -----------------------------------------------------
-	private:
-		static void jacobiRotate(Eigen::Matrix3f &A,
-			Eigen::Matrix3f &R,
-			int p,
-			int q);
-
-	public:
-		static float infNorm(const Eigen::Matrix3f &A);
-		static float oneNorm(const Eigen::Matrix3f &A);
-
-		static void eigenDecomposition(const Eigen::Matrix3f &A,
-			Eigen::Matrix3f &eigenVecs,
-			Eigen::Vector3f &eigenVals);
-
-		static void polarDecomposition(const Eigen::Matrix3f &A,
-			Eigen::Matrix3f &R,
-			Eigen::Matrix3f &U,
-			Eigen::Matrix3f &D);
-
-		static void polarDecompositionStable(const Eigen::Matrix3f &M,
-			const float tolerance,
-			Eigen::Matrix3f &R);
-
-		static void svdWithInversionHandling(const Eigen::Matrix3f &A,
-			Eigen::Vector3f &sigma,
-			Eigen::Matrix3f &U,
-			Eigen::Matrix3f &VT);
-
-		static float cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w);
-	};
-
-
 	class PositionBasedDynamics
 	{
 	public:
 
 		// -------------- standard PBD -----------------------------------------------------
+
+		/** Determine the position corrections for a distance constraint between two particles:\n\n
+		* \f$C(\mathbf{p}_0, \mathbf{p}_1) = \| \mathbf{p}_0 - \mathbf{p}_1\| - l_0 = 0\f$\n\n
+		* More information can be found in the following papers: \cite Mueller07, \cite BMOT2013, \cite BMOTM2014, \cite BMM2015, 
+		*
+		* @param p0 position of first particle 
+		* @param invMass0 inverse mass of first particle
+		* @param p1 position of second particle
+		* @param invMass1 inverse mass of second particle
+		* @param restLength rest length of distance constraint
+		* @param compressionStiffness stiffness coefficient for compression
+		* @param stretchStiffness stiffness coefficient for stretching
+		* @param corr0 position correction of first particle
+		* @param corr1 position correction of second particle
+		*/
 		static bool solveDistanceConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
@@ -55,6 +35,41 @@ namespace PBD
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1);
 
 
+		/** Determine the position corrections for a dihedral bending constraint. 
+		 * For a pair of adjacent triangles 
+		 * \f$(\mathbf{p}_1, \mathbf{p}_3, \mathbf{p}_2)\f$ and 
+		 * \f$(\mathbf{p}_1, \mathbf{p}_2, \mathbf{p}_4)\f$ 
+		 * with the common edge \f$(\mathbf{p}_3, \mathbf{p}_4)\f$ a bilateral bending 
+		 * constraint is added by the constraint function
+		 * \f{equation*}{
+		 * C_{bend}(\mathbf{p}_1, \mathbf{p}_2,\mathbf{p}_3, \mathbf{p}_4) =
+		 * \text{acos}\left( \frac{\mathbf{p}_{2,1} \times
+		 * \mathbf{p}_{3,1}}{|\mathbf{p}_{2,1} \times
+		 * \mathbf{p}_{3,1}|} \cdot
+		 * \frac{\mathbf{p}_{2,1} \times
+		 * \mathbf{p}_{4,1}}{|\mathbf{p}_{2,1} \times
+		 *	\mathbf{p}_{4,1}|}\right)-\varphi_0
+		 * \f}
+		 * and stiffness \f$k_{bend}\f$. The scalar \f$\varphi_0\f$
+		 * is the initial dihedral angle between the two triangles and
+		 * \f$k_{bend}\f$ is a global user parameter defining the bending stiffness.\n\n
+		 * More information can be found in the following papers: \cite Mueller07, \cite BMOT2013, \cite BMOTM2014, \cite BMM2015,
+		 *
+		 * @param p0 position of first particle
+		 * @param invMass0 inverse mass of first particle
+		 * @param p1 position of second particle
+		 * @param invMass1 inverse mass of second particle
+		 * @param p2 position of third particle
+		 * @param invMass2 inverse mass of third particle
+		 * @param p3 position of fourth particle
+		 * @param invMass3 inverse mass of fourth particle
+		 * @param restAngle rest angle \f$\varphi_0\f$ 
+		 * @param stiffness stiffness coefficient
+		 * @param corr0 position correction of first particle
+		 * @param corr1 position correction of second particle
+		 * @param corr2 position correction of third particle
+		 * @param corr3 position correction of fourth particle
+		 */
 		static bool solveDihedralConstraint(
 			const Eigen::Vector3f &p0, float invMass0,		// angle on (p2, p3) between triangles (p0, p2, p3) and (p1, p3, p2)
 			const Eigen::Vector3f &p1, float invMass1,
@@ -65,6 +80,32 @@ namespace PBD
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
 
+		/** Determine the position corrections for a constraint that conserves the volume
+		* of single tetrahedron. Such a constraint has the form
+		* \f{equation*}{
+		* C(\mathbf{p}_1, \mathbf{p}_2, \mathbf{p}_3, \mathbf{p}_4) = \frac{1}{6}
+		* \left(\mathbf{p}_{2,1} \times \mathbf{p}_{3,1}\right) \cdot \mathbf{p}_{4,1} - V_0,
+		* \f}
+		* where \f$\mathbf{p}_1\f$, \f$\mathbf{p}_2\f$, \f$\mathbf{p}_3\f$ and \f$\mathbf{p}_4\f$ 
+		* are the four corners of the tetrahedron and \f$V_0\f$ is its rest volume.\n\n
+		* More information can be found in the following papers: \cite Mueller07, \cite BMOT2013, \cite BMOTM2014, \cite BMM2015,
+		*
+		* @param p0 position of first particle
+		* @param invMass0 inverse mass of first particle
+		* @param p1 position of second particle
+		* @param invMass1 inverse mass of second particle
+		* @param p2 position of third particle
+		* @param invMass2 inverse mass of third particle
+		* @param p3 position of fourth particle
+		* @param invMass3 inverse mass of fourth particle
+		* @param restVolume rest angle \f$V_0\f$
+		* @param negVolumeStiffness stiffness coefficient for compression
+		* @param posVolumeStiffness stiffness coefficient for stretching
+		* @param corr0 position correction of first particle
+		* @param corr1 position correction of second particle
+		* @param corr2 position correction of third particle
+		* @param corr3 position correction of fourth particle
+		*/
 		static bool solveVolumeConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
@@ -107,7 +148,13 @@ namespace PBD
 
 		// -------------- Isometric bending -----------------------------------------------------
 
-		static bool computeQuadraticBendingMat(		// compute only when rest shape changes, angle on (p2, p3) between triangles (p0, p2, p3) and (p1, p3, p2)
+		/** Initialize the local stiffness matrix Q. The matrix is 
+		 * required by the solver step. It must only be recomputed 
+		 * if the rest shape changes. \n\n
+		 * Bending is simulated for the angle on (p2, p3) between 
+		 * the triangles (p0, p2, p3) and (p1, p3, p2).
+		 */
+		static bool initQuadraticBendingMat(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -126,7 +173,9 @@ namespace PBD
 
 		// -------------- Shape Matching  -----------------------------------------------------
 
-		static bool computeShapeMatchingRestInfo(
+		/** Initialize rest configuration infos which are required by the solver step.
+		 */
+		static bool initShapeMatchingRestInfo(
 			const Eigen::Vector3f x0[], const float invMasses[], const int numPoints,
 			Eigen::Vector3f &restCm, Eigen::Matrix3f &invRestMat);
 
@@ -141,7 +190,11 @@ namespace PBD
 
 		// -------------- Strain Based Dynamics  -----------------------------------------------------
 
-		static bool computeStrainTriangleInvRestMat(		// compute only when rest shape changes, triangle in the xy plane
+		/** Initialize rest configuration infos which are required by the solver step.
+		* Recomputation is only necessary when rest shape changes.\n\n
+		* The triangle is defined in the xy plane.
+		*/
+		static bool initStrainTriangleInvRestMat(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -160,8 +213,10 @@ namespace PBD
 			const bool normalizeShear,		// use false as default
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2);
 
-
-		static bool computeStrainTetraInvRestMat(		// compute only when rest shape changes
+		/** Initialize rest configuration infos which are required by the solver step.
+		* Recomputation is only necessary when rest shape changes.
+		*/
+		static bool initStrainTetraInvRestMat(	
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -209,7 +264,10 @@ namespace PBD
 
 
 	public:
-		static bool computeFEMTriangleInvRestMat(		// compute only when rest shape changes
+		/** Initialize rest configuration infos which are required by the solver step.
+		* Recomputation is only necessary when rest shape changes.
+		*/
+		static bool initFEMTriangleInvRestMat(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -230,8 +288,10 @@ namespace PBD
 			const float poissonRatioYX,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2);
 
-
-		static bool computeFEMTetraInvRestMat(			// compute only when rest shape changes
+		/** Initialize rest configuration infos which are required by the solver step.
+		* Recomputation is only necessary when rest shape changes.
+		*/
+		static bool initFEMTetraInvRestMat(			
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -251,76 +311,6 @@ namespace PBD
 			const float poissonRatio,
 			const bool  handleInversion,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
-
-
-		// -------------- Position Based Fluids  -----------------------------------------------------
-		
-		static bool computePBFDensity(
-			const unsigned int particleIndex,				// current fluid particle	
-			const unsigned int numberOfParticles,			// number of fluid particles 
-			const Eigen::Vector3f x[],						// array of all particle positions
-			const float mass[],								// array of all particle masses
-			const Eigen::Vector3f boundaryX[],				// array of all boundary particles
-			const float boundaryPsi[],						// array of all boundary psi values (Akinci2012)
-			const unsigned int numNeighbors,				// number of neighbors 
-			const unsigned int neighbors[],					// array with indices of all neighbors (indices larger than numberOfParticles are boundary particles)
-			const float density0,							// rest density
-			const bool boundaryHandling,					// perform boundary handling (Akinci2012)
-			float &density_err,								// returns the clamped density error (can be used for enforcing a maximal global density error)
-			float &density);								// return the density
-
-		static bool computePBFLagrangeMultiplier(
-			const unsigned int particleIndex,				// current fluid particle	
-			const unsigned int numberOfParticles,			// number of fluid particles 
-			const Eigen::Vector3f x[],						// array of all particle positions
-			const float mass[],								// array of all particle masses
-			const Eigen::Vector3f boundaryX[],				// array of all boundary particles
-			const float boundaryPsi[],						// array of all boundary psi values (Akinci2012)
-			const float density,							// density of current fluid particle
-			const unsigned int numNeighbors,				// number of neighbors 
-			const unsigned int neighbors[],					// array with indices of all neighbors
-			const float density0,							// rest density
-			const bool boundaryHandling,					// perform boundary handling (Akinci2012)
-			float &lambda);									// returns the Lagrange multiplier
-
-		static bool solveDensityConstraint(
-			const unsigned int particleIndex,				// current fluid particle	
-			const unsigned int numberOfParticles,			// number of fluid particles 
-			const Eigen::Vector3f x[],						// array of all particle positions
-			const float mass[],								// array of all particle masses
-			const Eigen::Vector3f boundaryX[],				// array of all boundary particles
-			const float boundaryPsi[],						// array of all boundary psi values (Akinci2012)
-			const unsigned int numNeighbors,				// number of neighbors 
-			const unsigned int neighbors[],					// array with indices of all neighbors
-			const float density0,							// rest density
-			const bool boundaryHandling,					// perform boundary handling (Akinci2012)
-			const float lambda[],							// Lagrange multiplier
-			Eigen::Vector3f &corr);							// returns the position correction for the current fluid particle
-
-
-		// -------------- Position Based Rigid Body Dynamics  -----------------------------------------------------
-	private:
-		static void computeMatrixK(
-			const Eigen::Vector3f &connector,
-			const float mass,
-			const Eigen::Vector3f &x,
-			const Eigen::Matrix3f &inertiaInverseW,
-			Eigen::Matrix3f &K);
-
-	public:
-		static bool solveRigidBodyBallJoint(
-			const Eigen::Vector3f &connector0,				// connector of balljoint in body 0
-			const float mass0,								// mass is zero if body is static
-			const Eigen::Vector3f &x0, 						// center of mass of body 0
-			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
-			const Eigen::Quaternionf &q0,					// rotation of body 0			
-			const Eigen::Vector3f &connector1,				// connector of balljoint in body 1
-			const float mass1,								// mass is zero if body is static
-			const Eigen::Vector3f &x1, 						// center of mass of body 1
-			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
-			const Eigen::Quaternionf &q1,					// rotation of body 1
-			Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
-			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
 	};
 }
 

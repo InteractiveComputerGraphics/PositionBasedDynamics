@@ -15,8 +15,8 @@ else()
   )
 endif()
 
-add_executable(RigidBodyDemo
-	  main.cpp
+add_executable(ChainDemo
+	  ChainDemo.cpp
 	  
 	  TimeStepRigidBodyModel.cpp
 	  TimeStepRigidBodyModel.h
@@ -32,13 +32,36 @@ add_executable(RigidBodyDemo
 	  CMakeLists.txt
 )
 
-add_definitions(-DTW_NO_LIB_PRAGMA -DTW_STATIC)
+set_target_properties(ChainDemo PROPERTIES FOLDER "Demos")
+add_dependencies(ChainDemo ${SIMULATION_DEPENDENCIES})
+target_link_libraries(ChainDemo ${SIMULATION_LINK_LIBRARIES})
 
+add_executable(JointDemo
+	  JointDemo.cpp
+	  
+	  TimeStepRigidBodyModel.cpp
+	  TimeStepRigidBodyModel.h
+	  RigidBodyModel.cpp
+	  RigidBodyModel.h	  
+	  
+	  ${VIS_FILES}          
+	  ${PROJECT_PATH}/Demos/Utils/Config.h			
+	  ${PROJECT_PATH}/Demos/Utils/TimeManager.cpp	
+	  ${PROJECT_PATH}/Demos/Utils/TimeManager.h		
+	  ${PROJECT_PATH}/Demos/Utils/RigidBody.h		  
+	  
+	  CMakeLists.txt
+)
+
+set_target_properties(JointDemo PROPERTIES FOLDER "Demos")
+add_dependencies(JointDemo ${SIMULATION_DEPENDENCIES})
+target_link_libraries(JointDemo ${SIMULATION_LINK_LIBRARIES})
+
+add_definitions(-DTW_NO_LIB_PRAGMA -DTW_STATIC)
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
-add_dependencies(RigidBodyDemo ${SIMULATION_DEPENDENCIES})
-target_link_libraries(RigidBodyDemo ${SIMULATION_LINK_LIBRARIES})
+
 VIS_SOURCE_GROUPS()
