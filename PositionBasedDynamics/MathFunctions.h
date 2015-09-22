@@ -37,6 +37,12 @@ namespace PBD
 			Eigen::Matrix3f &VT);
 
 		static float cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w);
+
+		/** Computes the cross product matrix of a vector.
+		 * @param  v		input vector
+		 * @param  v_hat	resulting cross product matrix
+		 */	
+		static void crossProductMatrix(const Eigen::Vector3f &v, Eigen::Matrix3f &v_hat);
 	};
 }
 

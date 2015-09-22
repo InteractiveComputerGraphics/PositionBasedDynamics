@@ -44,7 +44,7 @@ std::vector<unsigned int> selectedBodies;
 Eigen::Vector3f oldMousePos;
 float jointColor[4] = { 0.0f, 0.4f, 0.2f, 1.0f };
 float dynamicBodyColor[4] = { 0.1f, 0.4f, 0.8f, 1 };
-float staticBodyColor[4] = { 0.6f, 0.0f, 0.0f, 1.0f };
+float staticBodyColor[4] = { 0.4f, 0.4f, 0.4f, 1.0f };
 
 // main 
 int main( int argc, char **argv )
@@ -61,7 +61,7 @@ int main( int argc, char **argv )
 	buildModel ();
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3f (4.0f, -2.5f, 15.0f), Vector3f (4.0f, 0.0f, 0.0f));
+	MiniGL::setViewport (50.0f, 0.1f, 500.0f, Vector3f (6.0f, -2.5f, 15.0f), Vector3f (6.0f, 0.0f, 0.0f));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
@@ -156,9 +156,19 @@ void renderBallOnLineJoint(RigidBodyModel::BallOnLineJoint &bj)
 
 void renderHingeJoint(RigidBodyModel::HingeJoint &hj)
 {
-	MiniGL::drawSphere(hj.m_jointInfo.col(2), 0.1f, jointColor);
-	MiniGL::drawSphere(hj.m_jointInfo.col(9), 0.1f, jointColor);
-	MiniGL::drawCylinder(hj.m_jointInfo.col(2), hj.m_jointInfo.col(9), jointColor, 0.05f);
+	MiniGL::drawSphere(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
+	MiniGL::drawSphere(hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
+	MiniGL::drawCylinder(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), jointColor, 0.05f);
+}
+
+void renderUniversalJoint(RigidBodyModel::UniversalJoint &uj)
+{
+	MiniGL::drawSphere(uj.m_jointInfo.col(4) - 0.5*uj.m_jointInfo.col(6), 0.1f, jointColor);
+	MiniGL::drawSphere(uj.m_jointInfo.col(4) + 0.5*uj.m_jointInfo.col(6), 0.1f, jointColor);
+	MiniGL::drawSphere(uj.m_jointInfo.col(5) - 0.5*uj.m_jointInfo.col(7), 0.1f, jointColor);
+	MiniGL::drawSphere(uj.m_jointInfo.col(5) + 0.5*uj.m_jointInfo.col(7), 0.1f, jointColor);
+	MiniGL::drawCylinder(uj.m_jointInfo.col(4) - 0.5*uj.m_jointInfo.col(6), uj.m_jointInfo.col(4) + 0.5*uj.m_jointInfo.col(6), jointColor, 0.05f);
+	MiniGL::drawCylinder(uj.m_jointInfo.col(5) - 0.5*uj.m_jointInfo.col(7), uj.m_jointInfo.col(5) + 0.5*uj.m_jointInfo.col(7), jointColor, 0.05f);
 }
 
 void render ()
@@ -206,12 +216,17 @@ void render ()
 		{
 			renderHingeJoint(*(RigidBodyModel::HingeJoint*) joints[i]);
 		}
+		else if (joints[i]->getTypeId() == RigidBodyModel::UniversalJoint::TYPE_ID)
+		{
+			renderUniversalJoint(*(RigidBodyModel::UniversalJoint*) joints[i]);
+		}
 	}
 
 	float textColor[4] = { 0.0f, .2f, .4f, 1 };
-	MiniGL::drawStrokeText(-0.75f, 1.5f, 1.0f, 0.003f, "BallJoint", 10, textColor);
-	MiniGL::drawStrokeText(2.8f, 1.5f, 1.0f, 0.003f, "BallOnLineJoint", 16, textColor);
-	MiniGL::drawStrokeText(7.1f, 1.5f, 1.0f, 0.003f, "HingeJoint", 11, textColor);
+	MiniGL::drawStrokeText(-0.5f, 1.5f, 1.0f, 0.002f, "ball joint", 11, textColor);
+	MiniGL::drawStrokeText(3.0f, 1.5f, 1.0f, 0.002f, "ball-on-line joint", 19, textColor);
+	MiniGL::drawStrokeText(7.3f, 1.5f, 1.0f, 0.002f, "hinge joint", 12, textColor);
+	MiniGL::drawStrokeText(11.2f, 1.5f, 1.0f, 0.002f, "universal joint", 15, textColor);
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
@@ -234,9 +249,9 @@ void createBodyModel()
 	RigidBodyModel::JointVector &joints = model.getJoints();
 
 	// static body
-	rb.resize(9);
+	rb.resize(12);
 	float startX = 0.0f;
-	for (unsigned int i = 0; i < 3; i++)
+	for (unsigned int i = 0; i < 4; i++)
 	{
 		rb[3*i] = new RigidBody();
 		rb[3*i]->initBody(0.0f,
@@ -270,6 +285,9 @@ void createBodyModel()
 	
 	model.addHingeJoint(6, 7, Eigen::Vector3f(8.0f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
 	model.addBallJoint(7, 8, Eigen::Vector3f(8.25f, 0.75f, 3.0f));
+
+	model.addUniversalJoint(9, 10, Eigen::Vector3f(12.0f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
+	model.addBallJoint(10, 11, Eigen::Vector3f(12.25f, 0.75f, 3.0f));
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)

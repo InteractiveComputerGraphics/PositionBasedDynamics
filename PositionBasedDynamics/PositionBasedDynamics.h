@@ -153,7 +153,13 @@ namespace PBD
 		 * if the rest shape changes. \n\n
 		 * Bending is simulated for the angle on (p2, p3) between 
 		 * the triangles (p0, p2, p3) and (p1, p3, p2).
-		 */
+		 *
+		 * @param  p0 point 0 of stencil
+		 * @param  p1 point 1 of stencil
+		 * @param  p2 point 2 of stencil
+		 * @param  p3 point 3 of stencil 
+		 * @param  Q returns the local stiffness matrix which is required by the solver
+		 */	
 		static bool initQuadraticBendingMat(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
@@ -162,6 +168,25 @@ namespace PBD
 			Eigen::Matrix4f &Q
 			);
 
+		/** Determine the position corrections for the isometric bending constraint.
+		 * This constraint can be used for almost inextensible surface models.\n\n
+		 * More information can be found in: \cite BMM2015, \cite Bender2014
+		 *
+		 * @param p0 position of first particle
+		 * @param invMass0 inverse mass of first particle
+		 * @param p1 position of second particle
+		 * @param invMass1 inverse mass of second particle
+		 * @param p2 position of third particle
+		 * @param invMass2 inverse mass of third particle
+		 * @param p3 position of fourth particle
+		 * @param invMass3 inverse mass of fourth particle
+		 * @param  Q local stiffness matrix which must be initialized by calling initQuadraticBendingMat() 
+		 * @param  stiffness stiffness coefficient for bending
+		 * @param corr0 position correction of first particle
+		 * @param corr1 position correction of second particle
+		 * @param corr2 position correction of third particle
+		 * @param corr3 position correction of fourth particle
+		 */	
 		static bool solveIsometricBendingConstraint(
 			const Eigen::Vector3f &p0, float invMass0,		// angle on (p2, p3) between triangles (p0, p2, p3) and (p1, p3, p2)
 			const Eigen::Vector3f &p1, float invMass1,
@@ -173,12 +198,35 @@ namespace PBD
 
 		// -------------- Shape Matching  -----------------------------------------------------
 
-		/** Initialize rest configuration infos which are required by the solver step.
-		 */
+		/** Initialize rest configuration infos for one shape matching cluster 
+		 * which are required by the solver step. It must only be reinitialized
+		 * if the rest shape changes. 
+		 *
+		 * @param  x0 rest configuration of all particles in the cluster
+		 * @param  invMasses inverse masses of all particles in the cluster
+		 * @param  numPoints number of particles in the cluster
+		 * @param  restCm returns the center of mass of the rest configuration
+		 * @param  invRestMat returns a matrix required by the solver
+		 */	
 		static bool initShapeMatchingRestInfo(
 			const Eigen::Vector3f x0[], const float invMasses[], const int numPoints,
 			Eigen::Vector3f &restCm, Eigen::Matrix3f &invRestMat);
 
+		/** Determine the position corrections for a shape matching constraint.\n\n
+		 * More information can be found in: \cite BMM2015, \cite BMOT2013, \cite BMOTM2014, 
+		 * \cite Muller2005, \cite Bender2013, \cite Diziol2011
+		 *
+		 * @param  x0			rest configuration of all particles in the cluster
+		 * @param  x			current configuration of all particles in the cluster
+		 * @param  invMasses	invMasses inverse masses of all particles in the cluster
+		 * @param  numPoints	number of particles in the cluster
+		 * @param  restCm		center of mass of the rest configuration
+		 * @param  invRestMat	matrix precomputed by initShapeMatchingRestInfo()
+		 * @param  stiffness	stiffness coefficient 
+		 * @param  allowStretch allow stretching
+		 * @param  corr			position corrections for all particles in the cluster
+		 * @param  rot			returns determined rotation matrix 
+		 */	
 		static bool solveShapeMatchingConstraint(
 			const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], const int numPoints,
 			const Eigen::Vector3f &restCm, 
@@ -191,9 +239,14 @@ namespace PBD
 		// -------------- Strain Based Dynamics  -----------------------------------------------------
 
 		/** Initialize rest configuration infos which are required by the solver step.
-		* Recomputation is only necessary when rest shape changes.\n\n
-		* The triangle is defined in the xy plane.
-		*/
+		 * Recomputation is only necessary when rest shape changes.\n\n
+		 * The triangle is defined in the xy plane.
+		 *
+		 * @param  p0 point 0 of triangle
+		 * @param  p1 point 1 of triangle
+		 * @param  p2 point 2 of triangle
+		 * @param  invRestMat returns a matrix required by the solver
+		 */		
 		static bool initStrainTriangleInvRestMat(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
@@ -201,6 +254,25 @@ namespace PBD
 			Eigen::Matrix2f &invRestMat
 			);
 
+		/** Solve triangle constraint with strain based dynamics and return position corrections.\n\n
+		 * More information can be found in: \cite BMM2015, \cite Mueller2014
+		 *
+		 * @param p0 position of first particle
+		 * @param invMass0 inverse mass of first particle
+		 * @param p1 position of second particle
+		 * @param invMass1 inverse mass of second particle
+		 * @param p2 position of third particle
+		 * @param invMass2 inverse mass of third particle
+		 * @param  invRestMat precomputed matrix determined by initStrainTriangleInvRestMat()
+		 * @param  xxStiffness stiffness coefficient for xx stretching
+		 * @param  yyStiffness stiffness coefficient for yy stretching
+		 * @param  xyStiffness stiffness coefficient for xy shearing
+		 * @param  normalizeStretch	should stretching be normalized
+		 * @param  normalizeShear should shearing be normalized
+		 * @param  corr0 position correction for point 0
+		 * @param  corr1 position correction for point 1
+		 * @param  corr2 position correction for point 2
+		 */		
 		static bool solveStrainTriangleConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
@@ -209,13 +281,19 @@ namespace PBD
 			const float xxStiffness, 
 			const float yyStiffness, 
 			const float xyStiffness,
-			const bool normalizeStretch,		// use false as default
+			const bool normalizeStretch,	// use false as default
 			const bool normalizeShear,		// use false as default
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2);
 
 		/** Initialize rest configuration infos which are required by the solver step.
-		* Recomputation is only necessary when rest shape changes.
-		*/
+		 * Recomputation is only necessary when rest shape changes.
+		 *
+		 * @param  p0 point 0 of tet
+		 * @param  p1 point 1 of tet
+		 * @param  p2 point 2 of tet
+		 * @param  p3 point 3 of tet
+		 * @param  invRestMat returns a matrix required by the solver
+		 */
 		static bool initStrainTetraInvRestMat(	
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,

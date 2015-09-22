@@ -18,6 +18,7 @@ namespace PBD
 		void constraintProjectionBallJoint(RigidBodyModel &model, const unsigned int index);
 		void constraintProjectionBallOnLineJoint(RigidBodyModel &model, const unsigned int index);
 		void constraintProjectionHingeJoint(RigidBodyModel &model, const unsigned int index);
+		void constraintProjectionUniversalJoint(RigidBodyModel &model, const unsigned int index);
 
 	public:
 		TimeStepRigidBodyModel();

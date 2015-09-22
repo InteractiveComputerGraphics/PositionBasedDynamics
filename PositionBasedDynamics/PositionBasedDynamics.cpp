@@ -104,9 +104,6 @@ bool PositionBasedDynamics::solveDihedralConstraint(
 	return true;
 }
 
-/** Return the position corrections for a tetrahedral volume constraint, 
-* where the tetrahedron (p0,p1,p2,p3) has the given rest volume.
-*/
 bool PositionBasedDynamics::solveVolumeConstraint(
 	const Eigen::Vector3f &p0, float invMass0,		
 	const Eigen::Vector3f &p1, float invMass1,

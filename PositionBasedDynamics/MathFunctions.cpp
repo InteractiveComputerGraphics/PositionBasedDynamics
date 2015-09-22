@@ -395,3 +395,11 @@ float MathFunctions::cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w
 	return (cosTheta / sinTheta);
 }
 
+// ----------------------------------------------------------------------------------------------
+void MathFunctions::crossProductMatrix(const Eigen::Vector3f &v, Eigen::Matrix3f &v_hat)
+{
+	v_hat << 0, -v(2), v(1),
+		v(2), 0, -v(0),
+		-v(1), v(0), 0;
+}
+

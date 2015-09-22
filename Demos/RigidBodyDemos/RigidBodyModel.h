@@ -40,11 +40,21 @@ namespace PBD
 			struct HingeJoint : public Joint
 			{
 				/** joint points in local coordinates */
-				Eigen::Matrix<float, 3, 14> m_jointInfo;
+				Eigen::Matrix<float, 3, 12> m_jointInfo;
 
 				static int TYPE_ID;
 				virtual int &getTypeId() const { return TYPE_ID; }
 			};
+
+			struct UniversalJoint : public Joint
+			{
+				/** joint points in local coordinates */
+				Eigen::Matrix<float, 3, 8> m_jointInfo;
+
+				static int TYPE_ID;
+				virtual int &getTypeId() const { return TYPE_ID; }
+			};
+
 
 			RigidBodyModel();
 			virtual ~RigidBodyModel();
@@ -72,6 +82,9 @@ namespace PBD
 
 			void addHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis);
 			void updateHingeJoint(const unsigned int i);
+
+			void addUniversalJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis1, const Eigen::Vector3f &axis2);
+			void updateUniversalJoint(const unsigned int i);
 	};
 }
 

@@ -88,17 +88,13 @@ void TimeStepRigidBodyModel::constraintProjection(RigidBodyModel &model)
 		for (unsigned int i = 0; i < joints.size(); i++)
 		{
 			if (joints[i]->getTypeId() == RigidBodyModel::BallJoint::TYPE_ID)
-			{				
 				constraintProjectionBallJoint(model, i);
-			}
 			else if (joints[i]->getTypeId() == RigidBodyModel::BallOnLineJoint::TYPE_ID)
-			{
 				constraintProjectionBallOnLineJoint(model, i);
-			}
 			else if (joints[i]->getTypeId() == RigidBodyModel::HingeJoint::TYPE_ID)
-			{
 				constraintProjectionHingeJoint(model, i);
-			}
+			else if (joints[i]->getTypeId() == RigidBodyModel::UniversalJoint::TYPE_ID)
+				constraintProjectionUniversalJoint(model, i);
 		}
  		iter++;
  	}
@@ -245,3 +241,49 @@ void TimeStepRigidBodyModel::constraintProjectionHingeJoint(RigidBodyModel &mode
 	}
 }
 
+void TimeStepRigidBodyModel::constraintProjectionUniversalJoint(RigidBodyModel &model, const unsigned int index)
+{
+	RigidBodyModel::JointVector &joints = model.getJoints();
+	RigidBodyModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBodyModel::UniversalJoint &uj = *(RigidBodyModel::UniversalJoint*) joints[index];
+
+	model.updateUniversalJoint(index);
+
+	RigidBody &rb1 = *rb[uj.m_index[0]];
+	RigidBody &rb2 = *rb[uj.m_index[1]];
+
+	Eigen::Vector3f corr_x1, corr_x2;
+	Eigen::Quaternionf corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
+		rb1.getMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		uj.m_jointInfo,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0f)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0f)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
+		}
+	}
+}

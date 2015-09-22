@@ -6,6 +6,7 @@ using namespace PBD;
 int RigidBodyModel::BallJoint::TYPE_ID = 1;
 int RigidBodyModel::BallOnLineJoint::TYPE_ID = 2;
 int RigidBodyModel::HingeJoint::TYPE_ID = 3;
+int RigidBodyModel::UniversalJoint::TYPE_ID = 4;
 
 RigidBodyModel::RigidBodyModel()
 {	
@@ -65,8 +66,11 @@ void RigidBodyModel::updateJoints()
 			updateBallOnLineJoint(i);
 		else if (m_joints[i]->getTypeId() == RigidBodyModel::HingeJoint::TYPE_ID)
 			updateHingeJoint(i);
+		else if (m_joints[i]->getTypeId() == RigidBodyModel::UniversalJoint::TYPE_ID)
+			updateUniversalJoint(i);
 	}
 }
+
 
 void RigidBodyModel::addBallJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos)
 {
@@ -136,6 +140,7 @@ void RigidBodyModel::updateBallOnLineJoint(const unsigned int i)
 		bj.m_jointInfo);
 }
 
+
 void RigidBodyModel::addHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
 {
 	HingeJoint *hj = new HingeJoint();
@@ -169,4 +174,40 @@ void RigidBodyModel::updateHingeJoint(const unsigned int i)
 		rb2.getPosition(),
 		rb2.getRotation(),
 		hj.m_jointInfo);
+}
+
+void RigidBodyModel::addUniversalJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis1, const Eigen::Vector3f &axis2)
+{
+	UniversalJoint *uj = new UniversalJoint();
+	uj->m_index[0] = rbIndex1;
+	uj->m_index[1] = rbIndex2;
+
+	// transform in local coordinates
+	RigidBody &rb1 = *m_rigidBodies[rbIndex1];
+	RigidBody &rb2 = *m_rigidBodies[rbIndex2];
+
+	PositionBasedRigidBodyDynamics::initRigidBodyUniversalJointInfo(
+		rb1.getPosition0(),
+		rb1.getRotation0(),
+		rb2.getPosition0(),
+		rb2.getRotation0(),
+		pos,
+		axis1,
+		axis2,
+		uj->m_jointInfo);
+
+	m_joints.push_back(uj);
+}
+
+void RigidBodyModel::updateUniversalJoint(const unsigned int i)
+{
+	UniversalJoint &uj = *(UniversalJoint*)m_joints[i];
+	RigidBody &rb1 = *m_rigidBodies[uj.m_index[0]];
+	RigidBody &rb2 = *m_rigidBodies[uj.m_index[1]];
+	PositionBasedRigidBodyDynamics::updateRigidBodyUniversalJointInfo(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		uj.m_jointInfo);
 }

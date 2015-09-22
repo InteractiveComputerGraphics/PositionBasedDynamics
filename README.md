@@ -15,18 +15,37 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
-* added new Joint demo
-* added HingeJoint
-* added BallOnLineJoint
+* added new joint demo
+* added universal joint
+* added hinge joint
+* added ball-on-line joint
 * started a doxygen documentation of the project
 
 ## Features
 
 * Physically-based simulation with position-based constraint handling.
-* Library supports many constraints: point-point, point-edge, point-triangle and edge-edge distance constraints, dihedral bending constraint, isometric bending, volume constraint, shape matching, FEM-based PBD (2D & 3D), strain-based dynamics (2D & 3D), position-based fluids and position-based rigid body dynamics.
 * Simple interface
 * Demos 
 * Library is free even for commercial applications.
+* Library supports many constraints: 
+	** Deformable solids:
+	*** point-point distance constraint
+	*** point-edge distance constraint
+	***	point-triangle distance constraint
+	*** edge-edge distance constraint
+	*** dihedral bending constraint
+	*** isometric bending constraint
+	*** volume constraint
+	*** shape matching
+	*** FEM-based PBD (2D & 3D)
+	*** strain-based dynamics (2D & 3D)
+	** Fluids:
+	*** position-based fluids 
+	** Rigid bodies:
+	*** ball joint
+	*** ball-on-line-joint
+	*** hinge joint
+	*** universal joint
 
 ## References
 
