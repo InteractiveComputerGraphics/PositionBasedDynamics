@@ -28,41 +28,41 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 * Demos 
 * Library is free even for commercial applications.
 * Library supports many constraints: 
-	** Deformable solids:
-	*** point-point distance constraint
-	*** point-edge distance constraint
-	***	point-triangle distance constraint
-	*** edge-edge distance constraint
-	*** dihedral bending constraint
-	*** isometric bending constraint
-	*** volume constraint
-	*** shape matching
-	*** FEM-based PBD (2D & 3D)
-	*** strain-based dynamics (2D & 3D)
-	** Fluids:
-	*** position-based fluids 
-	** Rigid bodies:
-	*** ball joint
-	*** ball-on-line-joint
-	*** hinge joint
-	*** universal joint
+	- Deformable solids:
+		- point-point distance constraint
+		- point-edge distance constraint
+		- point-triangle distance constraint
+		- edge-edge distance constraint
+		- dihedral bending constraint
+		- isometric bending constraint
+		- volume constraint
+		- shape matching
+		- FEM-based PBD (2D & 3D)
+		- strain-based dynamics (2D & 3D)
+	- Fluids:
+		- position-based fluids 
+	- Rigid bodies:
+		- ball joint
+		- ball-on-line-joint
+		- hinge joint
+		- universal joint
 
 ## References
 
-* J. Bender, M. Müller and M. Macklin, "Position-Based Simulation Methods in Computer Graphics", In Tutorial Proceedings of Eurographics, 2015
+* J. Bender, M. MÃ¼ller and M. Macklin, "Position-Based Simulation Methods in Computer Graphics", In Tutorial Proceedings of Eurographics, 2015
 * J. Bender, D. Koschier, P. Charrier and D. Weber, ""Position-based simulation of continuous materials", Computers & Graphics 44, 2014
-* J. Bender, M. Müller, M. A. Otaduy, M. Teschner and M. Macklin, "A Survey on Position-Based Simulation Methods in Computer Graphics", Computer Graphics Forum 33, 6, 2014
+* J. Bender, M. MÃ¼ller, M. A. Otaduy, M. Teschner and M. Macklin, "A Survey on Position-Based Simulation Methods in Computer Graphics", Computer Graphics Forum 33, 6, 2014
 * C. Deul, P. Charrier and J. Bender, "Position-Based Rigid Body Dynamics", Computer Animation and Virtual Worlds, 2014
-* M. Macklin, M. Müller, N. Chentanez and T.Y. Kim, "Unified particle physics for real-time applications", ACM Trans. Graph. 33, 4, 2014
-* M. Müller, N. Chentanez, T.Y. Kim, M. Macklin, "Strain based dynamics", In Proceedings of the 2014 ACM
+* M. Macklin, M. MÃ¼ller, N. Chentanez and T.Y. Kim, "Unified particle physics for real-time applications", ACM Trans. Graph. 33, 4, 2014
+* M. MÃ¼ller, N. Chentanez, T.Y. Kim, M. Macklin, "Strain based dynamics", In Proceedings of the 2014 ACM
 SIGGRAPH/Eurographics Symposium on Computer Animation, 2014
 * J. Bender, D. Weber and R. Diziol, "Fast and stable cloth simulation based on multi-resolution shape matching", Computers & Graphics 37, 8, 2013
 * R. Diziol, J. Bender and D. Bayer, "Robust Real-Time Deformation of Incompressible Surface Meshes", In Proceedings of ACM SIGGRAPH / EUROGRAPHICS Symposium on Computer Animation (SCA), 2011
-* M. Müller and N. Chentanez, "Solid simulation with oriented particles", ACM Trans. Graph. 30, 4, 2011
-* M. Müller, "Hierarchical Position Based Dynamics", In VRIPHYS 08: Fifth Workshop in Virtual Reality Interactions and Physical Simulations, 2008 
-* M. Müller, B. Heidelberger, M. Hennix and J. Ratcliff, "Position based dynamics", Journal of Visual Communication and Image Representation 18, 2, 2007
-* M. Müller, B. Heidelberger, M. Teschner and M. Gross, "Meshless deformations based on shape matching", ACM Trans. Graph. 24, 3, 2005
-* M. Macklin and M. Müller, "Position based fluids", ACM Trans. Graph. 32, 4, 2013
+* M. MÃ¼ller and N. Chentanez, "Solid simulation with oriented particles", ACM Trans. Graph. 30, 4, 2011
+* M. MÃ¼ller, "Hierarchical Position Based Dynamics", In VRIPHYS 08: Fifth Workshop in Virtual Reality Interactions and Physical Simulations, 2008 
+* M. MÃ¼ller, B. Heidelberger, M. Hennix and J. Ratcliff, "Position based dynamics", Journal of Visual Communication and Image Representation 18, 2, 2007
+* M. MÃ¼ller, B. Heidelberger, M. Teschner and M. Gross, "Meshless deformations based on shape matching", ACM Trans. Graph. 24, 3, 2005
+* M. Macklin and M. MÃ¼ller, "Position based fluids", ACM Trans. Graph. 32, 4, 2013
 
 
 
