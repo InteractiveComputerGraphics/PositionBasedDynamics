@@ -1,3 +1,5 @@
+	- added coupling demo
+	- added ball joint which links a rigid body and a particle
 	- added universal joint
 	- improved hinge joint
 	- added documentation for position based fluids

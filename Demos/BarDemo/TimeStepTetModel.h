@@ -20,7 +20,7 @@ namespace PBD
 		virtual ~TimeStepTetModel(void);
 
 		void step(TetModel &model);
-		void reset(TetModel &model);	
+		void reset();	
 
 		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
 		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }

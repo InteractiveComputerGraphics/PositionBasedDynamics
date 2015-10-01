@@ -62,7 +62,7 @@ void TimeStepTetModel::clearAccelerations(TetModel &model)
 	}
 }
 
-void TimeStepTetModel::reset(TetModel &model)
+void TimeStepTetModel::reset()
 {
 
 }

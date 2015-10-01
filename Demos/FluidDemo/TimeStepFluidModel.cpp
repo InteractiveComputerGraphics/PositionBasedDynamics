@@ -181,7 +181,7 @@ void TimeStepFluidModel::computeViscosityAccels(FluidModel &model)
 
 
 
-void TimeStepFluidModel::reset(FluidModel &model)
+void TimeStepFluidModel::reset()
 {
 
 }

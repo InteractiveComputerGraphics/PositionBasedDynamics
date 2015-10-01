@@ -767,3 +767,94 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 	return true;
 }
 
+	// ----------------------------------------------------------------------------------------------
+	bool PositionBasedRigidBodyDynamics::initRigidBodyParticleBallJointInfo(
+		const Eigen::Vector3f &x0,
+		const Eigen::Quaternionf &q0,
+		const Eigen::Vector3f &x1,
+		Eigen::Matrix<float, 3, 2> &jointInfo
+		)
+	{
+		// jointInfo contains
+		// 0:	connector in rigid body (local)
+		// 1:	connector in rigid body (global)
+
+		// transform in local coordinates
+		const Eigen::Matrix3f rot0T = q0.matrix().transpose();
+
+		jointInfo.col(0) = rot0T * (x1 - x0);
+		jointInfo.col(1) = x1;
+
+		return true;
+	}
+
+	// ----------------------------------------------------------------------------------------------
+	bool PositionBasedRigidBodyDynamics::updateRigidBodyParticleBallJointInfo(
+		const Eigen::Vector3f &x0,
+		const Eigen::Quaternionf &q0,
+		const Eigen::Vector3f &x1,
+		Eigen::Matrix<float, 3, 2> &jointInfo
+		)
+	{
+		// jointInfo contains
+		// 0:	connector in rigid body (local)
+		// 1:	connector in rigid body (global)
+
+		// compute world space position of connector
+		const Eigen::Matrix3f rot0 = q0.matrix();
+		jointInfo.col(1) = rot0 * jointInfo.col(0) + x0;
+
+		return true;
+	}
+
+	// ----------------------------------------------------------------------------------------------
+	bool PositionBasedRigidBodyDynamics::solveRigidBodyParticleBallJoint(
+		const float mass0,
+		const Eigen::Vector3f &x0,
+		const Eigen::Matrix3f &inertiaInverseW0,
+		const Eigen::Quaternionf &q0,
+		const float mass1,
+		const Eigen::Vector3f &x1,
+		const Eigen::Matrix<float, 3, 2> &jointInfo,
+		Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+		Eigen::Vector3f &corr_x1)
+	{
+		// jointInfo contains
+		// 0:	connector in rigid body (local)
+		// 1:	connector in rigid body (global)
+
+		const Eigen::Vector3f &connector0 = jointInfo.col(1);
+
+		// Compute Kinv
+		Eigen::Matrix3f K1, K2;
+		computeMatrixK(connector0, mass0, x0, inertiaInverseW0, K1);
+
+		K2.setZero();
+		if (mass1 != 0.0f)
+		{
+			const float invMass1 = 1.0f / mass1;
+			K2(0, 0) = invMass1;
+			K2(1, 1) = invMass1;
+			K2(2, 2) = invMass1;
+		}
+		const Eigen::Matrix3f Kinv = (K1 + K2).inverse();
+
+		const Eigen::Vector3f pt = Kinv * (x1 - connector0);
+
+		if (mass0 != 0.0f)
+		{
+			const Eigen::Vector3f r0 = connector0 - x0;
+			corr_x0 = (1.0f / mass0)*pt;
+
+			const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt)));
+			const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
+			corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
+		}
+
+		if (mass1 != 0.0f)
+		{
+			corr_x1 = -(1.0f / mass1)*pt;
+		}			
+
+		return true;
+	}

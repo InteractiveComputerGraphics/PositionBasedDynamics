@@ -63,7 +63,7 @@ void TimeStepTriangleModel::clearAccelerations(TriangleModel &model)
 	}
 }
 
-void TimeStepTriangleModel::reset(TriangleModel &model)
+void TimeStepTriangleModel::reset()
 {
 
 }

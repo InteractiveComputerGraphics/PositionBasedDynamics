@@ -385,6 +385,71 @@ namespace PBD
 			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
 
 
+		/** Initialize ball joint between a rigid body and a particle 
+		* at the position of the particle and return info which is required by the solver step.
+		*
+		* @param x0 center of mass of the rigid body
+		* @param q0 rotation of the rigid body body
+		* @param x1 position of the particle
+		* @param jointInfo Stores the local and global position of the connector point in the rigid body.
+		* The info must be updated in each simulation step by calling updateRigidBodyParticleBallJointInfo().\n
+		* The joint info contains the following columns:\n
+		* 0:	connector in rigid body (local)\n
+		* 1:	connector in rigid body (global)\n
+		*/
+		static bool initRigidBodyParticleBallJointInfo(
+			const Eigen::Vector3f &x0, 						// center of mass of the rigid body
+			const Eigen::Quaternionf &q0,					// rotation of the rigid body body
+			const Eigen::Vector3f &x1, 						// position of the particle
+			Eigen::Matrix<float, 3, 2> &jointInfo
+			);
+
+		/** Update joint info which is required by the solver step.
+		* The joint info must be generated in the initialization process of the model
+		* by calling the function initRigidBodyParticleBallJointInfo().
+		* This method should be called once per simulation step before executing the solver.\n\n
+		*
+		* @param x0 center of mass of the rigid body
+		* @param q0 rotation of the rigid body body
+		* @param x1 position of the particle
+		* @param jointInfo ball joint information which should be updated
+		*/
+		static bool updateRigidBodyParticleBallJointInfo(
+			const Eigen::Vector3f &x0, 						// center of mass of the rigid body
+			const Eigen::Quaternionf &q0,					// rotation of the rigid body body
+			const Eigen::Vector3f &x1, 						// position of the particle
+			Eigen::Matrix<float, 3, 2> &jointInfo
+			);
+
+		/** Perform a solver step for a ball joint which links a rigid body and a particle.
+		* The joint info must be generated in the initialization process of the model
+		* by calling the function initRigidBodyParticleBallJointInfo() and updated each time the rigid body 
+		* changes its state by updateRigidBodyParticleBallJointInfo().\n\n
+		* More information can be found in: \cite Deul2014
+		*
+		* @param mass0 mass of rigid body
+		* @param x0 center of mass of rigid body
+		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of rigid body
+		* @param q0 rotation of rigid body
+		* @param mass1 mass of particle
+		* @param x1 position of particle
+		* @param jointInfo Joint information which is required by the solver. This
+		* information must be generated in the beginning by calling initRigidBodyParticleBallJointInfo()
+		* and updated each time the rigid body changes its state by updateRigidBodyParticleBallJointInfo().
+		* @param corr_x0 position correction of the center of mass of the rigid body
+		* @param corr_q0 rotation correction of the rigid body
+		* @param corr_x1 position correction of the particle
+		*/
+		static bool solveRigidBodyParticleBallJoint(
+			const float mass0,								// mass is zero if body is static
+			const Eigen::Vector3f &x0, 						// center of mass of body 0
+			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0			
+			const float mass1,								// mass is zero if particle is static
+			const Eigen::Vector3f &x1, 						// position of particle
+			const Eigen::Matrix<float, 3, 2> &jointInfo,	// precomputed joint info
+			Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+			Eigen::Vector3f &corr_x1);
 	};
 }
 

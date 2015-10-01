@@ -11,14 +11,17 @@ Until now the library was only tested on a Windows system. However, it should al
 ## Documentation
 
 The API documentation can be found here: 
+
 http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added coupling demo
+* added ball joint which links a rigid body and a particle
 * added new joint demo
-* added universal joint
-* added hinge joint
-* added ball-on-line joint
+* added universal joint for rigid bodies
+* added hinge joint for rigid bodies
+* added ball-on-line joint for rigid bodies
 * started a doxygen documentation of the project
 
 ## Features
@@ -46,6 +49,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- ball-on-line-joint
 		- hinge joint
 		- universal joint
+		- ball joint between rigid body and particle
 
 ## References
 

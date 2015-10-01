@@ -25,7 +25,7 @@ namespace PBD
 		virtual ~TimeStepRigidBodyModel(void);
 
 		void step(RigidBodyModel &model);
-		void reset(RigidBodyModel &model);
+		void reset();
 
 		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
 		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }

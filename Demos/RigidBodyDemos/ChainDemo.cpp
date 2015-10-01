@@ -81,7 +81,7 @@ void cleanup()
 void reset()
 {
 	model.reset();
-	simulation.reset(model);
+	simulation.reset();
 	TimeManager::getCurrent()->setTime(0.0);
 }
 

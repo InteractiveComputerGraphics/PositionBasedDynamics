@@ -70,7 +70,7 @@ void TimeStepRigidBodyModel::clearAccelerations(RigidBodyModel &model)
  	}
 }
 
-void TimeStepRigidBodyModel::reset(RigidBodyModel &model)
+void TimeStepRigidBodyModel::reset()
 {
 
 }

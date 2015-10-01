@@ -22,7 +22,7 @@ namespace PBD
 		virtual ~TimeStepFluidModel(void);
 
 		void step(FluidModel &model);
-		void reset(FluidModel &model);
+		void reset();
 
 		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
 		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }

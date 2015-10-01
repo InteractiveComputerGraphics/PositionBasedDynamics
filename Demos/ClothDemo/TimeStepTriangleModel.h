@@ -21,7 +21,7 @@ namespace PBD
 		virtual ~TimeStepTriangleModel(void);
 
 		void step(TriangleModel &model);
-		void reset(TriangleModel &model);	
+		void reset();	
 
 		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
 		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }
