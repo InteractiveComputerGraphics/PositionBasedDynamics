@@ -51,6 +51,10 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- universal joint
 		- ball joint between rigid body and particle
 
+## Screeshots		
+		
+![Cloth demo](http://www.interactive-graphics.de/j_images/PositionBasedDynamics.jpg "Cloth demo")	
+
 ## References
 
 * J. Bender, M. Müller and M. Macklin, "Position-Based Simulation Methods in Computer Graphics", In Tutorial Proceedings of Eurographics, 2015
