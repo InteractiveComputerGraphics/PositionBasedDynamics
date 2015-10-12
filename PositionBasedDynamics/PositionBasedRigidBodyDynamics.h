@@ -12,7 +12,7 @@ namespace PBD
 	private:
 		static void computeMatrixK(
 			const Eigen::Vector3f &connector,
-			const float mass,
+			const float invMass,
 			const Eigen::Vector3f &x,
 			const Eigen::Matrix3f &inertiaInverseW,
 			Eigen::Matrix3f &K);
@@ -20,7 +20,7 @@ namespace PBD
 		static void computeMatrixK(
 			const Eigen::Vector3f &connector0,
 			const Eigen::Vector3f &connector1,
-			const float mass,
+			const float invMass,
 			const Eigen::Vector3f &x,
 			const Eigen::Matrix3f &inertiaInverseW,
 			Eigen::Matrix3f &K);
@@ -81,11 +81,11 @@ namespace PBD
 		* \image html balljoint.jpg "ball joint"
 		* \image latex balljoint.jpg "ball joint" width=0.5\textwidth
 		*
-		* @param mass0 mass of first body
+		* @param invMass0 inverse mass of first body
 		* @param x0 center of mass of first body
 		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of first body
 		* @param q0 rotation of first body
-		* @param mass1 mass of second body
+		* @param invMass1 inverse mass of second body
 		* @param x1 center of mass of second body
 		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
 		* @param q1 rotation of second body
@@ -98,11 +98,11 @@ namespace PBD
 		* @param corr_q1 rotation correction of second body
 		*/
 		static bool solveRigidBodyBallJoint(
-			const float mass0,								// mass is zero if body is static
+			const float invMass0,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x0, 						// center of mass of body 0
 			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
 			const Eigen::Quaternionf &q0,					// rotation of body 0			
-			const float mass1,								// mass is zero if body is static
+			const float invMass1,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x1, 						// center of mass of body 1
 			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
 			const Eigen::Quaternionf &q1,					// rotation of body 1
@@ -172,11 +172,11 @@ namespace PBD
 		* \image html ballonlinejoint.jpg "ball-on-line joint"
 		* \image latex ballonlinejoint.jpg "ball-on-line joint" width=0.5\textwidth
 		*
-		* @param mass0 mass of first body
+		* @param invMass0 inverse mass of first body
 		* @param x0 center of mass of first body
 		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of first body
 		* @param q0 rotation of first body
-		* @param mass1 mass of second body
+		* @param invMass1 inverse mass of second body
 		* @param x1 center of mass of second body
 		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
 		* @param q1 rotation of second body
@@ -189,11 +189,11 @@ namespace PBD
 		* @param corr_q1 rotation correction of second body
 		*/
 		static bool solveRigidBodyBallOnLineJoint(
-			const float mass0,								// mass is zero if body is static
+			const float invMass0,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x0, 						// center of mass of body 0
 			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
 			const Eigen::Quaternionf &q0,					// rotation of body 0			
-			const float mass1,								// mass is zero if body is static
+			const float invMass1,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x1, 						// center of mass of body 1
 			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
 			const Eigen::Quaternionf &q1,					// rotation of body 1
@@ -264,11 +264,11 @@ namespace PBD
 		* \image html hingejoint.jpg "hinge joint"
 		* \image latex hingejoint.jpg "hinge joint" width=0.5\textwidth
 		*
-		* @param mass0 mass of first body
+		* @param invMass0 inverse mass of first body
 		* @param x0 center of mass of first body
 		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of first body
 		* @param q0 rotation of first body
-		* @param mass1 mass of second body
+		* @param invMass1 inverse mass of second body
 		* @param x1 center of mass of second body
 		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
 		* @param q1 rotation of second body
@@ -281,11 +281,11 @@ namespace PBD
 		* @param corr_q1 rotation correction of second body
 		*/
 		static bool solveRigidBodyHingeJoint(
-			const float mass0,								// mass is zero if body is static
+			const float invMass0,							//inverse  mass is zero if body is static
 			const Eigen::Vector3f &x0, 						// center of mass of body 0
 			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
 			const Eigen::Quaternionf &q0,					// rotation of body 0			
-			const float mass1,								// mass is zero if body is static
+			const float invMass1,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x1, 						// center of mass of body 1
 			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
 			const Eigen::Quaternionf &q1,					// rotation of body 1
@@ -355,11 +355,11 @@ namespace PBD
 		* \image html universaljoint.jpg "universal joint"
 		* \image latex universaljoint.jpg "universal joint" width=0.5\textwidth
 		*
-		* @param mass0 mass of first body
+		* @param invMass0 inverse mass of first body
 		* @param x0 center of mass of first body
 		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of first body
 		* @param q0 rotation of first body
-		* @param mass1 mass of second body
+		* @param invMass1 inverse mass of second body
 		* @param x1 center of mass of second body
 		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
 		* @param q1 rotation of second body
@@ -372,11 +372,11 @@ namespace PBD
 		* @param corr_q1 rotation correction of second body
 		*/
 		static bool solveRigidBodyUniversalJoint(
-			const float mass0,								// mass is zero if body is static
+			const float invMass0,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x0, 						// center of mass of body 0
 			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
 			const Eigen::Quaternionf &q0,					// rotation of body 0			
-			const float mass1,								// mass is zero if body is static
+			const float invMass1,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x1, 						// center of mass of body 1
 			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
 			const Eigen::Quaternionf &q1,					// rotation of body 1
@@ -427,11 +427,11 @@ namespace PBD
 		* changes its state by updateRigidBodyParticleBallJointInfo().\n\n
 		* More information can be found in: \cite Deul2014
 		*
-		* @param mass0 mass of rigid body
+		* @param invMass0 inverse mass of rigid body
 		* @param x0 center of mass of rigid body
 		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of rigid body
 		* @param q0 rotation of rigid body
-		* @param mass1 mass of particle
+		* @param invMass1 inverse mass of particle
 		* @param x1 position of particle
 		* @param jointInfo Joint information which is required by the solver. This
 		* information must be generated in the beginning by calling initRigidBodyParticleBallJointInfo()
@@ -441,11 +441,11 @@ namespace PBD
 		* @param corr_x1 position correction of the particle
 		*/
 		static bool solveRigidBodyParticleBallJoint(
-			const float mass0,								// mass is zero if body is static
+			const float invMass0,							// inverse mass is zero if body is static
 			const Eigen::Vector3f &x0, 						// center of mass of body 0
 			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
 			const Eigen::Quaternionf &q0,					// rotation of body 0			
-			const float mass1,								// mass is zero if particle is static
+			const float invMass1,							// inverse mass is zero if particle is static
 			const Eigen::Vector3f &x1, 						// position of particle
 			const Eigen::Matrix<float, 3, 2> &jointInfo,	// precomputed joint info
 			Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,

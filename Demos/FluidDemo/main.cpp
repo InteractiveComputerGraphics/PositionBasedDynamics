@@ -3,7 +3,7 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Utils/TimeManager.h"
+#include "Demos/Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "FluidModel.h"
 #include "TimeStepFluidModel.h"

@@ -15,12 +15,17 @@ else()
   )
 endif()
 
-add_executable(RigidBodyClothCouplingDemo
-	  RigidBodyClothCouplingDemo.cpp
+add_executable(GenericParticleConstraintsDemo
+	  GenericParticleConstraintsDemo.cpp
+	  
+	  GenericConstraintsModel.cpp
+	  GenericConstraintsModel.h	  
+	  GenericConstraints.cpp
+	  GenericConstraints.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Demos/Utils/Config.h			
-	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
+  	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h	
 	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.cpp
 	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		  	  
@@ -36,21 +41,19 @@ add_executable(RigidBodyClothCouplingDemo
 	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.cpp
 	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.h
 	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.cpp
-	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.h		
+	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.h	  			  
 	  
 	  CMakeLists.txt
 )
 
-set_target_properties(RigidBodyClothCouplingDemo PROPERTIES FOLDER "Demos")
-add_dependencies(RigidBodyClothCouplingDemo ${SIMULATION_DEPENDENCIES})
-target_link_libraries(RigidBodyClothCouplingDemo ${SIMULATION_LINK_LIBRARIES})
-
-
 add_definitions(-DTW_NO_LIB_PRAGMA -DTW_STATIC)
+
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
-
+set_target_properties(GenericParticleConstraintsDemo PROPERTIES FOLDER "Demos")
+add_dependencies(GenericParticleConstraintsDemo ${SIMULATION_DEPENDENCIES})
+target_link_libraries(GenericParticleConstraintsDemo ${SIMULATION_LINK_LIBRARIES})
 VIS_SOURCE_GROUPS()

@@ -1,5 +1,5 @@
 #include "TimeStepFluidModel.h"
-#include "Demos/Utils/TimeManager.h"
+#include "Demos/Simulation/TimeManager.h"
 #include "PositionBasedDynamics/PositionBasedFluids.h"
 #include "PositionBasedDynamics/TimeIntegration.h"
 #include "PositionBasedDynamics/SPHKernels.h"
@@ -22,13 +22,6 @@ void TimeStepFluidModel::step(FluidModel &model)
 	ParticleData &pd = model.getParticles();
 
 	clearAccelerations(model);
-
-	// Compute viscosity forces
-	if (TimeManager::getCurrent()->getTime() > 0.0)			// in the first step we do not know the neighbors
-	{		
-		computeDensities(model);
-		computeViscosityAccels(model);
-	}
 
 	// Update time step size by CFL condition
 	updateTimeStepSizeCFL(model, 0.0001f, 0.005f);
@@ -56,6 +49,9 @@ void TimeStepFluidModel::step(FluidModel &model)
 		else
 			TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
 	}
+
+	// Compute viscosity 
+	computeXSPHViscosity(model);
 
 	// Compute new time	
 	tm->setTime (tm->getTime () + h);
@@ -135,7 +131,7 @@ void TimeStepFluidModel::updateTimeStepSizeCFL(FluidModel &model, const float mi
 
 /** Compute viscosity accelerations.
 */
-void TimeStepFluidModel::computeViscosityAccels(FluidModel &model)
+void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 {
 	ParticleData &pd = model.getParticles();
 	const unsigned int numParticles = pd.size();	
@@ -153,9 +149,8 @@ void TimeStepFluidModel::computeViscosityAccels(FluidModel &model)
 		for (int i = 0; i < (int)numParticles; i++)
 		{
 			const Eigen::Vector3f &xi = pd.getPosition(i);
-			const Eigen::Vector3f &vi = pd.getVelocity(i);
+			Eigen::Vector3f &vi = pd.getVelocity(i);
 			const float density_i = model.getDensity(i);
-			Eigen::Vector3f &ai = pd.getAcceleration(i);
 			for (unsigned int j = 0; j < numNeighbors[i]; j++)
 			{
 				const unsigned int neighborIndex = neighbors[i][j];
@@ -165,13 +160,13 @@ void TimeStepFluidModel::computeViscosityAccels(FluidModel &model)
 					const Eigen::Vector3f &xj = pd.getPosition(neighborIndex);
 					const Eigen::Vector3f &vj = pd.getVelocity(neighborIndex);
 					const float density_j = model.getDensity(neighborIndex);
-					ai -= 1.0f / h * viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
+					vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
 
 				}
 // 				else 
 // 				{
 // 					const Eigen::Vector3f &xj = model.getBoundaryX(neighborIndex - numParticles);
-// 					ai -= 1.0f / h * viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
+// 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
 // 				}
 			}
 		}

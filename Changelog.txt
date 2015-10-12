@@ -1,3 +1,7 @@
+	- implemented unified solver for rigid bodies and deformable solids 
+	- added documentation for generic constraints
+	- added generic constraint demo
+	- added generic constraint
 	- added coupling demo
 	- added ball joint which links a rigid body and a particle
 	- added universal joint

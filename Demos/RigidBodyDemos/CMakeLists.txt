@@ -18,17 +18,26 @@ endif()
 add_executable(ChainDemo
 	  ChainDemo.cpp
 	  
-	  TimeStepRigidBodyModel.cpp
-	  TimeStepRigidBodyModel.h
-	  RigidBodyModel.cpp
-	  RigidBodyModel.h	  
-	  
 	  ${VIS_FILES}          
-	  ${PROJECT_PATH}/Demos/Utils/Config.h			
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.cpp	
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Utils/RigidBody.h		  
-	  
+	  ${PROJECT_PATH}/Demos/Utils/Config.h	
+	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
+	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h	
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.cpp
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		  	  
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h		  
+  	  ${PROJECT_PATH}/Demos/Simulation/Constraints.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/Constraints.h
+	  ${PROJECT_PATH}/Demos/Simulation/TetModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TetModel.h
+	  ${PROJECT_PATH}/Demos/Simulation/TriangleModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TriangleModel.h
+	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.h
+	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.h	
+
 	  CMakeLists.txt
 )
 
@@ -38,17 +47,26 @@ target_link_libraries(ChainDemo ${SIMULATION_LINK_LIBRARIES})
 
 add_executable(JointDemo
 	  JointDemo.cpp
-	  
-	  TimeStepRigidBodyModel.cpp
-	  TimeStepRigidBodyModel.h
-	  RigidBodyModel.cpp
-	  RigidBodyModel.h	  
-	  
+	    
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Demos/Utils/Config.h			
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.cpp	
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Utils/RigidBody.h		  
+	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
+	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h	
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.cpp
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		  	  
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h		  
+  	  ${PROJECT_PATH}/Demos/Simulation/Constraints.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/Constraints.h
+	  ${PROJECT_PATH}/Demos/Simulation/TetModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TetModel.h
+	  ${PROJECT_PATH}/Demos/Simulation/TriangleModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TriangleModel.h
+	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.h
+	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.h	  
 	  
 	  CMakeLists.txt
 )

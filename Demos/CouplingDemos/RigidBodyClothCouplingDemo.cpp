@@ -2,14 +2,15 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Utils/TimeManager.h"
+#include "Demos/Simulation/TimeManager.h"
 #include <Eigen/Dense>
-#include "RigidBodyParticleModel.h"
-#include "TimeStepRigidBodyParticleModel.h"
+#include "Demos/Simulation/SimulationModel.h"
+#include "Demos/Simulation/TimeStepController.h"
 #include <iostream>
 
 #define _USE_MATH_DEFINES
 #include "math.h"
+#include "../Simulation/Constraints.h"
 
 // Enable memory leak detection
 #ifdef _DEBUG
@@ -56,8 +57,8 @@ void TW_CALL setSimulationMethod(const void *value, void *clientData);
 void TW_CALL getSimulationMethod(void *value, void *clientData);
 
 
-RigidBodyParticleModel model;
-TimeStepRigidBodyParticleModel sim;
+SimulationModel model;
+TimeStepController sim;
 
 const int nRows = 20;
 const int nCols = 20;
@@ -131,6 +132,9 @@ void reset()
 	model.reset();
 	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);
+
+	model.cleanup();
+	buildModel();
 }
 
 void mouseMove(int x, int y)
@@ -142,12 +146,12 @@ void mouseMove(int x, int y)
 	TimeManager *tm = TimeManager::getCurrent();
 	const float h = tm->getTimeStepSize();
 
-	RigidBodyParticleModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	for (size_t j = 0; j < selectedBodies.size(); j++)
 	{
 		rb[selectedBodies[j]]->getVelocity() += 1.0f / h * diff;
 	}
-	ParticleData &pd = model.getParticleMesh().getVertexData();
+	ParticleData &pd = model.getParticles();
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
 	{
 		pd.getVelocity(selectedParticles[j]) += 5.0*diff / h;
@@ -160,11 +164,11 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
  	std::vector<unsigned int> hits;
  	
 	selectedParticles.clear();
-	ParticleData &pd = model.getParticleMesh().getVertexData();
+	ParticleData &pd = model.getParticles();
 	Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
 	
 	selectedBodies.clear(); 
-	RigidBodyParticleModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f> > x;
 	x.resize(rb.size());
  	for (unsigned int i = 0; i < rb.size(); i++)
@@ -188,15 +192,10 @@ void timeStep ()
 
 	// Simulation code
 	for (unsigned int i = 0; i < 4; i++)
-	{
-		TimeManager *tm = TimeManager::getCurrent();
-		const float h = tm->getTimeStepSize();
-		const float currentTime = tm->getTime();
-
 		sim.step(model);
 
-		tm->setTime(currentTime + h);
-	}
+	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
+		model.getTriangleModels()[i]->updateMeshNormals(model.getParticles());
 }
 
 void buildModel ()
@@ -207,12 +206,12 @@ void buildModel ()
 	createRigidBodyModel();	
 }
 
-void renderBallJoint(RigidBodyParticleModel::BallJoint &bj)
+void renderBallJoint(BallJoint &bj)
 {
 	MiniGL::drawSphere(bj.m_jointInfo.col(2), 0.1f, jointColor);
 }
 
-void renderRigidBodyParticleBallJoint(RigidBodyParticleModel::RigidBodyParticleBallJoint &bj)
+void renderRigidBodyParticleBallJoint(RigidBodyParticleBallJoint &bj)
 {
 	MiniGL::drawSphere(bj.m_jointInfo.col(1), 0.1f, jointColor);
 }
@@ -221,8 +220,8 @@ void renderRigidBodyModel()
 {
 	// Draw simulation model
 
-	RigidBodyParticleModel::RigidBodyVector &rb = model.getRigidBodies();
-	RigidBodyParticleModel::JointVector &joints = model.getJoints();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
 	float selectionColor[4] = { 0.8f, 0.0f, 0.0f, 1 };
 	float surfaceColor[4] = { 0.1f, 0.4f, 0.8f, 1 };
@@ -248,61 +247,63 @@ void renderRigidBodyModel()
 
 	}
 
-	for (size_t i = 0; i < joints.size(); i++)
+	for (size_t i = 0; i < constraints.size(); i++)
 	{
-		if (joints[i]->getTypeId() == RigidBodyParticleModel::BallJoint::TYPE_ID)
+		if (constraints[i]->getTypeId() == BallJoint::TYPE_ID)
 		{
-			renderBallJoint(*(RigidBodyParticleModel::BallJoint*) joints[i]);
+			renderBallJoint(*(BallJoint*)constraints[i]);
 		}
-		else if (joints[i]->getTypeId() == RigidBodyParticleModel::RigidBodyParticleBallJoint::TYPE_ID)
+		else if (constraints[i]->getTypeId() == RigidBodyParticleBallJoint::TYPE_ID)
 		{
-			renderRigidBodyParticleBallJoint(*(RigidBodyParticleModel::RigidBodyParticleBallJoint*) joints[i]);
+			renderRigidBodyParticleBallJoint(*(RigidBodyParticleBallJoint*)constraints[i]);
 		}
 	}
 }
 
-void renderClothModel()
+void renderTriangleModels()
 {
 	// Draw simulation model
 
-	// mesh 
-	const ParticleData &pd = model.getParticleMesh().getVertexData();
-	const IndexedFaceMesh<ParticleData> &mesh = model.getParticleMesh();
-	const unsigned int *faces = mesh.getFaces().data();
-	const unsigned int nFaces = mesh.numFaces();
-	const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
-	const Eigen::Vector2f *uvs = mesh.getUVs().data();
+	const ParticleData &pd = model.getParticles();
 
-	float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(surfaceColor);
+	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
+	{
+		// mesh 
+		const IndexedFaceMesh &mesh = model.getTriangleModels()[i]->getParticleMesh();
+		const unsigned int *faces = mesh.getFaces().data();
+		const unsigned int nFaces = mesh.numFaces();
+		const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
+		const Eigen::Vector2f *uvs = mesh.getUVs().data();
 
-	MiniGL::bindTexture();
+		float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
+		float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+		glColor3fv(surfaceColor);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(0)[0]);
-	glTexCoordPointer(2, GL_FLOAT, 0, &uvs[0][0]);
-	glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
-	glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		MiniGL::bindTexture();
 
-	MiniGL::unbindTexture();
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(model.getTriangleModels()[i]->getIndexOffset())[0]);
+		glTexCoordPointer(2, GL_FLOAT, 0, &uvs[0][0]);
+		glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
+		glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		MiniGL::unbindTexture();
+	}
 
  	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
  	for (unsigned int j = 0; j < selectedParticles.size(); j++)
  	{
  		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
  	}
-
-	MiniGL::drawTime(TimeManager::getCurrent()->getTime());
 }
 
 
@@ -311,7 +312,7 @@ void render ()
 	MiniGL::coordinateSystem();
 	
 	renderRigidBodyModel();
-	renderClothModel();
+	renderTriangleModels();
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
@@ -329,8 +330,8 @@ Eigen::Vector3f computeInertiaTensorBox(const float mass, const float width, con
 */
 void createRigidBodyModel()
 {
-	RigidBodyParticleModel::RigidBodyVector &rb = model.getRigidBodies();
-	RigidBodyParticleModel::JointVector &joints = model.getJoints();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
 	rb.resize(12);
 
@@ -451,7 +452,7 @@ void createRigidBodyModel()
 */
 void createClothMesh()
 {
-	RigidBodyParticleModel::ParticleMesh::UVs uvs;
+	TriangleModel::ParticleMesh::UVs uvs;
 	uvs.resize(nRows*nCols);
 
 	const float dy = clothWidth / (float)(nCols - 1);
@@ -472,7 +473,7 @@ void createClothMesh()
 	}
 	const int nIndices = 6 * (nRows - 1)*(nCols - 1);
 
-	RigidBodyParticleModel::ParticleMesh::UVIndices uvIndices;
+	TriangleModel::ParticleMesh::UVIndices uvIndices;
 	uvIndices.resize(nIndices);
 
 	unsigned int indices[nIndices];
@@ -504,16 +505,108 @@ void createClothMesh()
 			index += 3;
 		}
 	}
-	model.setGeometry(nRows*nCols, &points[0], nIndices / 3, &indices[0], uvIndices, uvs);
 
-	RigidBodyParticleModel::ParticleMesh &mesh = model.getParticleMesh();
-	ParticleData &pd = mesh.getVertexData();
+	model.addTriangleModel(nRows*nCols, nIndices / 3, &points[0], &indices[0], uvIndices, uvs);
+
+	ParticleData &pd = model.getParticles();
 	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
 	{
 		pd.setMass(i, 1.0);
 	}
 
-	model.initConstraints();
+	// init constraints
+	for (unsigned int cm = 0; cm < model.getTriangleModels().size(); cm++)
+	{
+		if (sim.getSimulationMethod() == 1)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model.getTriangleModels()[cm]->getParticleMesh().numEdges();
+			const IndexedFaceMesh::Edge *edges = model.getTriangleModels()[cm]->getParticleMesh().getEdges().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const unsigned int v1 = edges[i].m_vert[0] + offset;
+				const unsigned int v2 = edges[i].m_vert[1] + offset;
+
+				model.addDistanceConstraint(v1, v2);
+			}
+		}
+		else if (sim.getSimulationMethod() == 2)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			const unsigned int *tris = mesh.getFaces().data();
+			const unsigned int nFaces = mesh.numFaces();
+			for (unsigned int i = 0; i < nFaces; i++)
+			{
+				const unsigned int v1 = tris[3 * i] + offset;
+				const unsigned int v2 = tris[3 * i + 1] + offset;
+				const unsigned int v3 = tris[3 * i + 2] + offset;
+				model.addFEMTriangleConstraint(v1, v2, v3);
+			}
+		}
+		else if (sim.getSimulationMethod() == 3)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			const unsigned int *tris = mesh.getFaces().data();
+			const unsigned int nFaces = mesh.numFaces();
+			for (unsigned int i = 0; i < nFaces; i++)
+			{
+				const unsigned int v1 = tris[3 * i] + offset;
+				const unsigned int v2 = tris[3 * i + 1] + offset;
+				const unsigned int v3 = tris[3 * i + 2] + offset;
+				model.addStrainTriangleConstraint(v1, v2, v3);
+			}
+		}
+		if (sim.getBendingMethod() != 0)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			unsigned int nEdges = mesh.numEdges();
+			const TriangleModel::ParticleMesh::Edge *edges = mesh.getEdges().data();
+			const unsigned int *tris = mesh.getFaces().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const int tri1 = edges[i].m_face[0];
+				const int tri2 = edges[i].m_face[1];
+				if ((tri1 != 0xffffffff) && (tri2 != 0xffffffff))
+				{
+					// Find the triangle points which do not lie on the axis
+					const int axisPoint1 = edges[i].m_vert[0];
+					const int axisPoint2 = edges[i].m_vert[1];
+					int point1 = -1;
+					int point2 = -1;
+					for (int j = 0; j < 3; j++)
+					{
+						if ((tris[3 * tri1 + j] != axisPoint1) && (tris[3 * tri1 + j] != axisPoint2))
+						{
+							point1 = tris[3 * tri1 + j];
+							break;
+						}
+					}
+					for (int j = 0; j < 3; j++)
+					{
+						if ((tris[3 * tri2 + j] != axisPoint1) && (tris[3 * tri2 + j] != axisPoint2))
+						{
+							point2 = tris[3 * tri2 + j];
+							break;
+						}
+					}
+					if ((point1 != -1) && (point2 != -1))
+					{
+						const unsigned int vertex1 = point1 + offset;
+						const unsigned int vertex2 = point2 + offset;
+						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
+						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
+						if (sim.getBendingMethod() == 1)
+							model.addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
+						else if (sim.getBendingMethod() == 2)
+							model.addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
+					}
+				}
+			}
+		}
+	}
 
 	std::cout << "Number of triangles: " << nIndices / 3 << "\n";
 	std::cout << "Number of vertices: " << nRows*nCols << "\n";
@@ -534,131 +627,133 @@ void TW_CALL getTimeStep(void *value, void *clientData)
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepRigidBodyParticleModel*)clientData)->setVelocityUpdateMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setVelocityUpdateMethod((unsigned int)val);
 }
 
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepRigidBodyParticleModel*)clientData)->getVelocityUpdateMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
 }
 
 void TW_CALL setStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((RigidBodyParticleModel*)clientData)->setStiffness(val);
+	((SimulationModel*)clientData)->setClothStiffness(val);
 }
 
 void TW_CALL getStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((RigidBodyParticleModel*)clientData)->getStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
 }
 
 void TW_CALL setXXStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((RigidBodyParticleModel*)clientData)->setXXStiffness(val);
+	((SimulationModel*)clientData)->setClothXXStiffness(val);
 }
 
 void TW_CALL getXXStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((RigidBodyParticleModel*)clientData)->getXXStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
 }
 
 void TW_CALL setYYStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((RigidBodyParticleModel*)clientData)->setYYStiffness(val);
+	((SimulationModel*)clientData)->setClothYYStiffness(val);
 }
 
 void TW_CALL getYYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((RigidBodyParticleModel*)clientData)->getYYStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
 }
 
 void TW_CALL setXYStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((RigidBodyParticleModel*)clientData)->setXYStiffness(val);
+	((SimulationModel*)clientData)->setClothXYStiffness(val);
 }
 
 void TW_CALL getXYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((RigidBodyParticleModel*)clientData)->getXYStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
 }
 
 void TW_CALL setYXPoissonRatio(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((RigidBodyParticleModel*)clientData)->setYXPoissonRatio(val);
+	((SimulationModel*)clientData)->setClothYXPoissonRatio(val);
 }
 
 void TW_CALL getYXPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((RigidBodyParticleModel*)clientData)->getYXPoissonRatio();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
 }
 
 void TW_CALL setXYPoissonRatio(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((RigidBodyParticleModel*)clientData)->setXYPoissonRatio(val);
+	((SimulationModel*)clientData)->setClothXYPoissonRatio(val);
 }
 
 void TW_CALL getXYPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((RigidBodyParticleModel*)clientData)->getXYPoissonRatio();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
 }
 
 void TW_CALL setNormalizeStretch(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((RigidBodyParticleModel*)clientData)->setNormalizeStretch(val);
+	((SimulationModel*)clientData)->setClothNormalizeStretch(val);
 }
 
 void TW_CALL getNormalizeStretch(void *value, void *clientData)
 {
-	*(bool *)(value) = ((RigidBodyParticleModel*)clientData)->getNormalizeStretch();
+	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeStretch();
 }
 
 void TW_CALL setNormalizeShear(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((RigidBodyParticleModel*)clientData)->setNormalizeShear(val);
+	((SimulationModel*)clientData)->setClothNormalizeShear(val);
 }
 
 void TW_CALL getNormalizeShear(void *value, void *clientData)
 {
-	*(bool *)(value) = ((RigidBodyParticleModel*)clientData)->getNormalizeShear();
+	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeShear();
 }
 
 void TW_CALL setBendingStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((RigidBodyParticleModel*)clientData)->setBendingStiffness(val);
+	((SimulationModel*)clientData)->setClothBendingStiffness(val);
 }
 
 void TW_CALL getBendingStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((RigidBodyParticleModel*)clientData)->getBendingStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
 }
 
 void TW_CALL setBendingMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepRigidBodyParticleModel*)clientData)->setBendingMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setBendingMethod((unsigned int)val);
+	reset();
 }
 
 void TW_CALL getBendingMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepRigidBodyParticleModel*)clientData)->getBendingMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getBendingMethod();
 }
 
 void TW_CALL setSimulationMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepRigidBodyParticleModel*)clientData)->setSimulationMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setSimulationMethod((unsigned int)val);
+	reset();
 }
 
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepRigidBodyParticleModel*)clientData)->getSimulationMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getSimulationMethod();
 }

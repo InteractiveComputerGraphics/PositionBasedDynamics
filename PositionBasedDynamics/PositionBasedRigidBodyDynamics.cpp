@@ -8,12 +8,12 @@ using namespace PBD;
 // ----------------------------------------------------------------------------------------------
 void PositionBasedRigidBodyDynamics::computeMatrixK(
 	const Eigen::Vector3f &connector,
-	const float mass,
+	const float invMass,
 	const Eigen::Vector3f &x,
 	const Eigen::Matrix3f &inertiaInverseW,
 	Eigen::Matrix3f &K)
 {
-	if (mass != 0.0f)
+	if (invMass != 0.0f)
 	{
 		const Eigen::Vector3f v = connector - x;
 		const float a = v[0];
@@ -28,16 +28,15 @@ void PositionBasedRigidBodyDynamics::computeMatrixK(
 		const float j23 = inertiaInverseW(1,2);
 		const float j33 = inertiaInverseW(2,2);
 
-		const float m = (1.0f / mass);
-		K(0,0) = c*c*j22 - b*c*(j23 + j23) + b*b*j33 + m;
+		K(0,0) = c*c*j22 - b*c*(j23 + j23) + b*b*j33 + invMass;
 		K(0,1) = -(c*c*j12) + a*c*j23 + b*c*j13 - a*b*j33;
 		K(0,2) = b*c*j12 - a*c*j22 - b*b*j13 + a*b*j23;
 		K(1,0) = K(0,1);
-		K(1,1) = c*c*j11 - a*c*(j13 + j13) + a*a*j33 + m;
+		K(1,1) = c*c*j11 - a*c*(j13 + j13) + a*a*j33 + invMass;
 		K(1,2) = -(b*c*j11) + a*c*j12 + a*b*j13 - a*a*j23;
 		K(2,0) = K(0,2);
 		K(2,1) = K(1,2);
-		K(2,2) = b*b*j11 - a*b*(j12 + j12) + a*a*j22 + m;
+		K(2,2) = b*b*j11 - a*b*(j12 + j12) + a*a*j22 + invMass;
 	}
 	else
 		K.setZero();
@@ -47,12 +46,12 @@ void PositionBasedRigidBodyDynamics::computeMatrixK(
 void PositionBasedRigidBodyDynamics::computeMatrixK(
 	const Eigen::Vector3f &connector0,
 	const Eigen::Vector3f &connector1,
-	const float mass,
+	const float invMass,
 	const Eigen::Vector3f &x,
 	const Eigen::Matrix3f &inertiaInverseW,
 	Eigen::Matrix3f &K)
 {
-	if (mass != 0.0f)
+	if (invMass != 0.0f)
 	{
 		const Eigen::Vector3f v0 = connector0 - x;
 		const float a = v0[0];
@@ -72,16 +71,15 @@ void PositionBasedRigidBodyDynamics::computeMatrixK(
 		const float j23 = inertiaInverseW(1, 2);
 		const float j33 = inertiaInverseW(2, 2);
 
-		const float m = (1.0f / mass);
-		K(0, 0) = c*f*j22 - c*e*j23 - b*f*j23 + b*e*j33 + m;
+		K(0, 0) = c*f*j22 - c*e*j23 - b*f*j23 + b*e*j33 + invMass;
 		K(0, 1) = -(c*f*j12) + c*d*j23 + b*f*j13 - b*d*j33;
 		K(0, 2) = c*e*j12 - c*d*j22 - b*e*j13 + b*d*j23;
 		K(1, 0) = -(c*f*j12) + c*e*j13 + a*f*j23 - a*e*j33;
-		K(1, 1) = c*f*j11 - c*d*j13 - a*f*j13 + a*d*j33 + m;
+		K(1, 1) = c*f*j11 - c*d*j13 - a*f*j13 + a*d*j33 + invMass;
 		K(1, 2) = -(c*e*j11) + c*d*j12 + a*e*j13 - a*d*j23;
 		K(2, 0) = b*f*j12 - b*e*j13 - a*f*j22 + a*e*j23;
 		K(2, 1) = -(b*f*j11) + b*d*j13 + a*f*j12 - a*d*j23;
-		K(2, 2) = b*e*j11 - b*d*j12 - a*e*j12 + a*d*j22 + m;
+		K(2, 2) = b*e*j11 - b*d*j12 - a*e*j12 + a*d*j22 + invMass;
 	}
 	else
 		K.setZero();
@@ -142,11 +140,11 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyBallJointInfo(
 
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedRigidBodyDynamics::solveRigidBodyBallJoint(
-	const float mass0,								
+	const float invMass0,
 	const Eigen::Vector3f &x0, 						
 	const Eigen::Matrix3f &inertiaInverseW0,		
 	const Eigen::Quaternionf &q0,					
-	const float mass1,								
+	const float invMass1,
 	const Eigen::Vector3f &x1, 						
 	const Eigen::Matrix3f &inertiaInverseW1,		
 	const Eigen::Quaternionf &q1,	
@@ -165,26 +163,26 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyBallJoint(
 
 	// Compute Kinv
 	Eigen::Matrix3f K1, K2;
-	computeMatrixK(connector0, mass0, x0, inertiaInverseW0, K1);
-	computeMatrixK(connector1, mass1, x1, inertiaInverseW1, K2);
+	computeMatrixK(connector0, invMass0, x0, inertiaInverseW0, K1);
+	computeMatrixK(connector1, invMass1, x1, inertiaInverseW1, K2);
 	const Eigen::Matrix3f Kinv = (K1 + K2).inverse();
 
 	const Eigen::Vector3f pt = Kinv * (connector1 - connector0);
 
-	if (mass0 != 0.0f)
+	if (invMass0 != 0.0f)
 	{
 		const Eigen::Vector3f r0 = connector0 - x0;
-		corr_x0 = (1.0f / mass0)*pt;
+		corr_x0 = invMass0*pt;
 
 		const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
 		corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
 	}
 
-	if (mass1 != 0.0f)
+	if (invMass1 != 0.0f)
 	{
 		const Eigen::Vector3f r1 = connector1 - x1;
-		corr_x1 = -(1.0f / mass1)*pt;
+		corr_x1 = -invMass1*pt;
 
 		const Eigen::Vector3f ot = (inertiaInverseW1 * (r1.cross(-pt)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
@@ -280,11 +278,11 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyBallOnLineJointInfo(
 
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedRigidBodyDynamics::solveRigidBodyBallOnLineJoint(
-	const float mass0,
+	const float invMass0,
 	const Eigen::Vector3f &x0,
 	const Eigen::Matrix3f &inertiaInverseW0,
 	const Eigen::Quaternionf &q0,
-	const float mass1,
+	const float invMass1,
 	const Eigen::Vector3f &x1,
 	const Eigen::Matrix3f &inertiaInverseW1,
 	const Eigen::Quaternionf &q1,
@@ -305,8 +303,8 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyBallOnLineJoint(
 
 	// Compute Kinv
 	Eigen::Matrix3f K1, K2;
-	computeMatrixK(connector0, mass0, x0, inertiaInverseW0, K1);
-	computeMatrixK(connector1, mass1, x1, inertiaInverseW1, K2);
+	computeMatrixK(connector0, invMass0, x0, inertiaInverseW0, K1);
+	computeMatrixK(connector1, invMass1, x1, inertiaInverseW1, K2);
 
 	// projection 
 	const Eigen::Matrix<float, 3, 2> PT = jointInfo.block<3, 2>(0, 8);
@@ -318,20 +316,20 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyBallOnLineJoint(
 	const Eigen::Vector2f pt2D = Kinv * (P * (connector1 - connector0));
 	const Eigen::Vector3f pt = PT * pt2D;
 
-	if (mass0 != 0.0f)
+	if (invMass0 != 0.0f)
 	{
 		const Eigen::Vector3f r0 = connector0 - x0;
-		corr_x0 = (1.0f / mass0)*pt;
+		corr_x0 = invMass0*pt;
 
 		const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
 		corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
 	}
 
-	if (mass1 != 0.0f)
+	if (invMass1 != 0.0f)
 	{
 		const Eigen::Vector3f r1 = connector1 - x1;
-		corr_x1 = -(1.0f / mass1)*pt;
+		corr_x1 = -invMass1*pt;
 
 		const Eigen::Vector3f ot = (inertiaInverseW1 * (r1.cross(-pt)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
@@ -438,11 +436,11 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyHingeJointInfo(
 
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
-	const float mass0,
+	const float invMass0,
 	const Eigen::Vector3f &x0,
 	const Eigen::Matrix3f &inertiaInverseW0,
 	const Eigen::Quaternionf &q0,
-	const float mass1,
+	const float invMass1,
 	const Eigen::Vector3f &x1,
 	const Eigen::Matrix3f &inertiaInverseW1,
 	const Eigen::Quaternionf &q1,
@@ -482,7 +480,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 	Eigen::Matrix<float, 5, 5> K;
 	K.setZero();
 	Eigen::Matrix<float, 5, 6> J0, J1;
-	if (mass0 != 0.0f)
+	if (invMass0 != 0.0f)
 	{
 		// Jacobian for body 0 is
 		//
@@ -498,7 +496,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 		// ( (-r0 * J0^-1 * t2)^T        t2^T * J0^-1 t1     t2^T * J0^-1 t2  )
 
 		Eigen::Matrix3f K00;
-		computeMatrixK(c0, mass0, x0, inertiaInverseW0, K00);
+		computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K00);
 
 		K.block<3, 3>(0, 0) = K00;
 		K.block<3, 1>(0, 3) = -r0_star * inertiaInverseW0 * t1;
@@ -510,7 +508,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 		K(4, 3) = K(3, 4);
 		K(4, 4) = t2.transpose() * inertiaInverseW0 * t2;
 	}
-	if (mass1 != 0.0f)
+	if (invMass1 != 0.0f)
 	{
 		// Jacobian for body 1 is
 		//
@@ -526,7 +524,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 		// ( (-r1 * J1^-1 * t2)^T        t2^T * J1^-1 t1     t2^T * J1^-1 t2  )
 
 		Eigen::Matrix3f K11;
-		computeMatrixK(c1, mass1, x1, inertiaInverseW1, K11);
+		computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K11);
 
 		K.block<3, 3>(0, 0) += K11;
 		const Eigen::Vector3f K_03 = -r1_star * inertiaInverseW1 * t1;
@@ -547,17 +545,17 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 	const Eigen::Matrix<float, 5, 1> lambda = Kinv * b;
 	const Eigen::Vector3f pt = lambda.block<3, 1>(0, 0);
 
-	if (mass0 != 0.0f)
+	if (invMass0 != 0.0f)
 	{
-		corr_x0 = (1.0f / mass0)*pt;
+		corr_x0 = invMass0*pt;
 		const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt) + t1*lambda(3, 0) + t2*lambda(4, 0)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
 		corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
 	}
 
-	if (mass1 != 0.0f)
+	if (invMass1 != 0.0f)
 	{
-		corr_x1 = -(1.0f / mass1)*pt;
+		corr_x1 = -invMass1*pt;
 		const Eigen::Vector3f ot = (inertiaInverseW1 * (r1.cross(-pt) - t1*lambda(3, 0) - t2*lambda(4, 0)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
 		corr_q1.coeffs() = 0.5f *(otQ*q1).coeffs();
@@ -659,11 +657,11 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyUniversalJointInfo(
 
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
-	const float mass0,
+	const float invMass0,
 	const Eigen::Vector3f &x0,
 	const Eigen::Matrix3f &inertiaInverseW0,
 	const Eigen::Quaternionf &q0,
-	const float mass1,
+	const float invMass1,
 	const Eigen::Vector3f &x1,
 	const Eigen::Matrix3f &inertiaInverseW1,
 	const Eigen::Quaternionf &q1,
@@ -699,7 +697,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 	Eigen::Matrix<float, 4, 4> K;
 	K.setZero();
 	Eigen::Matrix<float, 4, 6> J0, J1;
-	if (mass0 != 0.0f)
+	if (invMass0 != 0.0f)
 	{
 		// Jacobian for body 0 is
 		//
@@ -713,14 +711,14 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 		// ( (-r0 * J0^-1 * u)^T         u^T * J0^-1 * u )
 
 		Eigen::Matrix3f K00;
-		computeMatrixK(c0, mass0, x0, inertiaInverseW0, K00);
+		computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K00);
 
 		K.block<3, 3>(0, 0) = K00;
 		K.block<3, 1>(0, 3) = -r0_star * inertiaInverseW0 * u;
 		K.block<1, 3>(3, 0) = K.block<3, 1>(0, 3).transpose();
 		K(3, 3) = u.transpose() * inertiaInverseW0 * u;
 	}
-	if (mass1 != 0.0f)
+	if (invMass1 != 0.0f)
 	{
 		// Jacobian for body 1 is
 		//
@@ -734,7 +732,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 		// ( (-r1 * J1^-1 * u)^T         u^T * J1^-1 * u )
 
 		Eigen::Matrix3f K11;
-		computeMatrixK(c1, mass1, x1, inertiaInverseW1, K11);
+		computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K11);
 
 		K.block<3, 3>(0, 0) += K11;
 		const Eigen::Vector3f K_03 = -r1_star * inertiaInverseW1 * u;
@@ -748,17 +746,17 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 	const Eigen::Matrix<float, 4, 1> lambda = Kinv * b;
 	const Eigen::Vector3f pt = lambda.block<3, 1>(0, 0);
 
-	if (mass0 != 0.0f)
+	if (invMass0 != 0.0f)
 	{
-		corr_x0 = (1.0f / mass0)*pt;
+		corr_x0 = invMass0*pt;
 		const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt) + u*lambda(3, 0)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
 		corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
 	}
 
-	if (mass1 != 0.0f)
+	if (invMass1 != 0.0f)
 	{
-		corr_x1 = -(1.0f / mass1)*pt;
+		corr_x1 = -invMass1*pt;
 		const Eigen::Vector3f ot = (inertiaInverseW1 * (r1.cross(-pt) - u*lambda(3, 0)));
 		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
 		corr_q1.coeffs() = 0.5f *(otQ*q1).coeffs();
@@ -809,11 +807,11 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 
 	// ----------------------------------------------------------------------------------------------
 	bool PositionBasedRigidBodyDynamics::solveRigidBodyParticleBallJoint(
-		const float mass0,
+		const float invMass0,
 		const Eigen::Vector3f &x0,
 		const Eigen::Matrix3f &inertiaInverseW0,
 		const Eigen::Quaternionf &q0,
-		const float mass1,
+		const float invMass1,
 		const Eigen::Vector3f &x1,
 		const Eigen::Matrix<float, 3, 2> &jointInfo,
 		Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
@@ -827,12 +825,11 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 
 		// Compute Kinv
 		Eigen::Matrix3f K1, K2;
-		computeMatrixK(connector0, mass0, x0, inertiaInverseW0, K1);
+		computeMatrixK(connector0, invMass0, x0, inertiaInverseW0, K1);
 
 		K2.setZero();
-		if (mass1 != 0.0f)
+		if (invMass1 != 0.0f)
 		{
-			const float invMass1 = 1.0f / mass1;
 			K2(0, 0) = invMass1;
 			K2(1, 1) = invMass1;
 			K2(2, 2) = invMass1;
@@ -841,19 +838,19 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 
 		const Eigen::Vector3f pt = Kinv * (x1 - connector0);
 
-		if (mass0 != 0.0f)
+		if (invMass0 != 0.0f)
 		{
 			const Eigen::Vector3f r0 = connector0 - x0;
-			corr_x0 = (1.0f / mass0)*pt;
+			corr_x0 = invMass0*pt;
 
 			const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt)));
 			const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
 			corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
 		}
 
-		if (mass1 != 0.0f)
+		if (invMass1 != 0.0f)
 		{
-			corr_x1 = -(1.0f / mass1)*pt;
+			corr_x1 = -invMass1*pt;
 		}			
 
 		return true;

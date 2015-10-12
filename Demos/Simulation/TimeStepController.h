@@ -1,27 +1,29 @@
-#ifndef __TimeStepTriangleModel_h__
-#define __TimeStepTriangleModel_h__
+#ifndef __TIMESTEPCONTROLLER_h__
+#define __TIMESTEPCONTROLLER_h__
 
 #include "Demos/Utils/Config.h"
-#include "TriangleModel.h"
+#include "SimulationModel.h"
 
 namespace PBD
 {
-	class TimeStepTriangleModel 
+	class TimeStepController 
 	{
 	protected:
 		unsigned int m_velocityUpdateMethod;
 		unsigned int m_simulationMethod;
 		unsigned int m_bendingMethod;
 
-		void clearAccelerations(TriangleModel &model);
-		void constraintProjection(TriangleModel &model);
+		/** Clear accelerations and add gravitation.
+		*/
+		void clearAccelerations(SimulationModel &model);
+		void constraintProjection(SimulationModel &model);
 
 	public:
-		TimeStepTriangleModel();
-		virtual ~TimeStepTriangleModel(void);
+		TimeStepController();
+		virtual ~TimeStepController(void);
 
-		void step(TriangleModel &model);
-		void reset();	
+		void step(SimulationModel &model);
+		void reset();
 
 		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
 		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }

@@ -2,10 +2,10 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Utils/TimeManager.h"
+#include "Demos/Simulation/TimeManager.h"
 #include <Eigen/Dense>
-#include "RigidBodyModel.h"
-#include "TimeStepRigidBodyModel.h"
+#include "Demos/Simulation/SimulationModel.h"
+#include "Demos/Simulation/TimeStepController.h"
 #include <iostream>
 
 #define _USE_MATH_DEFINES
@@ -33,8 +33,8 @@ void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
 
 
-RigidBodyModel model;
-TimeStepRigidBodyModel simulation;
+SimulationModel model;
+TimeStepController sim;
 
 const int numberOfBodies = 10;
 const float width = 1.0f;
@@ -64,7 +64,7 @@ int main( int argc, char **argv )
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &simulation, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 
 	glutMainLoop ();	
 
@@ -81,7 +81,7 @@ void cleanup()
 void reset()
 {
 	model.reset();
-	simulation.reset();
+	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);
 }
 
@@ -94,7 +94,7 @@ void mouseMove(int x, int y)
 	TimeManager *tm = TimeManager::getCurrent();
 	const float h = tm->getTimeStepSize();
 
-	RigidBodyModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	for (size_t j = 0; j < selectedBodies.size(); j++)
 	{
 		rb[selectedBodies[j]]->getVelocity() += 1.0f / h * diff;
@@ -107,7 +107,7 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
  	std::vector<unsigned int> hits;
  	selectedBodies.clear();
  
- 	RigidBodyModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f> > x;
 	x.resize(rb.size());
  	for (unsigned int i = 0; i < rb.size(); i++)
@@ -131,7 +131,7 @@ void timeStep ()
 
 	// Simulation code
 	for (unsigned int i = 0; i < 4; i++)
-		simulation.step(model);
+		sim.step(model);
 }
 
 void buildModel ()
@@ -141,7 +141,7 @@ void buildModel ()
 	createBodyModel();
 }
 
-void renderBallJoint(RigidBodyModel::BallJoint &bj)
+void renderBallJoint(BallJoint &bj)
 {
 	float jointColor[4] = { 0.0f, 0.6f, 0.2f, 1 };
 	MiniGL::drawSphere(bj.m_jointInfo.col(2), 1.25f*height, jointColor);
@@ -151,10 +151,10 @@ void render ()
 {
 	MiniGL::coordinateSystem();
 	
-	// Draw simulation model
+	// Draw sim model
 	
-	RigidBodyModel::RigidBodyVector &rb = model.getRigidBodies();
-	RigidBodyModel::JointVector &joints = model.getJoints();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
 	float selectionColor[4] = { 0.8f, 0.0f, 0.0f, 1 };
 	float surfaceColor[4] = { 0.1f, 0.4f, 0.8f, 1 };
@@ -174,11 +174,11 @@ void render ()
 			MiniGL::drawCube(rb[i]->getPosition(), rb[i]->getRotationMatrix().transpose(), width, height, depth, selectionColor);
 	}
 
-	for (size_t i = 0; i < joints.size(); i++)
+	for (size_t i = 0; i < constraints.size(); i++)
 	{
-		if (joints[i]->getTypeId() == RigidBodyModel::BallJoint::TYPE_ID)
+		if (constraints[i]->getTypeId() == BallJoint::TYPE_ID)
 		{
-			renderBallJoint(*(RigidBodyModel::BallJoint*) joints[i]);
+			renderBallJoint(*(BallJoint*)constraints[i]);
 		}
 	}
 
@@ -190,8 +190,8 @@ void render ()
 */
 void createBodyModel()
 {
-	RigidBodyModel::RigidBodyVector &rb = model.getRigidBodies();
-	RigidBodyModel::JointVector &joints = model.getJoints();
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
 	rb.resize(numberOfBodies);
 	const float mass = 1.0f;
@@ -211,7 +211,7 @@ void createBodyModel()
 	// Make first body static
 	rb[0]->setMass(0.0f);
 
-	joints.reserve(numberOfBodies - 1);
+	constraints.reserve(numberOfBodies - 1);
 	for (unsigned int i = 0; i < numberOfBodies-1; i++)
 	{
 		model.addBallJoint(i, i + 1, Eigen::Vector3f((float)i*width + 0.5f*width, 0.0f, 0.0f));
@@ -232,11 +232,11 @@ void TW_CALL getTimeStep(void *value, void *clientData)
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepRigidBodyModel*)clientData)->setVelocityUpdateMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setVelocityUpdateMethod((unsigned int)val);
 }
 
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepRigidBodyModel*)clientData)->getVelocityUpdateMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
 }
 

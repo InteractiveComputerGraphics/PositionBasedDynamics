@@ -25,9 +25,9 @@ add_executable(FluidDemo
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Demos/Utils/Config.h			
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.cpp	
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Utils/ParticleData.h	
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
+	  ${PROJECT_PATH}/Demos/Simulation/ParticleData.h	
 	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.cpp  
 	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.h
 	  

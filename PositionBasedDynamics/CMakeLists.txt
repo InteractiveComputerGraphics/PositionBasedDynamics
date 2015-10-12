@@ -7,6 +7,7 @@ add_library(PositionBasedDynamics
 		PositionBasedFluids.h
 		PositionBasedRigidBodyDynamics.cpp
 		PositionBasedRigidBodyDynamics.h
+		PositionBasedGenericConstraints.h
 		SPHKernels.cpp
 		SPHKernels.h
 		TimeIntegration.cpp

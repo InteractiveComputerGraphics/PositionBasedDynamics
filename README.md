@@ -16,13 +16,12 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* implemented unified solver for rigid bodies and deformable solids 
+* added generic constraint demo
+* added generic constraint
 * added coupling demo
 * added ball joint which links a rigid body and a particle
 * added new joint demo
-* added universal joint for rigid bodies
-* added hinge joint for rigid bodies
-* added ball-on-line joint for rigid bodies
-* started a doxygen documentation of the project
 
 ## Features
 

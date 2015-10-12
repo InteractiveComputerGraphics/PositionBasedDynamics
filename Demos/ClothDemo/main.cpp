@@ -2,10 +2,10 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Utils/TimeManager.h"
+#include "Demos/Simulation/TimeManager.h"
 #include <Eigen/Dense>
-#include "TriangleModel.h"
-#include "TimeStepTriangleModel.h"
+#include "Demos/Simulation/SimulationModel.h"
+#include "Demos/Simulation/TimeStepController.h"
 #include <iostream>
 
 // Enable memory leak detection
@@ -52,8 +52,8 @@ void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
 
 
-TriangleModel model;
-TimeStepTriangleModel simulation;
+SimulationModel model;
+TimeStepController sim;
 
 const int nRows = 30;
 const int nCols = 30;
@@ -84,9 +84,9 @@ int main( int argc, char **argv )
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &simulation, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulation, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &sim, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
 	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_FLOAT, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Distance constraints' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffness", TW_TYPE_FLOAT, setXXStiffness, getXXStiffness, &model, " label='Stiffness XX'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffness", TW_TYPE_FLOAT, setYYStiffness, getYYStiffness, &model, " label='Stiffness YY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
@@ -99,7 +99,7 @@ int main( int argc, char **argv )
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, &model, " label='Normalize stretch' group='Strain based dynamics' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, &model, " label='Normalize shear' group='Strain based dynamics' ");
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &simulation, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &sim, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
 	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_FLOAT, setBendingStiffness, getBendingStiffness, &model, " label='Bending stiffness'  min=0.0 step=0.01 precision=4 group=Bending ");
 
 	glutMainLoop ();	
@@ -117,8 +117,11 @@ void cleanup()
 void reset()
 {
 	model.reset();
-	simulation.reset();
+	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);
+
+	model.cleanup();
+	buildModel();
 }
 
 void mouseMove(int x, int y)
@@ -130,7 +133,7 @@ void mouseMove(int x, int y)
 	TimeManager *tm = TimeManager::getCurrent();
 	const float h = tm->getTimeStepSize();
 
-	ParticleData &pd = model.getParticleMesh().getVertexData();
+	ParticleData &pd = model.getParticles();
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
 	{
 		pd.getVelocity(selectedParticles[j]) += 5.0*diff/h;
@@ -142,7 +145,7 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 {
 	std::vector<unsigned int> hits;
 	selectedParticles.clear();
-	ParticleData &pd = model.getParticleMesh().getVertexData();
+	ParticleData &pd = model.getParticles();
 	Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
 	if (selectedParticles.size() > 0)
 		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
@@ -159,8 +162,10 @@ void timeStep ()
 
 	// Simulation code
 	for (unsigned int i = 0; i < 4; i++)
-		simulation.step(model);
-	model.getParticleMesh().updateVertexNormals();
+		sim.step(model);
+
+	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
+		model.getTriangleModels()[i]->updateMeshNormals(model.getParticles());
 }
 
 void buildModel ()
@@ -170,45 +175,55 @@ void buildModel ()
 	createMesh();
 }
 
+void renderTriangleModels()
+{
+	// Draw simulation model
+
+	const ParticleData &pd = model.getParticles();
+
+	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
+	{
+		// mesh 
+		const IndexedFaceMesh &mesh = model.getTriangleModels()[i]->getParticleMesh();
+		const unsigned int *faces = mesh.getFaces().data();
+		const unsigned int nFaces = mesh.numFaces();
+		const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
+		const Eigen::Vector2f *uvs = mesh.getUVs().data();
+
+		float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
+		float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+		glColor3fv(surfaceColor);
+
+		MiniGL::bindTexture();
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(model.getTriangleModels()[i]->getIndexOffset())[0]);
+		glTexCoordPointer(2, GL_FLOAT, 0, &uvs[0][0]);
+		glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
+		glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		MiniGL::unbindTexture();
+	}
+}
+
 
 void render ()
 {
 	MiniGL::coordinateSystem();
-	
-	// Draw simulation model
-	
-	// mesh 
-	const ParticleData &pd = model.getParticleMesh().getVertexData();
-	const IndexedFaceMesh<ParticleData> &mesh = model.getParticleMesh();
-	const unsigned int *faces = mesh.getFaces().data();
-	const unsigned int nFaces = mesh.numFaces();
-	const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
-	const Eigen::Vector2f *uvs = mesh.getUVs().data();
 
-	float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(surfaceColor);
-
-	MiniGL::bindTexture();
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(0)[0]);
-	glTexCoordPointer(2, GL_FLOAT, 0, &uvs[0][0]);
-	glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
-	glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	MiniGL::unbindTexture();
+	renderTriangleModels();	
 
 	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
+	const ParticleData &pd = model.getParticles();
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
 	{
 		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
@@ -275,10 +290,10 @@ void createMesh()
 			index += 3;
 		}
 	}
-	model.setGeometry(nRows*nCols, &points[0], nIndices / 3, &indices[0], uvIndices, uvs);
+
+	model.addTriangleModel(nRows*nCols, nIndices / 3, &points[0], &indices[0], uvIndices, uvs);
 	
-	TriangleModel::ParticleMesh &mesh = model.getParticleMesh();
-	ParticleData &pd = mesh.getVertexData();
+	ParticleData &pd = model.getParticles();
 	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
 	{
 		pd.setMass(i, 1.0);
@@ -288,7 +303,99 @@ void createMesh()
 	pd.setMass(0, 0.0);
 	pd.setMass((nRows-1)*nCols, 0.0);
 
-	model.initConstraints();
+	// init constraints
+	for (unsigned int cm = 0; cm < model.getTriangleModels().size(); cm++)
+	{
+		if (sim.getSimulationMethod() == 1)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model.getTriangleModels()[cm]->getParticleMesh().numEdges();
+			const IndexedFaceMesh::Edge *edges = model.getTriangleModels()[cm]->getParticleMesh().getEdges().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const unsigned int v1 = edges[i].m_vert[0] + offset;
+				const unsigned int v2 = edges[i].m_vert[1] + offset;
+
+				model.addDistanceConstraint(v1, v2);
+			}
+		}
+		else if (sim.getSimulationMethod() == 2)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			const unsigned int *tris = mesh.getFaces().data();
+			const unsigned int nFaces = mesh.numFaces();
+			for (unsigned int i = 0; i < nFaces; i++)
+			{
+				const unsigned int v1 = tris[3 * i] + offset;
+				const unsigned int v2 = tris[3 * i + 1] + offset;
+				const unsigned int v3 = tris[3 * i + 2] + offset;
+				model.addFEMTriangleConstraint(v1, v2, v3);
+			}
+		}
+		else if (sim.getSimulationMethod() == 3)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			const unsigned int *tris = mesh.getFaces().data();
+			const unsigned int nFaces = mesh.numFaces();
+			for (unsigned int i = 0; i < nFaces; i++)
+			{
+				const unsigned int v1 = tris[3 * i] + offset;
+				const unsigned int v2 = tris[3 * i + 1] + offset;
+				const unsigned int v3 = tris[3 * i + 2] + offset;
+				model.addStrainTriangleConstraint(v1, v2, v3);
+			}
+		}
+		if (sim.getBendingMethod() != 0)
+		{
+			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			unsigned int nEdges = mesh.numEdges();
+			const TriangleModel::ParticleMesh::Edge *edges = mesh.getEdges().data();
+			const unsigned int *tris = mesh.getFaces().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const int tri1 = edges[i].m_face[0];
+				const int tri2 = edges[i].m_face[1];
+				if ((tri1 != 0xffffffff) && (tri2 != 0xffffffff))
+				{
+					// Find the triangle points which do not lie on the axis
+					const int axisPoint1 = edges[i].m_vert[0];
+					const int axisPoint2 = edges[i].m_vert[1];
+					int point1 = -1;
+					int point2 = -1;
+					for (int j = 0; j < 3; j++)
+					{
+						if ((tris[3 * tri1 + j] != axisPoint1) && (tris[3 * tri1 + j] != axisPoint2))
+						{
+							point1 = tris[3 * tri1 + j];
+							break;
+						}
+					}
+					for (int j = 0; j < 3; j++)
+					{
+						if ((tris[3 * tri2 + j] != axisPoint1) && (tris[3 * tri2 + j] != axisPoint2))
+						{
+							point2 = tris[3 * tri2 + j];
+							break;
+						}
+					}
+					if ((point1 != -1) && (point2 != -1))
+					{
+						const unsigned int vertex1 = point1 + offset;
+						const unsigned int vertex2 = point2 + offset;
+						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
+						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
+						if (sim.getBendingMethod() == 1)
+							model.addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
+						else if (sim.getBendingMethod() == 2)
+							model.addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
+					}
+				}
+			}
+		}
+	}
 
 	std::cout << "Number of triangles: " << nIndices / 3 << "\n";
 	std::cout << "Number of vertices: " << nRows*nCols << "\n";
@@ -309,132 +416,134 @@ void TW_CALL getTimeStep(void *value, void *clientData)
 void TW_CALL setStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TriangleModel*) clientData)->setStiffness(val);
+	((SimulationModel*) clientData)->setClothStiffness(val);
 }
 
 void TW_CALL getStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((TriangleModel*)clientData)->getStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
 }
 
 void TW_CALL setXXStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TriangleModel*)clientData)->setXXStiffness(val);
+	((SimulationModel*)clientData)->setClothXXStiffness(val);
 }
 
 void TW_CALL getXXStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((TriangleModel*)clientData)->getXXStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
 }
 
 void TW_CALL setYYStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TriangleModel*)clientData)->setYYStiffness(val);
+	((SimulationModel*)clientData)->setClothYYStiffness(val);
 }
 
 void TW_CALL getYYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((TriangleModel*)clientData)->getYYStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
 }
 
 void TW_CALL setXYStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TriangleModel*)clientData)->setXYStiffness(val);
+	((SimulationModel*)clientData)->setClothXYStiffness(val);
 }
 
 void TW_CALL getXYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((TriangleModel*)clientData)->getXYStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
 }
 
 void TW_CALL setYXPoissonRatio(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TriangleModel*)clientData)->setYXPoissonRatio(val);
+	((SimulationModel*)clientData)->setClothYXPoissonRatio(val);
 }
 
 void TW_CALL getYXPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((TriangleModel*)clientData)->getYXPoissonRatio();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
 }
 
 void TW_CALL setXYPoissonRatio(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TriangleModel*)clientData)->setXYPoissonRatio(val);
+	((SimulationModel*)clientData)->setClothXYPoissonRatio(val);
 }
 
 void TW_CALL getXYPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((TriangleModel*)clientData)->getXYPoissonRatio();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
 }
 
 void TW_CALL setNormalizeStretch(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((TriangleModel*)clientData)->setNormalizeStretch(val);
+	((SimulationModel*)clientData)->setClothNormalizeStretch(val);
 }
 
 void TW_CALL getNormalizeStretch(void *value, void *clientData)
 {
-	*(bool *)(value) = ((TriangleModel*)clientData)->getNormalizeStretch();
+	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeStretch();
 }
 
 void TW_CALL setNormalizeShear(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((TriangleModel*)clientData)->setNormalizeShear(val);
+	((SimulationModel*)clientData)->setClothNormalizeShear(val);
 }
 
 void TW_CALL getNormalizeShear(void *value, void *clientData)
 {
-	*(bool *)(value) = ((TriangleModel*)clientData)->getNormalizeShear();
+	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeShear();
 }
 
 void TW_CALL setBendingStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TriangleModel*)clientData)->setBendingStiffness(val);
+	((SimulationModel*)clientData)->setClothBendingStiffness(val);
 }
 
 void TW_CALL getBendingStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((TriangleModel*)clientData)->getBendingStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
 }
 
 void TW_CALL setBendingMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepTriangleModel*)clientData)->setBendingMethod((unsigned int) val);
+	((TimeStepController*)clientData)->setBendingMethod((unsigned int) val);
+	reset();
 }
 
 void TW_CALL getBendingMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short) ((TimeStepTriangleModel*)clientData)->getBendingMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getBendingMethod();
 }
 
 void TW_CALL setSimulationMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepTriangleModel*)clientData)->setSimulationMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setSimulationMethod((unsigned int)val);
+	reset();
 }
 
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepTriangleModel*)clientData)->getSimulationMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getSimulationMethod();
 }
 
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepTriangleModel*)clientData)->setVelocityUpdateMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setVelocityUpdateMethod((unsigned int)val);
 }
 
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepTriangleModel*)clientData)->getVelocityUpdateMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
 }
 
