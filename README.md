@@ -49,6 +49,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- hinge joint
 		- universal joint
 		- ball joint between rigid body and particle
+	- Generic constraints
 
 ## Screeshots		
 		
