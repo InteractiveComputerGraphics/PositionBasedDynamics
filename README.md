@@ -52,7 +52,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- ball joint between rigid body and particle
 	- Generic constraints
 
-## Screeshots		
+## Screenshots		
 		
 ![Cloth demo](http://www.interactive-graphics.de/j_images/PositionBasedDynamics.jpg "Cloth demo")	
 
