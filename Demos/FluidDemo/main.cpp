@@ -147,7 +147,7 @@ void timeStep ()
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 8; i++)
 		simulation.step(model);
 }
 

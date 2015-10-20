@@ -23,6 +23,8 @@ namespace PBD
 			typedef std::vector<RigidBody*, Eigen::aligned_allocator<RigidBody*> > RigidBodyVector;
 			typedef std::vector<TriangleModel*, Eigen::aligned_allocator<TriangleModel*> > TriangleModelVector;
 			typedef std::vector<TetModel*, Eigen::aligned_allocator<TetModel*> > TetModelVector;
+			typedef std::vector<unsigned int> ConstraintGroup;
+			typedef std::vector<ConstraintGroup> ConstraintGroupVector;
 
 
 		protected:
@@ -31,6 +33,7 @@ namespace PBD
 			TetModelVector m_tetModels;
 			ParticleData m_particles;
 			ConstraintVector m_constraints;
+			ConstraintGroupVector m_constraintGroups;
 
 			float m_cloth_stiffness;
 			float m_cloth_bendingStiffness;
@@ -57,6 +60,8 @@ namespace PBD
 			TriangleModelVector &getTriangleModels();
 			TetModelVector &getTetModels();
 			ConstraintVector &getConstraints();
+			ConstraintGroupVector &getConstraintGroups();
+			bool m_groupsInitialized;
 
 			void addTriangleModel(
 				const unsigned int nPoints,
@@ -73,6 +78,7 @@ namespace PBD
 				unsigned int* indices);
 
 			void updateConstraints();
+			void initConstraintGroups();
 
 			bool addBallJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos);
 			bool addBallOnLineJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &dir);

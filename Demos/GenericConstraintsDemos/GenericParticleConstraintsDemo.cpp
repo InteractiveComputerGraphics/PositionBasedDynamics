@@ -37,8 +37,8 @@ void TW_CALL getBendingStiffness(void *value, void *clientData);
 GenericConstraintsModel model;
 TimeStepController simulation;
 
-const int nRows = 20;
-const int nCols = 20;
+const int nRows = 30;
+const int nCols = 30;
 const float width = 10.0f;
 const float height = 10.0f;
 bool doPause = true;
@@ -126,7 +126,7 @@ void timeStep ()
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 1; i++)
+	for (unsigned int i = 0; i < 8; i++)
 		simulation.step(model);
 
 	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)

@@ -55,8 +55,8 @@ void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
 SimulationModel model;
 TimeStepController sim;
 
-const int nRows = 30;
-const int nCols = 30;
+const int nRows = 50;
+const int nCols = 50;
 const float width = 10.0f;
 const float height = 10.0f;
 bool doPause = true;
@@ -161,7 +161,7 @@ void timeStep ()
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 8; i++)
 		sim.step(model);
 
 	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)

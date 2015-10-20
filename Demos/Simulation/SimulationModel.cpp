@@ -20,6 +20,8 @@ SimulationModel::SimulationModel()
 	m_solid_poissonRatio = 0.3f;
 	m_solid_normalizeShear = false;
 	m_solid_normalizeStretch = false;
+
+	m_groupsInitialized = false;
 }
 
 SimulationModel::~SimulationModel(void)
@@ -86,6 +88,11 @@ SimulationModel::ConstraintVector & SimulationModel::getConstraints()
 	return m_constraints;
 }
 
+SimulationModel::ConstraintGroupVector & SimulationModel::getConstraintGroups()
+{
+	return m_constraintGroups;
+}
+
 void SimulationModel::updateConstraints()
 {
 	for (unsigned int i = 0; i < m_constraints.size(); i++)
@@ -98,7 +105,10 @@ bool SimulationModel::addBallJoint(const unsigned int rbIndex1, const unsigned i
 	BallJoint *bj = new BallJoint();
 	const bool res = bj->initConstraint(*this, rbIndex1, rbIndex2, pos);
 	if (res)
+	{
 		m_constraints.push_back(bj);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -107,7 +117,10 @@ bool SimulationModel::addBallOnLineJoint(const unsigned int rbIndex1, const unsi
 	BallOnLineJoint *bj = new BallOnLineJoint();
 	const bool res = bj->initConstraint(*this, rbIndex1, rbIndex2, pos, dir);
 	if (res)
+	{
 		m_constraints.push_back(bj);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -116,7 +129,10 @@ bool SimulationModel::addHingeJoint(const unsigned int rbIndex1, const unsigned 
 	HingeJoint *hj = new HingeJoint();
 	const bool res = hj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
 	if (res)
+	{
 		m_constraints.push_back(hj);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -125,7 +141,10 @@ bool SimulationModel::addUniversalJoint(const unsigned int rbIndex1, const unsig
 	UniversalJoint *uj = new UniversalJoint();
 	const bool res = uj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis1, axis2);
 	if (res)
+	{
 		m_constraints.push_back(uj);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -135,7 +154,10 @@ bool SimulationModel::addRigidBodyParticleBallJoint(const unsigned int rbIndex, 
 	RigidBodyParticleBallJoint *bj = new RigidBodyParticleBallJoint();
 	const bool res = bj->initConstraint(*this, rbIndex, particleIndex);
 	if (res)
+	{
 		m_constraints.push_back(bj);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -144,7 +166,10 @@ bool SimulationModel::addDistanceConstraint(const unsigned int particle1, const 
 	DistanceConstraint *c = new DistanceConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -154,7 +179,10 @@ bool SimulationModel::addDihedralConstraint(const unsigned int particle1, const 
 	DihedralConstraint *c = new DihedralConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -164,7 +192,10 @@ bool SimulationModel::addIsometricBendingConstraint(const unsigned int particle1
 	IsometricBendingConstraint *c = new IsometricBendingConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -174,7 +205,10 @@ bool SimulationModel::addFEMTriangleConstraint(const unsigned int particle1, con
 	FEMTriangleConstraint *c = new FEMTriangleConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -184,7 +218,10 @@ bool SimulationModel::addStrainTriangleConstraint(const unsigned int particle1, 
 	StrainTriangleConstraint *c = new StrainTriangleConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -194,7 +231,10 @@ bool SimulationModel::addVolumeConstraint(const unsigned int particle1, const un
 	VolumeConstraint *c = new VolumeConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -204,7 +244,10 @@ bool SimulationModel::addFEMTetConstraint(const unsigned int particle1, const un
 	FEMTetConstraint *c = new FEMTetConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -214,7 +257,10 @@ bool SimulationModel::addStrainTetConstraint(const unsigned int particle1, const
 	StrainTetConstraint *c = new StrainTetConstraint();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -223,7 +269,10 @@ bool SimulationModel::addShapeMatchingConstraint(const unsigned int numberOfPart
 	ShapeMatchingConstraint *c = new ShapeMatchingConstraint(numberOfParticles);
 	const bool res = c->initConstraint(*this, particleIndices, numClusters);
 	if (res)
+	{
 		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
 	return res;
 }
 
@@ -270,3 +319,66 @@ void SimulationModel::addTetModel(
 }
 
 
+
+void SimulationModel::initConstraintGroups()
+{
+	if (m_groupsInitialized)
+		return;
+
+	const unsigned int numConstraints = (unsigned int) m_constraints.size();
+	const unsigned int numParticles = (unsigned int) m_particles.size();
+	const unsigned int numRigidBodies = (unsigned int) m_rigidBodies.size();
+	const unsigned int numBodies = numParticles + numRigidBodies;
+	m_constraintGroups.clear();
+
+	// Maps in which group a particle is or 0 if not yet mapped
+	std::vector<unsigned char*> mapping;
+
+	for (unsigned int i = 0; i < numConstraints; i++)
+	{
+		Constraint *constraint = m_constraints[i];
+
+		bool addToNewGroup = true;
+		for (unsigned int j = 0; j < m_constraintGroups.size(); j++)
+		{
+			bool addToThisGroup = true;
+
+			for (unsigned int k = 0; k < constraint->m_numberOfBodies; k++)
+			{
+				if (mapping[j][constraint->m_bodies[k]] != 0)
+				{
+					addToThisGroup = false;
+					break;
+				}
+			}
+
+			if (addToThisGroup)
+			{
+				m_constraintGroups[j].push_back(i);
+
+				for (unsigned int k = 0; k < constraint->m_numberOfBodies; k++)
+					mapping[j][constraint->m_bodies[k]] = 1;
+
+				addToNewGroup = false;
+				break;
+			}
+		}
+		if (addToNewGroup)
+		{
+			mapping.push_back(new unsigned char[numBodies]);
+			memset(mapping[mapping.size() - 1], 0, sizeof(unsigned char)*numBodies);
+			m_constraintGroups.resize(m_constraintGroups.size() + 1);
+			m_constraintGroups[m_constraintGroups.size()-1].push_back(i);
+			for (unsigned int k = 0; k < constraint->m_numberOfBodies; k++)
+				mapping[m_constraintGroups.size() - 1][constraint->m_bodies[k]] = 1;
+		}
+	}
+
+	for (unsigned int i = 0; i < mapping.size(); i++)
+	{
+		delete[] mapping[i];
+	}
+	mapping.clear();
+
+	m_groupsInitialized = true;
+}

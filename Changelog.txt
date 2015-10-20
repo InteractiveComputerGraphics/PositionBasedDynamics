@@ -1,3 +1,4 @@
+	- parallelized unified solver using graph coloring
 	- implemented unified solver for rigid bodies and deformable solids 
 	- added documentation for generic constraints
 	- added generic constraint demo

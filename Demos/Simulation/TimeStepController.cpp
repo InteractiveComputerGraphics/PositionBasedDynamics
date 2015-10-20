@@ -29,53 +29,63 @@ void TimeStepController::step(SimulationModel &model)
 	//////////////////////////////////////////////////////////////////////////
  	clearAccelerations(model);
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	for (size_t i = 0; i < rb.size(); i++)
- 	{ 
-		rb[i]->getLastPosition() = rb[i]->getOldPosition();
-		rb[i]->getOldPosition() = rb[i]->getPosition();
-		TimeIntegration::semiImplicitEuler(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getVelocity(), rb[i]->getAcceleration());
-		rb[i]->getLastRotation() = rb[i]->getOldRotation();
-		rb[i]->getOldRotation() = rb[i]->getRotation();
-		TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
-		rb[i]->rotationUpdated();
- 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// particle model
-	//////////////////////////////////////////////////////////////////////////
 	ParticleData &pd = model.getParticles();
-	for (unsigned int i = 0; i < pd.size(); i++)
-	{
-		pd.getLastPosition(i) = pd.getOldPosition(i);
-		pd.getOldPosition(i) = pd.getPosition(i);
-		TimeIntegration::semiImplicitEuler(h, pd.getMass(i), pd.getPosition(i), pd.getVelocity(i), pd.getAcceleration(i));
-	}
 
+	#pragma omp parallel default(shared)
+	{
+		#pragma omp for schedule(static) nowait
+		for (int i = 0; i < (int) rb.size(); i++)
+ 		{ 
+			rb[i]->getLastPosition() = rb[i]->getOldPosition();
+			rb[i]->getOldPosition() = rb[i]->getPosition();
+			TimeIntegration::semiImplicitEuler(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getVelocity(), rb[i]->getAcceleration());
+			rb[i]->getLastRotation() = rb[i]->getOldRotation();
+			rb[i]->getOldRotation() = rb[i]->getRotation();
+			TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
+			rb[i]->rotationUpdated();
+ 		}
+
+		//////////////////////////////////////////////////////////////////////////
+		// particle model
+		//////////////////////////////////////////////////////////////////////////
+		#pragma omp for schedule(static) 
+		for (int i = 0; i < (int) pd.size(); i++)
+		{
+			pd.getLastPosition(i) = pd.getOldPosition(i);
+			pd.getOldPosition(i) = pd.getPosition(i);
+			TimeIntegration::semiImplicitEuler(h, pd.getMass(i), pd.getPosition(i), pd.getVelocity(i), pd.getAcceleration(i));
+		}
+	}
  
  	constraintProjection(model);
  
- 	// Update velocities	
-	for (size_t i = 0; i < rb.size(); i++)
- 	{
-		if (m_velocityUpdateMethod == 0)
-		{
-			TimeIntegration::velocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getVelocity());
-			TimeIntegration::angularVelocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getAngularVelocity());
-		}
-		else
-		{
-			TimeIntegration::velocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getLastPosition(), rb[i]->getVelocity());
-			TimeIntegration::angularVelocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getLastRotation(), rb[i]->getAngularVelocity());
-		}
- 	}
-
-	// Update velocities	
-	for (unsigned int i = 0; i < pd.size(); i++)
+	#pragma omp parallel default(shared)
 	{
-		if (m_velocityUpdateMethod == 0)
-			TimeIntegration::velocityUpdateFirstOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getVelocity(i));
-		else
-			TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
+ 		// Update velocities	
+		#pragma omp for schedule(static) nowait
+		for (int i = 0; i < (int) rb.size(); i++)
+ 		{
+			if (m_velocityUpdateMethod == 0)
+			{
+				TimeIntegration::velocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getVelocity());
+				TimeIntegration::angularVelocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getAngularVelocity());
+			}
+			else
+			{
+				TimeIntegration::velocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getLastPosition(), rb[i]->getVelocity());
+				TimeIntegration::angularVelocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getLastRotation(), rb[i]->getAngularVelocity());
+			}
+ 		}
+
+		// Update velocities	
+		#pragma omp for schedule(static) 
+		for (int i = 0; i < (int) pd.size(); i++)
+		{
+			if (m_velocityUpdateMethod == 0)
+				TimeIntegration::velocityUpdateFirstOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getVelocity(i));
+			else
+				TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
+		}
 	}
 
 	// compute new time	
@@ -127,16 +137,30 @@ void TimeStepController::constraintProjection(SimulationModel &model)
 	const unsigned int maxIter = 5;
 	unsigned int iter = 0;
 
+	// init constraint groups if necessary
+	model.initConstraintGroups();
+
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
+	SimulationModel::ConstraintGroupVector &groups = model.getConstraintGroups();
 
  	while (iter < maxIter)
  	{
-		for (unsigned int i = 0; i < constraints.size(); i++)
+		for (unsigned int group = 0; group < groups.size(); group++)
 		{
-			constraints[i]->updateConstraint(model);
-			constraints[i]->solveConstraint(model);
+			#pragma omp parallel default(shared)
+			{
+				#pragma omp for schedule(static) 
+				for (int i = 0; i < (int)groups[group].size(); i++)
+				{
+					const unsigned int constraintIndex = groups[group][i];
+
+					constraints[constraintIndex]->updateConstraint(model);
+					constraints[constraintIndex]->solveConstraint(model);
+				}
+			}
 		}
+
  		iter++;
  	}
 }

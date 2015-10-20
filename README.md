@@ -16,6 +16,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* parallelized unified solver using graph coloring
 * implemented unified solver for rigid bodies and deformable solids 
 * added generic constraint demo
 * added generic constraint
