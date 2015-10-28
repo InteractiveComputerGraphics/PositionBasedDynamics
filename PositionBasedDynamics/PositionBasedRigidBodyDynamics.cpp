@@ -380,7 +380,7 @@ bool PositionBasedRigidBodyDynamics::initRigidBodyHingeJointInfo(
 
 	Eigen::Vector3f v(1.0f, 0.0f, 0.0f);
 	// check if vectors are parallel
-	if (fabs(v.dot(jointInfo.col(7))) > 0.99f)
+	if (fabs(v.dot(jointInfo.col(8))) > 0.99f)
 		v = Eigen::Vector3f(0.0f, 1.0f, 0.0f);
 
 	jointInfo.col(9) = jointInfo.col(8).cross(v);

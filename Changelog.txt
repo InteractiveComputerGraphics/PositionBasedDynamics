@@ -1,3 +1,4 @@
+	- fixed initialization of hinge joint coordinate system
 	- parallelized unified solver using graph coloring
 	- implemented unified solver for rigid bodies and deformable solids 
 	- added documentation for generic constraints
