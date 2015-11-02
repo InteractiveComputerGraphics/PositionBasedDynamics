@@ -53,7 +53,7 @@ bool GenericDistanceConstraint::initConstraint(SimulationModel &model, const uns
 	return true;
 }
 
-bool GenericDistanceConstraint::solveConstraint(SimulationModel &model)
+bool GenericDistanceConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -156,7 +156,7 @@ bool GenericIsometricBendingConstraint::initConstraint(SimulationModel &model, c
 	return true;
 }
 
-bool GenericIsometricBendingConstraint::solveConstraint(SimulationModel &model)
+bool GenericIsometricBendingConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 

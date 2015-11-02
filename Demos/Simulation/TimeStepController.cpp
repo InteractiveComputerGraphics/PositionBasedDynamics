@@ -13,6 +13,7 @@ TimeStepController::TimeStepController()
 	m_velocityUpdateMethod = 0;
 	m_simulationMethod = 2;
 	m_bendingMethod = 2;
+	m_maxIter = 5;
 }
 
 TimeStepController::~TimeStepController(void)
@@ -57,7 +58,7 @@ void TimeStepController::step(SimulationModel &model)
 		}
 	}
  
- 	constraintProjection(model);
+	positionConstraintProjection(model);
  
 	#pragma omp parallel default(shared)
 	{
@@ -87,6 +88,8 @@ void TimeStepController::step(SimulationModel &model)
 				TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
 		}
 	}
+
+	velocityConstraintProjection(model);
 
 	// compute new time	
 	tm->setTime (tm->getTime () + h);
@@ -132,9 +135,8 @@ void TimeStepController::reset()
 
 }
 
-void TimeStepController::constraintProjection(SimulationModel &model)
+void TimeStepController::positionConstraintProjection(SimulationModel &model)
 {
-	const unsigned int maxIter = 5;
 	unsigned int iter = 0;
 
 	// init constraint groups if necessary
@@ -144,7 +146,7 @@ void TimeStepController::constraintProjection(SimulationModel &model)
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 	SimulationModel::ConstraintGroupVector &groups = model.getConstraintGroups();
 
- 	while (iter < maxIter)
+	while (iter < m_maxIter)
  	{
 		for (unsigned int group = 0; group < groups.size(); group++)
 		{
@@ -156,7 +158,7 @@ void TimeStepController::constraintProjection(SimulationModel &model)
 					const unsigned int constraintIndex = groups[group][i];
 
 					constraints[constraintIndex]->updateConstraint(model);
-					constraints[constraintIndex]->solveConstraint(model);
+					constraints[constraintIndex]->solvePositionConstraint(model);
 				}
 			}
 		}
@@ -165,4 +167,47 @@ void TimeStepController::constraintProjection(SimulationModel &model)
  	}
 }
 
+
+void TimeStepController::velocityConstraintProjection(SimulationModel &model)
+{
+	unsigned int iter = 0;
+
+	// init constraint groups if necessary
+	model.initConstraintGroups();
+
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel::ConstraintVector &constraints = model.getConstraints();
+	SimulationModel::ConstraintGroupVector &groups = model.getConstraintGroups();
+
+	for (unsigned int group = 0; group < groups.size(); group++)
+	{
+		#pragma omp parallel default(shared)
+		{
+			#pragma omp for schedule(static) 
+			for (int i = 0; i < (int)groups[group].size(); i++)
+			{
+				const unsigned int constraintIndex = groups[group][i];
+				constraints[constraintIndex]->updateConstraint(model);
+			}
+		}
+	}
+
+	while (iter < m_maxIter)
+	{
+		for (unsigned int group = 0; group < groups.size(); group++)
+		{
+			#pragma omp parallel default(shared)
+			{
+				#pragma omp for schedule(static) 
+				for (int i = 0; i < (int)groups[group].size(); i++)
+				{
+					const unsigned int constraintIndex = groups[group][i];
+					constraints[constraintIndex]->solveVelocityConstraint(model);
+				}
+			}
+		}
+
+		iter++;
+	}
+}
 

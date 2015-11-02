@@ -16,6 +16,8 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added target velocity motor hinge joint 
+* added target angle motor hinge joint
 * parallelized unified solver using graph coloring
 * implemented unified solver for rigid bodies and deformable solids 
 * added generic constraint demo
@@ -31,7 +33,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 * Demos 
 * Library is free even for commercial applications.
 * Library supports many constraints: 
-	- Deformable solids:
+	- Deformable solids:		
 		- point-point distance constraint
 		- point-edge distance constraint
 		- point-triangle distance constraint
@@ -48,6 +50,8 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- ball joint
 		- ball-on-line-joint
 		- hinge joint
+		- target angle motor hinge joint
+		- target velocity motor hinge joint
 		- universal joint
 		- ball joint between rigid body and particle
 	- Generic constraints

@@ -148,6 +148,29 @@ bool SimulationModel::addUniversalJoint(const unsigned int rbIndex1, const unsig
 	return res;
 }
 
+bool SimulationModel::addTargetAngleMotorHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+{
+	TargetAngleMotorHingeJoint *hj = new TargetAngleMotorHingeJoint();
+	const bool res = hj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	if (res)
+	{
+		m_constraints.push_back(hj);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
+bool SimulationModel::addTargetVelocityMotorHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+{
+	TargetVelocityMotorHingeJoint *hj = new TargetVelocityMotorHingeJoint();
+	const bool res = hj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	if (res)
+	{
+		m_constraints.push_back(hj);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
 
 bool SimulationModel::addRigidBodyParticleBallJoint(const unsigned int rbIndex, const unsigned int particleIndex)
 {

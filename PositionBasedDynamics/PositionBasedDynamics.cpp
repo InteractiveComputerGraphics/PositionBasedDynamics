@@ -4,12 +4,13 @@
 
 using namespace PBD;
 
+const float eps = 1e-6f;
 
 //////////////////////////////////////////////////////////////////////////
 // PositionBasedDynamics
 //////////////////////////////////////////////////////////////////////////
 
-bool PositionBasedDynamics::solveDistanceConstraint(
+bool PositionBasedDynamics::solve_DistanceConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const float restLength,
@@ -37,7 +38,7 @@ bool PositionBasedDynamics::solveDistanceConstraint(
 }
 
 
-bool PositionBasedDynamics::solveDihedralConstraint(
+bool PositionBasedDynamics::solve_DihedralConstraint(
 	const Eigen::Vector3f &p0, float invMass0,		
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -54,7 +55,7 @@ bool PositionBasedDynamics::solveDihedralConstraint(
 
 	Eigen::Vector3f e = p3-p2;
 	float  elen = e.norm();
-	if (elen < 1e-6f)
+	if (elen < eps)
 		return false;
 
 	float invElen = 1.0f / elen;
@@ -104,7 +105,7 @@ bool PositionBasedDynamics::solveDihedralConstraint(
 	return true;
 }
 
-bool PositionBasedDynamics::solveVolumeConstraint(
+bool PositionBasedDynamics::solve_VolumeConstraint(
 	const Eigen::Vector3f &p0, float invMass0,		
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -139,7 +140,7 @@ bool PositionBasedDynamics::solveVolumeConstraint(
 		invMass2 * grad2.squaredNorm() +
 		invMass3 * grad3.squaredNorm();
 
-	if (fabs(lambda) < 1.0e-9)
+	if (fabs(lambda) < eps)
 		return false;
 
 	if (volume < 0.0f)
@@ -156,7 +157,7 @@ bool PositionBasedDynamics::solveVolumeConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::initQuadraticBendingMat(
+bool PositionBasedDynamics::init_IsometricBendingConstraint(
 	const Eigen::Vector3f &p0, 
 	const Eigen::Vector3f &p1, 
 	const Eigen::Vector3f &p2, 
@@ -197,7 +198,7 @@ bool PositionBasedDynamics::initQuadraticBendingMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveIsometricBendingConstraint(
+bool PositionBasedDynamics::solve_IsometricBendingConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1, 
 	const Eigen::Vector3f &p2, float invMass2, 
@@ -234,7 +235,7 @@ bool PositionBasedDynamics::solveIsometricBendingConstraint(
 	}
 
 	// exit early if required
-	if (fabs(sum_normGradC) > 1.0e-9)
+	if (fabs(sum_normGradC) > eps)
 	{
 		// compute impulse-based scaling factor
 		const float s = energy / sum_normGradC;
@@ -250,7 +251,7 @@ bool PositionBasedDynamics::solveIsometricBendingConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveEdgePointDistConstraint(
+bool PositionBasedDynamics::solve_EdgePointDistanceConstraint(
 	const Eigen::Vector3f &p, float invMass,
 	const Eigen::Vector3f &p0, float invMass0,
 	const Eigen::Vector3f &p1, float invMass1,
@@ -259,10 +260,9 @@ bool PositionBasedDynamics::solveEdgePointDistConstraint(
 	const float stretchStiffness,
 	Eigen::Vector3f &corr, Eigen::Vector3f &corr0, Eigen::Vector3f &corr1)
 {
-	float EPS = 1e-6f;
 	Eigen::Vector3f d = p1 - p0;
 	float t;
-	if ((p0-p1).squaredNorm() < EPS * EPS)
+	if ((p0-p1).squaredNorm() < eps * eps)
 		t = 0.5f;
 	else {
 		float d2 = d.dot(d);
@@ -303,7 +303,7 @@ bool PositionBasedDynamics::solveEdgePointDistConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveTrianglePointDistConstraint(
+bool PositionBasedDynamics::solve_TrianglePointDistanceConstraint(
 	const Eigen::Vector3f &p, float invMass,
 	const Eigen::Vector3f &p0, float invMass0,
 	const Eigen::Vector3f &p1, float invMass1,
@@ -398,7 +398,7 @@ bool PositionBasedDynamics::solveTrianglePointDistConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveEdgeEdgeDistConstraint(
+bool PositionBasedDynamics::solve_EdgeEdgeDistanceConstraint(
 	const Eigen::Vector3f &p0, float invMass0,
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -491,11 +491,10 @@ bool PositionBasedDynamics::solveEdgeEdgeDistConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::initShapeMatchingRestInfo(
+bool PositionBasedDynamics::init_ShapeMatchingConstraint(
 	const Eigen::Vector3f x0[], const float invMasses[], int numPoints,
 	Eigen::Vector3f &restCm, Eigen::Matrix3f &invRestMat)
 {
-	const float eps = 1e-6f;
 	invRestMat.setIdentity();
 
 	// center of mass
@@ -527,7 +526,7 @@ bool PositionBasedDynamics::initShapeMatchingRestInfo(
 		A(2, 0) += xz; A(2, 1) += yz; A(2, 2) += z2;
 	}
 	float det = A.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = A.inverse();
 		return true;
@@ -536,7 +535,7 @@ bool PositionBasedDynamics::initShapeMatchingRestInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveShapeMatchingConstraint(
+bool PositionBasedDynamics::solve_ShapeMatchingConstraint(
 	const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], int numPoints,
 	const Eigen::Vector3f &restCm, 
 	const Eigen::Matrix3f &invRestMat,
@@ -544,8 +543,6 @@ bool PositionBasedDynamics::solveShapeMatchingConstraint(
 	const bool allowStretch,
 	Eigen::Vector3f corr[], Eigen::Matrix3f *rot)
 {
-	const float eps = 1e-6f;
-
 	for (int i = 0; i < numPoints; i++)
 		corr[i].setZero();
 
@@ -585,7 +582,7 @@ bool PositionBasedDynamics::solveShapeMatchingConstraint(
 		R = mat;
 	else
 		//MathFunctions::polarDecomposition(mat, R, U, D);
-		MathFunctions::polarDecompositionStable(mat, 1e-6f, R);
+		MathFunctions::polarDecompositionStable(mat, eps, R);
 
 	for (int i = 0; i < numPoints; i++) {
 		Eigen::Vector3f goal = cm + R * (x0[i] - restCm);
@@ -600,7 +597,7 @@ bool PositionBasedDynamics::solveShapeMatchingConstraint(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::initStrainTriangleInvRestMat(
+bool PositionBasedDynamics::init_StrainTriangleConstraint(
 	const Eigen::Vector3f &p0,
 	const Eigen::Vector3f &p1,
 	const Eigen::Vector3f &p2,
@@ -611,7 +608,7 @@ bool PositionBasedDynamics::initStrainTriangleInvRestMat(
 
 	// inverse
 	float det = a*d - b*c;
-	if (fabs(det) < 1.0e-9)
+	if (fabs(det) < eps)
 		return false;
 
 	float s = 1.0f / det;
@@ -622,7 +619,7 @@ bool PositionBasedDynamics::initStrainTriangleInvRestMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveStrainTriangleConstraint(		
+bool PositionBasedDynamics::solve_StrainTriangleConstraint(		
 		const Eigen::Vector3f &p0, float invMass0, 
 		const Eigen::Vector3f &p1, float invMass1,
 		const Eigen::Vector3f &p2, float invMass2,
@@ -729,7 +726,7 @@ bool PositionBasedDynamics::solveStrainTriangleConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::initStrainTetraInvRestMat(		
+bool PositionBasedDynamics::init_StrainTetraConstraint(		
 	const Eigen::Vector3f &p0,
 	const Eigen::Vector3f &p1,
 	const Eigen::Vector3f &p2,
@@ -742,7 +739,7 @@ bool PositionBasedDynamics::initStrainTetraInvRestMat(
 	m.col(2) = p3 - p0;
 
 	float det = m.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = m.inverse();
 		return true;
@@ -751,7 +748,7 @@ bool PositionBasedDynamics::initStrainTetraInvRestMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveStrainTetraConstraint(
+bool PositionBasedDynamics::solve_StrainTetraConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -820,7 +817,7 @@ bool PositionBasedDynamics::solveStrainTetraConstraint(
 				invMass2 * d[2].squaredNorm() +
 				invMass3 * d[3].squaredNorm();
 
-			if (fabs(lambda) < 1e-6f)		// foo: threshold should be scale dependent
+			if (fabs(lambda) < eps)		// foo: threshold should be scale dependent
 				continue;
 
 			if (i == j) {	// diagonal, stretch
@@ -846,7 +843,7 @@ bool PositionBasedDynamics::solveStrainTetraConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::initFEMTriangleInvRestMat(	
+bool PositionBasedDynamics::init_FEMTriangleConstraint(	
 	const Eigen::Vector3f &p0,
 	const Eigen::Vector3f &p1,
 	const Eigen::Vector3f &p2,
@@ -873,7 +870,7 @@ bool PositionBasedDynamics::initFEMTriangleInvRestMat(
 	P(1, 1) = p[1][1] - p[2][1];
 
 	const float det = P.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = P.inverse();
 		return true;
@@ -882,7 +879,7 @@ bool PositionBasedDynamics::initFEMTriangleInvRestMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveFEMTriangleConstraint(		
+bool PositionBasedDynamics::solve_FEMTriangleConstraint(		
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -954,7 +951,7 @@ bool PositionBasedDynamics::solveFEMTriangleConstraint(
 	sum_normGradC += invMass2 * gradC[2].squaredNorm();
 
 	// exit early if required
-	if (fabs(sum_normGradC) > 1.0e-9)
+	if (fabs(sum_normGradC) > eps)
 	{
 		// compute scaling factor
 		const float s = energy / sum_normGradC;
@@ -971,7 +968,7 @@ bool PositionBasedDynamics::solveFEMTriangleConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::initFEMTetraInvRestMat(			// compute only when rest shape changes
+bool PositionBasedDynamics::init_FEMTetraConstraint(			// compute only when rest shape changes
 		const Eigen::Vector3f &p0,
 		const Eigen::Vector3f &p1,
 		const Eigen::Vector3f &p2,
@@ -987,7 +984,7 @@ bool PositionBasedDynamics::initFEMTetraInvRestMat(			// compute only when rest 
 	m.col(2) = p2 - p3;
 
 	float det = m.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = m.inverse();
 		return true;
@@ -1145,7 +1142,7 @@ void PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveFEMTetraConstraint(
+bool PositionBasedDynamics::solve_FEMTetraConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -1193,7 +1190,7 @@ bool PositionBasedDynamics::solveFEMTetraConstraint(
 		invMass2 * gradC[2].squaredNorm() +
 		invMass3 * gradC[3].squaredNorm();
 
-	if (sum_normGradC < 1.0e-9f)
+	if (sum_normGradC < eps)
 		return false;
 
 	// compute scaling factor

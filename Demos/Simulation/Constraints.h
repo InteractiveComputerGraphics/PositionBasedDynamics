@@ -25,7 +25,8 @@ namespace PBD
 		virtual int &getTypeId() const = 0;
 
 		virtual bool updateConstraint(SimulationModel &model) { return true; };
-		virtual bool solveConstraint(SimulationModel &model) { return true; };
+		virtual bool solvePositionConstraint(SimulationModel &model) { return true; };
+		virtual bool solveVelocityConstraint(SimulationModel &model) { return true; };
 	};
 
 	class BallJoint : public Constraint
@@ -39,7 +40,7 @@ namespace PBD
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos);
 		virtual bool updateConstraint(SimulationModel &model);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class BallOnLineJoint : public Constraint
@@ -53,7 +54,7 @@ namespace PBD
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &dir);
 		virtual bool updateConstraint(SimulationModel &model);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
  	};
  
 	class HingeJoint : public Constraint
@@ -67,7 +68,7 @@ namespace PBD
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis);
 		virtual bool updateConstraint(SimulationModel &model);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
  	};
  
 	class UniversalJoint : public Constraint
@@ -81,8 +82,54 @@ namespace PBD
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis1, const Eigen::Vector3f &axis2);
 		virtual bool updateConstraint(SimulationModel &model);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
  	};
+
+	class TargetAngleMotorHingeJoint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Eigen::Matrix<float, 3, 14> m_jointInfo;
+		float m_targetAngle;
+		float m_maxAngularMomentumPerStep;
+		TargetAngleMotorHingeJoint() : Constraint(2) { m_targetAngle = 0.0f; m_maxAngularMomentumPerStep = 0.0f; }
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		float getMaxAngularMomentumPerStep() const { return m_maxAngularMomentumPerStep; }
+		void setMaxAngularMomentumPerStep(const float val) { m_maxAngularMomentumPerStep = val; }
+		float getTargetAngle() const { return m_targetAngle; }
+		void setTargetAngle(const float val) 
+		{ 
+			const float pi = (float)M_PI;
+			m_targetAngle = std::max(val, -pi);
+			m_targetAngle = std::min(m_targetAngle, pi);
+		}
+
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
+	class TargetVelocityMotorHingeJoint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Eigen::Matrix<float, 3, 14> m_jointInfo;
+		float m_targetAngularVelocity;
+		float m_maxAngularMomentumPerStep;
+		TargetVelocityMotorHingeJoint() : Constraint(2) { m_targetAngularVelocity = 0.0f; m_maxAngularMomentumPerStep = 0.0f; }
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		float getMaxAngularMomentumPerStep() const { return m_maxAngularMomentumPerStep; }
+		void setMaxAngularMomentumPerStep(const float val) { m_maxAngularMomentumPerStep = val; }
+		float getTargetAngularVelocity() const { return m_targetAngularVelocity; }
+		void setTargetAngularVelocity(const float val)	{ m_targetAngularVelocity = val; }
+
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+		virtual bool solveVelocityConstraint(SimulationModel &model);
+	};
  
 	class RigidBodyParticleBallJoint : public Constraint
  	{
@@ -95,7 +142,7 @@ namespace PBD
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex, const unsigned int particleIndex);
 		virtual bool updateConstraint(SimulationModel &model);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
  	};
  
 	class DistanceConstraint : public Constraint
@@ -108,7 +155,7 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class DihedralConstraint : public Constraint
@@ -122,7 +169,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 	
 	class IsometricBendingConstraint : public Constraint
@@ -136,7 +183,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class FEMTriangleConstraint : public Constraint
@@ -151,7 +198,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 			const unsigned int particle3);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class StrainTriangleConstraint : public Constraint
@@ -165,7 +212,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 			const unsigned int particle3);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class VolumeConstraint : public Constraint
@@ -179,7 +226,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 								const unsigned int particle3, const unsigned int particle4);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class FEMTetConstraint : public Constraint
@@ -194,7 +241,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class StrainTetConstraint : public Constraint
@@ -208,7 +255,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 			const unsigned int particle3, const unsigned int particle4);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class ShapeMatchingConstraint : public Constraint
@@ -242,7 +289,7 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particleIndices[], const unsigned int numClusters[]);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 }
 

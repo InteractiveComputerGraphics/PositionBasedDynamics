@@ -87,7 +87,7 @@ void PositionBasedRigidBodyDynamics::computeMatrixK(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::initRigidBodyBallJointInfo(
+bool PositionBasedRigidBodyDynamics::init_BallJoint(
 	const Eigen::Vector3f &x0, 						
 	const Eigen::Quaternionf &q0,					
 	const Eigen::Vector3f &x1, 						
@@ -115,7 +115,7 @@ bool PositionBasedRigidBodyDynamics::initRigidBodyBallJointInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::updateRigidBodyBallJointInfo(
+bool PositionBasedRigidBodyDynamics::update_BallJoint(
 	const Eigen::Vector3f &x0,
 	const Eigen::Quaternionf &q0,
 	const Eigen::Vector3f &x1,
@@ -139,7 +139,7 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyBallJointInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::solveRigidBodyBallJoint(
+bool PositionBasedRigidBodyDynamics::solve_BallJoint(
 	const float invMass0,
 	const Eigen::Vector3f &x0, 						
 	const Eigen::Matrix3f &inertiaInverseW0,		
@@ -194,7 +194,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyBallJoint(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::initRigidBodyBallOnLineJointInfo(
+bool PositionBasedRigidBodyDynamics::init_BallOnLineJoint(
 	const Eigen::Vector3f &x0,
 	const Eigen::Quaternionf &q0,
 	const Eigen::Vector3f &x1,
@@ -242,7 +242,7 @@ bool PositionBasedRigidBodyDynamics::initRigidBodyBallOnLineJointInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::updateRigidBodyBallOnLineJointInfo(
+bool PositionBasedRigidBodyDynamics::update_BallOnLineJoint(
 	const Eigen::Vector3f &x0,
 	const Eigen::Quaternionf &q0,
 	const Eigen::Vector3f &x1,
@@ -277,7 +277,7 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyBallOnLineJointInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::solveRigidBodyBallOnLineJoint(
+bool PositionBasedRigidBodyDynamics::solve_BallOnLineJoint(
 	const float invMass0,
 	const Eigen::Vector3f &x0,
 	const Eigen::Matrix3f &inertiaInverseW0,
@@ -340,7 +340,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyBallOnLineJoint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::initRigidBodyHingeJointInfo(
+bool PositionBasedRigidBodyDynamics::init_HingeJoint(
 	const Eigen::Vector3f &x0,
 	const Eigen::Quaternionf &q0,
 	const Eigen::Vector3f &x1,
@@ -401,7 +401,7 @@ bool PositionBasedRigidBodyDynamics::initRigidBodyHingeJointInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::updateRigidBodyHingeJointInfo(
+bool PositionBasedRigidBodyDynamics::update_HingeJoint(
 	const Eigen::Vector3f &x0,
 	const Eigen::Quaternionf &q0,
 	const Eigen::Vector3f &x1,
@@ -435,7 +435,7 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyHingeJointInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
+bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 	const float invMass0,
 	const Eigen::Vector3f &x0,
 	const Eigen::Matrix3f &inertiaInverseW0,
@@ -458,13 +458,13 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 	// 8-10:coordinate system of body 0 (global)
 	// 11:	joint axis in body 1 (global)
 
-	const Eigen::Vector3f c0 = hingeJointInfo.col(6);
-	const Eigen::Vector3f c1 = hingeJointInfo.col(7);
-	const Eigen::Vector3f axis0 = hingeJointInfo.col(8);
-	const Eigen::Vector3f axis1 = hingeJointInfo.col(11);
+	const Eigen::Vector3f &c0 = hingeJointInfo.col(6);
+	const Eigen::Vector3f &c1 = hingeJointInfo.col(7);
+	const Eigen::Vector3f &axis0 = hingeJointInfo.col(8);
+	const Eigen::Vector3f &axis1 = hingeJointInfo.col(11);
 	const Eigen::Vector3f u = axis0.cross(axis1);
-	const Eigen::Vector3f t1 = hingeJointInfo.col(9);
-	const Eigen::Vector3f t2 = hingeJointInfo.col(10);
+	const Eigen::Vector3f &t1 = hingeJointInfo.col(9);
+	const Eigen::Vector3f &t2 = hingeJointInfo.col(10);
 	const Eigen::Vector3f r0 = c0 - x0;
 	const Eigen::Vector3f r1 = c1 - x1;
 	Eigen::Matrix3f r0_star, r1_star;
@@ -479,7 +479,6 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 
 	Eigen::Matrix<float, 5, 5> K;
 	K.setZero();
-	Eigen::Matrix<float, 5, 6> J0, J1;
 	if (invMass0 != 0.0f)
 	{
 		// Jacobian for body 0 is
@@ -565,7 +564,7 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::initRigidBodyUniversalJointInfo(
+bool PositionBasedRigidBodyDynamics::init_UniversalJoint(
 	const Eigen::Vector3f &x0,
 	const Eigen::Quaternionf &q0,
 	const Eigen::Vector3f &x1,
@@ -622,7 +621,7 @@ bool PositionBasedRigidBodyDynamics::initRigidBodyUniversalJointInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::updateRigidBodyUniversalJointInfo(
+bool PositionBasedRigidBodyDynamics::update_UniversalJoint(
 	const Eigen::Vector3f &x0,
 	const Eigen::Quaternionf &q0,
 	const Eigen::Vector3f &x1,
@@ -656,7 +655,7 @@ bool PositionBasedRigidBodyDynamics::updateRigidBodyUniversalJointInfo(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
+bool PositionBasedRigidBodyDynamics::solve_UniversalJoint(
 	const float invMass0,
 	const Eigen::Vector3f &x0,
 	const Eigen::Matrix3f &inertiaInverseW0,
@@ -679,10 +678,10 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 	// 6:	constraint axis 0 in body 0 (global)	
 	// 7:	constraint axis 1 in body 1 (global)
 
-	const Eigen::Vector3f c0 = jointInfo.col(4);
-	const Eigen::Vector3f c1 = jointInfo.col(5);
-	const Eigen::Vector3f axis0 = jointInfo.col(6);
-	const Eigen::Vector3f axis1 = jointInfo.col(7);
+	const Eigen::Vector3f &c0 = jointInfo.col(4);
+	const Eigen::Vector3f &c1 = jointInfo.col(5);
+	const Eigen::Vector3f &axis0 = jointInfo.col(6);
+	const Eigen::Vector3f &axis1 = jointInfo.col(7);
 	const Eigen::Vector3f u = axis0.cross(axis1);
 	const Eigen::Vector3f r0 = c0 - x0;
 	const Eigen::Vector3f r1 = c1 - x1;
@@ -765,93 +764,596 @@ bool PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
 	return true;
 }
 
-	// ----------------------------------------------------------------------------------------------
-	bool PositionBasedRigidBodyDynamics::initRigidBodyParticleBallJointInfo(
-		const Eigen::Vector3f &x0,
-		const Eigen::Quaternionf &q0,
-		const Eigen::Vector3f &x1,
-		Eigen::Matrix<float, 3, 2> &jointInfo
-		)
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::init_TargetAngleMotorHingeJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	const Eigen::Quaternionf &q1,
+	const Eigen::Vector3f &position,
+	const Eigen::Vector3f &direction,
+	Eigen::Matrix<float, 3, 14> &jointInfo
+	)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2-4:	coordinate system of body 0 (local)
+	// 5:	joint axis in body 1 (local)	
+	// 6:	connector in body 0 (global)
+	// 7:	connector in body 1 (global)
+	// 8-10:coordinate system of body 0 (global)
+	// 11:	joint axis in body 1 (global)
+	// 12:	perpendicular vector on joint axis (normalized) in body 1 (local)
+	// 13:	perpendicular vector on joint axis (normalized) in body 1 (global)
+
+	// transform in local coordinates
+	const Eigen::Matrix3f rot0T = q0.matrix().transpose();
+	const Eigen::Matrix3f rot1T = q1.matrix().transpose();
+
+	// connector in body 0 (local)
+	jointInfo.col(0) = rot0T * (position - x0);
+	// connector in body 1 (local)
+	jointInfo.col(1) = rot1T * (position - x1);
+	// connector in body 0 (global)
+	jointInfo.col(6) = position;
+	// connector in body 1 (global)
+	jointInfo.col(7) = position;
+
+	// determine constraint coordinate system
+	// with direction as x-axis
+	jointInfo.col(8) = direction;
+	jointInfo.col(8).normalize();
+
+	Eigen::Vector3f v(1.0f, 0.0f, 0.0f);
+	// check if vectors are parallel
+	if (fabs(v.dot(jointInfo.col(8))) > 0.99f)
+		v = Eigen::Vector3f(0.0f, 1.0f, 0.0f);
+
+	jointInfo.col(9) = jointInfo.col(8).cross(v);
+	jointInfo.col(10) = jointInfo.col(8).cross(jointInfo.col(9));
+	jointInfo.col(9).normalize();
+	jointInfo.col(10).normalize();
+
+	// joint axis in body 1 (global)
+	jointInfo.col(11) = jointInfo.col(8);
+
+	// coordinate system of body 0 (local)
+	jointInfo.block<3, 3>(0, 2) = rot0T * jointInfo.block<3, 3>(0, 8);
+
+	// joint axis in body 1 (local)
+	jointInfo.col(5) = rot1T * jointInfo.col(11);
+
+	// perpendicular vector on joint axis (normalized) in body 1 (global)
+	jointInfo.col(13) = jointInfo.col(9);
+
+	// perpendicular vector on joint axis(normalized) in body 1 (local)
+	jointInfo.col(12) = rot1T * jointInfo.col(13);
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::update_TargetAngleMotorHingeJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	const Eigen::Quaternionf &q1,
+	Eigen::Matrix<float, 3, 14> &jointInfo
+	)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2-4:	coordinate system of body 0 (local)
+	// 5:	joint axis in body 1 (local)	
+	// 6:	connector in body 0 (global)
+	// 7:	connector in body 1 (global)
+	// 8-10:coordinate system of body 0 (global)
+	// 11:	joint axis in body 1 (global)
+	// 12:	perpendicular vector on joint axis (normalized) in body 1 (local)
+	// 13:	perpendicular vector on joint axis (normalized) in body 1 (global)
+
+
+	// compute world space positions of connectors
+	const Eigen::Matrix3f rot0 = q0.matrix();
+	const Eigen::Matrix3f rot1 = q1.matrix();
+	jointInfo.col(6) = rot0 * jointInfo.col(0) + x0;
+	jointInfo.col(7) = rot1 * jointInfo.col(1) + x1;
+
+	// transform constraint coordinate system of body 0 to world space
+	jointInfo.block<3, 3>(0, 8) = rot0 * jointInfo.block<3, 3>(0, 2);
+	// transform joint axis of body 1 to world space
+	jointInfo.col(11) = rot1 * jointInfo.col(5);
+	// transform perpendicular vector on joint axis of body 1 to world space 
+	jointInfo.col(13) = rot1 * jointInfo.col(12);
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
+	const float invMass0,
+	const Eigen::Vector3f &x0,
+	const Eigen::Matrix3f &inertiaInverseW0,
+	const Eigen::Quaternionf &q0,
+	const float invMass1,
+	const Eigen::Vector3f &x1,
+	const Eigen::Matrix3f &inertiaInverseW1,
+	const Eigen::Quaternionf &q1,
+	const float targetAngle,
+	const float maxAngularMomentumPerStep,
+	const Eigen::Matrix<float, 3, 14> &hingeJointInfo,
+	Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+	Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2-4:	coordinate system of body 0 (local)
+	// 5:	joint axis in body 1 (local)	
+	// 6:	connector in body 0 (global)
+	// 7:	connector in body 1 (global)
+	// 8-10:coordinate system of body 0 (global)
+	// 11:	joint axis in body 1 (global)
+	// 12:	perpendicular vector on joint axis (normalized) in body 1 (local)
+	// 13:	perpendicular vector on joint axis (normalized) in body 1 (global)
+
+	const Eigen::Vector3f &c0 = hingeJointInfo.col(6);
+	const Eigen::Vector3f &c1 = hingeJointInfo.col(7);
+	const Eigen::Vector3f &axis0 = hingeJointInfo.col(8);
+	const Eigen::Vector3f &axis1 = hingeJointInfo.col(11);
+	const Eigen::Vector3f axis = 0.5 * (axis0 + axis1);
+	const Eigen::Vector3f u = axis0.cross(axis1);
+	const Eigen::Vector3f &t1 = hingeJointInfo.col(9);
+	const Eigen::Vector3f &t2 = hingeJointInfo.col(10);
+	const Eigen::Vector3f &t3 = hingeJointInfo.col(13);
+	const Eigen::Vector3f r0 = c0 - x0;
+	const Eigen::Vector3f r1 = c1 - x1;
+	Eigen::Matrix3f r0_star, r1_star;
+	MathFunctions::crossProductMatrix(r0, r0_star);
+	MathFunctions::crossProductMatrix(r1, r1_star);
+
+	Eigen::Matrix<float, 6, 1> b;
+	b.block<3, 1>(0, 0) = c1 - c0;
+	b(3, 0) = t1.dot(u);
+	b(4, 0) = t2.dot(u);
+
+	// determine correction angle
+	float delta = targetAngle;
+	float c = t1.dot(t3);
+	c = std::min(1.0f, c);
+	c = std::max(-1.0f, c);
+ 	if ((t1.cross(t3)).dot(axis) > 0.0f)
+ 		delta -= acos(c);
+  	else
+ 		delta += acos(c);
+
+	const float pi = (float)M_PI;
+	if (delta < -pi)
+		delta += 2.0f * pi;
+	if (delta > pi)
+		delta -= 2.0f * pi;
+
+	Eigen::Matrix<float, 6, 6> K;
+	K.setZero();
+	if (invMass0 != 0.0f)
 	{
-		// jointInfo contains
-		// 0:	connector in rigid body (local)
-		// 1:	connector in rigid body (global)
+		// Jacobian for body 0 is
+		//
+		// (I_3   -r0*)
+		// (0     t1^T)
+		// (0     t2^T)
+		// (0     axis^T)
+		//
+		// where I_3 is the identity matrix and r0* is the cross product matrix of r0
+		//
+		// J M^-1 J^T =
+		// ( 1/m I_3-r0 * J0^-1 * r0*    -r0 * J0^-1 * t1    -r0 * J0^-1 * t2		-r0 * J0^-1 * axis)
+		// ( (-r0 * J0^-1 * t1)^T        t1^T * J0^-1 t1     t1^T * J0^-1 * t2		t1^T * J0^-1 * axis)
+		// ( (-r0 * J0^-1 * t2)^T        t2^T * J0^-1 t1     t2^T * J0^-1 * t2		t2^T * J0^-1 axis)
+		// ( (-r0 * J0^-1 * axis)^T      axis^T * J0^-1 t1   axis^T * J0^-1 t2		axis^T * J0^-1 axis)
 
-		// transform in local coordinates
-		const Eigen::Matrix3f rot0T = q0.matrix().transpose();
+		Eigen::Matrix3f K00;
+		computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K00);
 
-		jointInfo.col(0) = rot0T * (x1 - x0);
-		jointInfo.col(1) = x1;
+		K.block<3, 3>(0, 0) = K00;
+		K.block<3, 1>(0, 3) = -r0_star * inertiaInverseW0 * t1;
+		K.block<3, 1>(0, 4) = -r0_star * inertiaInverseW0 * t2;
+		K.block<3, 1>(0, 5) = -r0_star * inertiaInverseW0 * axis;
+		K.block<1, 3>(3, 0) = K.block<3, 1>(0, 3).transpose();
+		K.block<1, 3>(4, 0) = K.block<3, 1>(0, 4).transpose();
+		K.block<1, 3>(5, 0) = K.block<3, 1>(0, 5).transpose();
+		K(3, 3) = t1.transpose() * inertiaInverseW0 * t1;
+		K(3, 4) = t1.transpose() * inertiaInverseW0 * t2;
+		K(3, 5) = t1.transpose() * inertiaInverseW0 * axis;
+		K(4, 3) = K(3, 4);
+		K(5, 3) = K(3, 5);
+		K(4, 4) = t2.transpose() * inertiaInverseW0 * t2;
+		K(4, 5) = t2.transpose() * inertiaInverseW0 * axis;
+		K(5, 4) = K(4, 5);
+		K(5, 5) = axis.transpose() * inertiaInverseW0 * axis;		
+	}
+	if (invMass1 != 0.0f)
+	{
+		// Jacobian for body 1 is
+		//
+		// ( -I_3   r1*  )
+		// ( 0     -t1^T )
+		// ( 0     -t2^T )
+		// ( 0     axis^T)
+		//
+		// where I_3 is the identity matrix and r1* is the cross product matrix of r1
+		//
+		// J M^-1 J^T =
+		// ( 1/m I_3-r1 * J1^-1 * r1*    -r1 * J1^-1 * t1    -r1 * J1^-1 * t2		-r1 * J1^-1 * axis)
+		// ( (-r1 * J1^-1 * t1)^T        t1^T * J1^-1 t1     t1^T * J1^-1 t2		t1^T * J1^-1 * axis)
+		// ( (-r1 * J1^-1 * t2)^T        t2^T * J1^-1 t1     t2^T * J1^-1 t2		t2^T * J1^-1 axis)
+		// ( (-r1 * J1^-1 * axis)^T      axis^T * J1^-1 t1   axis^T * J1^-1	t2		axis^T * J1^-1 axis)
 
-		return true;
+		Eigen::Matrix3f K11;
+		computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K11);
+
+		K.block<3, 3>(0, 0) += K11;
+		const Eigen::Vector3f K_03 = -r1_star * inertiaInverseW1 * t1;
+		const Eigen::Vector3f K_04 = -r1_star * inertiaInverseW1 * t2;
+		const Eigen::Vector3f K_05 = -r1_star * inertiaInverseW1 * axis;
+		K.block<3, 1>(0, 3) += K_03;
+		K.block<3, 1>(0, 4) += K_04;
+		K.block<3, 1>(0, 5) += K_05;
+		K.block<1, 3>(3, 0) += K_03.transpose();
+		K.block<1, 3>(4, 0) += K_04.transpose();
+		K.block<1, 3>(5, 0) += K_05.transpose();
+		K(3, 3) += t1.transpose() * inertiaInverseW1 * t1;
+		const float K_34 = t1.transpose() * inertiaInverseW1 * t2;
+		K(3, 4) += K_34;
+		const float K_35 = t1.transpose() * inertiaInverseW1 * axis;
+		K(3, 5) += K_35;
+		K(4, 3) += K_34;
+		K(4, 4) += t2.transpose() * inertiaInverseW1 * t2;
+		const float K_45 = t2.transpose() * inertiaInverseW1 * axis;
+		K(4, 5) += K_45;
+		K(5, 3) += K_35;	
+		K(5, 4) += K_45;
+		K(5, 5) += axis.transpose() * inertiaInverseW1 * axis;
 	}
 
-	// ----------------------------------------------------------------------------------------------
-	bool PositionBasedRigidBodyDynamics::updateRigidBodyParticleBallJointInfo(
-		const Eigen::Vector3f &x0,
-		const Eigen::Quaternionf &q0,
-		const Eigen::Vector3f &x1,
-		Eigen::Matrix<float, 3, 2> &jointInfo
-		)
+	// Clamp delta to consider maxAngularMomentumPerStep
+	float maxAnglePerStep = K(5, 5) * maxAngularMomentumPerStep;
+	delta = std::min(delta, maxAnglePerStep);
+	delta = std::max(delta, -maxAnglePerStep);
+	b(5, 0) = -delta;
+
+	const Eigen::Matrix<float, 6, 6> Kinv = K.inverse();
+
+	const Eigen::Matrix<float, 6, 1> lambda = Kinv * b;
+	const Eigen::Vector3f pt = lambda.block<3, 1>(0, 0);
+
+	Eigen::Vector3f angMomentum = t1*lambda(3, 0) + t2*lambda(4, 0) + axis*lambda(5, 0);
+
+	if (invMass0 != 0.0f)
 	{
-		// jointInfo contains
-		// 0:	connector in rigid body (local)
-		// 1:	connector in rigid body (global)
-
-		// compute world space position of connector
-		const Eigen::Matrix3f rot0 = q0.matrix();
-		jointInfo.col(1) = rot0 * jointInfo.col(0) + x0;
-
-		return true;
+		corr_x0 = invMass0*pt;
+		const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt) + angMomentum));
+		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
+		corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
 	}
 
-	// ----------------------------------------------------------------------------------------------
-	bool PositionBasedRigidBodyDynamics::solveRigidBodyParticleBallJoint(
-		const float invMass0,
-		const Eigen::Vector3f &x0,
-		const Eigen::Matrix3f &inertiaInverseW0,
-		const Eigen::Quaternionf &q0,
-		const float invMass1,
-		const Eigen::Vector3f &x1,
-		const Eigen::Matrix<float, 3, 2> &jointInfo,
-		Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
-		Eigen::Vector3f &corr_x1)
+	if (invMass1 != 0.0f)
 	{
-		// jointInfo contains
-		// 0:	connector in rigid body (local)
-		// 1:	connector in rigid body (global)
-
-		const Eigen::Vector3f &connector0 = jointInfo.col(1);
-
-		// Compute Kinv
-		Eigen::Matrix3f K1, K2;
-		computeMatrixK(connector0, invMass0, x0, inertiaInverseW0, K1);
-
-		K2.setZero();
-		if (invMass1 != 0.0f)
-		{
-			K2(0, 0) = invMass1;
-			K2(1, 1) = invMass1;
-			K2(2, 2) = invMass1;
-		}
-		const Eigen::Matrix3f Kinv = (K1 + K2).inverse();
-
-		const Eigen::Vector3f pt = Kinv * (x1 - connector0);
-
-		if (invMass0 != 0.0f)
-		{
-			const Eigen::Vector3f r0 = connector0 - x0;
-			corr_x0 = invMass0*pt;
-
-			const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt)));
-			const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
-			corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
-		}
-
-		if (invMass1 != 0.0f)
-		{
-			corr_x1 = -invMass1*pt;
-		}			
-
-		return true;
+		corr_x1 = -invMass1*pt;
+		const Eigen::Vector3f ot = (inertiaInverseW1 * (r1.cross(-pt) - angMomentum));
+		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
+		corr_q1.coeffs() = 0.5f *(otQ*q1).coeffs();
 	}
+
+	return true;
+}
+
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::init_TargetVelocityMotorHingeJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	const Eigen::Quaternionf &q1,
+	const Eigen::Vector3f &position,
+	const Eigen::Vector3f &direction,
+	Eigen::Matrix<float, 3, 14> &jointInfo
+	)
+{
+	return init_TargetAngleMotorHingeJoint(x0, q0, x1, q1, position, direction, jointInfo);
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::update_TargetVelocityMotorHingeJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	const Eigen::Quaternionf &q1,
+	Eigen::Matrix<float, 3, 14> &jointInfo
+	)
+{
+	return update_TargetAngleMotorHingeJoint(x0, q0, x1, q1, jointInfo);
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::solve_TargetVelocityMotorHingeJoint(
+	const float invMass0,
+	const Eigen::Vector3f &x0,
+	const Eigen::Matrix3f &inertiaInverseW0,
+	const Eigen::Quaternionf &q0,
+	const float invMass1,
+	const Eigen::Vector3f &x1,
+	const Eigen::Matrix3f &inertiaInverseW1,
+	const Eigen::Quaternionf &q1,
+	const Eigen::Matrix<float, 3, 14> &jointInfo,
+	Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+	Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1)
+{
+	Eigen::Matrix<float, 3, 12> hingeJointInfo = jointInfo.block<3, 12>(0, 0);
+	const bool res = solve_HingeJoint(	invMass0, x0, inertiaInverseW0, q0, 
+												invMass1, x1, inertiaInverseW1, q1, 
+												hingeJointInfo, corr_x0, corr_q0, corr_x1, corr_q1);
+	return res;
+}
+
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint(
+	const float invMass0,
+	const Eigen::Vector3f &x0,
+	const Eigen::Vector3f &v0,
+	const Eigen::Matrix3f &inertiaInverseW0,	
+	const Eigen::Vector3f &omega0,
+	const float invMass1,
+	const Eigen::Vector3f &x1,
+	const Eigen::Vector3f &v1,
+	const Eigen::Matrix3f &inertiaInverseW1,
+	const Eigen::Vector3f &omega1,
+	const float targetAngularVelocity,
+	const float maxAngularMomentumPerStep,
+	const Eigen::Matrix<float, 3, 14> &jointInfo,
+	Eigen::Vector3f &corr_v0, Eigen::Vector3f &corr_omega0,
+	Eigen::Vector3f &corr_v1, Eigen::Vector3f &corr_omega1)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2-4:	coordinate system of body 0 (local)
+	// 5:	joint axis in body 1 (local)
+	// 6:	connector in body 0 (global)
+	// 7:	connector in body 1 (global)
+	// 8-10:coordinate system of body 0 (global)
+	// 11:	joint axis in body 1 (global)
+	// 12:	perpendicular vector on joint axis (normalized) in body 1 (local)
+	// 13:	perpendicular vector on joint axis (normalized) in body 1 (global)
+
+	const Eigen::Vector3f &c0 = jointInfo.col(6);
+	const Eigen::Vector3f &c1 = jointInfo.col(7);
+	const Eigen::Vector3f &axis0 = jointInfo.col(8);
+	const Eigen::Vector3f &axis1 = jointInfo.col(11);
+	const Eigen::Vector3f axis = 0.5 * (axis0 + axis1);
+	const Eigen::Vector3f u = axis0.cross(axis1);
+	const Eigen::Vector3f &t1 = jointInfo.col(9);
+	const Eigen::Vector3f &t2 = jointInfo.col(10);
+	const Eigen::Vector3f &t3 = jointInfo.col(13);
+	const Eigen::Vector3f r0 = c0 - x0;
+	const Eigen::Vector3f r1 = c1 - x1;
+	Eigen::Matrix3f r0_star, r1_star;
+	MathFunctions::crossProductMatrix(r0, r0_star);
+	MathFunctions::crossProductMatrix(r1, r1_star);
+	Eigen::Vector3f deltaOmega = omega1 - omega0;
+
+	Eigen::Matrix<float, 6, 1> b;
+	b.block<3, 1>(0, 0) = v1 - v0;
+	b(3, 0) = t1.dot(deltaOmega);
+	b(4, 0) = t2.dot(deltaOmega);
+
+ 	// determine correction angle
+ 	float delta = targetAngularVelocity;
+	delta -= axis.dot(deltaOmega);
+
+	Eigen::Matrix<float, 6, 6> K;
+	K.setZero();
+	if (invMass0 != 0.0f)
+	{
+		// Jacobian for body 0 is
+		//
+		// (I_3   -r0*)
+		// (0     t1^T)
+		// (0     t2^T)
+		// (0     axis^T)
+		//
+		// where I_3 is the identity matrix and r0* is the cross product matrix of r0
+		//
+		// J M^-1 J^T =
+		// ( 1/m I_3-r0 * J0^-1 * r0*    -r0 * J0^-1 * t1    -r0 * J0^-1 * t2		-r0 * J0^-1 * axis)
+		// ( (-r0 * J0^-1 * t1)^T        t1^T * J0^-1 t1     t1^T * J0^-1 * t2		t1^T * J0^-1 * axis)
+		// ( (-r0 * J0^-1 * t2)^T        t2^T * J0^-1 t1     t2^T * J0^-1 * t2		t2^T * J0^-1 axis)
+		// ( (-r0 * J0^-1 * axis)^T      axis^T * J0^-1 t1   axis^T * J0^-1 t2		axis^T * J0^-1 axis)
+
+		Eigen::Matrix3f K00;
+		computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K00);
+
+		K.block<3, 3>(0, 0) = K00;
+		K.block<3, 1>(0, 3) = -r0_star * inertiaInverseW0 * t1;
+		K.block<3, 1>(0, 4) = -r0_star * inertiaInverseW0 * t2;
+		K.block<3, 1>(0, 5) = -r0_star * inertiaInverseW0 * axis;
+		K.block<1, 3>(3, 0) = K.block<3, 1>(0, 3).transpose();
+		K.block<1, 3>(4, 0) = K.block<3, 1>(0, 4).transpose();
+		K.block<1, 3>(5, 0) = K.block<3, 1>(0, 5).transpose();
+		K(3, 3) = t1.transpose() * inertiaInverseW0 * t1;
+		K(3, 4) = t1.transpose() * inertiaInverseW0 * t2;
+		K(3, 5) = t1.transpose() * inertiaInverseW0 * axis;
+		K(4, 3) = K(3, 4);
+		K(5, 3) = K(3, 5);
+		K(4, 4) = t2.transpose() * inertiaInverseW0 * t2;
+		K(4, 5) = t2.transpose() * inertiaInverseW0 * axis;
+		K(5, 4) = K(4, 5);
+		K(5, 5) = axis.transpose() * inertiaInverseW0 * axis;
+	}
+	if (invMass1 != 0.0f)
+	{
+		// Jacobian for body 1 is
+		//
+		// ( -I_3   r1*  )
+		// ( 0     -t1^T )
+		// ( 0     -t2^T )
+		// ( 0     axis^T)
+		//
+		// where I_3 is the identity matrix and r1* is the cross product matrix of r1
+		//
+		// J M^-1 J^T =
+		// ( 1/m I_3-r1 * J1^-1 * r1*    -r1 * J1^-1 * t1    -r1 * J1^-1 * t2		-r1 * J1^-1 * axis)
+		// ( (-r1 * J1^-1 * t1)^T        t1^T * J1^-1 t1     t1^T * J1^-1 t2		t1^T * J1^-1 * axis)
+		// ( (-r1 * J1^-1 * t2)^T        t2^T * J1^-1 t1     t2^T * J1^-1 t2		t2^T * J1^-1 axis)
+		// ( (-r1 * J1^-1 * axis)^T      axis^T * J1^-1 t1   axis^T * J1^-1	t2		axis^T * J1^-1 axis)
+
+		Eigen::Matrix3f K11;
+		computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K11);
+
+		K.block<3, 3>(0, 0) += K11;
+		const Eigen::Vector3f K_03 = -r1_star * inertiaInverseW1 * t1;
+		const Eigen::Vector3f K_04 = -r1_star * inertiaInverseW1 * t2;
+		const Eigen::Vector3f K_05 = -r1_star * inertiaInverseW1 * axis;
+		K.block<3, 1>(0, 3) += K_03;
+		K.block<3, 1>(0, 4) += K_04;
+		K.block<3, 1>(0, 5) += K_05;
+		K.block<1, 3>(3, 0) += K_03.transpose();
+		K.block<1, 3>(4, 0) += K_04.transpose();
+		K.block<1, 3>(5, 0) += K_05.transpose();
+		K(3, 3) += t1.transpose() * inertiaInverseW1 * t1;
+		const float K_34 = t1.transpose() * inertiaInverseW1 * t2;
+		K(3, 4) += K_34;
+		const float K_35 = t1.transpose() * inertiaInverseW1 * axis;
+		K(3, 5) += K_35;
+		K(4, 3) += K_34;
+		K(4, 4) += t2.transpose() * inertiaInverseW1 * t2;
+		const float K_45 = t2.transpose() * inertiaInverseW1 * axis;
+		K(4, 5) += K_45;
+		K(5, 3) += K_35;
+		K(5, 4) += K_45;
+		K(5, 5) += axis.transpose() * inertiaInverseW1 * axis;
+	}
+
+ 	// Clamp delta to consider maxAngularMomentumPerStep
+ 	float maxAngularVelocityPerStep = K(5, 5) * maxAngularMomentumPerStep;
+	delta = std::min(delta, maxAngularVelocityPerStep);
+	delta = std::max(delta, -maxAngularVelocityPerStep);
+	b(5, 0) = -delta;
+
+
+	const Eigen::Matrix<float, 6, 6> Kinv = K.inverse();
+
+	const Eigen::Matrix<float, 6, 1> lambda = Kinv * b;
+	const Eigen::Vector3f p = lambda.block<3, 1>(0, 0);
+
+	Eigen::Vector3f angMomentum = t1*lambda(3, 0) + t2*lambda(4, 0) + axis*lambda(5, 0);
+
+	if (invMass0 != 0.0f)
+	{
+		corr_v0 = invMass0*p;
+		corr_omega0 = (inertiaInverseW0 * (r0.cross(p) + angMomentum));
+	}
+
+	if (invMass1 != 0.0f)
+	{
+		corr_v1 = -invMass1*p;
+		corr_omega1 = (inertiaInverseW1 * (r1.cross(-p) - angMomentum));
+	}
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::init_RigidBodyParticleBallJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	Eigen::Matrix<float, 3, 2> &jointInfo
+	)
+{
+	// jointInfo contains
+	// 0:	connector in rigid body (local)
+	// 1:	connector in rigid body (global)
+
+	// transform in local coordinates
+	const Eigen::Matrix3f rot0T = q0.matrix().transpose();
+
+	jointInfo.col(0) = rot0T * (x1 - x0);
+	jointInfo.col(1) = x1;
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::update_RigidBodyParticleBallJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	Eigen::Matrix<float, 3, 2> &jointInfo
+	)
+{
+	// jointInfo contains
+	// 0:	connector in rigid body (local)
+	// 1:	connector in rigid body (global)
+
+	// compute world space position of connector
+	const Eigen::Matrix3f rot0 = q0.matrix();
+	jointInfo.col(1) = rot0 * jointInfo.col(0) + x0;
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::solve_RigidBodyParticleBallJoint(
+	const float invMass0,
+	const Eigen::Vector3f &x0,
+	const Eigen::Matrix3f &inertiaInverseW0,
+	const Eigen::Quaternionf &q0,
+	const float invMass1,
+	const Eigen::Vector3f &x1,
+	const Eigen::Matrix<float, 3, 2> &jointInfo,
+	Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+	Eigen::Vector3f &corr_x1)
+{
+	// jointInfo contains
+	// 0:	connector in rigid body (local)
+	// 1:	connector in rigid body (global)
+
+	const Eigen::Vector3f &connector0 = jointInfo.col(1);
+
+	// Compute Kinv
+	Eigen::Matrix3f K1, K2;
+	computeMatrixK(connector0, invMass0, x0, inertiaInverseW0, K1);
+
+	K2.setZero();
+	if (invMass1 != 0.0f)
+	{
+		K2(0, 0) = invMass1;
+		K2(1, 1) = invMass1;
+		K2(2, 2) = invMass1;
+	}
+	const Eigen::Matrix3f Kinv = (K1 + K2).inverse();
+
+	const Eigen::Vector3f pt = Kinv * (x1 - connector0);
+
+	if (invMass0 != 0.0f)
+	{
+		const Eigen::Vector3f r0 = connector0 - x0;
+		corr_x0 = invMass0*pt;
+
+		const Eigen::Vector3f ot = (inertiaInverseW0 * (r0.cross(pt)));
+		const Eigen::Quaternionf otQ(0.0f, ot[0], ot[1], ot[2]);
+		corr_q0.coeffs() = 0.5f *(otQ*q0).coeffs();
+	}
+
+	if (invMass1 != 0.0f)
+	{
+		corr_x1 = -invMass1*pt;
+	}			
+
+	return true;
+}

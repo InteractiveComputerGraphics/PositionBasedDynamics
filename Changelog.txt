@@ -1,3 +1,8 @@
+1.4.0
+	- extended JointDemo
+	- added TargetVelocityMotorHingeJoint
+	- added TargetAngleMotorHingeJoint
+	- made function names consistent
 	- fixed initialization of hinge joint coordinate system
 	- parallelized unified solver using graph coloring
 	- implemented unified solver for rigid bodies and deformable solids 

@@ -2,6 +2,7 @@
 #include "SimulationModel.h"
 #include "PositionBasedDynamics/PositionBasedDynamics.h"
 #include "PositionBasedDynamics/PositionBasedRigidBodyDynamics.h"
+#include "TimeManager.h"
 
 using namespace PBD;
 
@@ -20,6 +21,8 @@ int VolumeConstraint::TYPE_ID = 11;
 int FEMTetConstraint::TYPE_ID = 12;
 int StrainTetConstraint::TYPE_ID = 13;
 int ShapeMatchingConstraint::TYPE_ID = 14;
+int TargetAngleMotorHingeJoint::TYPE_ID = 15;
+int TargetVelocityMotorHingeJoint::TYPE_ID = 16;
 
 //////////////////////////////////////////////////////////////////////////
 // BallJoint
@@ -31,7 +34,7 @@ bool BallJoint::initConstraint(SimulationModel &model, const unsigned int rbInde
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::initRigidBodyBallJointInfo(
+	return PositionBasedRigidBodyDynamics::init_BallJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -45,7 +48,7 @@ bool BallJoint::updateConstraint(SimulationModel &model)
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::updateRigidBodyBallJointInfo(
+	return PositionBasedRigidBodyDynamics::update_BallJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -53,18 +56,16 @@ bool BallJoint::updateConstraint(SimulationModel &model)
 		m_jointInfo);
 }
 
-bool BallJoint::solveConstraint(SimulationModel &model)
+bool BallJoint::solvePositionConstraint(SimulationModel &model)
 {
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-
-	updateConstraint(model);
 
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
 
 	Eigen::Vector3f corr_x1, corr_x2;
 	Eigen::Quaternionf corr_q1, corr_q2;
-	const bool res = PositionBasedRigidBodyDynamics::solveRigidBodyBallJoint(
+	const bool res = PositionBasedRigidBodyDynamics::solve_BallJoint(
 		rb1.getInvMass(),
 		rb1.getPosition(),
 		rb1.getInertiaTensorInverseW(),
@@ -110,7 +111,7 @@ bool BallOnLineJoint::initConstraint(SimulationModel &model, const unsigned int 
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::initRigidBodyBallOnLineJointInfo(
+	return PositionBasedRigidBodyDynamics::init_BallOnLineJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -124,7 +125,7 @@ bool BallOnLineJoint::updateConstraint(SimulationModel &model)
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::updateRigidBodyBallOnLineJointInfo(
+	return PositionBasedRigidBodyDynamics::update_BallOnLineJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -132,18 +133,16 @@ bool BallOnLineJoint::updateConstraint(SimulationModel &model)
 		m_jointInfo);
 }
 
-bool BallOnLineJoint::solveConstraint(SimulationModel &model)
+bool BallOnLineJoint::solvePositionConstraint(SimulationModel &model)
 {
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-
-	updateConstraint(model);
 
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
 
 	Eigen::Vector3f corr_x1, corr_x2;
 	Eigen::Quaternionf corr_q1, corr_q2;
-	const bool res = PositionBasedRigidBodyDynamics::solveRigidBodyBallOnLineJoint(
+	const bool res = PositionBasedRigidBodyDynamics::solve_BallOnLineJoint(
 		rb1.getInvMass(),
 		rb1.getPosition(),
 		rb1.getInertiaTensorInverseW(),
@@ -189,7 +188,7 @@ bool HingeJoint::initConstraint(SimulationModel &model, const unsigned int rbInd
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::initRigidBodyHingeJointInfo(
+	return PositionBasedRigidBodyDynamics::init_HingeJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -203,7 +202,7 @@ bool HingeJoint::updateConstraint(SimulationModel &model)
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::updateRigidBodyHingeJointInfo(
+	return PositionBasedRigidBodyDynamics::update_HingeJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -211,18 +210,16 @@ bool HingeJoint::updateConstraint(SimulationModel &model)
 		m_jointInfo);
 }
 
-bool HingeJoint::solveConstraint(SimulationModel &model)
+bool HingeJoint::solvePositionConstraint(SimulationModel &model)
 {
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-
-	updateConstraint(model);
 
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
 
 	Eigen::Vector3f corr_x1, corr_x2;
 	Eigen::Quaternionf corr_q1, corr_q2;
-	const bool res = PositionBasedRigidBodyDynamics::solveRigidBodyHingeJoint(
+	const bool res = PositionBasedRigidBodyDynamics::solve_HingeJoint(
 		rb1.getInvMass(),
 		rb1.getPosition(),
 		rb1.getInertiaTensorInverseW(),
@@ -268,7 +265,7 @@ bool UniversalJoint::initConstraint(SimulationModel &model, const unsigned int r
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::initRigidBodyUniversalJointInfo(
+	return PositionBasedRigidBodyDynamics::init_UniversalJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -284,7 +281,7 @@ bool UniversalJoint::updateConstraint(SimulationModel &model)
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::updateRigidBodyUniversalJointInfo(
+	return PositionBasedRigidBodyDynamics::update_UniversalJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -292,18 +289,16 @@ bool UniversalJoint::updateConstraint(SimulationModel &model)
 		m_jointInfo);
 }
 
-bool UniversalJoint::solveConstraint(SimulationModel &model)
+bool UniversalJoint::solvePositionConstraint(SimulationModel &model)
 {
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-
-	updateConstraint(model);
 
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
 
 	Eigen::Vector3f corr_x1, corr_x2;
 	Eigen::Quaternionf corr_q1, corr_q2;
-	const bool res = PositionBasedRigidBodyDynamics::solveRigidBodyUniversalJoint(
+	const bool res = PositionBasedRigidBodyDynamics::solve_UniversalJoint(
 		rb1.getInvMass(),
 		rb1.getPosition(),
 		rb1.getInertiaTensorInverseW(),
@@ -339,6 +334,203 @@ bool UniversalJoint::solveConstraint(SimulationModel &model)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+// TargetAngleMotorHingeJoint
+//////////////////////////////////////////////////////////////////////////
+bool TargetAngleMotorHingeJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+{
+	m_bodies[0] = rbIndex1;
+	m_bodies[1] = rbIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::init_TargetAngleMotorHingeJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		pos, axis,
+		m_jointInfo);
+}
+
+bool TargetAngleMotorHingeJoint::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::update_TargetAngleMotorHingeJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		m_jointInfo);
+}
+
+bool TargetAngleMotorHingeJoint::solvePositionConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Eigen::Vector3f corr_x1, corr_x2;
+	Eigen::Quaternionf corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		m_targetAngle,
+		m_maxAngularMomentumPerStep,
+		m_jointInfo,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0f)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0f)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
+		}
+	}
+	return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// TargetVelocityMotorHingeJoint
+//////////////////////////////////////////////////////////////////////////
+bool TargetVelocityMotorHingeJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+{
+	m_bodies[0] = rbIndex1;
+	m_bodies[1] = rbIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::init_TargetVelocityMotorHingeJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		pos, axis,
+		m_jointInfo);
+}
+
+bool TargetVelocityMotorHingeJoint::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::update_TargetVelocityMotorHingeJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		m_jointInfo);
+}
+
+bool TargetVelocityMotorHingeJoint::solvePositionConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Eigen::Vector3f corr_x1, corr_x2;
+	Eigen::Quaternionf corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solve_TargetVelocityMotorHingeJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		m_jointInfo,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0f)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0f)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
+		}
+	}
+	return res;
+}
+
+bool TargetVelocityMotorHingeJoint::solveVelocityConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Eigen::Vector3f corr_v1, corr_v2;
+	Eigen::Vector3f corr_omega1, corr_omega2;
+	const bool res = PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getVelocity(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getAngularVelocity(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getVelocity(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getAngularVelocity(),
+		m_targetAngularVelocity, 
+		m_maxAngularMomentumPerStep,
+		m_jointInfo,
+		corr_v1,
+		corr_omega1,
+		corr_v2,
+		corr_omega2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0f)
+		{
+			rb1.getVelocity() += corr_v1;
+			rb1.getAngularVelocity() += corr_omega1;
+		}
+		if (rb2.getMass() != 0.0f)
+		{
+			rb2.getVelocity() += corr_v2;
+			rb2.getAngularVelocity() += corr_omega2;
+		}
+	}
+	return res;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // RigidBodyParticleBallJoint
@@ -350,7 +542,7 @@ bool RigidBodyParticleBallJoint::initConstraint(SimulationModel &model, const un
 	SimulationModel::RigidBodyVector &rbs = model.getRigidBodies();
 	ParticleData &pd = model.getParticles();
 	RigidBody &rb = *rbs[m_bodies[0]];
-	return PositionBasedRigidBodyDynamics::initRigidBodyParticleBallJointInfo(
+	return PositionBasedRigidBodyDynamics::init_RigidBodyParticleBallJoint(
 		rb.getPosition(),
 		rb.getRotation(),
 		pd.getPosition(particleIndex),
@@ -362,25 +554,23 @@ bool RigidBodyParticleBallJoint::updateConstraint(SimulationModel &model)
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	ParticleData &pd = model.getParticles();
 	RigidBody &rb1 = *rb[m_bodies[0]];
-	return PositionBasedRigidBodyDynamics::updateRigidBodyParticleBallJointInfo(
+	return PositionBasedRigidBodyDynamics::update_RigidBodyParticleBallJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		pd.getPosition(m_bodies[1]),
 		m_jointInfo);
 }
 
-bool RigidBodyParticleBallJoint::solveConstraint(SimulationModel &model)
+bool RigidBodyParticleBallJoint::solvePositionConstraint(SimulationModel &model)
 {
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	ParticleData &pd = model.getParticles();
-
-	updateConstraint(model);
 
 	RigidBody &rb1 = *rb[m_bodies[0]];
 
 	Eigen::Vector3f corr_x1, corr_x2;
 	Eigen::Quaternionf corr_q1;
-	const bool res = PositionBasedRigidBodyDynamics::solveRigidBodyParticleBallJoint(
+	const bool res = PositionBasedRigidBodyDynamics::solve_RigidBodyParticleBallJoint(
 		rb1.getInvMass(),
 		rb1.getPosition(),
 		rb1.getInertiaTensorInverseW(),
@@ -426,7 +616,7 @@ bool DistanceConstraint::initConstraint(SimulationModel &model, const unsigned i
 	return true;
 }
 
-bool DistanceConstraint::solveConstraint(SimulationModel &model)
+bool DistanceConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -439,7 +629,7 @@ bool DistanceConstraint::solveConstraint(SimulationModel &model)
 	const float invMass2 = pd.getInvMass(i2);
 
 	Eigen::Vector3f corr1, corr2;
-	const bool res = PositionBasedDynamics::solveDistanceConstraint(
+	const bool res = PositionBasedDynamics::solve_DistanceConstraint(
 		x1, invMass1, x2, invMass2,
 		m_restLength, model.getClothStiffness(), model.getClothStiffness(), corr1, corr2);
 
@@ -494,7 +684,7 @@ bool DihedralConstraint::initConstraint(SimulationModel &model, const unsigned i
 	return true;
 }
 
-bool DihedralConstraint::solveConstraint(SimulationModel &model)
+bool DihedralConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -514,7 +704,7 @@ bool DihedralConstraint::solveConstraint(SimulationModel &model)
 	const float invMass4 = pd.getInvMass(i4);
 
 	Eigen::Vector3f corr1, corr2, corr3, corr4;
-	const bool res = PositionBasedDynamics::solveDihedralConstraint(
+	const bool res = PositionBasedDynamics::solve_DihedralConstraint(
 		x1, invMass1, x2, invMass2, x3, invMass3, x4, invMass4,
 		m_restAngle,
 		model.getClothBendingStiffness(),
@@ -553,10 +743,10 @@ bool IsometricBendingConstraint::initConstraint(SimulationModel &model, const un
 	const Eigen::Vector3f &x3 = pd.getPosition0(particle3);
 	const Eigen::Vector3f &x4 = pd.getPosition0(particle4);
 
-	return PositionBasedDynamics::initQuadraticBendingMat(x1, x2, x3, x4, m_Q);
+	return PositionBasedDynamics::init_IsometricBendingConstraint(x1, x2, x3, x4, m_Q);
 }
 
-bool IsometricBendingConstraint::solveConstraint(SimulationModel &model)
+bool IsometricBendingConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -576,7 +766,7 @@ bool IsometricBendingConstraint::solveConstraint(SimulationModel &model)
 	const float invMass4 = pd.getInvMass(i4);
 
 	Eigen::Vector3f corr1, corr2, corr3, corr4;
-	const bool res = PositionBasedDynamics::solveIsometricBendingConstraint(
+	const bool res = PositionBasedDynamics::solve_IsometricBendingConstraint(
 		x1, invMass1, x2, invMass2, x3, invMass3, x4, invMass4,
 		m_Q,
 		model.getClothBendingStiffness(),
@@ -612,10 +802,10 @@ bool FEMTriangleConstraint::initConstraint(SimulationModel &model, const unsigne
 	Eigen::Vector3f &x2 = pd.getPosition0(particle2);
 	Eigen::Vector3f &x3 = pd.getPosition0(particle3);
 
-	return PositionBasedDynamics::initFEMTriangleInvRestMat(x1, x2, x3, m_area, m_invRestMat);
+	return PositionBasedDynamics::init_FEMTriangleConstraint(x1, x2, x3, m_area, m_invRestMat);
 }
 
-bool FEMTriangleConstraint::solveConstraint(SimulationModel &model)
+bool FEMTriangleConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -632,7 +822,7 @@ bool FEMTriangleConstraint::solveConstraint(SimulationModel &model)
 	const float invMass3 = pd.getInvMass(i3);
 	
 	Eigen::Vector3f corr1, corr2, corr3;
-	const bool res = PositionBasedDynamics::solveFEMTriangleConstraint(
+	const bool res = PositionBasedDynamics::solve_FEMTriangleConstraint(
 		x1, invMass1,
 		x2, invMass2,
 		x3, invMass3,
@@ -679,10 +869,10 @@ bool StrainTriangleConstraint::initConstraint(SimulationModel &model, const unsi
 	const Eigen::Vector3f y2(x2[0], x2[2], 0.0);
 	const Eigen::Vector3f y3(x3[0], x3[2], 0.0);
 
-	return PositionBasedDynamics::initStrainTriangleInvRestMat(y1, y2, y3, m_invRestMat);
+	return PositionBasedDynamics::init_StrainTriangleConstraint(y1, y2, y3, m_invRestMat);
 }
 
-bool StrainTriangleConstraint::solveConstraint(SimulationModel &model)
+bool StrainTriangleConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -699,7 +889,7 @@ bool StrainTriangleConstraint::solveConstraint(SimulationModel &model)
 	const float invMass3 = pd.getInvMass(i3);
 
 	Eigen::Vector3f corr1, corr2, corr3;
-	const bool res = PositionBasedDynamics::solveStrainTriangleConstraint(
+	const bool res = PositionBasedDynamics::solve_StrainTriangleConstraint(
 		x1, invMass1,
 		x2, invMass2,
 		x3, invMass3,
@@ -747,7 +937,7 @@ bool VolumeConstraint::initConstraint(SimulationModel &model, const unsigned int
 	return true;
 }
 
-bool VolumeConstraint::solveConstraint(SimulationModel &model)
+bool VolumeConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -767,7 +957,7 @@ bool VolumeConstraint::solveConstraint(SimulationModel &model)
 	const float invMass4 = pd.getInvMass(i4);
 
 	Eigen::Vector3f corr1, corr2, corr3, corr4;
-	const bool res = PositionBasedDynamics::solveVolumeConstraint(x1, invMass1,
+	const bool res = PositionBasedDynamics::solve_VolumeConstraint(x1, invMass1,
 		x2, invMass2,
 		x3, invMass3,
 		x4, invMass4,
@@ -809,10 +999,10 @@ bool FEMTetConstraint::initConstraint(SimulationModel &model, const unsigned int
 	Eigen::Vector3f &x3 = pd.getPosition0(particle3);
 	Eigen::Vector3f &x4 = pd.getPosition0(particle4);
 
-	return PositionBasedDynamics::initFEMTetraInvRestMat(x1, x2, x3, x4, m_volume, m_invRestMat);
+	return PositionBasedDynamics::init_FEMTetraConstraint(x1, x2, x3, x4, m_volume, m_invRestMat);
 }
 
-bool FEMTetConstraint::solveConstraint(SimulationModel &model)
+bool FEMTetConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -838,7 +1028,7 @@ bool FEMTetConstraint::solveConstraint(SimulationModel &model)
 
 
 	Eigen::Vector3f corr1, corr2, corr3, corr4;
-	const bool res = PositionBasedDynamics::solveFEMTetraConstraint(
+	const bool res = PositionBasedDynamics::solve_FEMTetraConstraint(
 		x1, invMass1,
 		x2, invMass2,
 		x3, invMass3,
@@ -882,10 +1072,10 @@ bool StrainTetConstraint::initConstraint(SimulationModel &model, const unsigned 
 	Eigen::Vector3f &x3 = pd.getPosition0(particle3);
 	Eigen::Vector3f &x4 = pd.getPosition0(particle4);
 
-	return PositionBasedDynamics::initStrainTetraInvRestMat(x1, x2, x3, x4, m_invRestMat);
+	return PositionBasedDynamics::init_StrainTetraConstraint(x1, x2, x3, x4, m_invRestMat);
 }
 
-bool StrainTetConstraint::solveConstraint(SimulationModel &model)
+bool StrainTetConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 
@@ -907,7 +1097,7 @@ bool StrainTetConstraint::solveConstraint(SimulationModel &model)
 	Eigen::Vector3f stiffness(model.getSolidStiffness(), model.getSolidStiffness(), model.getSolidStiffness());
 
 	Eigen::Vector3f corr1, corr2, corr3, corr4;
-	const bool res = PositionBasedDynamics::solveStrainTetraConstraint(
+	const bool res = PositionBasedDynamics::solve_StrainTetraConstraint(
 		x1, invMass1,
 		x2, invMass2,
 		x3, invMass3,
@@ -948,11 +1138,11 @@ bool ShapeMatchingConstraint::initConstraint(SimulationModel &model,
 		m_numClusters[i] = numClusters[i];
 	}
 
-	const bool res = PositionBasedDynamics::initShapeMatchingRestInfo(m_x0, m_w, m_numberOfBodies, m_restCm, m_invRestMat);
+	const bool res = PositionBasedDynamics::init_ShapeMatchingConstraint(m_x0, m_w, m_numberOfBodies, m_restCm, m_invRestMat);
 	return res;
 }
 
-bool ShapeMatchingConstraint::solveConstraint(SimulationModel &model)
+bool ShapeMatchingConstraint::solvePositionConstraint(SimulationModel &model)
 {
 	ParticleData &pd = model.getParticles();
 	for (unsigned int i = 0; i < m_numberOfBodies; i++)
@@ -960,7 +1150,7 @@ bool ShapeMatchingConstraint::solveConstraint(SimulationModel &model)
 		m_x[i] = pd.getPosition(m_bodies[i]);
 	}
 
-	const bool res = PositionBasedDynamics::solveShapeMatchingConstraint(
+	const bool res = PositionBasedDynamics::solve_ShapeMatchingConstraint(
 		m_x0, m_x, m_w, m_numberOfBodies,
 		m_restCm, m_invRestMat,
 		model.getSolidStiffness(), false,

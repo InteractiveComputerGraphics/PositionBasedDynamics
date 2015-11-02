@@ -12,11 +12,13 @@ namespace PBD
 		unsigned int m_velocityUpdateMethod;
 		unsigned int m_simulationMethod;
 		unsigned int m_bendingMethod;
-
+		unsigned int m_maxIter;
+		
 		/** Clear accelerations and add gravitation.
 		*/
 		void clearAccelerations(SimulationModel &model);
-		void constraintProjection(SimulationModel &model);
+		void positionConstraintProjection(SimulationModel &model);
+		void velocityConstraintProjection(SimulationModel &model);
 
 	public:
 		TimeStepController();
@@ -31,6 +33,8 @@ namespace PBD
 		void setSimulationMethod(unsigned int val) { m_simulationMethod = val; }
 		unsigned int getBendingMethod() const { return m_bendingMethod; }
 		void setBendingMethod(unsigned int val) { m_bendingMethod = val; }
+		unsigned int getMaxIterations() const { return m_maxIter; }
+		void setMaxIterations(unsigned int val) { m_maxIter = val; }
 	};
 }
 

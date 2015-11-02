@@ -8,8 +8,20 @@ namespace PBD
 {
 	class TimeIntegration
 	{
-	public:
-		// -------------- semi-implicit Euler (symplectic Euler) -----------------------------------------------------
+	public:	
+		/** Perform an integration step for a particle using the semi-implicit Euler 
+		 * (symplectic Euler) method:
+		 ** \f{align*}{
+		 * \mathbf{v}(t+h) &= \mathbf{v}(t) + \mathbf{a}(t) h\\
+		 * \mathbf{x}(t+h) &= \mathbf{x}(t) + \mathbf{v}(t+h) h
+		 * \f}
+		 *
+		 * @param  h time step size
+		 * @param  mass mass of the particle
+		 * @param  position position of the particle
+		 * @param  velocity velocity of the particle
+		 * @param  acceleration acceleration of the particle
+		 */		
 		static void semiImplicitEuler(
 			const float h,
 			const float mass,

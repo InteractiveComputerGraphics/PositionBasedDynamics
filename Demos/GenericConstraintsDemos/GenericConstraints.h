@@ -34,7 +34,7 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
 	class GenericIsometricBendingConstraint : public Constraint
@@ -55,7 +55,7 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, 
 								const unsigned int particle3, const unsigned int particle4);
-		virtual bool solveConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 }
 

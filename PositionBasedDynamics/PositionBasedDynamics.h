@@ -26,7 +26,7 @@ namespace PBD
 		* @param corr0 position correction of first particle
 		* @param corr1 position correction of second particle
 		*/
-		static bool solveDistanceConstraint(
+		static bool solve_DistanceConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const float restLength,
@@ -70,7 +70,7 @@ namespace PBD
 		 * @param corr2 position correction of third particle
 		 * @param corr3 position correction of fourth particle
 		 */
-		static bool solveDihedralConstraint(
+		static bool solve_DihedralConstraint(
 			const Eigen::Vector3f &p0, float invMass0,		// angle on (p2, p3) between triangles (p0, p2, p3) and (p1, p3, p2)
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
@@ -106,7 +106,7 @@ namespace PBD
 		* @param corr2 position correction of third particle
 		* @param corr3 position correction of fourth particle
 		*/
-		static bool solveVolumeConstraint(
+		static bool solve_VolumeConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
@@ -116,7 +116,23 @@ namespace PBD
 			const float posVolumeStiffness,
 			Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2, Eigen::Vector3f &corr3);
 
-		static bool solveEdgePointDistConstraint(
+		/** Determine the position corrections for a constraint that preserves a 
+		 * rest distance between a point and an edge.
+		 * 
+		 * @param  p position of point particle
+		 * @param  invMass inverse mass of point particle
+		 * @param  p0 position of first edge particle
+		 * @param  invMass0 inverse mass of first edge particle
+		 * @param  p1 position of second edge particle
+		 * @param  invMass1 inverse mass of second edge particle
+		 * @param  restDist rest distance of point and edge
+		 * @param  compressionStiffness stiffness coefficient for compression
+		 * @param  stretchStiffness stiffness coefficient for stretching
+		 * @param  corr position correction of point particle
+		 * @param  corr0 position correction of first edge particle
+		 * @param  corr1 position correction of second edge particle
+		 */		
+		static bool solve_EdgePointDistanceConstraint(
 			const Eigen::Vector3f &p, float invMass,
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
@@ -125,7 +141,26 @@ namespace PBD
 			const float stretchStiffness,
 			Eigen::Vector3f &corr, Eigen::Vector3f &corr0, Eigen::Vector3f &corr1);
 
-		static bool solveTrianglePointDistConstraint(
+		/** Determine the position corrections for a constraint that preserves a
+		* rest distance between a point and a triangle.
+		*
+		* @param  p position of point particle
+		* @param  invMass inverse mass of point particle
+		* @param  p0 position of first triangle particle
+		* @param  invMass0 inverse mass of first triangle particle
+		* @param  p1 position of second triangle particle
+		* @param  invMass1 inverse mass of second triangle particle
+		* @param  p2 position of third triangle particle
+		* @param  invMass2 inverse mass of third triangle particle
+		* @param  restDist rest distance of point and triangle
+		* @param  compressionStiffness stiffness coefficient for compression
+		* @param  stretchStiffness stiffness coefficient for stretching
+		* @param  corr position correction of point particle
+		* @param  corr0 position correction of first triangle particle
+		* @param  corr1 position correction of second triangle particle
+		* @param  corr2 position correction of third triangle particle
+		*/
+		static bool solve_TrianglePointDistanceConstraint(
 			const Eigen::Vector3f &p, float invMass,
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
@@ -135,7 +170,27 @@ namespace PBD
 			const float stretchStiffness,
 			Eigen::Vector3f &corr, Eigen::Vector3f &corr0, Eigen::Vector3f &corr1, Eigen::Vector3f &corr2);
 
-		static bool solveEdgeEdgeDistConstraint(
+
+		/** Determine the position corrections for a constraint that preserves a
+		* rest distance between two edges.
+		*
+		* @param  p0 position of first particle of edge 0
+		* @param  invMass0 inverse mass of first particle of edge 0
+		* @param  p1 position of second particle of edge 0
+		* @param  invMass1 inverse mass of second particle of edge 0
+		* @param  p2 position of first particle of edge 1
+		* @param  invMass2 inverse mass of first particle of edge 1
+		* @param  p3 position of second particle of edge 1
+		* @param  invMass3 inverse mass of second particle of edge 1
+		* @param  restDist rest distance between both edges
+		* @param  compressionStiffness stiffness coefficient for compression
+		* @param  stretchStiffness stiffness coefficient for stretching
+		* @param  corr0 position correction of first particle of edge 0
+		* @param  corr1 position correction of second particle of edge 0
+		* @param  corr2 position correction of first particle of edge 1
+		* @param  corr3 position correction of second particle of edge 1
+		*/
+		static bool solve_EdgeEdgeDistanceConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
@@ -160,7 +215,7 @@ namespace PBD
 		 * @param  p3 point 3 of stencil 
 		 * @param  Q returns the local stiffness matrix which is required by the solver
 		 */	
-		static bool initQuadraticBendingMat(		
+		static bool init_IsometricBendingConstraint(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -180,14 +235,14 @@ namespace PBD
 		 * @param invMass2 inverse mass of third particle
 		 * @param p3 position of fourth particle
 		 * @param invMass3 inverse mass of fourth particle
-		 * @param  Q local stiffness matrix which must be initialized by calling initQuadraticBendingMat() 
+		 * @param  Q local stiffness matrix which must be initialized by calling init_IsometricBendingConstraint() 
 		 * @param  stiffness stiffness coefficient for bending
 		 * @param corr0 position correction of first particle
 		 * @param corr1 position correction of second particle
 		 * @param corr2 position correction of third particle
 		 * @param corr3 position correction of fourth particle
 		 */	
-		static bool solveIsometricBendingConstraint(
+		static bool solve_IsometricBendingConstraint(
 			const Eigen::Vector3f &p0, float invMass0,		// angle on (p2, p3) between triangles (p0, p2, p3) and (p1, p3, p2)
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
@@ -208,7 +263,7 @@ namespace PBD
 		 * @param  restCm returns the center of mass of the rest configuration
 		 * @param  invRestMat returns a matrix required by the solver
 		 */	
-		static bool initShapeMatchingRestInfo(
+		static bool init_ShapeMatchingConstraint(
 			const Eigen::Vector3f x0[], const float invMasses[], const int numPoints,
 			Eigen::Vector3f &restCm, Eigen::Matrix3f &invRestMat);
 
@@ -221,13 +276,13 @@ namespace PBD
 		 * @param  invMasses	invMasses inverse masses of all particles in the cluster
 		 * @param  numPoints	number of particles in the cluster
 		 * @param  restCm		center of mass of the rest configuration
-		 * @param  invRestMat	matrix precomputed by initShapeMatchingRestInfo()
+		 * @param  invRestMat	matrix precomputed by init_ShapeMatchingConstraint()
 		 * @param  stiffness	stiffness coefficient 
 		 * @param  allowStretch allow stretching
 		 * @param  corr			position corrections for all particles in the cluster
 		 * @param  rot			returns determined rotation matrix 
 		 */	
-		static bool solveShapeMatchingConstraint(
+		static bool solve_ShapeMatchingConstraint(
 			const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], const int numPoints,
 			const Eigen::Vector3f &restCm, 
 			const Eigen::Matrix3f &invRestMat,
@@ -247,7 +302,7 @@ namespace PBD
 		 * @param  p2 point 2 of triangle
 		 * @param  invRestMat returns a matrix required by the solver
 		 */		
-		static bool initStrainTriangleInvRestMat(		
+		static bool init_StrainTriangleConstraint(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -263,7 +318,7 @@ namespace PBD
 		 * @param invMass1 inverse mass of second particle
 		 * @param p2 position of third particle
 		 * @param invMass2 inverse mass of third particle
-		 * @param  invRestMat precomputed matrix determined by initStrainTriangleInvRestMat()
+		 * @param  invRestMat precomputed matrix determined by init_StrainTriangleConstraint()
 		 * @param  xxStiffness stiffness coefficient for xx stretching
 		 * @param  yyStiffness stiffness coefficient for yy stretching
 		 * @param  xyStiffness stiffness coefficient for xy shearing
@@ -273,7 +328,7 @@ namespace PBD
 		 * @param  corr1 position correction for point 1
 		 * @param  corr2 position correction for point 2
 		 */		
-		static bool solveStrainTriangleConstraint(
+		static bool solve_StrainTriangleConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
@@ -294,7 +349,7 @@ namespace PBD
 		 * @param  p3 point 3 of tet
 		 * @param  invRestMat returns a matrix required by the solver
 		 */
-		static bool initStrainTetraInvRestMat(	
+		static bool init_StrainTetraConstraint(	
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -305,7 +360,7 @@ namespace PBD
 
 		// has no inversion handling. Possible simple solution: if the volume is negative, 
 		// scale corrections down and use the volume constraint to fix the volume sign
-		static bool solveStrainTetraConstraint(
+		static bool solve_StrainTetraConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
@@ -345,7 +400,7 @@ namespace PBD
 		/** Initialize rest configuration infos which are required by the solver step.
 		* Recomputation is only necessary when rest shape changes.
 		*/
-		static bool initFEMTriangleInvRestMat(		
+		static bool init_FEMTriangleConstraint(		
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -353,7 +408,7 @@ namespace PBD
 			Eigen::Matrix2f &invRestMat
 			);
 
-		static bool solveFEMTriangleConstraint(
+		static bool solve_FEMTriangleConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,
@@ -369,7 +424,7 @@ namespace PBD
 		/** Initialize rest configuration infos which are required by the solver step.
 		* Recomputation is only necessary when rest shape changes.
 		*/
-		static bool initFEMTetraInvRestMat(			
+		static bool init_FEMTetraConstraint(			
 			const Eigen::Vector3f &p0,
 			const Eigen::Vector3f &p1,
 			const Eigen::Vector3f &p2,
@@ -378,7 +433,7 @@ namespace PBD
 			Eigen::Matrix3f &invRestMat
 			);
 
-		static bool solveFEMTetraConstraint(
+		static bool solve_FEMTetraConstraint(
 			const Eigen::Vector3f &p0, float invMass0,
 			const Eigen::Vector3f &p1, float invMass1,
 			const Eigen::Vector3f &p2, float invMass2,

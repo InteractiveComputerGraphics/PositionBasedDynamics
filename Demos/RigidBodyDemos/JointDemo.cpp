@@ -31,6 +31,8 @@ void TW_CALL setTimeStep(const void *value, void *clientData);
 void TW_CALL getTimeStep(void *value, void *clientData);
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
+void TW_CALL setMaxIterations(const void *value, void *clientData);
+void TW_CALL getMaxIterations(void *value, void *clientData);
 
 SimulationModel model;
 TimeStepController sim;
@@ -60,12 +62,13 @@ int main( int argc, char **argv )
 	buildModel ();
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (50.0f, 0.1f, 500.0f, Vector3f (6.0f, -2.5f, 15.0f), Vector3f (6.0f, 0.0f, 0.0f));
+	MiniGL::setViewport (50.0f, 0.1f, 500.0f, Vector3f (8.0f, -2.5f, 17.0f), Vector3f (8.0f, 0.0f, 0.0f));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "MaxIter", TW_TYPE_UINT32, setMaxIterations, getMaxIterations, &sim, " label='Max. iterations'  min=1 step=1 group=Simulation ");
 
 	glutMainLoop ();	
 
@@ -132,7 +135,17 @@ void timeStep ()
 
 	// Simulation code
 	for (unsigned int i = 0; i < 8; i++)
+	{
 		sim.step(model);
+
+		// set target angle of motors for an animation
+		const float currentTargetAngle = (float)M_PI * 0.5f - (float)M_PI * 0.5f * cos(0.25f*TimeManager::getCurrent()->getTime());
+		SimulationModel::ConstraintVector &constraints = model.getConstraints();
+		TargetAngleMotorHingeJoint &joint1 = (*(TargetAngleMotorHingeJoint*)constraints[8]);
+		TargetVelocityMotorHingeJoint &joint2 = (*(TargetVelocityMotorHingeJoint*)constraints[9]);
+		joint1.setTargetAngle(currentTargetAngle);
+		joint2.setTargetAngularVelocity(3.5f);
+	}
 }
 
 void buildModel ()
@@ -168,6 +181,20 @@ void renderUniversalJoint(UniversalJoint &uj)
 	MiniGL::drawSphere(uj.m_jointInfo.col(5) + 0.5*uj.m_jointInfo.col(7), 0.1f, jointColor);
 	MiniGL::drawCylinder(uj.m_jointInfo.col(4) - 0.5*uj.m_jointInfo.col(6), uj.m_jointInfo.col(4) + 0.5*uj.m_jointInfo.col(6), jointColor, 0.05f);
 	MiniGL::drawCylinder(uj.m_jointInfo.col(5) - 0.5*uj.m_jointInfo.col(7), uj.m_jointInfo.col(5) + 0.5*uj.m_jointInfo.col(7), jointColor, 0.05f);
+}
+
+void renderTargetAngleMotorHingeJoint(TargetAngleMotorHingeJoint &hj)
+{
+	MiniGL::drawSphere(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
+	MiniGL::drawSphere(hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
+	MiniGL::drawCylinder(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), jointColor, 0.05f);
+}
+
+void renderTargetVelocityMotorHingeJoint(TargetVelocityMotorHingeJoint &hj)
+{
+	MiniGL::drawSphere(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
+	MiniGL::drawSphere(hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
+	MiniGL::drawCylinder(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), jointColor, 0.05f);
 }
 
 void render ()
@@ -219,6 +246,14 @@ void render ()
 		{
 			renderUniversalJoint(*(UniversalJoint*)constraints[i]);
 		}
+		else if (constraints[i]->getTypeId() == TargetAngleMotorHingeJoint::TYPE_ID)
+		{
+			renderTargetAngleMotorHingeJoint(*(TargetAngleMotorHingeJoint*)constraints[i]);
+		}
+		else if (constraints[i]->getTypeId() == TargetVelocityMotorHingeJoint::TYPE_ID)
+		{
+			renderTargetVelocityMotorHingeJoint(*(TargetVelocityMotorHingeJoint*)constraints[i]);
+		}
 	}
 
 	float textColor[4] = { 0.0f, .2f, .4f, 1 };
@@ -226,6 +261,7 @@ void render ()
 	MiniGL::drawStrokeText(3.0f, 1.5f, 1.0f, 0.002f, "ball-on-line joint", 19, textColor);
 	MiniGL::drawStrokeText(7.3f, 1.5f, 1.0f, 0.002f, "hinge joint", 12, textColor);
 	MiniGL::drawStrokeText(11.2f, 1.5f, 1.0f, 0.002f, "universal joint", 15, textColor);
+	MiniGL::drawStrokeText(15.0f, 1.5f, 1.0f, 0.002f, "motor hinge joint", 17, textColor);
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
@@ -247,9 +283,9 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 
 	// static body
-	rb.resize(12);
+	rb.resize(15);
 	float startX = 0.0f;
-	for (unsigned int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 5; i++)
 	{
 		rb[3*i] = new RigidBody();
 		rb[3*i]->initBody(0.0f,
@@ -286,6 +322,11 @@ void createBodyModel()
 
 	model.addUniversalJoint(9, 10, Eigen::Vector3f(12.0f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
 	model.addBallJoint(10, 11, Eigen::Vector3f(12.25f, 0.75f, 3.0f));
+
+	model.addTargetAngleMotorHingeJoint(12, 13, Eigen::Vector3f(16.0f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
+	((TargetAngleMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(0.5f);
+	model.addTargetVelocityMotorHingeJoint(13, 14, Eigen::Vector3f(16.0f, 0.75f, 3.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
+	((TargetVelocityMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(25.0f);
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)
@@ -310,3 +351,13 @@ void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
 	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
 }
 
+void TW_CALL setMaxIterations(const void *value, void *clientData)
+{
+	const unsigned int val = *(const unsigned int *)(value);
+	((TimeStepController*)clientData)->setMaxIterations(val);
+}
+
+void TW_CALL getMaxIterations(void *value, void *clientData)
+{
+	*(unsigned int *)(value) = ((TimeStepController*)clientData)->getMaxIterations();
+}
