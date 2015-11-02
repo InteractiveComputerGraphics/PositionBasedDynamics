@@ -69,7 +69,7 @@ bool GenericDistanceConstraint::solvePositionConstraint(SimulationModel &model)
 	const Eigen::Vector3f x[2] = { x1, x2 };
 
 	Eigen::Vector3f corr[2];
-	const bool res = PositionBasedGenericConstraints::solveGenericConstraint<2, 1>(
+	const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<2, 1>(
 		invMass, x, &m_restLength,
 		GenericDistanceConstraint::constraintFct,
 		GenericDistanceConstraint::gradientFct,
@@ -179,7 +179,7 @@ bool GenericIsometricBendingConstraint::solvePositionConstraint(SimulationModel 
  
  	Eigen::Vector3f corr[4];
  
-	const bool res = PositionBasedGenericConstraints::solveGenericConstraint<4, 1>(
+	const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<4, 1>(
 		invMass, x, &m_Q,
 		GenericIsometricBendingConstraint::constraintFct,
 		//GenericIsometricBendingConstraint::gradientFct,

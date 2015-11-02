@@ -28,7 +28,7 @@ namespace PBD
 		 * @param  corr_x position corrections of constrained particles
 		 */		
 		template<unsigned int numberOfParticles, unsigned int dim>
-		static bool solveGenericConstraint(
+		static bool solve_GenericConstraint(
 			const float invMass[numberOfParticles],							// inverse mass is zero if particle is static
 			const Eigen::Vector3f x[numberOfParticles],						// positions of particles
 			void *userData,
@@ -63,7 +63,7 @@ namespace PBD
 		* @param  corr_x position corrections of constrained particles
 		*/
 		template<unsigned int numberOfParticles, unsigned int dim>
-		static bool solveGenericConstraint(
+		static bool solve_GenericConstraint(
 			const float invMass[numberOfParticles],							// inverse mass is zero if particle is static
 			const Eigen::Vector3f x[numberOfParticles],						// positions of particles
 			void *userData,
@@ -107,7 +107,7 @@ namespace PBD
 
 
 	template<unsigned int numberOfParticles, unsigned int dim>
-	bool PositionBasedGenericConstraints::solveGenericConstraint(
+	bool PositionBasedGenericConstraints::solve_GenericConstraint(
 		const float invMass[numberOfParticles],							// inverse mass is zero if particle is static
 		const Eigen::Vector3f x[numberOfParticles],						// positions of particles
 		void *userData,
@@ -170,7 +170,7 @@ namespace PBD
 	}
 
 	template<unsigned int numberOfParticles, unsigned int dim>
-	bool PositionBasedGenericConstraints::solveGenericConstraint(
+	bool PositionBasedGenericConstraints::solve_GenericConstraint(
 		const float invMass[numberOfParticles],							// inverse mass is zero if particle is static
 		const Eigen::Vector3f x[numberOfParticles],						// positions of particles
 		void *userData,

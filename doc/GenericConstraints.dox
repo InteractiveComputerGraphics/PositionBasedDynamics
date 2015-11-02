@@ -67,7 +67,7 @@ void GenericDistanceConstraint::gradientFct(
   
 If the constraint and the gradient function are defined, a solver step can be performed by calling:
 \code{.cpp}
-const bool res = PositionBasedGenericConstraints::solveGenericConstraint<2, 1>(
+const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<2, 1>(
 	invMass, x, &m_restLength,
 	GenericDistanceConstraint::constraintFct,
 	GenericDistanceConstraint::gradientFct,
@@ -112,7 +112,7 @@ void GenericIsometricBendingConstraint::constraintFct(
   
 If the constraint function is defined, a solver step can be performed by calling:
 \code{.cpp}
-const bool res = PositionBasedGenericConstraints::solveGenericConstraint<4, 1>(
+const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<4, 1>(
 	invMass, x, &m_Q,
 	GenericIsometricBendingConstraint::constraintFct,
 	corr);
