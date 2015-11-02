@@ -386,6 +386,99 @@ namespace PBD
 			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
 
 
+		/** Initialize slider joint and return info which is required by the solver step.
+		*
+		* @param x0 center of mass of first body
+		* @param q0 rotation of first body
+		* @param x1 center of mass of second body
+		* @param q1 rotation of second body
+		* @param sliderJointPosition position of slider joint
+		* @param sliderJointAxis axis of slider joint
+		* @param jointInfo Stores the local and global positions of the connector points.
+		* The joint info contains the following columns:\n
+		* 0:	connector in body 0 (local)\n
+		* 1:	connector in body 1 (local)\n
+		* 2-4:	coordinate system of body 0 (local)\n
+		* 5:	joint axis in body 1 (local)\n
+		* 6:	connector in body 0 (global)\n
+		* 7:	connector in body 1 (global)\n
+		* 8-10:	coordinate system of body 0 (global)\n
+		* 11:	joint axis in body 1 (global)\n\n
+		* The joint info stores first the info of the first body (the connector point and a
+		* full coordinate system where the x-axis is the slider axis) and then the info of
+		* the second body (the connector point and the slider axis).
+		* The info must be updated in each simulation step
+		* by calling update_SliderJoint().
+		*/
+		static bool init_SliderJoint(
+			const Eigen::Vector3f &x0,						// center of mass of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0	
+			const Eigen::Vector3f &x1,						// center of mass of body 1
+			const Eigen::Quaternionf &q1,					// rotation of body 1
+			const Eigen::Vector3f &sliderJointPosition,		// position of slider joint
+			const Eigen::Vector3f &sliderJointAxis,			// axis of slider joint
+			Eigen::Matrix<float, 3, 12> &jointInfo
+			);
+
+		/** Update slider joint info which is required by the solver step.
+		* The joint info must be generated in the initialization process of the model
+		* by calling the function init_SliderJoint().
+		* This method should be called once per simulation step before executing the solver.\n\n
+		*
+		* @param x0 center of mass of first body
+		* @param q0 rotation of first body
+		* @param x1 center of mass of second body
+		* @param q1 rotation of second body
+		* @param jointInfo slider joint information which should be updated
+		*/
+		static bool update_SliderJoint(
+			const Eigen::Vector3f &x0,						// center of mass of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0	
+			const Eigen::Vector3f &x1,						// center of mass of body 1
+			const Eigen::Quaternionf &q1,					// rotation of body 1
+			Eigen::Matrix<float, 3, 12> &jointInfo
+			);
+
+		/** Perform a solver step for a slider joint which links two rigid bodies.
+		* A slider joint removes two translational and three rotational degrees of freedom between the bodies.
+		* The slider joint info must be generated in the initialization process of the model
+		* by calling the function init_SliderJoint() and updated each time the bodies
+		* change their state by update_SliderJoint().\n\n
+		* More information can be found in: \cite Deul2014
+		*
+		* \image html sliderjoint.jpg "slider joint"
+		* \image latex sliderjoint.jpg "slider joint" width=0.5\textwidth
+		*
+		* @param invMass0 inverse mass of first body
+		* @param x0 center of mass of first body
+		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of first body
+		* @param q0 rotation of first body
+		* @param invMass1 inverse mass of second body
+		* @param x1 center of mass of second body
+		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
+		* @param q1 rotation of second body
+		* @param jointInfo Slider joint information which is required by the solver. This
+		* information must be generated in the beginning by calling init_SliderJoint()
+		* and updated each time the bodies change their state by update_SliderJoint().
+		* @param corr_x0 position correction of center of mass of first body
+		* @param corr_q0 rotation correction of first body
+		* @param corr_x1 position correction of center of mass of second body
+		* @param corr_q1 rotation correction of second body
+		*/
+		static bool solve_SliderJoint(
+			const float invMass0,							//inverse  mass is zero if body is static
+			const Eigen::Vector3f &x0, 						// center of mass of body 0
+			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0			
+			const float invMass1,							// inverse mass is zero if body is static
+			const Eigen::Vector3f &x1, 						// center of mass of body 1
+			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
+			const Eigen::Quaternionf &q1,					// rotation of body 1
+			const Eigen::Matrix<float, 3, 12> &jointInfo,	// precomputed slider joint info
+			Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
+
+
 		/** Initialize a motor hinge joint which is able to enforce
 		* a target angle and return info which is required by the solver step.
 		*

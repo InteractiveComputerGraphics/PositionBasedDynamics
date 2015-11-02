@@ -23,6 +23,7 @@ int StrainTetConstraint::TYPE_ID = 13;
 int ShapeMatchingConstraint::TYPE_ID = 14;
 int TargetAngleMotorHingeJoint::TYPE_ID = 15;
 int TargetVelocityMotorHingeJoint::TYPE_ID = 16;
+int SliderJoint::TYPE_ID = 17;
 
 //////////////////////////////////////////////////////////////////////////
 // BallJoint
@@ -332,6 +333,84 @@ bool UniversalJoint::solvePositionConstraint(SimulationModel &model)
 	}
 	return res;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// SliderJoint
+//////////////////////////////////////////////////////////////////////////
+bool SliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+{
+	m_bodies[0] = rbIndex1;
+	m_bodies[1] = rbIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::init_SliderJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		pos, axis,
+		m_jointInfo);
+}
+
+bool SliderJoint::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::update_SliderJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		m_jointInfo);
+}
+
+bool SliderJoint::solvePositionConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Eigen::Vector3f corr_x1, corr_x2;
+	Eigen::Quaternionf corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solve_SliderJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		m_jointInfo,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0f)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0f)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
+		}
+	}
+	return res;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////

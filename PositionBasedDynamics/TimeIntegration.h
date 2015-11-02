@@ -11,7 +11,7 @@ namespace PBD
 	public:	
 		/** Perform an integration step for a particle using the semi-implicit Euler 
 		 * (symplectic Euler) method:
-		 ** \f{align*}{
+		 * \f{align*}{
 		 * \mathbf{v}(t+h) &= \mathbf{v}(t) + \mathbf{a}(t) h\\
 		 * \mathbf{x}(t+h) &= \mathbf{x}(t) + \mathbf{v}(t+h) h
 		 * \f}
@@ -40,6 +40,17 @@ namespace PBD
 
 
 		// -------------- velocity update (first order) -----------------------------------------------------
+		/** Perform a velocity update (first order) for the linear velocity:
+		 * \f{equation*}{
+		 * \mathbf{v}(t+h) = \frac{1}{h} (\mathbf{p}(t+h) - \mathbf{p}(t)
+		 * \f}
+		 *
+		 * @param  h time step size
+		 * @param  mass mass of the particle
+		 * @param  position new position \f$\mathbf{p}(t+h)\f$ of the particle
+		 * @param  oldPosition position \f$\mathbf{p}(t)\f$ of the particle before the time step
+		 * @param  velocity resulting velocity of the particle
+		 */		
 		static void velocityUpdateFirstOrder(
 			const float h,
 			const float mass,

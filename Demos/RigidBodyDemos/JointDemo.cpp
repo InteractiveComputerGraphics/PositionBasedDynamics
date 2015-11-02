@@ -53,7 +53,7 @@ int main( int argc, char **argv )
 	REPORT_MEMORY_LEAKS
 
 	// OpenGL
-	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Rigid body demo");
+	MiniGL::init (argc, argv, 1280, 960, 0, 0, "Rigid body demo");
 	MiniGL::initLights ();
 	MiniGL::setClientIdleFunc (50, timeStep);		
 	MiniGL::setKeyFunc(0, 'r', reset);
@@ -62,7 +62,7 @@ int main( int argc, char **argv )
 	buildModel ();
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (50.0f, 0.1f, 500.0f, Vector3f (8.0f, -2.5f, 17.0f), Vector3f (8.0f, 0.0f, 0.0f));
+	MiniGL::setViewport (60.0f, 0.1f, 500.0f, Vector3f (6.0f, -5.5f, 15.0f), Vector3f (6.0f, -3.0f, 0.0f));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
@@ -183,6 +183,11 @@ void renderUniversalJoint(UniversalJoint &uj)
 	MiniGL::drawCylinder(uj.m_jointInfo.col(5) - 0.5*uj.m_jointInfo.col(7), uj.m_jointInfo.col(5) + 0.5*uj.m_jointInfo.col(7), jointColor, 0.05f);
 }
 
+void renderSliderJoint(SliderJoint &joint)
+{
+	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(11), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(11), jointColor, 0.05f);
+}
+
 void renderTargetAngleMotorHingeJoint(TargetAngleMotorHingeJoint &hj)
 {
 	MiniGL::drawSphere(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
@@ -246,6 +251,10 @@ void render ()
 		{
 			renderUniversalJoint(*(UniversalJoint*)constraints[i]);
 		}
+		else if (constraints[i]->getTypeId() == SliderJoint::TYPE_ID)
+		{
+			renderSliderJoint(*(SliderJoint*)constraints[i]);
+		}
 		else if (constraints[i]->getTypeId() == TargetAngleMotorHingeJoint::TYPE_ID)
 		{
 			renderTargetAngleMotorHingeJoint(*(TargetAngleMotorHingeJoint*)constraints[i]);
@@ -261,7 +270,9 @@ void render ()
 	MiniGL::drawStrokeText(3.0f, 1.5f, 1.0f, 0.002f, "ball-on-line joint", 19, textColor);
 	MiniGL::drawStrokeText(7.3f, 1.5f, 1.0f, 0.002f, "hinge joint", 12, textColor);
 	MiniGL::drawStrokeText(11.2f, 1.5f, 1.0f, 0.002f, "universal joint", 15, textColor);
-	MiniGL::drawStrokeText(15.0f, 1.5f, 1.0f, 0.002f, "motor hinge joint", 17, textColor);
+
+	MiniGL::drawStrokeText(-1.0f, -4.0f, 1.0f, 0.002f, "motor hinge joint", 17, textColor);
+	MiniGL::drawStrokeText(3.4f, -4.0f, 1.0f, 0.002f, "slider joint", 12, textColor);
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
@@ -283,50 +294,61 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 
 	// static body
-	rb.resize(15);
+	rb.resize(18);
 	float startX = 0.0f;
-	for (unsigned int i = 0; i < 5; i++)
+	float startY = 1.0f;
+	for (unsigned int i = 0; i < 6; i++)
 	{
 		rb[3*i] = new RigidBody();
 		rb[3*i]->initBody(0.0f,
-			Eigen::Vector3f(startX, 1.0f, 1.0f),
+			Eigen::Vector3f(startX, startY, 1.0f),
 			computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
 			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
 
 		// dynamic body
 		rb[3*i+1] = new RigidBody();
 		rb[3*i+1]->initBody(1.0f,
-			Eigen::Vector3f(startX, 0.75f, 2.0f),
+			Eigen::Vector3f(startX, startY-0.25f, 2.0f),
 			computeInertiaTensorBox(1.0f, width, height, depth),
 			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
 
 		// dynamic body
 		rb[3*i+2] = new RigidBody();
 		rb[3*i+2]->initBody(1.0f,
-			Eigen::Vector3f(startX, 0.75f, 4.0f),
+			Eigen::Vector3f(startX, startY-0.25f, 4.0f),
 			computeInertiaTensorBox(1.0f, width, height, depth),
 			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
 		
 		startX += 4.0f;
+
+		if (i == 3)
+		{
+			startY -= 5.5f;
+			startX = 0.0f;
+		}
 	}
 
-
-	model.addBallJoint(0, 1, Eigen::Vector3f(0.25f, 0.75f, 1.0f));
-	model.addBallJoint(1, 2, Eigen::Vector3f(0.25f, 0.75f, 3.0f));
+	float jointY = 0.75f;
+	model.addBallJoint(0, 1, Eigen::Vector3f(0.25f, jointY, 1.0f));
+	model.addBallJoint(1, 2, Eigen::Vector3f(0.25f, jointY, 3.0f));
 	
-	model.addBallOnLineJoint(3, 4, Eigen::Vector3f(4.25f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addBallJoint(4, 5, Eigen::Vector3f(4.25f, 0.75f, 3.0f));
+	model.addBallOnLineJoint(3, 4, Eigen::Vector3f(4.25f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
+	model.addBallJoint(4, 5, Eigen::Vector3f(4.25f, jointY, 3.0f));
 	
-	model.addHingeJoint(6, 7, Eigen::Vector3f(8.0f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addBallJoint(7, 8, Eigen::Vector3f(8.25f, 0.75f, 3.0f));
+	model.addHingeJoint(6, 7, Eigen::Vector3f(8.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
+	model.addBallJoint(7, 8, Eigen::Vector3f(8.25f, jointY, 3.0f));
 
-	model.addUniversalJoint(9, 10, Eigen::Vector3f(12.0f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
-	model.addBallJoint(10, 11, Eigen::Vector3f(12.25f, 0.75f, 3.0f));
+	model.addUniversalJoint(9, 10, Eigen::Vector3f(12.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
+	model.addBallJoint(10, 11, Eigen::Vector3f(12.25f, jointY, 3.0f));
 
-	model.addTargetAngleMotorHingeJoint(12, 13, Eigen::Vector3f(16.0f, 0.75f, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
+	jointY -= 5.5f;
+	model.addTargetAngleMotorHingeJoint(12, 13, Eigen::Vector3f(0.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
 	((TargetAngleMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(0.5f);
-	model.addTargetVelocityMotorHingeJoint(13, 14, Eigen::Vector3f(16.0f, 0.75f, 3.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
+	model.addTargetVelocityMotorHingeJoint(13, 14, Eigen::Vector3f(0.0f, jointY, 3.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
 	((TargetVelocityMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(25.0f);
+
+	model.addSliderJoint(15, 16, Eigen::Vector3f(4.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
+	model.addBallJoint(16, 17, Eigen::Vector3f(4.25f, jointY, 3.0f));
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)

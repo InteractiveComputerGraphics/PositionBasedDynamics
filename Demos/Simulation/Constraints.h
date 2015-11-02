@@ -85,6 +85,20 @@ namespace PBD
 		virtual bool solvePositionConstraint(SimulationModel &model);
  	};
 
+	class SliderJoint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Eigen::Matrix<float, 3, 12> m_jointInfo;
+
+		SliderJoint() : Constraint(2) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
 	class TargetAngleMotorHingeJoint : public Constraint
 	{
 	public:

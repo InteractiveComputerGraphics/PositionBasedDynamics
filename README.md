@@ -16,6 +16,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added slider joint
 * added target velocity motor hinge joint 
 * added target angle motor hinge joint
 * parallelized unified solver using graph coloring
@@ -53,6 +54,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- target angle motor hinge joint
 		- target velocity motor hinge joint
 		- universal joint
+		- slider joint
 		- ball joint between rigid body and particle
 	- Generic constraints
 
