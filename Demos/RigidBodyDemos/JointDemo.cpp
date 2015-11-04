@@ -185,7 +185,8 @@ void renderUniversalJoint(UniversalJoint &uj)
 
 void renderSliderJoint(SliderJoint &joint)
 {
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(11), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(11), jointColor, 0.05f);
+	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
+	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
 }
 
 void renderTargetAngleMotorHingeJoint(TargetAngleMotorHingeJoint &hj)
@@ -313,9 +314,9 @@ void createBodyModel()
 			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
 
 		// dynamic body
-		rb[3*i+2] = new RigidBody();
-		rb[3*i+2]->initBody(1.0f,
-			Eigen::Vector3f(startX, startY-0.25f, 4.0f),
+		rb[3 * i + 2] = new RigidBody();
+		rb[3 * i + 2]->initBody(1.0f,
+			Eigen::Vector3f(startX, startY - 0.25f, 4.0f),
 			computeInertiaTensorBox(1.0f, width, height, depth),
 			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
 		
@@ -346,7 +347,7 @@ void createBodyModel()
 	((TargetAngleMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(0.5f);
 	model.addTargetVelocityMotorHingeJoint(13, 14, Eigen::Vector3f(0.0f, jointY, 3.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
 	((TargetVelocityMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(25.0f);
-
+  
 	model.addSliderJoint(15, 16, Eigen::Vector3f(4.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
 	model.addBallJoint(16, 17, Eigen::Vector3f(4.25f, jointY, 3.0f));
 }

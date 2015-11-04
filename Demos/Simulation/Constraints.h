@@ -89,7 +89,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<float, 3, 12> m_jointInfo;
+		Eigen::Matrix<float, 3, 14> m_jointInfo;
 
 		SliderJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
