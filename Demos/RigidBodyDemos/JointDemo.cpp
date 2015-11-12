@@ -145,6 +145,10 @@ void timeStep ()
 		TargetVelocityMotorHingeJoint &joint2 = (*(TargetVelocityMotorHingeJoint*)constraints[9]);
 		joint1.setTargetAngle(currentTargetAngle);
 		joint2.setTargetAngularVelocity(3.5f);
+
+		const float currentTargetPos = 1.5f*sin(2.0f*TimeManager::getCurrent()->getTime());
+		TargetPositionMotorSliderJoint &joint3 = (*(TargetPositionMotorSliderJoint*)constraints[12]);
+		joint3.setTargetPosition(currentTargetPos);
 	}
 }
 
@@ -185,7 +189,14 @@ void renderUniversalJoint(UniversalJoint &uj)
 
 void renderSliderJoint(SliderJoint &joint)
 {
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(11), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(11), jointColor, 0.05f);
+	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
+	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
+}
+
+void renderTargetPositionMotorSliderJoint(TargetPositionMotorSliderJoint &joint)
+{
+	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
+	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
 }
 
 void renderTargetAngleMotorHingeJoint(TargetAngleMotorHingeJoint &hj)
@@ -263,6 +274,10 @@ void render ()
 		{
 			renderTargetVelocityMotorHingeJoint(*(TargetVelocityMotorHingeJoint*)constraints[i]);
 		}
+		else if (constraints[i]->getTypeId() == TargetPositionMotorSliderJoint::TYPE_ID)
+		{
+			renderTargetPositionMotorSliderJoint(*(TargetPositionMotorSliderJoint*)constraints[i]);
+		}
 	}
 
 	float textColor[4] = { 0.0f, .2f, .4f, 1 };
@@ -273,6 +288,7 @@ void render ()
 
 	MiniGL::drawStrokeText(-1.0f, -4.0f, 1.0f, 0.002f, "motor hinge joint", 17, textColor);
 	MiniGL::drawStrokeText(3.4f, -4.0f, 1.0f, 0.002f, "slider joint", 12, textColor);
+	MiniGL::drawStrokeText(7.0f, -4.0f, 1.0f, 0.002f, "motor slider joint", 18, textColor);
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
@@ -294,10 +310,10 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 
 	// static body
-	rb.resize(18);
+	rb.resize(21);
 	float startX = 0.0f;
 	float startY = 1.0f;
-	for (unsigned int i = 0; i < 6; i++)
+	for (unsigned int i = 0; i < 7; i++)
 	{
 		rb[3*i] = new RigidBody();
 		rb[3*i]->initBody(0.0f,
@@ -313,9 +329,9 @@ void createBodyModel()
 			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
 
 		// dynamic body
-		rb[3*i+2] = new RigidBody();
-		rb[3*i+2]->initBody(1.0f,
-			Eigen::Vector3f(startX, startY-0.25f, 4.0f),
+		rb[3 * i + 2] = new RigidBody();
+		rb[3 * i + 2]->initBody(1.0f,
+			Eigen::Vector3f(startX, startY - 0.25f, 4.0f),
 			computeInertiaTensorBox(1.0f, width, height, depth),
 			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
 		
@@ -343,12 +359,13 @@ void createBodyModel()
 
 	jointY -= 5.5f;
 	model.addTargetAngleMotorHingeJoint(12, 13, Eigen::Vector3f(0.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	((TargetAngleMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(0.5f);
 	model.addTargetVelocityMotorHingeJoint(13, 14, Eigen::Vector3f(0.0f, jointY, 3.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
-	((TargetVelocityMotorHingeJoint*)model.getConstraints()[model.getConstraints().size() - 1])->setMaxAngularMomentumPerStep(25.0f);
-
+  
 	model.addSliderJoint(15, 16, Eigen::Vector3f(4.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
 	model.addBallJoint(16, 17, Eigen::Vector3f(4.25f, jointY, 3.0f));
+
+	model.addTargetPositionMotorSliderJoint(18, 19, Eigen::Vector3f(8.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
+	model.addBallJoint(19, 20, Eigen::Vector3f(8.25f, jointY, 3.0f));
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)

@@ -160,6 +160,18 @@ bool SimulationModel::addSliderJoint(const unsigned int rbIndex1, const unsigned
 	return res;
 }
 
+bool SimulationModel::addTargetPositionMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+{
+	TargetPositionMotorSliderJoint *joint = new TargetPositionMotorSliderJoint();
+	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	if (res)
+	{
+		m_constraints.push_back(joint);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
 bool SimulationModel::addTargetAngleMotorHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
 {
 	TargetAngleMotorHingeJoint *hj = new TargetAngleMotorHingeJoint();

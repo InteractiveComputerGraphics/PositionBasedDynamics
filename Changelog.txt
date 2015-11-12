@@ -1,3 +1,4 @@
+	- added motor slider joint
 	- added slider joint
 	- extended JointDemo
 

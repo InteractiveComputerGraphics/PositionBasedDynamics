@@ -16,6 +16,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added motor slider joint
 * added slider joint
 * added target velocity motor hinge joint 
 * added target angle motor hinge joint
@@ -55,6 +56,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- target velocity motor hinge joint
 		- universal joint
 		- slider joint
+		- target position motor slider joint
 		- ball joint between rigid body and particle
 	- Generic constraints
 

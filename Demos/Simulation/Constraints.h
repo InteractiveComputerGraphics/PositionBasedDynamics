@@ -89,10 +89,28 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<float, 3, 12> m_jointInfo;
+		Eigen::Matrix<float, 3, 14> m_jointInfo;
 
 		SliderJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
+
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
+	class TargetPositionMotorSliderJoint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Eigen::Matrix<float, 3, 14> m_jointInfo;
+		float m_targetPosition;
+
+		TargetPositionMotorSliderJoint() : Constraint(2) { m_targetPosition = 0.0f; }
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		float getTargetPosition() const { return m_targetPosition; }
+		void setTargetPosition(const float val) { m_targetPosition = val; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis);
 		virtual bool updateConstraint(SimulationModel &model);
@@ -105,12 +123,9 @@ namespace PBD
 		static int TYPE_ID;
 		Eigen::Matrix<float, 3, 14> m_jointInfo;
 		float m_targetAngle;
-		float m_maxAngularMomentumPerStep;
-		TargetAngleMotorHingeJoint() : Constraint(2) { m_targetAngle = 0.0f; m_maxAngularMomentumPerStep = 0.0f; }
+		TargetAngleMotorHingeJoint() : Constraint(2) { m_targetAngle = 0.0f; }
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		float getMaxAngularMomentumPerStep() const { return m_maxAngularMomentumPerStep; }
-		void setMaxAngularMomentumPerStep(const float val) { m_maxAngularMomentumPerStep = val; }
 		float getTargetAngle() const { return m_targetAngle; }
 		void setTargetAngle(const float val) 
 		{ 
@@ -130,12 +145,9 @@ namespace PBD
 		static int TYPE_ID;
 		Eigen::Matrix<float, 3, 14> m_jointInfo;
 		float m_targetAngularVelocity;
-		float m_maxAngularMomentumPerStep;
-		TargetVelocityMotorHingeJoint() : Constraint(2) { m_targetAngularVelocity = 0.0f; m_maxAngularMomentumPerStep = 0.0f; }
+		TargetVelocityMotorHingeJoint() : Constraint(2) { m_targetAngularVelocity = 0.0f; }
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		float getMaxAngularMomentumPerStep() const { return m_maxAngularMomentumPerStep; }
-		void setMaxAngularMomentumPerStep(const float val) { m_maxAngularMomentumPerStep = val; }
 		float getTargetAngularVelocity() const { return m_targetAngularVelocity; }
 		void setTargetAngularVelocity(const float val)	{ m_targetAngularVelocity = val; }
 
