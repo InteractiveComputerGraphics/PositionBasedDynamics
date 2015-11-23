@@ -19,10 +19,10 @@ namespace PBD
 			SimulationModel();
 			virtual ~SimulationModel();
 
-			typedef std::vector<Constraint*, Eigen::aligned_allocator<Constraint*> > ConstraintVector;
-			typedef std::vector<RigidBody*, Eigen::aligned_allocator<RigidBody*> > RigidBodyVector;
-			typedef std::vector<TriangleModel*, Eigen::aligned_allocator<TriangleModel*> > TriangleModelVector;
-			typedef std::vector<TetModel*, Eigen::aligned_allocator<TetModel*> > TetModelVector;
+			typedef std::vector<Constraint*> ConstraintVector;
+			typedef std::vector<RigidBody*> RigidBodyVector;
+			typedef std::vector<TriangleModel*> TriangleModelVector;
+			typedef std::vector<TetModel*> TetModelVector;
 			typedef std::vector<unsigned int> ConstraintGroup;
 			typedef std::vector<ConstraintGroup> ConstraintGroupVector;
 
