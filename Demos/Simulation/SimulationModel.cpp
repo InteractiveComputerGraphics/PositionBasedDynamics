@@ -37,6 +37,9 @@ void SimulationModel::cleanup()
 	for (unsigned int i = 0; i < m_triangleModels.size(); i++)
 		delete m_triangleModels[i];
 	m_triangleModels.clear();
+	for (unsigned int i = 0; i < m_tetModels.size(); i++)
+		delete m_tetModels[i];
+	m_tetModels.clear();
 	for (unsigned int i = 0; i < m_constraints.size(); i++)
 		delete m_constraints[i];
 	m_constraints.clear();
