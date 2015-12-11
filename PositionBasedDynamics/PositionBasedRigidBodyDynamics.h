@@ -574,6 +574,145 @@ namespace PBD
 			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
 
 
+		/** Initialize a motor slider joint which is able to enforce
+		* a target velocity and return info which is required by the solver step.
+		*
+		* @param x0 center of mass of first body
+		* @param q0 rotation of first body
+		* @param x1 center of mass of second body
+		* @param q1 rotation of second body
+		* @param sliderJointPosition position of slider joint
+		* @param sliderJointAxis axis of slider joint
+		* @param jointInfo Stores the local and global positions of the connector points.
+		* The joint info contains the following columns:\n
+		* 0:	connector in body 0 (local)\n
+		* 1:	connector in body 1 (local)\n
+		* 2-4:	coordinate system of body 0 (local)\n
+		* 5:	joint axis in body 1 (local)\n
+		* 6:	connector in body 0 (global)\n
+		* 7:	connector in body 1 (global)\n
+		* 8-10:coordinate system of body 0 (global)\n
+		* 11:	joint axis in body 1 (global)\n
+		* 12:	perpendicular vector on joint axis (normalized) in body 1 (local)\n
+		* 13:	perpendicular vector on joint axis (normalized) in body 1 (global)\n\n
+		* The info must be updated in each simulation step
+		* by calling update_TargetVelocityMotorSliderJoint().
+		*/
+		static bool init_TargetVelocityMotorSliderJoint(
+			const Eigen::Vector3f &x0,						// center of mass of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0	
+			const Eigen::Vector3f &x1,						// center of mass of body 1
+			const Eigen::Quaternionf &q1,					// rotation of body 1
+			const Eigen::Vector3f &sliderJointPosition,		// position of slider joint
+			const Eigen::Vector3f &sliderJointAxis,			// axis of slider joint
+			Eigen::Matrix<float, 3, 14> &jointInfo
+			);
+
+		/** Update motor slider joint info which is required by the solver step.
+		* The joint info must be generated in the initialization process of the model
+		* by calling the function init_TargetVelocityMotorSliderJoint().
+		* This method should be called once per simulation step before executing the solver.\n\n
+		*
+		* @param x0 center of mass of first body
+		* @param q0 rotation of first body
+		* @param x1 center of mass of second body
+		* @param q1 rotation of second body
+		* @param jointInfo slider joint information which should be updated
+		*/
+		static bool update_TargetVelocityMotorSliderJoint(
+			const Eigen::Vector3f &x0,						// center of mass of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0	
+			const Eigen::Vector3f &x1,						// center of mass of body 1
+			const Eigen::Quaternionf &q1,					// rotation of body 1
+			Eigen::Matrix<float, 3, 14> &jointInfo
+			);
+
+		/** Perform a solver step for a motor slider joint which links two rigid bodies.
+		* A motor slider joint removes two translational and three rotational degrees of freedom between the bodies.
+		* Moreover, a target velocity can be enforced on the remaining translation axis.
+		* The motor slider joint info must be generated in the initialization process of the model
+		* by calling the function init_TargetVelocityMotorSliderJoint() and updated each time the bodies
+		* change their state by update_TargetVelocityMotorSliderJoint().\n\n
+		* More information can be found in: \cite Deul2014
+		*
+		* \image html motorsliderjoint.jpg "motor slider joint"
+		* \image latex motorsliderjoint.jpg "motor slider joint" width=0.5\textwidth
+		*
+		* @param invMass0 inverse mass of first body
+		* @param x0 center of mass of first body
+		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of first body
+		* @param q0 rotation of first body
+		* @param invMass1 inverse mass of second body
+		* @param x1 center of mass of second body
+		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
+		* @param q1 rotation of second body
+		* @param jointInfo Motor slider joint information which is required by the solver. This
+		* information must be generated in the beginning by calling init_TargetVelocityMotorSliderJoint()
+		* and updated each time the bodies change their state by update_TargetVelocityMotorSliderJoint().
+		* @param corr_x0 position correction of center of mass of first body
+		* @param corr_q0 rotation correction of first body
+		* @param corr_x1 position correction of center of mass of second body
+		* @param corr_q1 rotation correction of second body
+		*/
+		static bool solve_TargetVelocityMotorSliderJoint(
+			const float invMass0,							//inverse  mass is zero if body is static
+			const Eigen::Vector3f &x0, 						// center of mass of body 0
+			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
+			const Eigen::Quaternionf &q0,					// rotation of body 0			
+			const float invMass1,							// inverse mass is zero if body is static
+			const Eigen::Vector3f &x1, 						// center of mass of body 1
+			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
+			const Eigen::Quaternionf &q1,					// rotation of body 1
+			const Eigen::Matrix<float, 3, 14> &jointInfo,	// precomputed slider joint info
+			Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+			Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1);
+
+		/** Perform a velocity solver step for a motor slider joint which links two rigid bodies.
+		* A motor slider joint removes two translational and three rotational degrees of freedom between the bodies.
+		* Moreover, a target velocity can be enforced on the remaining translation axis.
+		* The motor slider joint info must be generated in the initialization process of the model
+		* by calling the function init_TargetVelocityMotorSliderJoint() and updated each time the bodies
+		* change their state by update_TargetVelocityMotorSliderJoint().\n\n
+		* More information can be found in: \cite Deul2014
+		*
+		* \image html motorsliderjoint.jpg "motor slider joint"
+		* \image latex motorsliderjoint.jpg "motor slider joint" width=0.5\textwidth
+		*
+		* @param invMass0 inverse mass of first body
+		* @param x0 center of mass of first body
+		* @param v0 velocity of body 0
+		* @param inertiaInverseW0 inverse inertia tensor in world coordinates of first body
+		* @param omega0 angular velocity of first body
+		* @param invMass1 inverse mass of second body
+		* @param x1 center of mass of second body
+		* @param v1 velocity of body 1
+		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
+		* @param omega1 angular velocity of second body
+		* @param targetVelocity target velocity of the motor
+		* @param jointInfo Motor slider joint information which is required by the solver. This
+		* information must be generated in the beginning by calling init_TargetVelocityMotorSliderJoint()
+		* and updated each time the bodies change their state by update_TargetVelocityMotorSliderJoint().
+		* @param corr_v0 velocity correction of first body
+		* @param corr_omega0 angular velocity correction of first body
+		* @param corr_v1 velocity correction of second body
+		* @param corr_omega1 angular velocity correction of second body
+		*/
+		static bool velocitySolve_TargetVelocityMotorSliderJoint(
+			const float invMass0,							//inverse  mass is zero if body is static
+			const Eigen::Vector3f &x0, 						// center of mass of body 0
+			const Eigen::Vector3f &v0,						// velocity of body 0
+			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
+			const Eigen::Vector3f &omega0,
+			const float invMass1,							// inverse mass is zero if body is static
+			const Eigen::Vector3f &x1, 						// center of mass of body 1
+			const Eigen::Vector3f &v1,
+			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
+			const Eigen::Vector3f &omega1,
+			const float targetVelocity,						// target velocity of the servo motor
+			const Eigen::Matrix<float, 3, 14> &jointInfo,	// precomputed joint info
+			Eigen::Vector3f &corr_v0, Eigen::Vector3f &corr_omega0,
+			Eigen::Vector3f &corr_v1, Eigen::Vector3f &corr_omega1);
+
 
 		/** Initialize a motor hinge joint which is able to enforce
 		* a target angle and return info which is required by the solver step.
@@ -752,7 +891,7 @@ namespace PBD
 		* @param corr_q1 rotation correction of second body
 		*/
 		static bool solve_TargetVelocityMotorHingeJoint(
-			const float invMass0,							//inverse  mass is zero if body is static
+			const float invMass0,							// inverse  mass is zero if body is static
 			const Eigen::Vector3f &x0, 						// center of mass of body 0
 			const Eigen::Matrix3f &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
 			const Eigen::Quaternionf &q0,					// rotation of body 0			
@@ -805,8 +944,8 @@ namespace PBD
 			const Eigen::Vector3f &v1,
 			const Eigen::Matrix3f &inertiaInverseW1,		// inverse inertia tensor (world space) of body 1
 			const Eigen::Vector3f &omega1,					
-			const float targetAngularVelocity,				// target angle of the servo motor
-			const Eigen::Matrix<float, 3, 14> &jointInfo,	// precomputed hinge joint info
+			const float targetAngularVelocity,				// target angular velocity of the servo motor
+			const Eigen::Matrix<float, 3, 14> &jointInfo,	// precomputed joint info
 			Eigen::Vector3f &corr_v0, Eigen::Vector3f &corr_omega0,
 			Eigen::Vector3f &corr_v1, Eigen::Vector3f &corr_omega1);
 

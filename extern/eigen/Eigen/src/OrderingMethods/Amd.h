@@ -137,9 +137,6 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
     degree[i] = len[i];                 // degree of node i
   }
   mark = internal::cs_wclear<Index>(0, 0, w, n);         /* clear w */
-  elen[n] = -2;                         /* n is a dead element */
-  Cp[n] = -1;                           /* n is a root of assembly tree */
-  w[n] = 0;                             /* n is a dead element */
   
   /* --- Initialize degree lists ------------------------------------------ */
   for(i = 0; i < n; i++)
@@ -153,7 +150,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
       }
    
     d = degree[i];
-    if(d == 1)                      /* node i is empty */
+    if(d == 1 && has_diag)           /* node i is empty */
     {
       elen[i] = -2;                 /* element i is dead */
       nel++;

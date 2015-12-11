@@ -149,6 +149,12 @@ void timeStep ()
 		const float currentTargetPos = 1.5f*sin(2.0f*TimeManager::getCurrent()->getTime());
 		TargetPositionMotorSliderJoint &joint3 = (*(TargetPositionMotorSliderJoint*)constraints[12]);
 		joint3.setTargetPosition(currentTargetPos);
+
+		float currentTargetVel = 0.25f;
+		if (((int) (0.25f*TimeManager::getCurrent()->getTime())) % 2 == 1)
+			currentTargetVel = -currentTargetVel;
+		TargetVelocityMotorSliderJoint &joint4 = (*(TargetVelocityMotorSliderJoint*)constraints[14]);
+		joint4.setTargetVelocity(currentTargetVel);
 	}
 }
 
@@ -194,6 +200,12 @@ void renderSliderJoint(SliderJoint &joint)
 }
 
 void renderTargetPositionMotorSliderJoint(TargetPositionMotorSliderJoint &joint)
+{
+	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
+	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
+}
+
+void renderTargetVelocityMotorSliderJoint(TargetVelocityMotorSliderJoint &joint)
 {
 	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
 	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
@@ -278,6 +290,10 @@ void render ()
 		{
 			renderTargetPositionMotorSliderJoint(*(TargetPositionMotorSliderJoint*)constraints[i]);
 		}
+		else if (constraints[i]->getTypeId() == TargetVelocityMotorSliderJoint::TYPE_ID)
+		{
+			renderTargetVelocityMotorSliderJoint(*(TargetVelocityMotorSliderJoint*)constraints[i]);
+		}
 	}
 
 	float textColor[4] = { 0.0f, .2f, .4f, 1 };
@@ -288,7 +304,8 @@ void render ()
 
 	MiniGL::drawStrokeText(-1.0f, -4.0f, 1.0f, 0.002f, "motor hinge joint", 17, textColor);
 	MiniGL::drawStrokeText(3.4f, -4.0f, 1.0f, 0.002f, "slider joint", 12, textColor);
-	MiniGL::drawStrokeText(7.0f, -4.0f, 1.0f, 0.002f, "motor slider joint", 18, textColor);
+	MiniGL::drawStrokeText(6.6f, -4.0f, 1.0f, 0.002f, "target position motor", 21, textColor);
+	MiniGL::drawStrokeText(10.6f, -4.0f, 1.0f, 0.002f, "target velocity motor", 21, textColor);
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
@@ -310,10 +327,10 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 
 	// static body
-	rb.resize(21);
+	rb.resize(24);
 	float startX = 0.0f;
 	float startY = 1.0f;
-	for (unsigned int i = 0; i < 7; i++)
+	for (unsigned int i = 0; i < 8; i++)
 	{
 		rb[3*i] = new RigidBody();
 		rb[3*i]->initBody(0.0f,
@@ -366,6 +383,9 @@ void createBodyModel()
 
 	model.addTargetPositionMotorSliderJoint(18, 19, Eigen::Vector3f(8.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
 	model.addBallJoint(19, 20, Eigen::Vector3f(8.25f, jointY, 3.0f));
+
+	model.addTargetVelocityMotorSliderJoint(21, 22, Eigen::Vector3f(12.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
+	model.addBallJoint(22, 23, Eigen::Vector3f(12.25f, jointY, 3.0f));
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)

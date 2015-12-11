@@ -1,4 +1,6 @@
-	- added motor slider joint
+	- update to Eigen 3.2.7
+	- added target velocity motor slider joint
+	- added target position motor slider joint
 	- added slider joint
 	- extended JointDemo
 

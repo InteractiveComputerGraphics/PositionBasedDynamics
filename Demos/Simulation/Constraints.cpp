@@ -25,6 +25,7 @@ int TargetAngleMotorHingeJoint::TYPE_ID = 15;
 int TargetVelocityMotorHingeJoint::TYPE_ID = 16;
 int SliderJoint::TYPE_ID = 17;
 int TargetPositionMotorSliderJoint::TYPE_ID = 18;
+int TargetVelocityMotorSliderJoint::TYPE_ID = 19;
 
 //////////////////////////////////////////////////////////////////////////
 // BallJoint
@@ -490,6 +491,127 @@ bool TargetPositionMotorSliderJoint::solvePositionConstraint(SimulationModel &mo
 	return res;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+// TargetVelocityMotorSliderJoint
+//////////////////////////////////////////////////////////////////////////
+bool TargetVelocityMotorSliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+{
+	m_bodies[0] = rbIndex1;
+	m_bodies[1] = rbIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::init_TargetVelocityMotorSliderJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		pos, axis,
+		m_jointInfo);
+}
+
+bool TargetVelocityMotorSliderJoint::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::update_TargetVelocityMotorSliderJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		m_jointInfo);
+}
+
+bool TargetVelocityMotorSliderJoint::solvePositionConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Eigen::Vector3f corr_x1, corr_x2;
+	Eigen::Quaternionf corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solve_TargetVelocityMotorSliderJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		m_jointInfo,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0f)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0f)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
+		}
+	}
+	return res;
+}
+
+
+bool TargetVelocityMotorSliderJoint::solveVelocityConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Eigen::Vector3f corr_v1, corr_v2;
+	Eigen::Vector3f corr_omega1, corr_omega2;
+	const bool res = PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorSliderJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getVelocity(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getAngularVelocity(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getVelocity(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getAngularVelocity(),
+		m_targetVelocity,
+		m_jointInfo,
+		corr_v1,
+		corr_omega1,
+		corr_v2,
+		corr_omega2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0f)
+		{
+			rb1.getVelocity() += corr_v1;
+			rb1.getAngularVelocity() += corr_omega1;
+		}
+		if (rb2.getMass() != 0.0f)
+		{
+			rb2.getVelocity() += corr_v2;
+			rb2.getAngularVelocity() += corr_omega2;
+		}
+	}
+	return res;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // TargetAngleMotorHingeJoint

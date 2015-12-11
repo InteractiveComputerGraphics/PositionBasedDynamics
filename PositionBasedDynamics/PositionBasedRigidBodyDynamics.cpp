@@ -1358,6 +1358,170 @@ bool PositionBasedRigidBodyDynamics::solve_TargetPositionMotorSliderJoint(
 	return true;
 }
 
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::init_TargetVelocityMotorSliderJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	const Eigen::Quaternionf &q1,
+	const Eigen::Vector3f &position,
+	const Eigen::Vector3f &direction,
+	Eigen::Matrix<float, 3, 14> &jointInfo
+	)
+{
+	return init_TargetPositionMotorSliderJoint(x0, q0, x1, q1, position, direction, jointInfo);
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::update_TargetVelocityMotorSliderJoint(
+	const Eigen::Vector3f &x0,
+	const Eigen::Quaternionf &q0,
+	const Eigen::Vector3f &x1,
+	const Eigen::Quaternionf &q1,
+	Eigen::Matrix<float, 3, 14> &jointInfo
+	)
+{
+	return update_TargetPositionMotorSliderJoint(x0, q0, x1, q1, jointInfo);
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::solve_TargetVelocityMotorSliderJoint(
+	const float invMass0,
+	const Eigen::Vector3f &x0,
+	const Eigen::Matrix3f &inertiaInverseW0,
+	const Eigen::Quaternionf &q0,
+	const float invMass1,
+	const Eigen::Vector3f &x1,
+	const Eigen::Matrix3f &inertiaInverseW1,
+	const Eigen::Quaternionf &q1,
+	const Eigen::Matrix<float, 3, 14> &jointInfo,
+	Eigen::Vector3f &corr_x0, Eigen::Quaternionf &corr_q0,
+	Eigen::Vector3f &corr_x1, Eigen::Quaternionf &corr_q1)
+{
+	return solve_SliderJoint(invMass0, x0, inertiaInverseW0, q0,
+		invMass1, x1, inertiaInverseW1, q1,
+		jointInfo, corr_x0, corr_q0, corr_x1, corr_q1);
+}
+
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorSliderJoint(
+	const float invMass0,
+	const Eigen::Vector3f &x0,
+	const Eigen::Vector3f &v0,
+	const Eigen::Matrix3f &inertiaInverseW0,
+	const Eigen::Vector3f &omega0,
+	const float invMass1,
+	const Eigen::Vector3f &x1,
+	const Eigen::Vector3f &v1,
+	const Eigen::Matrix3f &inertiaInverseW1,
+	const Eigen::Vector3f &omega1,
+	const float targetAngularVelocity,
+	const Eigen::Matrix<float, 3, 14> &jointInfo,
+	Eigen::Vector3f &corr_v0, Eigen::Vector3f &corr_omega0,
+	Eigen::Vector3f &corr_v1, Eigen::Vector3f &corr_omega1)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2-4:	coordinate system of body 0 (local)
+	// 5:	joint axis in body 1 (local)	
+	// 6:	connector in body 0 (global)
+	// 7:	connector in body 1 (global)
+	// 8-10:coordinate system of body 0 (global)
+	// 11:	joint axis in body 1 (global)
+	// 12:	perpendicular vector on joint axis (normalized) in body 1 (local)
+	// 13:	perpendicular vector on joint axis (normalized) in body 1 (global)
+
+	const Eigen::Vector3f &c0 = jointInfo.col(6);
+	const Eigen::Vector3f &c1 = jointInfo.col(7);
+	const Eigen::Vector3f r0 = c0 - x0;
+	const Eigen::Vector3f r1 = c1 - x1;
+	Eigen::Matrix3f r0_star, r1_star;
+	MathFunctions::crossProductMatrix(r0, r0_star);
+	MathFunctions::crossProductMatrix(r1, r1_star);
+	Eigen::Vector3f deltaOmega = omega1 - omega0;
+
+	// projection 
+	const Eigen::Matrix<float, 3, 3> PT = jointInfo.block<3, 3>(0, 8);
+	const Eigen::Matrix<float, 3, 3> P = PT.transpose();
+
+	Eigen::Matrix<float, 6, 1> b;
+	b.block<3, 1>(0, 0) = P * (v1 - v0);
+	b(0, 0) = -targetAngularVelocity + b(0, 0);
+	b.block<3, 1>(3, 0) = deltaOmega;
+
+	Eigen::Matrix<float, 6, 6> K;
+	K.setZero();
+	if (invMass0 != 0.0f)
+	{
+		// Jacobian for body 0 is
+		//
+		// (P     -P r0*)
+		// (0     I_3)
+		//
+		// where I_3 is the identity matrix and r0* is the cross product matrix of r0
+		//
+		// J M^-1 J^T =
+		// ( P (1/m I_3-r0 * J0^-1 * r0*) P^T    P (-r0 * J0^-1) )
+		// ( (-r0 * J0^-1)^T P^T				J0^-1		     )
+
+		Eigen::Matrix3f K00;
+		computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K00);
+		const Eigen::Matrix3f neg_P_r0_star_Jinv = -P * r0_star * inertiaInverseW0;
+		K.block<3, 3>(0, 0) = P * K00 * PT;
+		K.block<3, 3>(0, 3) = neg_P_r0_star_Jinv;
+		K.block<3, 3>(3, 0) = K.block<3, 3>(0, 3).transpose();
+		K.block<3, 3>(3, 3) = inertiaInverseW0;
+	}
+	if (invMass1 != 0.0f)
+	{
+		// Jacobian for body 1 is
+		//
+		// ( -P    P r1*  )
+		// ( 0     -t1^T )
+		// ( 0     -t2^T )
+		// ( 0     axis^T)
+		//
+		// where I_3 is the identity matrix and r1* is the cross product matrix of r1
+		//
+		// J M^-1 J^T =
+		// ( P (1/m I_3-r1 * J1^-1 * r1*) P^T    P (-r1 * J1^-1) )
+		// ( (-r1 * J1^-1)^T P^T				 J1^-1			 )
+
+		Eigen::Matrix3f K11;
+		computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K11);
+		const Eigen::Matrix3f neg_P_r1_star_Jinv = -P * r1_star * inertiaInverseW1;
+
+		K.block<3, 3>(0, 0) += P * K11 * PT;
+		const Eigen::Matrix3f K_03 = neg_P_r1_star_Jinv;
+		K.block<3, 3>(0, 3) += K_03;
+		K.block<3, 3>(3, 0) += K_03.transpose();
+		K.block<3, 3>(3, 3) += inertiaInverseW1;
+	}
+
+	const Eigen::Matrix<float, 6, 6> Kinv = K.inverse();
+	const Eigen::Matrix<float, 6, 1> lambda = Kinv * b;
+	const Eigen::Vector3f p = PT * lambda.block<3, 1>(0, 0);
+	const Eigen::Vector3f angMomentum = lambda.block<3, 1>(3, 0);
+
+	if (invMass0 != 0.0f)
+	{
+		corr_v0 = invMass0*p;
+		corr_omega0 = (inertiaInverseW0 * (r0.cross(p) + angMomentum));
+	}
+
+	if (invMass1 != 0.0f)
+	{
+		corr_v1 = -invMass1*p;
+		corr_omega1 = (inertiaInverseW1 * (r1.cross(-p) - angMomentum));
+	}
+
+	return true;
+}
+
+
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedRigidBodyDynamics::init_TargetAngleMotorHingeJoint(
 	const Eigen::Vector3f &x0,

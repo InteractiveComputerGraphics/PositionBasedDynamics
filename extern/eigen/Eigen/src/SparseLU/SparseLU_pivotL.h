@@ -71,7 +71,7 @@ Index SparseLUImpl<Scalar,Index>::pivotL(const Index jcol, const RealScalar& dia
   
   // Determine the largest abs numerical value for partial pivoting 
   Index diagind = iperm_c(jcol); // diagonal index 
-  RealScalar pivmax = 0.0; 
+  RealScalar pivmax(-1.0);
   Index pivptr = nsupc; 
   Index diag = emptyIdxLU; 
   RealScalar rtemp;
@@ -87,8 +87,9 @@ Index SparseLUImpl<Scalar,Index>::pivotL(const Index jcol, const RealScalar& dia
   }
   
   // Test for singularity
-  if ( pivmax == 0.0 ) {
-    pivrow = lsub_ptr[pivptr];
+  if ( pivmax <= RealScalar(0.0) ) {
+    // if pivmax == -1, the column is structurally empty, otherwise it is only numerically zero
+    pivrow = pivmax < RealScalar(0.0) ? diagind : lsub_ptr[pivptr];
     perm_r(pivrow) = jcol;
     return (jcol+1);
   }
