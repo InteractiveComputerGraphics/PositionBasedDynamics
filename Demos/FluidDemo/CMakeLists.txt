@@ -28,8 +28,8 @@ add_executable(FluidDemo
 	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
 	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
 	  ${PROJECT_PATH}/Demos/Simulation/ParticleData.h	
-	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.cpp  
-	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.h
+	  ${PROJECT_PATH}/Demos/Simulation/NeighborhoodSearchSpatialHashing.cpp  
+	  ${PROJECT_PATH}/Demos/Simulation/NeighborhoodSearchSpatialHashing.h
 	  
 	  CMakeLists.txt
 )

@@ -4,7 +4,7 @@
 #include "Demos/Utils/Config.h"
 #include "Demos/Simulation/ParticleData.h"
 #include <vector>
-#include "Demos/Utils/NeighborhoodSearchSpatialHashing.h"
+#include "Demos/Simulation/NeighborhoodSearchSpatialHashing.h"
 
 namespace PBD 
 {	
