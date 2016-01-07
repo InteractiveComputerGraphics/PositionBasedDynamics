@@ -1,3 +1,45 @@
+	- update to Eigen 3.2.7
+	- added target velocity motor slider joint
+	- added target position motor slider joint
+	- added slider joint
+	- extended JointDemo
+
+1.4.0
+	- extended JointDemo
+	- added TargetVelocityMotorHingeJoint
+	- added TargetAngleMotorHingeJoint
+	- made function names consistent
+	- fixed initialization of hinge joint coordinate system
+	- parallelized unified solver using graph coloring
+	- implemented unified solver for rigid bodies and deformable solids 
+	- added documentation for generic constraints
+	- added generic constraint demo
+	- added generic constraint
+	- added coupling demo
+	- added ball joint which links a rigid body and a particle
+	- added universal joint
+	- improved hinge joint
+	- added documentation for position based fluids
+
+1.3.0
+	- added some documentation
+	- cleaned up project 
+	- added new Joint demo
+	- added HingeJoint
+	- added BallOnLineJoint
+	- separated deformable, fluid and rigid body dynamics in different classes
+	- cleaned up interface
+	- added doxygen files
+	- update to Eigen 3.2.5
+	- resolve compiler errors in Visual Studio 2010
+
+1.2.0
+	- added rigid body demo
+	- added balljoint constraint
+	- fixed WIN32 issues
+	- cleanup
+	- Ubuntu fix
+
 1.1.0
 
  	- added second order velocity update

@@ -2,9 +2,9 @@
 #define __FluidModel_h__
 
 #include "Demos/Utils/Config.h"
-#include "Demos/Utils/ParticleData.h"
+#include "Demos/Simulation/ParticleData.h"
 #include <vector>
-#include "Demos/Utils/NeighborhoodSearchSpatialHashing.h"
+#include "Demos/Simulation/NeighborhoodSearchSpatialHashing.h"
 
 namespace PBD 
 {	

@@ -25,11 +25,11 @@ add_executable(FluidDemo
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Demos/Utils/Config.h			
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.cpp	
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Utils/ParticleData.h	
-	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.cpp  
-	  ${PROJECT_PATH}/Demos/Utils/NeighborhoodSearchSpatialHashing.h
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
+	  ${PROJECT_PATH}/Demos/Simulation/ParticleData.h	
+	  ${PROJECT_PATH}/Demos/Simulation/NeighborhoodSearchSpatialHashing.cpp  
+	  ${PROJECT_PATH}/Demos/Simulation/NeighborhoodSearchSpatialHashing.h
 	  
 	  CMakeLists.txt
 )
@@ -41,6 +41,7 @@ include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
+set_target_properties(FluidDemo PROPERTIES FOLDER "Demos")
 add_dependencies(FluidDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(FluidDemo ${SIMULATION_LINK_LIBRARIES})
 VIS_SOURCE_GROUPS()

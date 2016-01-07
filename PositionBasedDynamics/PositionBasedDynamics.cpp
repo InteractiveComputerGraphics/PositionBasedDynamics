@@ -1,257 +1,16 @@
 #include "PositionBasedDynamics.h"
+#include "MathFunctions.h"
 #include <cfloat>
-#include "SPHKernels.h"
 
 using namespace PBD;
 
-// ----------------------------------------------------------------------------------------------
-static void jacobiRotate(Eigen::Matrix3f &A, Eigen::Matrix3f &R, int p, int q)
-{
-	// rotates A through phi in pq-plane to set A(p,q) = 0
-	// rotation stored in R whose columns are eigenvectors of A
-	if (A(p, q) == 0.0f)
-		return;
+const float eps = 1e-6f;
 
-	float d = (A(p, p) - A(q, q)) / (2.0f*A(p, q));
-	float t = 1.0f / (fabs(d) + sqrt(d*d + 1.0f));
-	if (d < 0.0f) t = -t;
-	float c = 1.0f / sqrt(t*t + 1);
-	float s = t*c;
-	A(p, p) += t*A(p, q);
-	A(q, q) -= t*A(p, q);
-	A(p, q) = A(q, p) = 0.0f;
-	// transform A
-	int k;
-	for (k = 0; k < 3; k++) {
-		if (k != p && k != q) {
-			float Akp = c*A(k, p) + s*A(k, q);
-			float Akq = -s*A(k, p) + c*A(k, q);
-			A(k, p) = A(p, k) = Akp;
-			A(k, q) = A(q, k) = Akq;
-		}
-	}
-	// store rotation in R
-	for (k = 0; k < 3; k++) {
-		float Rkp = c*R(k, p) + s*R(k, q);
-		float Rkq = -s*R(k, p) + c*R(k, q);
-		R(k, p) = Rkp;
-		R(k, q) = Rkq;
-	}
-}
+//////////////////////////////////////////////////////////////////////////
+// PositionBasedDynamics
+//////////////////////////////////////////////////////////////////////////
 
-// ----------------------------------------------------------------------------------------------
-static void eigenDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &eigenVecs, Eigen::Vector3f &eigenVals)
-{
-	const int numJacobiIterations = 10;
-	const float epsilon = 1e-15f;
-
-	Eigen::Matrix3f D = A;
-
-	// only for symmetric matrices!
-	eigenVecs.setIdentity();	// unit matrix
-	int iter = 0;
-	while (iter < numJacobiIterations) {	// 3 off diagonal elements
-		// find off diagonal element with maximum modulus
-		int p, q;
-		float a, max;
-		max = fabs(D(0, 1));
-		p = 0; q = 1;
-		a = fabs(D(0, 2));
-		if (a > max) { p = 0; q = 2; max = a; }
-		a = fabs(D(1, 2));
-		if (a > max) { p = 1; q = 2; max = a; }
-		// all small enough -> done
-		if (max < epsilon) break;
-		// rotate matrix with respect to that element
-		jacobiRotate(D, eigenVecs, p, q);
-		iter++;
-	}
-	eigenVals[0] = D(0, 0);
-	eigenVals[1] = D(1, 1);
-	eigenVals[2] = D(2, 2);
-}
-
-//---------------------------------------------------------------------
-static void polarDecomposition(const Eigen::Matrix3f &A, Eigen::Matrix3f &R, Eigen::Matrix3f &U, Eigen::Matrix3f &D)
-{
-	// A = SR, where S is symmetric and R is orthonormal
-	// -> S = (A A^T)^(1/2)
-
-	// A = U D U^T R
-
-	Eigen::Matrix3f AAT;
-	AAT(0, 0) = A(0, 0)*A(0, 0) + A(0, 1)*A(0, 1) + A(0, 2)*A(0, 2);
-	AAT(1, 1) = A(1, 0)*A(1, 0) + A(1, 1)*A(1, 1) + A(1, 2)*A(1, 2);
-	AAT(2, 2) = A(2, 0)*A(2, 0) + A(2, 1)*A(2, 1) + A(2, 2)*A(2, 2);
-
-	AAT(0, 1) = A(0, 0)*A(1, 0) + A(0, 1)*A(1, 1) + A(0, 2)*A(1, 2);
-	AAT(0, 2) = A(0, 0)*A(2, 0) + A(0, 1)*A(2, 1) + A(0, 2)*A(2, 2);
-	AAT(1, 2) = A(1, 0)*A(2, 0) + A(1, 1)*A(2, 1) + A(1, 2)*A(2, 2);
-
-	AAT(1, 0) = AAT(0, 1);
-	AAT(2, 0) = AAT(0, 2);
-	AAT(2, 1) = AAT(1, 2);
-
-	R.setIdentity();
-	Eigen::Vector3f eigenVals;
-	eigenDecomposition(AAT, U, eigenVals);
-
-	float d0 = sqrt(eigenVals[0]);
-	float d1 = sqrt(eigenVals[1]);
-	float d2 = sqrt(eigenVals[2]);
-	D.setZero();
-	D(0, 0) = d0;
-	D(1, 1) = d1;
-	D(2, 2) = d2;
-
-	const float eps = 1e-15f;
-
-	float l0 = eigenVals[0]; if (l0 <= eps) l0 = 0.0f; else l0 = 1.0f / d0;
-	float l1 = eigenVals[1]; if (l1 <= eps) l1 = 0.0f; else l1 = 1.0f / d1;
-	float l2 = eigenVals[2]; if (l2 <= eps) l2 = 0.0f; else l2 = 1.0f / d2;
-
-	Eigen::Matrix3f S1;
-	S1(0, 0) = l0*U(0, 0)*U(0, 0) + l1*U(0, 1)*U(0, 1) + l2*U(0, 2)*U(0, 2);
-	S1(1, 1) = l0*U(1, 0)*U(1, 0) + l1*U(1, 1)*U(1, 1) + l2*U(1, 2)*U(1, 2);
-	S1(2, 2) = l0*U(2, 0)*U(2, 0) + l1*U(2, 1)*U(2, 1) + l2*U(2, 2)*U(2, 2);
-
-	S1(0, 1) = l0*U(0, 0)*U(1, 0) + l1*U(0, 1)*U(1, 1) + l2*U(0, 2)*U(1, 2);
-	S1(0, 2) = l0*U(0, 0)*U(2, 0) + l1*U(0, 1)*U(2, 1) + l2*U(0, 2)*U(2, 2);
-	S1(1, 2) = l0*U(1, 0)*U(2, 0) + l1*U(1, 1)*U(2, 1) + l2*U(1, 2)*U(2, 2);
-
-	S1(1, 0) = S1(0, 1);
-	S1(2, 0) = S1(0, 2);
-	S1(2, 1) = S1(1, 2);
-
-	R = S1*A;
-
-	// stabilize
-	Eigen::Vector3f c0, c1, c2;
-	c0 = R.col(0);
-	c1 = R.col(1);
-	c2 = R.col(2);
-
-	if (c0.squaredNorm() < eps)
-		c0 = c1.cross(c2);
-	else if (c1.squaredNorm() < eps)
-		c1 = c2.cross(c0);
-	else
-		c2 = c0.cross(c1);
-	R.col(0) = c0;
-	R.col(1) = c1;
-	R.col(2) = c2;
-}
-
-/** Return the one norm of the matrix.
-*/
-static float oneNorm(const Eigen::Matrix3f &A) 
-{
-	const float sum1 = fabs(A(0,0)) + fabs(A(1,0)) + fabs(A(2,0));
-	const float sum2 = fabs(A(0,1)) + fabs(A(1,1)) + fabs(A(2,1));
-	const float sum3 = fabs(A(0,2)) + fabs(A(1,2)) + fabs(A(2,2));
-	float maxSum = sum1;
-	if (sum2 > maxSum)
-		maxSum = sum2;
-	if (sum3 > maxSum)
-		maxSum = sum3;
-	return maxSum;
-}
-
-/** Return the inf norm of the matrix.
-*/
-static float infNorm(const Eigen::Matrix3f &A)
-{
-	const float sum1 = fabs(A(0, 0)) + fabs(A(0, 1)) + fabs(A(0, 2));
-	const float sum2 = fabs(A(1, 0)) + fabs(A(1, 1)) + fabs(A(1, 2));
-	const float sum3 = fabs(A(2, 0)) + fabs(A(2, 1)) + fabs(A(2, 2));
-	float maxSum = sum1;
-	if (sum2 > maxSum)
-		maxSum = sum2;
-	if (sum3 > maxSum)
-		maxSum = sum3;
-	return maxSum;
-}
-
-/** Perform a polar decomposition of matrix M and return the rotation matrix R. This method handles the degenerated cases.
-*/
-static void polarDecomposition2(const Eigen::Matrix3f &M, const float tolerance, Eigen::Matrix3f &R)
-{
-	Eigen::Matrix3f Mt = M.transpose();
-	float Mone = oneNorm(M);
-	float Minf = infNorm(M);
-	float Eone;
-	Eigen::Matrix3f MadjTt, Et;
-	do
-	{
-		MadjTt.row(0) = Mt.row(1).cross(Mt.row(2));
-		MadjTt.row(1) = Mt.row(2).cross(Mt.row(0));
-		MadjTt.row(2) = Mt.row(0).cross(Mt.row(1));
-
-		float det = Mt(0,0) * MadjTt(0,0) + Mt(0,1) * MadjTt(0,1) + Mt(0,2) * MadjTt(0,2);
-
-		if (fabs(det) < 1.0e-12)
-		{
-			Eigen::Vector3f len;
-			unsigned int index = 0xffffffff;
-			for (unsigned int i = 0; i < 3; i++)
-			{
-				len[i] = MadjTt.row(i).squaredNorm();
-				if (len[i] > 1.0e-12)
-				{
-					// index of valid cross product
-					// => is also the index of the vector in Mt that must be exchanged
-					index = i;
-					break;
-				}
-			}
-			if (index == 0xffffffff)
-			{
-				R.setIdentity();
-				return;
-			}
-			else
-			{
-				Mt.row(index) = Mt.row((index + 1) % 3).cross(Mt.row((index + 2) % 3));
-				MadjTt.row((index + 1) % 3) = Mt.row((index + 2) % 3).cross(Mt.row(index));
-				MadjTt.row((index + 2) % 3) = Mt.row(index).cross(Mt.row((index + 1) % 3));
-				Eigen::Matrix3f M2 = Mt.transpose();
-				Mone = oneNorm(M2);
-				Minf = infNorm(M2);
-				det = Mt(0,0) * MadjTt(0,0) + Mt(0,1) * MadjTt(0,1) + Mt(0,2) * MadjTt(0,2);
-			}
-		}
-
-		const float MadjTone = oneNorm(MadjTt);
-		const float MadjTinf = infNorm(MadjTt);
-
-		const float gamma = sqrt(sqrt((MadjTone*MadjTinf) / (Mone*Minf)) / fabs(det));
-
-		const float g1 = gamma*0.5f;
-		const float g2 = 0.5f / (gamma*det);
-
-		for (unsigned char i = 0; i < 3; i++)
-		{
-			for (unsigned char j = 0; j < 3; j++)
-			{
-				Et(i,j) = Mt(i,j);
-				Mt(i,j) = g1*Mt(i,j) + g2*MadjTt(i,j);
-				Et(i,j) -= Mt(i,j);
-			}
-		}
-
-		Eone = oneNorm(Et);
-
-		Mone = oneNorm(Mt);
-		Minf = infNorm(Mt);
-	} while (Eone > Mone * tolerance);
-
-	// Q = Mt^T 
-	R = Mt.transpose();
-}
-
-
-// ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveDistanceConstraint(
+bool PositionBasedDynamics::solve_DistanceConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const float restLength,
@@ -279,8 +38,7 @@ bool PositionBasedDynamics::solveDistanceConstraint(
 }
 
 
-// ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveDihedralConstraint(
+bool PositionBasedDynamics::solve_DihedralConstraint(
 	const Eigen::Vector3f &p0, float invMass0,		
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -297,7 +55,7 @@ bool PositionBasedDynamics::solveDihedralConstraint(
 
 	Eigen::Vector3f e = p3-p2;
 	float  elen = e.norm();
-	if (elen < 1e-6f)
+	if (elen < eps)
 		return false;
 
 	float invElen = 1.0f / elen;
@@ -347,8 +105,7 @@ bool PositionBasedDynamics::solveDihedralConstraint(
 	return true;
 }
 
-// ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveVolumeConstraint(
+bool PositionBasedDynamics::solve_VolumeConstraint(
 	const Eigen::Vector3f &p0, float invMass0,		
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -383,7 +140,7 @@ bool PositionBasedDynamics::solveVolumeConstraint(
 		invMass2 * grad2.squaredNorm() +
 		invMass3 * grad3.squaredNorm();
 
-	if (fabs(lambda) < 1.0e-9)
+	if (fabs(lambda) < eps)
 		return false;
 
 	if (volume < 0.0f)
@@ -400,15 +157,7 @@ bool PositionBasedDynamics::solveVolumeConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-float PositionBasedDynamics::cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w)
-{
-	const float cosTheta = v.dot(w);
-	const float sinTheta = (v.cross(w)).norm();
-	return (cosTheta / sinTheta);
-}
-
-// ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computeQuadraticBendingMat(
+bool PositionBasedDynamics::init_IsometricBendingConstraint(
 	const Eigen::Vector3f &p0, 
 	const Eigen::Vector3f &p1, 
 	const Eigen::Vector3f &p2, 
@@ -424,10 +173,10 @@ bool PositionBasedDynamics::computeQuadraticBendingMat(
 	const Eigen::Vector3f e3 = *x[2] - *x[1];
 	const Eigen::Vector3f e4 = *x[3] - *x[1];
 
-	const float c01 = cotTheta(e0, e1);
-	const float c02 = cotTheta(e0, e2);
-	const float c03 = cotTheta(-e0, e3);
-	const float c04 = cotTheta(-e0, e4);
+	const float c01 = MathFunctions::cotTheta(e0, e1);
+	const float c02 = MathFunctions::cotTheta(e0, e2);
+	const float c03 = MathFunctions::cotTheta(-e0, e3);
+	const float c04 = MathFunctions::cotTheta(-e0, e4);
 
 	const float A0 = 0.5f * (e0.cross(e1)).norm();
 	const float A1 = 0.5f * (e0.cross(e2)).norm();
@@ -449,7 +198,7 @@ bool PositionBasedDynamics::computeQuadraticBendingMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveIsometricBendingConstraint(
+bool PositionBasedDynamics::solve_IsometricBendingConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1, 
 	const Eigen::Vector3f &p2, float invMass2, 
@@ -486,7 +235,7 @@ bool PositionBasedDynamics::solveIsometricBendingConstraint(
 	}
 
 	// exit early if required
-	if (fabs(sum_normGradC) > 1.0e-9)
+	if (fabs(sum_normGradC) > eps)
 	{
 		// compute impulse-based scaling factor
 		const float s = energy / sum_normGradC;
@@ -502,7 +251,7 @@ bool PositionBasedDynamics::solveIsometricBendingConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveEdgePointDistConstraint(
+bool PositionBasedDynamics::solve_EdgePointDistanceConstraint(
 	const Eigen::Vector3f &p, float invMass,
 	const Eigen::Vector3f &p0, float invMass0,
 	const Eigen::Vector3f &p1, float invMass1,
@@ -511,10 +260,9 @@ bool PositionBasedDynamics::solveEdgePointDistConstraint(
 	const float stretchStiffness,
 	Eigen::Vector3f &corr, Eigen::Vector3f &corr0, Eigen::Vector3f &corr1)
 {
-	float EPS = 1e-6f;
 	Eigen::Vector3f d = p1 - p0;
 	float t;
-	if ((p0-p1).squaredNorm() < EPS * EPS)
+	if ((p0-p1).squaredNorm() < eps * eps)
 		t = 0.5f;
 	else {
 		float d2 = d.dot(d);
@@ -555,7 +303,7 @@ bool PositionBasedDynamics::solveEdgePointDistConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveTrianglePointDistConstraint(
+bool PositionBasedDynamics::solve_TrianglePointDistanceConstraint(
 	const Eigen::Vector3f &p, float invMass,
 	const Eigen::Vector3f &p0, float invMass0,
 	const Eigen::Vector3f &p1, float invMass1,
@@ -650,7 +398,7 @@ bool PositionBasedDynamics::solveTrianglePointDistConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveEdgeEdgeDistConstraint(
+bool PositionBasedDynamics::solve_EdgeEdgeDistanceConstraint(
 	const Eigen::Vector3f &p0, float invMass0,
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -743,11 +491,10 @@ bool PositionBasedDynamics::solveEdgeEdgeDistConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computeShapeMatchingRestInfo(
+bool PositionBasedDynamics::init_ShapeMatchingConstraint(
 	const Eigen::Vector3f x0[], const float invMasses[], int numPoints,
 	Eigen::Vector3f &restCm, Eigen::Matrix3f &invRestMat)
 {
-	const float eps = 1e-6f;
 	invRestMat.setIdentity();
 
 	// center of mass
@@ -779,7 +526,7 @@ bool PositionBasedDynamics::computeShapeMatchingRestInfo(
 		A(2, 0) += xz; A(2, 1) += yz; A(2, 2) += z2;
 	}
 	float det = A.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = A.inverse();
 		return true;
@@ -788,7 +535,7 @@ bool PositionBasedDynamics::computeShapeMatchingRestInfo(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveShapeMatchingConstraint(
+bool PositionBasedDynamics::solve_ShapeMatchingConstraint(
 	const Eigen::Vector3f x0[], const Eigen::Vector3f x[], const float invMasses[], int numPoints,
 	const Eigen::Vector3f &restCm, 
 	const Eigen::Matrix3f &invRestMat,
@@ -796,8 +543,6 @@ bool PositionBasedDynamics::solveShapeMatchingConstraint(
 	const bool allowStretch,
 	Eigen::Vector3f corr[], Eigen::Matrix3f *rot)
 {
-	const float eps = 1e-6f;
-
 	for (int i = 0; i < numPoints; i++)
 		corr[i].setZero();
 
@@ -836,8 +581,8 @@ bool PositionBasedDynamics::solveShapeMatchingConstraint(
 	if (allowStretch)
 		R = mat;
 	else
-		//polarDecomposition(mat, R, U, D);
-		polarDecomposition2(mat, 1e-6f, R);
+		//MathFunctions::polarDecomposition(mat, R, U, D);
+		MathFunctions::polarDecompositionStable(mat, eps, R);
 
 	for (int i = 0; i < numPoints; i++) {
 		Eigen::Vector3f goal = cm + R * (x0[i] - restCm);
@@ -852,7 +597,7 @@ bool PositionBasedDynamics::solveShapeMatchingConstraint(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computeStrainTriangleInvRestMat(
+bool PositionBasedDynamics::init_StrainTriangleConstraint(
 	const Eigen::Vector3f &p0,
 	const Eigen::Vector3f &p1,
 	const Eigen::Vector3f &p2,
@@ -863,7 +608,7 @@ bool PositionBasedDynamics::computeStrainTriangleInvRestMat(
 
 	// inverse
 	float det = a*d - b*c;
-	if (fabs(det) < 1.0e-9)
+	if (fabs(det) < eps)
 		return false;
 
 	float s = 1.0f / det;
@@ -874,7 +619,7 @@ bool PositionBasedDynamics::computeStrainTriangleInvRestMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveStrainTriangleConstraint(		
+bool PositionBasedDynamics::solve_StrainTriangleConstraint(		
 		const Eigen::Vector3f &p0, float invMass0, 
 		const Eigen::Vector3f &p1, float invMass1,
 		const Eigen::Vector3f &p2, float invMass2,
@@ -981,7 +726,7 @@ bool PositionBasedDynamics::solveStrainTriangleConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computeStrainTetraInvRestMat(		
+bool PositionBasedDynamics::init_StrainTetraConstraint(		
 	const Eigen::Vector3f &p0,
 	const Eigen::Vector3f &p1,
 	const Eigen::Vector3f &p2,
@@ -994,7 +739,7 @@ bool PositionBasedDynamics::computeStrainTetraInvRestMat(
 	m.col(2) = p3 - p0;
 
 	float det = m.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = m.inverse();
 		return true;
@@ -1003,7 +748,7 @@ bool PositionBasedDynamics::computeStrainTetraInvRestMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveStrainTetraConstraint(
+bool PositionBasedDynamics::solve_StrainTetraConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -1072,7 +817,7 @@ bool PositionBasedDynamics::solveStrainTetraConstraint(
 				invMass2 * d[2].squaredNorm() +
 				invMass3 * d[3].squaredNorm();
 
-			if (fabs(lambda) < 1e-6f)		// foo: threshold should be scale dependent
+			if (fabs(lambda) < eps)		// foo: threshold should be scale dependent
 				continue;
 
 			if (i == j) {	// diagonal, stretch
@@ -1098,7 +843,7 @@ bool PositionBasedDynamics::solveStrainTetraConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computeFEMTriangleInvRestMat(	
+bool PositionBasedDynamics::init_FEMTriangleConstraint(	
 	const Eigen::Vector3f &p0,
 	const Eigen::Vector3f &p1,
 	const Eigen::Vector3f &p2,
@@ -1125,7 +870,7 @@ bool PositionBasedDynamics::computeFEMTriangleInvRestMat(
 	P(1, 1) = p[1][1] - p[2][1];
 
 	const float det = P.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = P.inverse();
 		return true;
@@ -1134,7 +879,7 @@ bool PositionBasedDynamics::computeFEMTriangleInvRestMat(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveFEMTriangleConstraint(		
+bool PositionBasedDynamics::solve_FEMTriangleConstraint(		
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -1206,7 +951,7 @@ bool PositionBasedDynamics::solveFEMTriangleConstraint(
 	sum_normGradC += invMass2 * gradC[2].squaredNorm();
 
 	// exit early if required
-	if (fabs(sum_normGradC) > 1.0e-9)
+	if (fabs(sum_normGradC) > eps)
 	{
 		// compute scaling factor
 		const float s = energy / sum_normGradC;
@@ -1223,7 +968,7 @@ bool PositionBasedDynamics::solveFEMTriangleConstraint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computeFEMTetraInvRestMat(			// compute only when rest shape changes
+bool PositionBasedDynamics::init_FEMTetraConstraint(			// compute only when rest shape changes
 		const Eigen::Vector3f &p0,
 		const Eigen::Vector3f &p1,
 		const Eigen::Vector3f &p2,
@@ -1239,7 +984,7 @@ bool PositionBasedDynamics::computeFEMTetraInvRestMat(			// compute only when re
 	m.col(2) = p2 - p3;
 
 	float det = m.determinant();
-	if (fabs(det) > 1.0e-9)
+	if (fabs(det) > eps)
 	{
 		invRestMat = m.inverse();
 		return true;
@@ -1248,7 +993,7 @@ bool PositionBasedDynamics::computeFEMTetraInvRestMat(			// compute only when re
 }
 
 // ----------------------------------------------------------------------------------------------
-static void computeGreenStrainAndPiolaStress(
+void PositionBasedDynamics::computeGreenStrainAndPiolaStress(
 	const Eigen::Vector3f &x1, const Eigen::Vector3f &x2, const Eigen::Vector3f &x3, const Eigen::Vector3f &x4,
 	const Eigen::Matrix3f &invRestMat,
 	const float restVolume,
@@ -1301,7 +1046,7 @@ static void computeGreenStrainAndPiolaStress(
 }
 
 // ----------------------------------------------------------------------------------------------
-static void computeGradCGreen(float restVolume, const Eigen::Matrix3f &invRestMat, const Eigen::Matrix3f &sigma, Eigen::Vector3f *J)
+void PositionBasedDynamics::computeGradCGreen(float restVolume, const Eigen::Matrix3f &invRestMat, const Eigen::Matrix3f &sigma, Eigen::Vector3f *J)
 {
 	Eigen::Matrix3f H;
 	Eigen::Matrix3f T;
@@ -1324,7 +1069,7 @@ static void computeGradCGreen(float restVolume, const Eigen::Matrix3f &invRestMa
 }
 
 // ----------------------------------------------------------------------------------------------
-static void computeGreenStrainAndPiolaStressInversion(
+void PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(
 	const Eigen::Vector3f &x1, const Eigen::Vector3f &x2, const Eigen::Vector3f &x3, const Eigen::Vector3f &x4,
 	const Eigen::Matrix3f &invRestMat,
 	const float restVolume,
@@ -1347,132 +1092,9 @@ static void computeGreenStrainAndPiolaStressInversion(
 	F(2, 1) = p14[2]*invRestMat(0, 1) + p24[2]*invRestMat(1, 1) + p34[2]*invRestMat(2, 1);
 	F(2, 2) = p14[2]*invRestMat(0, 2) + p24[2]*invRestMat(1, 2) + p34[2]*invRestMat(2, 2);
 
-
-	Eigen::Matrix3f FT_F;
-	FT_F = F.transpose() * F;
-
-	// Inversion handling
-	Eigen::Matrix3f V;
-	Eigen::Vector3f S;
-	eigenDecomposition(FT_F, V, S);
-
-	if (S[0] < 0.0f) S[0] = 0.0f;		// safety for sqrt
-	if (S[1] < 0.0f) S[1] = 0.0f;
-	if (S[2] < 0.0f) S[2] = 0.0f;
-
-	// Detect if V is a reflection .
-	// Make a rotation out of it by multiplying one column with -1.
-	const float detV = V.determinant();
-	if (detV < 0.0)
-	{
-		float minLambda = FLT_MAX;
-		unsigned char pos = 0;
-		for (unsigned char l = 0; l < 3; l++)
-		{
-			if (S[l] < minLambda)
-			{
-				pos = l;
-				minLambda = S[l];
-			}
-		}
-		V(0, pos) = -V(0, pos);
-		V(1, pos) = -V(1, pos);
-		V(2, pos) = -V(2, pos);
-	}
-
+	Eigen::Matrix3f U, VT;
 	Eigen::Vector3f hatF;
-	hatF[0] = sqrtf(S[0]);
-	hatF[1] = sqrtf(S[1]);
-	hatF[2] = sqrtf(S[2]);
-
-	Eigen::Matrix3f VT;
-	VT = V.transpose();
-
-	//
-	// Check for values of hatF near zero
-	//
-	unsigned char chk = 0;
-	unsigned char pos = 0;
-	for (unsigned char l = 0; l < 3; l++)
-	{
-		if (fabs(hatF[l]) < 1.0e-4f)
-		{
-			pos = l;
-			chk++;
-		}
-	}
-
-	Eigen::Matrix3f U;
-	if (chk > 0)
-	{
-		if (chk > 1)
-		{
-			U.setIdentity();
-		}
-		else
-		{
-			U = F * V;
-			for (unsigned char l = 0; l < 3; l++)
-			{
-				if (l != pos)
-				{
-					for (unsigned char m = 0; m < 3; m++)
-					{
-						U(m, l) *= 1.0f / hatF[l];
-					}
-				}
-			}
-
-			Eigen::Vector3f v[2];
-			unsigned char index = 0;
-			for (unsigned char l = 0; l < 3; l++)
-			{
-				if (l != pos)
-				{
-					v[index++] = Eigen::Vector3f(U(0, l), U(1, l), U(2, l));
-				}
-			}
-			Eigen::Vector3f vec = v[0].cross(v[1]);
-			vec.normalize();
-			U(0, pos) = vec[0];
-			U(1, pos) = vec[1];
-			U(2, pos) = vec[2];
-		}
-	}
-	else
-	{
-		Eigen::Vector3f hatFInv(1.0f / hatF[0], 1.0f / hatF[1], 1.0f / hatF[2]);
-		U = F * V;
-		for (unsigned char l = 0; l < 3; l++)
-		{
-			for (unsigned char m = 0; m < 3; m++)
-			{
-				U(m, l) *= hatFInv[l];
-			}
-		}
-	}
-
-	const float detU = U.determinant();
-
-	// U is a reflection => tet is inverted
-	if (detU < 0.0f)
-	{
-		//std::cout << "Inverted tet!\n";
-		float minLambda = FLT_MAX;
-		unsigned char pos = 0;
-		for (unsigned char l = 0; l < 3; l++)
-		{
-			if (hatF[l] < minLambda)
-			{
-				pos = l;
-				minLambda = hatF[l];
-			}
-		}
-		hatF[pos] = -hatF[pos];
-		U(0, pos) = -U(0, pos);
-		U(1, pos) = -U(1, pos);
-		U(2, pos) = -U(2, pos);
-	}
+	MathFunctions::svdWithInversionHandling(F, hatF, U, VT);
 
 	// Clamp small singular values
 	const float minXVal = 0.577f;
@@ -1520,7 +1142,7 @@ static void computeGreenStrainAndPiolaStressInversion(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveFEMTetraConstraint(
+bool PositionBasedDynamics::solve_FEMTetraConstraint(
 	const Eigen::Vector3f &p0, float invMass0, 
 	const Eigen::Vector3f &p1, float invMass1,
 	const Eigen::Vector3f &p2, float invMass2,
@@ -1568,7 +1190,7 @@ bool PositionBasedDynamics::solveFEMTetraConstraint(
 		invMass2 * gradC[2].squaredNorm() +
 		invMass3 * gradC[3].squaredNorm();
 
-	if (sum_normGradC < 1.0e-9f)
+	if (sum_normGradC < eps)
 		return false;
 
 	// compute scaling factor
@@ -1581,130 +1203,3 @@ bool PositionBasedDynamics::solveFEMTetraConstraint(
 
 	return true;
 }
-
-// ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computePBFDensity(
-	const unsigned int particleIndex,
-	const unsigned int numberOfParticles,
-	const Eigen::Vector3f x[],
-	const float mass[],
-	const Eigen::Vector3f boundaryX[],
-	const float boundaryPsi[],
-	const unsigned int numNeighbors,
-	const unsigned int neighbors[],
-	const float density0,
-	const bool boundaryHandling,
-	float &density_err,
-	float &density)
-{
-	// Compute current density for particle i
-	density = mass[particleIndex] * CubicKernel::W_zero();
-	for (unsigned int j = 0; j < numNeighbors; j++)
-	{
-		const unsigned int neighborIndex = neighbors[j];
-		if (neighborIndex < numberOfParticles)		// Test if fluid particle
-		{
-			density += mass[neighborIndex] * CubicKernel::W(x[particleIndex] - x[neighborIndex]);
-		}
-		else if (boundaryHandling)
-		{
-			// Boundary: Akinci2012
-			density += boundaryPsi[neighborIndex - numberOfParticles] * CubicKernel::W(x[particleIndex] - boundaryX[neighborIndex - numberOfParticles]);
-		}
-	}
-
-	density_err = std::max(density, density0) - density0;
-	return true;
-}
-
-// ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::computePBFLagrangeMultiplier(
-	const unsigned int particleIndex,
-	const unsigned int numberOfParticles,
-	const Eigen::Vector3f x[],	
-	const float mass[],
-	const Eigen::Vector3f boundaryX[],
-	const float boundaryPsi[],
-	const float density,
-	const unsigned int numNeighbors,
-	const unsigned int neighbors[],
-	const float density0,
-	const bool boundaryHandling,
-	float &lambda)
-{
-	const float eps = 1.0e-6f;
-
-	// Evaluate constraint function
-	const float C = std::max(density / density0 - 1.0f, 0.0f);			// clamp to prevent particle clumping at surface
-
-	if (C != 0.0f)
-	{
-		// Compute gradients dC/dx_j 
-		float sum_grad_C2 = 0.0;
-		Eigen::Vector3f gradC_i(0.0f, 0.0f, 0.0f);
-
-		for (unsigned int j = 0; j < numNeighbors; j++)
-		{
-			const unsigned int neighborIndex = neighbors[j];
-			if (neighborIndex < numberOfParticles)		// Test if fluid particle
-			{
-				const Eigen::Vector3f gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[particleIndex] - x[neighborIndex]);
-				sum_grad_C2 += gradC_j.squaredNorm();
-				gradC_i -= gradC_j;
-			}
-			else if (boundaryHandling)
-			{
-				// Boundary: Akinci2012
-				const Eigen::Vector3f gradC_j = -boundaryPsi[neighborIndex - numberOfParticles] / density0 * CubicKernel::gradW(x[particleIndex] - boundaryX[neighborIndex - numberOfParticles]);
-				sum_grad_C2 += gradC_j.squaredNorm();
-				gradC_i -= gradC_j;
-			}
-		}
-
-		sum_grad_C2 += gradC_i.squaredNorm();
-
-		// Compute lambda
-		lambda = -C / (sum_grad_C2 + eps);
-	}
-	else
-		lambda = 0.0f;
-
-	return true;
-}
-
-// ----------------------------------------------------------------------------------------------
-bool PositionBasedDynamics::solveDensityConstraint(
-	const unsigned int particleIndex,
-	const unsigned int numberOfParticles,
-	const Eigen::Vector3f x[],	
-	const float mass[],
-	const Eigen::Vector3f boundaryX[],
-	const float boundaryPsi[],
-	const unsigned int numNeighbors,
-	const unsigned int neighbors[],
-	const float density0,
-	const bool boundaryHandling,
-	const float lambda[],
-	Eigen::Vector3f &corr)
-{
-	// Compute position correction
-	corr.setZero();
-	for (unsigned int j = 0; j < numNeighbors; j++)
-	{
-		const unsigned int neighborIndex = neighbors[j];
-		if (neighborIndex < numberOfParticles)		// Test if fluid particle
-		{
-			const Eigen::Vector3f gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[particleIndex] - x[neighborIndex]);
-			corr -= (lambda[particleIndex] + lambda[neighborIndex]) * gradC_j;
-		}
-		else if (boundaryHandling)
-		{
-			// Boundary: Akinci2012
-			const Eigen::Vector3f gradC_j = -boundaryPsi[neighborIndex - numberOfParticles] / density0 * CubicKernel::gradW(x[particleIndex] - boundaryX[neighborIndex - numberOfParticles]);
-			corr -= (lambda[particleIndex]) * gradC_j;
-		}
-	}
-
-	return true;
-}
-

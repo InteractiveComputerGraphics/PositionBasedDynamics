@@ -3,7 +3,7 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Utils/TimeManager.h"
+#include "Demos/Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "FluidModel.h"
 #include "TimeStepFluidModel.h"
@@ -106,7 +106,7 @@ void cleanup()
 void reset()
 {
 	model.reset();
-	simulation.reset(model);
+	simulation.reset();
 	TimeManager::getCurrent()->setTime(0.0);
 }
 
@@ -147,7 +147,7 @@ void timeStep ()
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < 8; i++)
 		simulation.step(model);
 }
 

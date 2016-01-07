@@ -2,10 +2,10 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Utils/TimeManager.h"
+#include "Demos/Simulation/TimeManager.h"
 #include <Eigen/Dense>
-#include "TetModel.h"
-#include "TimeStepTetModel.h"
+#include "Demos/Simulation/SimulationModel.h"
+#include "Demos/Simulation/TimeStepController.h"
 #include <iostream>
 
 // Enable memory leak detection
@@ -39,8 +39,8 @@ void TW_CALL getSimulationMethod(void *value, void *clientData);
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
 
-TetModel model;
-TimeStepTetModel simulation;
+SimulationModel model;
+TimeStepController sim;
 
 const unsigned int width = 30;
 const unsigned int depth = 5;
@@ -70,9 +70,9 @@ int main( int argc, char **argv )
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &simulation, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulation, 
+	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &sim,
 			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}' group=Simulation");
 	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_FLOAT, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Simulation' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "PoissonRatio", TW_TYPE_FLOAT, setPoissonRatio, getPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='Simulation' ");
@@ -94,8 +94,11 @@ void cleanup()
 void reset()
 {
 	model.reset();
-	simulation.reset(model);
+	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);
+
+	model.cleanup();
+	buildModel();
 }
 
 void mouseMove(int x, int y)
@@ -107,7 +110,7 @@ void mouseMove(int x, int y)
 	TimeManager *tm = TimeManager::getCurrent();
 	const float h = tm->getTimeStepSize();
 
-	ParticleData &pd = model.getParticleMesh().getVertexData();
+	ParticleData &pd = model.getParticles();
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
 	{
 		pd.getVelocity(selectedParticles[j]) += 5.0*diff/h;
@@ -119,7 +122,7 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 {
 	std::vector<unsigned int> hits;
 	selectedParticles.clear();
-	ParticleData &pd = model.getParticleMesh().getVertexData();
+	ParticleData &pd = model.getParticles();
 	Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
 	if (selectedParticles.size() > 0)
 		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
@@ -135,15 +138,13 @@ void timeStep ()
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 4; i++)
-		simulation.step(model);
+	for (unsigned int i = 0; i < 8; i++)
+		sim.step(model);
 
- 	IndexedFaceMesh<VertexData> &visMesh = model.getVisMesh();
- 	const ParticleData &pd = model.getParticleMesh().getVertexData();
- 	VertexData &vd = model.getVisMesh().getVertexData();
- 	for (unsigned int i = 0; i < pd.size(); i++)
- 		vd.getPosition(i) = pd.getPosition(i);
- 	visMesh.updateVertexNormals();
+	for (unsigned int i = 0; i < model.getTetModels().size(); i++)
+	{
+		model.getTetModels()[i]->updateMeshNormals(model.getParticles());
+	} 	
 }
 
 void buildModel ()
@@ -153,37 +154,47 @@ void buildModel ()
 	createMesh();
 }
 
+void renderTetModels()
+{
+	// Draw simulation model
+
+	const ParticleData &pd = model.getParticles();
+
+	for (unsigned int i = 0; i < model.getTetModels().size(); i++)
+	{
+		const IndexedFaceMesh &visMesh = model.getTetModels()[i]->getVisMesh();
+		const unsigned int *faces = visMesh.getFaces().data();
+		const unsigned int nFaces = visMesh.numFaces();
+		const Eigen::Vector3f *vertexNormals = visMesh.getVertexNormals().data();
+
+		float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
+		float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+		glColor3fv(surfaceColor);
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(0)[0]);
+		glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
+		glDrawElements(GL_TRIANGLES, (GLsizei)3 * visMesh.numFaces(), GL_UNSIGNED_INT, visMesh.getFaces().data());
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+	}
+}
+
 
 void render ()
 {
 	MiniGL::coordinateSystem();
 	
 	// Draw simulation model
-	
-	// mesh 
-	const ParticleData &pd = model.getParticleMesh().getVertexData();
-	const IndexedFaceMesh<VertexData> &visMesh = model.getVisMesh();
-	const unsigned int *faces = visMesh.getFaces().data();
-	const unsigned int nFaces = visMesh.numFaces();
-	const Eigen::Vector3f *vertexNormals = visMesh.getVertexNormals().data();
-
-	float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(surfaceColor);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(0)[0]);
-	glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
-	glDrawElements(GL_TRIANGLES, (GLsizei)3 * visMesh.numFaces(), GL_UNSIGNED_INT, visMesh.getFaces().data());
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	renderTetModels();
  
  	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
+	const ParticleData &pd = model.getParticles();
  	for (unsigned int j = 0; j < selectedParticles.size(); j++)
  	{
  		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
@@ -252,10 +263,9 @@ void createMesh()
 			}
 		}
 	}
-	model.setGeometry(width*height*depth, points, (unsigned int) indices.size()/4u, indices.data());
+	model.addTetModel(width*height*depth, (unsigned int)indices.size() / 4u, points, indices.data());
 
-	TetModel::ParticleMesh &mesh = model.getParticleMesh();
-	ParticleData &pd = mesh.getVertexData();
+	ParticleData &pd = model.getParticles();
 	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
 	{
 		pd.setMass(i, 1.0);
@@ -268,7 +278,79 @@ void createMesh()
 				pd.setMass(i*height*depth + j*depth + k, 0.0);
 		}
 	}
-	model.initConstraints();
+
+	// init constraints
+	for (unsigned int cm = 0; cm < model.getTetModels().size(); cm++)
+	{
+		const unsigned int nTets = model.getTetModels()[cm]->getParticleMesh().numTets();
+		const unsigned int *tets = model.getTetModels()[cm]->getParticleMesh().getTets().data();
+		const IndexedTetMesh::VertexTets *vTets = model.getTetModels()[cm]->getParticleMesh().getVertexTets().data();
+		if (sim.getSimulationMethod() == 1)
+		{
+			const unsigned int offset = model.getTetModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model.getTetModels()[cm]->getParticleMesh().numEdges();
+			const IndexedTetMesh::Edge *edges = model.getTetModels()[cm]->getParticleMesh().getEdges().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const unsigned int v1 = edges[i].m_vert[0] + offset;
+				const unsigned int v2 = edges[i].m_vert[1] + offset;
+
+				model.addDistanceConstraint(v1, v2);
+			}
+			
+			for (unsigned int i = 0; i < nTets; i++)
+			{
+				const unsigned int v1 = tets[4 * i];
+				const unsigned int v2 = tets[4 * i + 1];
+				const unsigned int v3 = tets[4 * i + 2];
+				const unsigned int v4 = tets[4 * i + 3];
+
+				model.addVolumeConstraint(v1, v2, v3, v4);
+			}
+		}
+		else if (sim.getSimulationMethod() == 2)
+		{
+			const unsigned int offset = model.getTetModels()[cm]->getIndexOffset();
+			TetModel::ParticleMesh &mesh = model.getTetModels()[cm]->getParticleMesh();
+			for (unsigned int i = 0; i < nTets; i++)
+			{
+				const unsigned int v1 = tets[4 * i];
+				const unsigned int v2 = tets[4 * i + 1];
+				const unsigned int v3 = tets[4 * i + 2];
+				const unsigned int v4 = tets[4 * i + 3];
+
+				model.addFEMTetConstraint(v1, v2, v3, v4);
+			}
+		}
+		else if (sim.getSimulationMethod() == 3)
+		{
+			const unsigned int offset = model.getTetModels()[cm]->getIndexOffset();
+			TetModel::ParticleMesh &mesh = model.getTetModels()[cm]->getParticleMesh();
+			for (unsigned int i = 0; i < nTets; i++)
+			{
+				const unsigned int v1 = tets[4 * i];
+				const unsigned int v2 = tets[4 * i + 1];
+				const unsigned int v3 = tets[4 * i + 2];
+				const unsigned int v4 = tets[4 * i + 3];
+
+				model.addStrainTetConstraint(v1, v2, v3, v4);
+			}
+		}
+		else if (sim.getSimulationMethod() == 4)
+		{
+			const unsigned int offset = model.getTetModels()[cm]->getIndexOffset();
+			TetModel::ParticleMesh &mesh = model.getTetModels()[cm]->getParticleMesh();
+			for (unsigned int i = 0; i < nTets; i++)
+			{
+				const unsigned int v[4] = { tets[4 * i], tets[4 * i + 1], tets[4 * i + 2], tets[4 * i + 3] };
+				// Important: Divide position correction by the number of clusters 
+				// which contain the vertex.
+				const unsigned int nc[4] = { vTets[v[0]].m_numTets, vTets[v[1]].m_numTets, vTets[v[2]].m_numTets, vTets[v[3]].m_numTets };
+				model.addShapeMatchingConstraint(4, v, nc);
+			}
+		}
+		model.getTetModels()[cm]->updateMeshNormals(pd);
+	}
 
 	std::cout << "Number of tets: " << indices.size() / 4 << "\n";
 	std::cout << "Number of vertices: " << width*height*depth << "\n";
@@ -289,65 +371,66 @@ void TW_CALL getTimeStep(void *value, void *clientData)
 void TW_CALL setStiffness(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TetModel*) clientData)->setStiffness(val);
+	((SimulationModel*) clientData)->setSolidStiffness(val);
 }
 
 void TW_CALL getStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((TetModel*)clientData)->getStiffness();
+	*(float *)(value) = ((SimulationModel*)clientData)->getSolidStiffness();
 }
 
 void TW_CALL setPoissonRatio(const void *value, void *clientData)
 {
 	const float val = *(const float *)(value);
-	((TetModel*)clientData)->setPoissonRatio(val);
+	((SimulationModel*)clientData)->setSolidPoissonRatio(val);
 }
 
 void TW_CALL getPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((TetModel*)clientData)->getPoissonRatio();
+	*(float *)(value) = ((SimulationModel*)clientData)->getSolidPoissonRatio();
 }
 
 void TW_CALL setNormalizeStretch(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((TetModel*)clientData)->setNormalizeStretch(val);
+	((SimulationModel*)clientData)->setSolidNormalizeStretch(val);
 }
 
 void TW_CALL getNormalizeStretch(void *value, void *clientData)
 {
-	*(bool *)(value) = ((TetModel*)clientData)->getNormalizeStretch();
+	*(bool *)(value) = ((SimulationModel*)clientData)->getSolidNormalizeStretch();
 }
 
 void TW_CALL setNormalizeShear(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((TetModel*)clientData)->setNormalizeShear(val);
+	((SimulationModel*)clientData)->setSolidNormalizeShear(val);
 }
 
 void TW_CALL getNormalizeShear(void *value, void *clientData)
 {
-	*(bool *)(value) = ((TetModel*)clientData)->getNormalizeShear();
+	*(bool *)(value) = ((SimulationModel*)clientData)->getSolidNormalizeShear();
 }
 
 void TW_CALL setSimulationMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepTetModel*)clientData)->setSimulationMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setSimulationMethod((unsigned int)val);
+	reset();
 }
 
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepTetModel*)clientData)->getSimulationMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getSimulationMethod();
 }
 
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepTetModel*)clientData)->setVelocityUpdateMethod((unsigned int)val);
+	((TimeStepController*)clientData)->setVelocityUpdateMethod((unsigned int)val);
 }
 
 void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepTetModel*)clientData)->getVelocityUpdateMethod();
+	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
 }

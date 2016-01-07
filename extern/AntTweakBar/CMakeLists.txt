@@ -53,6 +53,10 @@ add_library(AntTweakBar STATIC ${ATB_HEADERS} ${ATB_SOURCES})
 
 set_target_properties(AntTweakBar PROPERTIES FOLDER "External Dependencies")
 
+if (UNIX)
+	target_link_libraries(AntTweakBar X11)
+endif()
+
 set(AntTweakBar_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE INTERNAL "AntTweakBar include directory")
 set(AntTweakBar_LIBRARIES AntTweakBar

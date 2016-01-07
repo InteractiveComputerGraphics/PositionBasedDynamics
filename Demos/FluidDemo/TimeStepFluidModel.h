@@ -12,7 +12,7 @@ namespace PBD
 		unsigned int m_velocityUpdateMethod;
 
 		void clearAccelerations(FluidModel &model);
-		void computeViscosityAccels(FluidModel &model);
+		void computeXSPHViscosity(FluidModel &model);
 		void computeDensities(FluidModel &model);
 		void updateTimeStepSizeCFL(FluidModel &model, const float minTimeStepSize, const float maxTimeStepSize);
 		void constraintProjection(FluidModel &model);
@@ -22,7 +22,7 @@ namespace PBD
 		virtual ~TimeStepFluidModel(void);
 
 		void step(FluidModel &model);
-		void reset(FluidModel &model);
+		void reset();
 
 		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
 		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }

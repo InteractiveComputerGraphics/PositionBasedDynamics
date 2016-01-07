@@ -60,6 +60,7 @@ namespace PBD
 		static void getOpenGLVersion(int &major_version, int &minor_version);
 		static void coordinateSystem ();
 		static void drawVector (const Eigen::Vector3f &a, const Eigen::Vector3f &b, const float w, float *color);
+		static void drawCylinder(const Eigen::Vector3f &a, const Eigen::Vector3f &b, const float *color, const float radius = 0.02, const unsigned int subdivisions = 8);
 		static void drawSphere (const Eigen::Vector3f &translation, float radius, float *color, const unsigned int subDivision =  16);
 		static void drawQuad (const Eigen::Vector3f &a, const Eigen::Vector3f &b, const Eigen::Vector3f &c, const Eigen::Vector3f &d, const Eigen::Vector3f &norm, float *color);
 		static void drawTetrahedron(const Eigen::Vector3f &a, const Eigen::Vector3f &b, const Eigen::Vector3f &c, const Eigen::Vector3f &d, float *color);

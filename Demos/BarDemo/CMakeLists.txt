@@ -17,19 +17,26 @@ endif()
 
 add_executable(BarDemo
 	  main.cpp
-	  
-	  TimeStepTetModel.cpp
-	  TimeStepTetModel.h
-	  TetModel.cpp
-	  TetModel.h	  
-	  
+	    
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Demos/Utils/Config.h			
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.cpp	
-	  ${PROJECT_PATH}/Demos/Utils/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h
-	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h
-	  ${PROJECT_PATH}/Demos/Utils/ParticleData.h		  
+	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
+	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h	
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.cpp
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		  	  
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h		  
+  	  ${PROJECT_PATH}/Demos/Simulation/Constraints.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/Constraints.h
+	  ${PROJECT_PATH}/Demos/Simulation/TetModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TetModel.h
+	  ${PROJECT_PATH}/Demos/Simulation/TriangleModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TriangleModel.h
+	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/TimeStepController.h
+	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/SimulationModel.h	  	  	  
 	  
 	  CMakeLists.txt
 )
@@ -41,6 +48,7 @@ include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
+set_target_properties(BarDemo PROPERTIES FOLDER "Demos")
 add_dependencies(BarDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(BarDemo ${SIMULATION_LINK_LIBRARIES})
 VIS_SOURCE_GROUPS()

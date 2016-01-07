@@ -87,7 +87,8 @@ namespace PBD
 			/////determine selected vertices//////////			
 			PositionIteratorType posIter;
 			unsigned int index = 0;
-			for (posIter = posBegin; posIter != posEnd; posIter++)
+			posIter = posBegin;
+			while (true) 
 			{
 				bool inQuad = true;
 				const Eigen::Vector3f &p = *posIter;
@@ -103,6 +104,10 @@ namespace PBD
 					hits.push_back(index);			
 				}
 				index++;
+
+				if (posIter == posEnd)
+					break;
+				posIter++;
 			}
 		}
 	};

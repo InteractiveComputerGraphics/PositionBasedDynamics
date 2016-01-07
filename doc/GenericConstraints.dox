@@ -1,0 +1,123 @@
+namespace PBD {
+
+/*! \page pageGenericConstraints Generic Constraints
+\tableofcontents
+In the following the usage of generic constraints is briefly explained. Generic constraints allow the integration of constraints where the constraint function and the corresponding gradient is known and even the usage of constraint functions where the gradient is unknown. In the second case a finite difference approximation of the gradient is used. Note that using the gradient approximation slows down the simulation but it is a nice tool to try out new constraint equations easily.
+  
+\section secGenericConstraintsCGFct Constraint and Gradient Function
+
+\subsection subConstraintFunction Definition of a Constraint Function
+  
+A constraint function must have the following form, where the template parameter dim is the dimension of the constraint:
+\code{.cpp}
+void constraintFct(
+	const unsigned int numberOfParticles,
+	const float invMass[],
+	const Eigen::Vector3f x[],	
+	void *userData,
+	Eigen::Matrix<float, dim, 1> &constraintValue);
+\endcode		
+
+For example, a distance constraint has the following constraint function:
+\code{.cpp}
+void GenericDistanceConstraint::constraintFct(
+	const unsigned int numberOfParticles,
+	const float mass[],
+	const Eigen::Vector3f x[],
+	void *userData,
+	Eigen::Matrix<float, 1, 1> &constraintValue)
+{
+	float restLength = *(float*)userData;
+	Eigen::Matrix<float, 1, 1> C;
+	C(0, 0) = (x[1] - x[0]).norm() - restLength;
+	constraintValue = C;
+}
+\endcode
+
+\subsection subGradientFunction Definition of a Gradient Function
+
+The gradient function must have the following form, where the template parameter dim is the dimension of the constraint:
+\code{.cpp}
+void gradientFct(
+	const unsigned int i,
+	const unsigned int numberOfParticles,
+	const float invMass[],
+	const Eigen::Vector3f x[],
+	void *userData,
+	Eigen::Matrix<float, dim, 3> &jacobian);
+\endcode
+
+For example, the gradient of a distance constraint has the following  function:
+\code{.cpp}
+void GenericDistanceConstraint::gradientFct(
+	const unsigned int i,
+	const unsigned int numberOfParticles,
+	const float mass[],
+	const Eigen::Vector3f x[],
+	void *userData,
+	Eigen::Matrix<float, 1, 3> &jacobian)
+{
+	Eigen::Vector3f n = x[i] - x[1 - i];
+	n.normalize();
+	jacobian = n.transpose();
+}
+\endcode
+  
+\subsection subGenericConstraintUsage Usage
+  
+If the constraint and the gradient function are defined, a solver step can be performed by calling:
+\code{.cpp}
+const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<2, 1>(
+	invMass, x, &m_restLength,
+	GenericDistanceConstraint::constraintFct,
+	GenericDistanceConstraint::gradientFct,
+	corr);  
+\endcode
+
+\section secGenericConstraintsCFct Testing a Constraint Function with Unknown Gradient
+
+A constraint function must have the following form, where the template parameter dim is the dimension of the constraint:
+\code{.cpp}
+void(*constraintFct)(
+	const unsigned int numberOfParticles,
+	const float invMass[],
+	const Eigen::Vector3d x[],
+	void *userData,
+	Eigen::Matrix<double, dim, 1> &constraintValue);
+\endcode
+Note that here double precision is used which is required for the gradient approximation with finite differences.
+
+For example, a isometric bending constraint has the following constraint function:
+\code{.cpp}
+void GenericIsometricBendingConstraint::constraintFct(
+	const unsigned int numberOfParticles,
+	const float invMass[],
+	const Eigen::Vector3d x[],
+	void *userData,
+	Eigen::Matrix<double, 1, 1> &constraintValue)
+{
+	Eigen::Matrix4f *Q = (Eigen::Matrix4f*)userData;
+
+	double energy = 0.0;
+	for (unsigned char k = 0; k < 4; k++)
+	for (unsigned char j = 0; j < 4; j++)
+		energy += (double) (*Q)(j, k)*(x[k].dot(x[j]));
+	energy *= 0.5;
+
+	constraintValue(0, 0) = energy;
+}
+\endcode
+
+\subsection subGenericConstraintUsage2 Usage
+  
+If the constraint function is defined, a solver step can be performed by calling:
+\code{.cpp}
+const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<4, 1>(
+	invMass, x, &m_Q,
+	GenericIsometricBendingConstraint::constraintFct,
+	corr);
+\endcode
+  
+*/
+
+}
