@@ -336,6 +336,37 @@ namespace PBD
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particleIndices[], const unsigned int numClusters[]);
 		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
+
+	class ElasticRodEdgeConstraint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		float m_restLength;
+
+		ElasticRodEdgeConstraint() : Constraint(3) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel &model, const unsigned int pA, const unsigned int pB, const unsigned int pG);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
+	class ElasticRodBendAndTwistConstraint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Eigen::Vector3f m_bendAndTwistKs;
+		Eigen::Vector3f m_restDarbouxVector;
+		Eigen::Matrix3f m_dA; //material frame A
+		Eigen::Matrix3f m_dB; //material frame B
+
+		ElasticRodBendAndTwistConstraint() : Constraint(5) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel &model, const unsigned int pA, const unsigned int pB,
+			const unsigned int pC, const unsigned int pD, const unsigned int pE);
+
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
 }
 
 #endif

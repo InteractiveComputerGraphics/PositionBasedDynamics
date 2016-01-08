@@ -14,6 +14,7 @@ TimeStepController::TimeStepController()
 	m_simulationMethod = 2;
 	m_bendingMethod = 2;
 	m_maxIter = 5;
+	m_damping = 0.0f;
 }
 
 TimeStepController::~TimeStepController(void)
@@ -31,6 +32,7 @@ void TimeStepController::step(SimulationModel &model)
  	clearAccelerations(model);
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	ParticleData &pd = model.getParticles();
+	ParticleData &pg = model.getGhostParticles();
 
 	#pragma omp parallel default(shared)
 	{
@@ -54,7 +56,20 @@ void TimeStepController::step(SimulationModel &model)
 		{
 			pd.getLastPosition(i) = pd.getOldPosition(i);
 			pd.getOldPosition(i) = pd.getPosition(i);
+
+			pd.getVelocity(i) *= (1.0f - m_damping);
+
 			TimeIntegration::semiImplicitEuler(h, pd.getMass(i), pd.getPosition(i), pd.getVelocity(i), pd.getAcceleration(i));
+		}
+
+		for (int i = 0; i < (int)pg.size(); i++)
+		{
+			pg.getLastPosition(i) = pg.getOldPosition(i);
+			pg.getOldPosition(i) = pg.getPosition(i);
+
+			pg.getVelocity(i) *= (1.0f - m_damping);
+
+			TimeIntegration::semiImplicitEuler(h, pg.getMass(i), pg.getPosition(i), pg.getVelocity(i), pg.getAcceleration(i));
 		}
 	}
  
@@ -86,6 +101,15 @@ void TimeStepController::step(SimulationModel &model)
 				TimeIntegration::velocityUpdateFirstOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getVelocity(i));
 			else
 				TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
+		}
+
+		#pragma omp for schedule(static) 
+		for (int i = 0; i < (int)pg.size(); i++)
+		{
+			if (m_velocityUpdateMethod == 0)
+				TimeIntegration::velocityUpdateFirstOrder(h, pg.getMass(i), pg.getPosition(i), pg.getOldPosition(i), pg.getVelocity(i));
+			else
+				TimeIntegration::velocityUpdateSecondOrder(h, pg.getMass(i), pg.getPosition(i), pg.getOldPosition(i), pg.getLastPosition(i), pg.getVelocity(i));
 		}
 	}
 
@@ -128,6 +152,18 @@ void TimeStepController::clearAccelerations(SimulationModel &model)
 			a = grav;
 		}
 	}
+
+	ParticleData &pg = model.getGhostParticles();
+	for (unsigned int i = 0; i <  pg.size(); i++)
+	{
+		// Clear accelerations of dynamic particles
+		if (pg.getMass(i) != 0.0)
+		{
+			Eigen::Vector3f &a = pg.getAcceleration(i);
+			//a = grav;
+			a.setZero();
+		}
+	}
 }
 
 void TimeStepController::reset()
@@ -163,6 +199,11 @@ void TimeStepController::positionConstraintProjection(SimulationModel &model)
 			}
 		}
 
+		//for (int i = 0; i < constraints.size(); i++)
+		//{
+		//	constraints[i]->updateConstraint(model);
+		//	constraints[i]->solvePositionConstraint(model);
+		//}
  		iter++;
  	}
 }

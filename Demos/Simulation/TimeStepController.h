@@ -13,7 +13,8 @@ namespace PBD
 		unsigned int m_simulationMethod;
 		unsigned int m_bendingMethod;
 		unsigned int m_maxIter;
-		
+		float m_damping;
+
 		/** Clear accelerations and add gravitation.
 		*/
 		void clearAccelerations(SimulationModel &model);
@@ -35,6 +36,10 @@ namespace PBD
 		void setBendingMethod(unsigned int val) { m_bendingMethod = val; }
 		unsigned int getMaxIterations() const { return m_maxIter; }
 		void setMaxIterations(unsigned int val) { m_maxIter = val; }
+
+		float getDamping() const { return m_damping; }
+		void setDamping(float val) { m_damping = val; }
+
 	};
 }
 

@@ -32,6 +32,7 @@ namespace PBD
 			TriangleModelVector m_triangleModels;
 			TetModelVector m_tetModels;
 			ParticleData m_particles;
+			ParticleData m_ghostParticles;
 			ConstraintVector m_constraints;
 			ConstraintGroupVector m_constraintGroups;
 
@@ -50,6 +51,8 @@ namespace PBD
 			bool m_solid_normalizeStretch;
 			bool m_solid_normalizeShear;
 
+			float m_elasticrod_stretch_stiffness;
+			float m_elasticrod_bend_and_twist_stiffness;
 
 		public:
 			void reset();
@@ -57,6 +60,7 @@ namespace PBD
 
 			RigidBodyVector &getRigidBodies();
 			ParticleData &getParticles();
+			ParticleData &getGhostParticles();
 			TriangleModelVector &getTriangleModels();
 			TetModelVector &getTetModels();
 			ConstraintVector &getConstraints();
@@ -76,6 +80,10 @@ namespace PBD
 				const unsigned int nTets, 
 				Eigen::Vector3f *points,
 				unsigned int* indices);
+
+			void addElasticRodModel(
+				const unsigned int nPoints,
+				Eigen::Vector3f *points);
 
 			void updateConstraints();
 			void initConstraintGroups();
@@ -106,6 +114,10 @@ namespace PBD
 									const unsigned int particle3, const unsigned int particle4);
 			bool addShapeMatchingConstraint(const unsigned int numberOfParticles, const unsigned int particleIndices[], const unsigned int numClusters[]);
 
+			bool addElasticRodEdgeConstraint(const unsigned int pA, const unsigned int pB, const unsigned int pG);
+			
+			bool addElasticRodBendAndTwistConstraint(const unsigned int pA, const unsigned int pB,
+													 const unsigned int pC, const unsigned int pD, const unsigned int pE);
 
 			float getClothStiffness() const { return m_cloth_stiffness; }
 			void setClothStiffness(float val) { m_cloth_stiffness = val; }
@@ -134,6 +146,11 @@ namespace PBD
 			void setSolidNormalizeStretch(bool val) { m_solid_normalizeStretch = val; }
 			bool getSolidNormalizeShear() const { return m_solid_normalizeShear; }
 			void setSolidNormalizeShear(bool val) { m_solid_normalizeShear = val; }
+
+			void setElasticRodStretchStiffness(float val) { m_elasticrod_stretch_stiffness = val; }
+			float getElasticRodStretchStiffness() const { return m_elasticrod_stretch_stiffness; }
+			void setElasticRodBendAndTwistStiffness(float val) { m_elasticrod_bend_and_twist_stiffness = val; }
+			float getElasticRodBendAndTwistStiffness() const { return m_elasticrod_bend_and_twist_stiffness; }
 
 	};
 }

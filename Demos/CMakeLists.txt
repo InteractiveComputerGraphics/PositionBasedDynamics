@@ -1,6 +1,6 @@
 include(Visualization/CMakeLists.txt)
 
-subdirs(BarDemo ClothDemo FluidDemo RigidBodyDemos CouplingDemos GenericConstraintsDemos)
+subdirs(BarDemo ClothDemo ElasticRodDemos FluidDemo RigidBodyDemos CouplingDemos GenericConstraintsDemos)
 
 # A macro for copying the resources of a sample project
 MACRO(COPY_RESOURCES demoName)
