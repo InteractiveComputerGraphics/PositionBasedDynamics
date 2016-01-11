@@ -17,10 +17,7 @@ endif()
 
 add_executable(ElasticRodDemo
 	  ElasticRodDemo.cpp
-	  #ElasticRodConstraints.cpp
-	  #ElasticRodConstraints.h
-	  #ElasticRodSimulationModel.cpp
-	  #ElasticRodSimulationModel.h
+
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Demos/Utils/Config.h	
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
@@ -54,5 +51,17 @@ include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
+# Turn off OpenMP
+if (WIN32)
+	#target_compile_options(ElasticRodDemo PRIVATE "/MD /Ox /Ob2 /Oi /Ot /GL /D NDEBUG") # only internal
+	#set_target_properties(ElasticRodDemo PROPERTIES COMPILE_FLAGS "/MD /Ox /Ob2 /Oi /Ot /GL /D NDEBUG")
+	#set_target_properties(ElasticRodDemo PROPERTIES CMAKE_CXX_FLAGS_RELEASE "/MD /Ox /Ob2 /Oi /Ot /GL /D NDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "/MD /Ox /Ob2 /Oi /Ot /GL /D NDEBUG") 
+endif (WIN32)
+
+if (UNIX)
+	#set_target_properties(ElasticRodDemo PROPERTIES CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "/MD /Ox /Ob2 /Oi /Ot /GL /D NDEBUG") 
+endif (UNIX)
 
 VIS_SOURCE_GROUPS()
