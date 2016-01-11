@@ -8,6 +8,7 @@
 #include "FluidModel.h"
 #include "TimeStepFluidModel.h"
 #include <iostream>
+#include "Demos/Utils/Utilities.h"
 
 // Enable memory leak detection
 #ifdef _DEBUG
@@ -59,12 +60,17 @@ GLuint normalbuffer;
 GLuint vertexbuffer;
 int vertexBufferSize = 0;
 GLint context_major_version, context_minor_version;
+string exePath;
+string dataPath;
 
 
 // main 
 int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
+
+	exePath = Utilities::getFilePath(argv[0]);
+	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	// OpenGL
 	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Fluid demo");

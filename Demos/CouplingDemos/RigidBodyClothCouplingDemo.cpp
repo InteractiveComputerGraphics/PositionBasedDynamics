@@ -7,10 +7,13 @@
 #include "Demos/Simulation/SimulationModel.h"
 #include "Demos/Simulation/TimeStepController.h"
 #include <iostream>
+#include "Demos/Simulation/Constraints.h"
+#include "Demos/Visualization/Visualization.h"
+#include "Demos/Utils/OBJLoader.h"
+#include "Demos/Utils/Utilities.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
-#include "../Simulation/Constraints.h"
 
 // Enable memory leak detection
 #ifdef _DEBUG
@@ -28,6 +31,7 @@ void createClothMesh();
 void render ();
 void reset();
 void cleanup();
+void initShader();
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
 void TW_CALL setTimeStep(const void *value, void *clientData);
 void TW_CALL getTimeStep(void *value, void *clientData);
@@ -71,6 +75,10 @@ bool doPause = true;
 std::vector<unsigned int> selectedBodies;
 std::vector<unsigned int> selectedParticles;
 Eigen::Vector3f oldMousePos;
+Shader *shader;
+Shader *shaderTex;
+string exePath;
+string dataPath;
 float jointColor[4] = { 0.0f, 0.4f, 0.2f, 1.0f };
 float dynamicBodyColor[4] = { 0.1f, 0.4f, 0.8f, 1 };
 float staticBodyColor[4] = { 0.4f, 0.4f, 0.4f, 1.0f };
@@ -81,6 +89,9 @@ int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
+	exePath = Utilities::getFilePath(argv[0]);
+	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
+
 	// OpenGL
 	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Rigid body demo");
 	MiniGL::initLights ();
@@ -88,6 +99,7 @@ int main( int argc, char **argv )
 	MiniGL::setClientIdleFunc (50, timeStep);		
 	MiniGL::setKeyFunc(0, 'r', reset);
 	MiniGL::setSelectionFunc(selection);
+	initShader();
 
 	buildModel ();
 
@@ -122,9 +134,45 @@ int main( int argc, char **argv )
 	return 0;
 }
 
+void initShader()
+{
+	std::string vertFile = std::string(PBD_DATA_PATH) + "/shaders/vs_flat.glsl";
+	std::string geomFile = std::string(PBD_DATA_PATH) + "/shaders/gs_flat.glsl";
+	std::string fragFile = std::string(PBD_DATA_PATH) + "/shaders/fs_flat.glsl";
+	shader = MiniGL::createShader(vertFile, geomFile, fragFile);
+
+	if (shader == NULL)
+		return;
+
+	shader->begin();
+	shader->addUniform("modelview_matrix");
+	shader->addUniform("projection_matrix");
+	shader->addUniform("surface_color");
+	shader->addUniform("shininess");
+	shader->addUniform("specular_factor");
+	shader->end();
+
+	vertFile = std::string(PBD_DATA_PATH) + "/shaders/vs_smoothTex.glsl";
+	fragFile = std::string(PBD_DATA_PATH) + "/shaders/fs_smoothTex.glsl";
+	shaderTex = MiniGL::createShader(vertFile, "", fragFile);
+
+	if (shaderTex == NULL)
+		return;
+
+	shaderTex->begin();
+	shaderTex->addUniform("modelview_matrix");
+	shaderTex->addUniform("projection_matrix");
+	shaderTex->addUniform("surface_color");
+	shaderTex->addUniform("shininess");
+	shaderTex->addUniform("specular_factor");
+	shaderTex->end();
+}
+
 void cleanup()
 {
 	delete TimeManager::getCurrent();
+	delete shader;
+	delete shaderTex;
 }
 
 void reset()
@@ -226,6 +274,20 @@ void renderRigidBodyModel()
 	float selectionColor[4] = { 0.8f, 0.0f, 0.0f, 1 };
 	float surfaceColor[4] = { 0.1f, 0.4f, 0.8f, 1 };
 
+	if (shader)
+	{
+		shader->begin();
+		glUniform1f(shader->getUniform("shininess"), 5.0f);
+		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
+
+		GLfloat matrix[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+		glUniformMatrix4fv(shader->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
+		GLfloat pmatrix[16];
+		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
+		glUniformMatrix4fv(shader->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
+	}
+
 	for (size_t i = 0; i < rb.size(); i++)
 	{
 		bool selected = false;
@@ -235,17 +297,27 @@ void renderRigidBodyModel()
 				selected = true;
 		}
 
-// 		if (rb[i]->getMass() == 0.0f)
-// 			MiniGL::drawCube(rb[i]->getPosition(), rb[i]->getRotationMatrix().transpose(), 0.175f, 0.175f, 0.175f, staticBodyColor);
 		if (rb[i]->getMass() != 0.0f)
 		{
-			if (!selected)
-				MiniGL::drawCube(rb[i]->getPosition(), rb[i]->getRotationMatrix().transpose(), width, height, depth, dynamicBodyColor);
-			else
-				MiniGL::drawCube(rb[i]->getPosition(), rb[i]->getRotationMatrix().transpose(), width, height, depth, selectionColor);
-		}
 
+			const VertexData &vd = rb[i]->getGeometry().getVertexData();
+			const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
+			if (!selected)
+			{
+				if (shader)
+					glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
+				Visualization::drawMesh(vd, mesh, surfaceColor);
+			}
+			else
+			{
+				if (shader)
+					glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
+				Visualization::drawMesh(vd, mesh, selectionColor);
+			}
+		}
 	}
+	if (shader)
+		shader->end();
 
 	for (size_t i = 0; i < constraints.size(); i++)
 	{
@@ -265,39 +337,31 @@ void renderTriangleModels()
 	// Draw simulation model
 
 	const ParticleData &pd = model.getParticles();
+	float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
+
+	if (shaderTex)
+	{
+		shaderTex->begin();
+		glUniform3fv(shaderTex->getUniform("surface_color"), 1, surfaceColor);
+		glUniform1f(shaderTex->getUniform("shininess"), 5.0f);
+		glUniform1f(shaderTex->getUniform("specular_factor"), 0.2f);
+
+		GLfloat matrix[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+		glUniformMatrix4fv(shaderTex->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
+		GLfloat pmatrix[16];
+		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
+		glUniformMatrix4fv(shaderTex->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
+	}
 
 	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
 	{
 		// mesh 
 		const IndexedFaceMesh &mesh = model.getTriangleModels()[i]->getParticleMesh();
-		const unsigned int *faces = mesh.getFaces().data();
-		const unsigned int nFaces = mesh.numFaces();
-		const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
-		const Eigen::Vector2f *uvs = mesh.getUVs().data();
-
-		float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
-		float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-		glColor3fv(surfaceColor);
-
-		MiniGL::bindTexture();
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(model.getTriangleModels()[i]->getIndexOffset())[0]);
-		glTexCoordPointer(2, GL_FLOAT, 0, &uvs[0][0]);
-		glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
-		glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-		MiniGL::unbindTexture();
+		Visualization::drawTexturedMesh(pd, mesh, surfaceColor);
 	}
+	if (shaderTex)
+		shaderTex->end();
 
  	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
  	for (unsigned int j = 0; j < selectedParticles.size(); j++)
@@ -333,6 +397,11 @@ void createRigidBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
+	string fileName = string(PBD_DATA_PATH) + "/models/cube.obj";
+	IndexedFaceMesh mesh;
+	VertexData vd;
+	OBJLoader::loadObj(fileName, vd, mesh, Eigen::Vector3f(width, height, depth));
+
 	rb.resize(12);
 
 	//////////////////////////////////////////////////////////////////////////
@@ -342,21 +411,24 @@ void createRigidBodyModel()
 	rb[0]->initBody(0.0f,
 		Eigen::Vector3f(-5.0, 0.0f, -5.0),
 		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f), 
+		vd, mesh);
 
 	// dynamic body
 	rb[1] = new RigidBody();
 	rb[1]->initBody(1.0f,
 		Eigen::Vector3f(-5.0f, 1.0f, -5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	// dynamic body
 	rb[2] = new RigidBody();
 	rb[2]->initBody(1.0f,
 		Eigen::Vector3f(-5.0f, 3.0f, -5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	model.addBallJoint(0, 1, Eigen::Vector3f(-5.0f, 0.0f, -5.0f));
 	model.addBallJoint(1, 2, Eigen::Vector3f(-5.0f, 2.0f, -5.0f));
@@ -368,21 +440,24 @@ void createRigidBodyModel()
 	rb[3]->initBody(0.0f,
 		Eigen::Vector3f(5.0, 0.0f, -5.0),
 		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	// dynamic body
 	rb[4] = new RigidBody();
 	rb[4]->initBody(1.0f,
 		Eigen::Vector3f(5.0f, 1.0f, -5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	// dynamic body
 	rb[5] = new RigidBody();
 	rb[5]->initBody(1.0f,
 		Eigen::Vector3f(5.0f, 3.0f, -5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	model.addBallJoint(3, 4, Eigen::Vector3f(5.0f, 0.0f, -5.0f));
 	model.addBallJoint(4, 5, Eigen::Vector3f(5.0f, 2.0f, -5.0f));
@@ -394,21 +469,24 @@ void createRigidBodyModel()
 	rb[6]->initBody(0.0f,
 		Eigen::Vector3f(5.0, 0.0f, 5.0),
 		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	// dynamic body
 	rb[7] = new RigidBody();
 	rb[7]->initBody(1.0f,
 		Eigen::Vector3f(5.0f, 1.0f, 5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	// dynamic body
 	rb[8] = new RigidBody();
 	rb[8]->initBody(1.0f,
 		Eigen::Vector3f(5.0f, 3.0f, 5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	model.addBallJoint(6, 7, Eigen::Vector3f(5.0f, 0.0f, 5.0f));
 	model.addBallJoint(7, 8, Eigen::Vector3f(5.0f, 2.0f, 5.0f));
@@ -420,21 +498,24 @@ void createRigidBodyModel()
 	rb[9]->initBody(0.0f,
 		Eigen::Vector3f(-5.0, 0.0f, 5.0),
 		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	// dynamic body
 	rb[10] = new RigidBody();
 	rb[10]->initBody(1.0f,
 		Eigen::Vector3f(-5.0f, 1.0f, 5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	// dynamic body
 	rb[11] = new RigidBody();
 	rb[11]->initBody(1.0f,
 		Eigen::Vector3f(-5.0f, 3.0f, 5.0f),
 		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f));
+		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		vd, mesh);
 
 	model.addBallJoint(9, 10, Eigen::Vector3f(-5.0f, 0.0f, 5.0f));
 	model.addBallJoint(10, 11, Eigen::Vector3f(-5.0f, 2.0f, 5.0f));

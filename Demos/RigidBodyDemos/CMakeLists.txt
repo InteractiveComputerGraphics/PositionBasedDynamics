@@ -23,10 +23,18 @@ add_executable(ChainDemo
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h	
 	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.cpp
-	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		  	  
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h	
+	  ${PROJECT_PATH}/Demos/Utils/OBJLoader.cpp
+	  ${PROJECT_PATH}/Demos/Utils/OBJLoader.h	
+	  ${PROJECT_PATH}/Demos/Utils/Utilities.cpp
+	  ${PROJECT_PATH}/Demos/Utils/Utilities.h		    
+	  ${PROJECT_PATH}/Demos/Utils/VolumeIntegration.cpp
+	  ${PROJECT_PATH}/Demos/Utils/VolumeIntegration.h		    
 	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
 	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h		  
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h	
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBodyGeometry.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBodyGeometry.h		  	    
   	  ${PROJECT_PATH}/Demos/Simulation/Constraints.cpp
 	  ${PROJECT_PATH}/Demos/Simulation/Constraints.h
 	  ${PROJECT_PATH}/Demos/Simulation/TetModel.cpp
@@ -42,6 +50,9 @@ add_executable(ChainDemo
 )
 
 set_target_properties(ChainDemo PROPERTIES FOLDER "Demos")
+set_target_properties(ChainDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(ChainDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(ChainDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(ChainDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(ChainDemo ${SIMULATION_LINK_LIBRARIES})
 
@@ -53,10 +64,18 @@ add_executable(JointDemo
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h	
 	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.cpp
-	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		  	  
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		
+	  ${PROJECT_PATH}/Demos/Utils/OBJLoader.cpp
+	  ${PROJECT_PATH}/Demos/Utils/OBJLoader.h	
+	  ${PROJECT_PATH}/Demos/Utils/Utilities.cpp
+	  ${PROJECT_PATH}/Demos/Utils/Utilities.h		    
+	  ${PROJECT_PATH}/Demos/Utils/VolumeIntegration.cpp
+	  ${PROJECT_PATH}/Demos/Utils/VolumeIntegration.h		  	  
 	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
 	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h		  
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h		
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBodyGeometry.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBodyGeometry.h		  	  	  
   	  ${PROJECT_PATH}/Demos/Simulation/Constraints.cpp
 	  ${PROJECT_PATH}/Demos/Simulation/Constraints.h
 	  ${PROJECT_PATH}/Demos/Simulation/TetModel.cpp
@@ -72,6 +91,9 @@ add_executable(JointDemo
 )
 
 set_target_properties(JointDemo PROPERTIES FOLDER "Demos")
+set_target_properties(JointDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(JointDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(JointDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(JointDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(JointDemo ${SIMULATION_LINK_LIBRARIES})
 

@@ -23,9 +23,15 @@ add_executable(BarDemo
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.cpp
 	  ${PROJECT_PATH}/Demos/Utils/IndexedFaceMesh.h	
 	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.cpp
-	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h		  	  
+	  ${PROJECT_PATH}/Demos/Utils/IndexedTetMesh.h	
+	  ${PROJECT_PATH}/Demos/Utils/Utilities.cpp
+	  ${PROJECT_PATH}/Demos/Utils/Utilities.h
+	  ${PROJECT_PATH}/Demos/Utils/VolumeIntegration.cpp
+	  ${PROJECT_PATH}/Demos/Utils/VolumeIntegration.h		  
 	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
-	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
+	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBodyGeometry.cpp
+	  ${PROJECT_PATH}/Demos/Simulation/RigidBodyGeometry.h		  
 	  ${PROJECT_PATH}/Demos/Simulation/RigidBody.h		  
   	  ${PROJECT_PATH}/Demos/Simulation/Constraints.cpp
 	  ${PROJECT_PATH}/Demos/Simulation/Constraints.h
@@ -49,6 +55,9 @@ include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
 set_target_properties(BarDemo PROPERTIES FOLDER "Demos")
+set_target_properties(BarDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(BarDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(BarDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(BarDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(BarDemo ${SIMULATION_LINK_LIBRARIES})
 VIS_SOURCE_GROUPS()

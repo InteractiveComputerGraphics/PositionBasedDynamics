@@ -4,6 +4,7 @@
 #include "Demos/Utils/Config.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry> 
+#include "Demos/Visualization/Shader.h"
 #include "extern/AntTweakBar/include/AntTweakBar.h"
 
 
@@ -47,6 +48,9 @@ namespace PBD
 		static TwBar *m_tweakBar;
 		static float m_time;
 		static float m_quat[4];
+		static GLint m_context_major_version;
+		static GLint m_context_minor_version;
+		static GLint m_context_profile;
 
 		static void reshape (int w, int h);
 		static void idle ();
@@ -80,6 +84,8 @@ namespace PBD
 		static void destroy ();
 		static void viewport ();
 		static void initLights ();
+		static Shader *createShader(const std::string &vertexShader, const std::string &geometryShader, const std::string &fragmentShader);
+		static bool checkOpenGLVersion(const int major_version, const int minor_version);
 		static void initTexture ();
 		static void bindTexture();
 		static void unbindTexture();

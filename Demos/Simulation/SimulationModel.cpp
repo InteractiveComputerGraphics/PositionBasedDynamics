@@ -50,7 +50,10 @@ void SimulationModel::reset()
 {
 	// rigid bodies
 	for (size_t i = 0; i < m_rigidBodies.size(); i++)
+	{
 		m_rigidBodies[i]->reset();
+		m_rigidBodies[i]->getGeometry().updateMeshTransformation(m_rigidBodies[i]->getPosition(), m_rigidBodies[i]->getRotationMatrix());
+	}
 
 	// particles
 	for (unsigned int i = 0; i < m_particles.size(); i++)

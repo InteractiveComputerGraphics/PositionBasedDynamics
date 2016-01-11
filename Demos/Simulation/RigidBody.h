@@ -4,6 +4,8 @@
 #include "Demos/Utils/Config.h"
 #include <vector>
 #include <Eigen/Dense>
+#include "RigidBodyGeometry.h"
+#include "Demos/Utils/VolumeIntegration.h"
 
 
 namespace PBD
@@ -51,6 +53,8 @@ namespace PBD
 			Eigen::Vector3f m_omega;
 			/** external torque */
 			Eigen::Vector3f m_torque;
+
+			RigidBodyGeometry m_geometry;
 			
 		public:
 			RigidBody(void) 
@@ -61,7 +65,9 @@ namespace PBD
 			{
 			}
 
-			void initBody(const float mass, const Eigen::Vector3f &x, const Eigen::Vector3f &inertiaTensor, const Eigen::Quaternionf &rotation)
+			void initBody(const float mass, const Eigen::Vector3f &x, 
+				const Eigen::Vector3f &inertiaTensor, const Eigen::Quaternionf &rotation, 
+				const VertexData &vertices, const IndexedFaceMesh &mesh)
 			{
 				setMass(mass);
 				m_x = x; 
@@ -80,6 +86,35 @@ namespace PBD
 				rotationUpdated();
 				m_omega.setZero();
 				m_torque.setZero();
+
+				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs());
+				getGeometry().updateMeshTransformation(getPosition(), getRotationMatrix());
+			}
+
+			void initBody(const float density, const Eigen::Vector3f &x, const Eigen::Quaternionf &rotation,
+						const VertexData &vertices, const IndexedFaceMesh &mesh)
+			{
+				m_mass = 1.0f;
+				m_inertiaTensor = Eigen::Vector3f(1.0f, 1.0f, 1.0f);
+				m_x = x;
+				m_x0 = x;
+				m_lastX = x;
+				m_oldX = x;
+				m_v.setZero();
+				m_a.setZero();
+
+				m_q = rotation;
+				m_q0 = rotation;
+				m_lastQ = rotation;
+				m_oldQ = rotation;
+				m_rot = m_q.matrix();
+				rotationUpdated();
+				m_omega.setZero();
+				m_torque.setZero();
+
+				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs());
+				determineMassProperties(density);
+				getGeometry().updateMeshTransformation(getPosition(), getRotationMatrix());
 			}
 
 			void reset()
@@ -116,6 +151,48 @@ namespace PBD
 				{
 					m_inertiaTensorInverseW = m_rot * m_inertiaTensorInverse.asDiagonal() * m_rot.transpose();
 				}
+			}
+
+			/** Determine mass and inertia tensor of the given geometry.
+			 */
+			void determineMassProperties(const float density)
+			{
+				// apply initial rotation
+				VertexData &vd = m_geometry.getVertexDataLocal();
+				for (unsigned int i = 0; i < vd.size(); i++)
+					vd.getPosition(i) = m_rot * vd.getPosition(i);
+
+				VolumeIntegration vi(m_geometry.getMesh(), m_geometry.getVertexDataLocal());
+				vi.compute_inertia_tensor(density);
+
+				// Diagonalize Inertia Tensor
+				Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> es(vi.getInertia());
+				Eigen::Vector3f inertiaTensor = es.eigenvalues();
+				Eigen::Matrix3f R = es.eigenvectors();
+
+				setMass(vi.getMass());
+				setInertiaTensor(inertiaTensor);
+
+				if (R.determinant() < 0.0f)
+					R = -R;
+
+				// rotate vertices back				
+				for (unsigned int i = 0; i < vd.size(); i++)
+					vd.getPosition(i) = R.transpose() * (vd.getPosition(i) - vi.getCenterOfMass());
+
+				// set rotation
+				m_q0 = Eigen::Quaternionf(R);
+				m_q0.normalize();
+				m_q = m_q0;
+				m_lastQ = m_q0;
+				m_oldQ = m_q0;
+				rotationUpdated();
+
+				// set translation
+				m_x0 += vi.getCenterOfMass();
+				m_x = m_x0;
+				m_lastX = m_x0;
+				m_oldX = m_x0;
 			}
 
 			FORCE_INLINE float &getMass()
@@ -366,6 +443,11 @@ namespace PBD
 			FORCE_INLINE void setTorque(const Eigen::Vector3f &value)
 			{
 				m_torque = value;
+			}
+
+			RigidBodyGeometry& getGeometry()
+			{
+				return m_geometry;
 			}
 	};
 }

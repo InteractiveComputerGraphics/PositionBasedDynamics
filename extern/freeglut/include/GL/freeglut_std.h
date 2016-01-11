@@ -91,7 +91,7 @@
 #               ifdef NDEBUG
 #                   pragma comment (lib, "freeglut.lib")
 #               else
-#                   pragma comment (lib, "freeglutd.lib")
+#                   pragma comment (lib, "freeglut_d.lib")
 #               endif
 #           endif
 

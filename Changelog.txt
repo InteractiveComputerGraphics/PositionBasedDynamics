@@ -1,3 +1,8 @@
+	- added shader support
+	- added automatic computation of inertia tensor for arbitrary triangle meshes
+	- added bunny model to chain demo
+	- added visualization mesh to rigid body
+	- added OBJ file loader
 	- update to Eigen 3.2.7
 	- added target velocity motor slider joint
 	- added target position motor slider joint

@@ -51,6 +51,9 @@ void(*MiniGL::selectionfunc)(const Eigen::Vector2i&, const Eigen::Vector2i&) = N
 void(*MiniGL::mousefunc)(int, int) = NULL;
 int MiniGL::mouseFuncButton;
 Eigen::Vector2i MiniGL::m_selectionStart;
+GLint MiniGL::m_context_major_version = 0;
+GLint MiniGL::m_context_minor_version = 0;
+GLint MiniGL::m_context_profile = 0;
 
 
 void MiniGL::drawTime( const float time )
@@ -407,26 +410,23 @@ void MiniGL::init (int argc, char **argv, int width, int height, int posx, int p
 	glutCreateWindow(name);
 
 	// Initialize GLEW
+	glewExperimental = GL_TRUE;
+	GLenum err = glewInit();
+
+	if (GLEW_OK != err)
 	{
-		glewExperimental = GL_TRUE;
-		GLenum err = glewInit();
-
-		if (GLEW_OK != err)
-		{
-			std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		GLint context_major_version, context_minor_version, context_profile;
-		getOpenGLVersion(context_major_version, context_minor_version);
-		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &context_profile);
-
-		std::cout << "OpenGL version " << context_major_version << "." << context_minor_version << std::endl;
-		std::cout << "Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
-		std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
-		std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
-		std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
+		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+		exit(EXIT_FAILURE);
 	}
+	
+	getOpenGLVersion(m_context_major_version, m_context_minor_version);
+	glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &m_context_profile);
+
+	std::cout << "OpenGL version " << m_context_major_version << "." << m_context_minor_version << std::endl;
+	std::cout << "Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
+	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
+	std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
+	std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
 
 
 	// Initialize AntTweakBar
@@ -884,4 +884,30 @@ float MiniGL::getZFar()
 TwBar * MiniGL::getTweakBar()
 {
 	return m_tweakBar;
+}
+
+bool MiniGL::checkOpenGLVersion(const int major_version, const int minor_version)
+{
+	if ((m_context_major_version > major_version) ||
+		((m_context_major_version == major_version) && (m_context_minor_version >= minor_version)))
+		return true;
+	return false;
+}
+
+Shader *MiniGL::createShader(const std::string &vertexShader, const std::string &geometryShader, const std::string &fragmentShader)
+{
+	if (checkOpenGLVersion(3,3))
+	{
+		Shader *shader = new Shader();
+
+		if (vertexShader != "")
+			shader->compileShaderFile(GL_VERTEX_SHADER, vertexShader);
+		if (geometryShader != "")
+			shader->compileShaderFile(GL_GEOMETRY_SHADER, geometryShader);
+		if (fragmentShader != "")
+			shader->compileShaderFile(GL_FRAGMENT_SHADER, fragmentShader);
+		shader->createAndLinkProgram();
+		return shader;
+	}
+	return NULL;
 }

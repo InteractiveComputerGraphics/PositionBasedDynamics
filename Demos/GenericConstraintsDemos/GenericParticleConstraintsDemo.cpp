@@ -7,6 +7,8 @@
 #include "GenericConstraintsModel.h"
 #include <iostream>
 #include "Demos/Simulation/TimeStepController.h"
+#include "Demos/Visualization/Visualization.h"
+#include "Demos/Utils/Utilities.h"
 
 // Enable memory leak detection
 #ifdef _DEBUG
@@ -23,6 +25,7 @@ void createMesh();
 void render ();
 void cleanup();
 void reset();
+void initShader();
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
 void TW_CALL setTimeStep(const void *value, void *clientData);
 void TW_CALL getTimeStep(void *value, void *clientData);
@@ -44,11 +47,17 @@ const float height = 10.0f;
 bool doPause = true;
 std::vector<unsigned int> selectedParticles;
 Eigen::Vector3f oldMousePos;
+Shader *shader;
+string exePath;
+string dataPath;
 
 // main 
 int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
+
+	exePath = Utilities::getFilePath(argv[0]);
+	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	// OpenGL
 	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Cloth demo");
@@ -57,6 +66,7 @@ int main( int argc, char **argv )
 	MiniGL::setClientIdleFunc (50, timeStep);		
 	MiniGL::setKeyFunc(0, 'r', reset);
 	MiniGL::setSelectionFunc(selection);
+	initShader();
 
 	buildModel ();
 
@@ -77,9 +87,28 @@ int main( int argc, char **argv )
 	return 0;
 }
 
+void initShader()
+{
+	std::string vertFile = dataPath + "/shaders/vs_smoothTex.glsl";
+	std::string fragFile = dataPath + "/shaders/fs_smoothTex.glsl";
+	shader = MiniGL::createShader(vertFile, "", fragFile);
+
+	if (shader == NULL)
+		return;
+
+	shader->begin();
+	shader->addUniform("modelview_matrix");
+	shader->addUniform("projection_matrix");
+	shader->addUniform("surface_color");
+	shader->addUniform("shininess");
+	shader->addUniform("specular_factor");
+	shader->end();
+}
+
 void cleanup()
 {
 	delete TimeManager::getCurrent();
+	delete shader;
 }
 
 void reset()
@@ -145,39 +174,31 @@ void renderTriangleModels()
 	// Draw simulation model
 
 	const ParticleData &pd = model.getParticles();
+	float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
+
+	if (shader)
+	{
+		shader->begin();
+		glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
+		glUniform1f(shader->getUniform("shininess"), 5.0f);
+		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
+
+		GLfloat matrix[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+		glUniformMatrix4fv(shader->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
+		GLfloat pmatrix[16];
+		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
+		glUniformMatrix4fv(shader->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
+	}
 
 	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
 	{
 		// mesh 
 		const IndexedFaceMesh &mesh = model.getTriangleModels()[i]->getParticleMesh();
-		const unsigned int *faces = mesh.getFaces().data();
-		const unsigned int nFaces = mesh.numFaces();
-		const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
-		const Eigen::Vector2f *uvs = mesh.getUVs().data();
-
-		float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
-		float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-		glColor3fv(surfaceColor);
-
-		MiniGL::bindTexture();
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(model.getTriangleModels()[i]->getIndexOffset())[0]);
-		glTexCoordPointer(2, GL_FLOAT, 0, &uvs[0][0]);
-		glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
-		glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-		MiniGL::unbindTexture();
+		Visualization::drawTexturedMesh(pd, mesh, surfaceColor);
 	}
+	if (shader)
+		shader->end();
 }
 
 void render ()

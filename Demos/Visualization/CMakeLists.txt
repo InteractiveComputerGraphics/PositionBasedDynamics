@@ -3,11 +3,14 @@ include_directories(${PROJECT_PATH}/extern/freeglut/include)
 set(VIS_HEADER_FILES
 	${PROJECT_PATH}/Demos/Visualization/MiniGL.h
 	${PROJECT_PATH}/Demos/Visualization/Selection.h
+	${PROJECT_PATH}/Demos/Visualization/Shader.h
+	${PROJECT_PATH}/Demos/Visualization/Visualization.h
 	) 
 
 	
 set(VIS_SOURCE_FILES
 	${PROJECT_PATH}/Demos/Visualization/MiniGL.cpp                       
+	${PROJECT_PATH}/Demos/Visualization/Shader.cpp
 	) 
 	
 

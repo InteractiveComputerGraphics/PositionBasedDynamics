@@ -16,6 +16,8 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added automatic computation of inertia tensor for arbitrary triangle meshes
+* added OBJ file loader
 * added target velocity motor slider joint
 * added target position motor slider joint
 * added slider joint
