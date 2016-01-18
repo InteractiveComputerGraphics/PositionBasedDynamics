@@ -136,9 +136,9 @@ int main( int argc, char **argv )
 
 void initShader()
 {
-	std::string vertFile = std::string(PBD_DATA_PATH) + "/shaders/vs_flat.glsl";
-	std::string geomFile = std::string(PBD_DATA_PATH) + "/shaders/gs_flat.glsl";
-	std::string fragFile = std::string(PBD_DATA_PATH) + "/shaders/fs_flat.glsl";
+	std::string vertFile = dataPath + "/shaders/vs_flat.glsl";
+	std::string geomFile = dataPath + "/shaders/gs_flat.glsl";
+	std::string fragFile = dataPath + "/shaders/fs_flat.glsl";
 	shader = MiniGL::createShader(vertFile, geomFile, fragFile);
 
 	if (shader == NULL)
@@ -152,8 +152,8 @@ void initShader()
 	shader->addUniform("specular_factor");
 	shader->end();
 
-	vertFile = std::string(PBD_DATA_PATH) + "/shaders/vs_smoothTex.glsl";
-	fragFile = std::string(PBD_DATA_PATH) + "/shaders/fs_smoothTex.glsl";
+	vertFile = dataPath + "/shaders/vs_smoothTex.glsl";
+	fragFile = dataPath + "/shaders/fs_smoothTex.glsl";
 	shaderTex = MiniGL::createShader(vertFile, "", fragFile);
 
 	if (shaderTex == NULL)
@@ -397,7 +397,7 @@ void createRigidBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
-	string fileName = string(PBD_DATA_PATH) + "/models/cube.obj";
+	string fileName = dataPath + "/models/cube.obj";
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	OBJLoader::loadObj(fileName, vd, mesh, Eigen::Vector3f(width, height, depth));
