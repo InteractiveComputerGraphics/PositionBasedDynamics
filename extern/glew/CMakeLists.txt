@@ -14,14 +14,14 @@ if (WIN32)
 	target_link_libraries(glew opengl32.lib)                     
 endif()
 
-IF(APPLE)   
-   INCLUDE_DIRECTORIES ( /System/Library/Frameworks )
-   FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-   FIND_LIBRARY(GLUT_LIBRARY GLUT )
-   FIND_LIBRARY(OpenGL_LIBRARY OpenGL )
-   MARK_AS_ADVANCED (COCOA_LIBRARY
+if(APPLE)   
+   include_directories ( /System/Library/Frameworks )
+   find_library(COCOA_LIBRARY Cocoa)
+   find_library(GLUT_LIBRARY GLUT )
+   find_library(OpenGL_LIBRARY OpenGL )
+   mark_as_advanced (COCOA_LIBRARY
                      GLUT_LIBRARY
                      OpenGL_LIBRARY)
-   SET(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
+   set(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
    target_link_libraries(glew ${EXTRA_LIBS})
-ENDIF (APPLE)
+endif (APPLE)

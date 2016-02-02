@@ -23,4 +23,8 @@ if (UNIX)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -fopenmp") 
 endif (UNIX)
 
+if(APPLE)
+	set(CMAKE_MACOSX_RPATH 1)
+endif()
+
 add_definitions(-D_CRT_SECURE_NO_DEPRECATE)

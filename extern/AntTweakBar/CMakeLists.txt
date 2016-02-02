@@ -46,7 +46,6 @@ endif()
 if (APPLE)
    include_directories ( /System/Library/Frameworks )
    find_library(APPKIT_LIBRARY AppKit)
-   message("Appkit: ${APPKIT_LIBRARY}")
    set(EXTRA_LIBS ${APPKIT_LIBRARY})
    set(CMAKE_CXX_FLAGS "-g -Wall -ObjC++ -fPIC -fno-strict-aliasing -D__PLACEMENT_NEW_INLINE")
    add_definitions(-D_MACOSX)   
@@ -60,8 +59,10 @@ add_library(AntTweakBar STATIC ${ATB_HEADERS} ${ATB_SOURCES})
 
 set_target_properties(AntTweakBar PROPERTIES FOLDER "External Dependencies")
 
-if (UNIX)
-	target_link_libraries(AntTweakBar X11)
+if (APPLE)
+    target_link_libraries(AntTweakBar) 
+elseif (UNIX)
+    target_link_libraries(AntTweakBar X11)
 endif()
 
 set(AntTweakBar_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include

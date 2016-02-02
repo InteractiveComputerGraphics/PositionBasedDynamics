@@ -1,3 +1,4 @@
+	- added support for Mac OS X
 	- added shader support
 	- added automatic computation of inertia tensor for arbitrary triangle meshes
 	- added bunny model to chain demo

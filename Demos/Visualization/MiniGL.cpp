@@ -7,6 +7,7 @@
 #endif
 
 #include "GL/glew.h"
+
 #ifdef __APPLE__
 #include <OpenGL/GL.h>
 #include <OpenGL/GLU.h>
@@ -461,7 +462,9 @@ void MiniGL::init (int argc, char **argv, int width, int height, int posx, int p
 	glutSpecialFunc (special);
 	glutDisplayFunc (display);
 	glutIdleFunc (idlefunc);
+#ifndef __APPLE__
 	glutMouseWheelFunc(mouseWheel);
+#endif
 
 	// after GLUT initialization
 	// directly redirect GLUT events to AntTweakBar
@@ -472,7 +475,9 @@ void MiniGL::init (int argc, char **argv, int width, int height, int posx, int p
 
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
+#ifndef __APPLE__
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+#endif
 }
 
 void MiniGL::initTexture()
@@ -642,7 +647,11 @@ void MiniGL::keyboard (unsigned char k, int x, int y)
 
 	if (k == 27)
 	{
+#ifndef __APPLE__
 		glutLeaveMainLoop();
+#else
+		exit(0);
+#endif
 		return;
 	}
 	else if (k == 97)
