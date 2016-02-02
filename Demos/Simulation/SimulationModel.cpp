@@ -44,6 +44,7 @@ void SimulationModel::cleanup()
 		delete m_constraints[i];
 	m_constraints.clear();
 	m_particles.release();
+	m_ghostParticles.release();
 }
 
 void SimulationModel::reset()
@@ -66,6 +67,16 @@ void SimulationModel::reset()
 		m_particles.getAcceleration(i).setZero();
 	}
 
+	// ghost particles
+	for (unsigned int i = 0; i < m_ghostParticles.size(); i++)
+	{
+		const Eigen::Vector3f& x0 = m_ghostParticles.getPosition0(i);
+		m_ghostParticles.getPosition(i) = x0;
+		m_ghostParticles.getLastPosition(i) = m_ghostParticles.getPosition(i);
+		m_ghostParticles.getOldPosition(i) = m_ghostParticles.getPosition(i);
+		m_ghostParticles.getVelocity(i).setZero();
+		m_ghostParticles.getAcceleration(i).setZero();
+	}
 	updateConstraints();
 }
 
@@ -77,6 +88,11 @@ SimulationModel::RigidBodyVector & SimulationModel::getRigidBodies()
 ParticleData & SimulationModel::getParticles()
 {
 	return m_particles;
+}
+
+ParticleData & PBD::SimulationModel::getGhostParticles()
+{
+	return m_ghostParticles;
 }
 
 SimulationModel::TriangleModelVector & SimulationModel::getTriangleModels()
@@ -342,6 +358,24 @@ bool SimulationModel::addShapeMatchingConstraint(const unsigned int numberOfPart
 	return res;
 }
 
+bool SimulationModel::addElasticRodEdgeConstraint(const unsigned int pA, const unsigned int pB, const unsigned int pG)
+{
+	ElasticRodEdgeConstraint *c = new ElasticRodEdgeConstraint();
+	const bool res = c->initConstraint(*this, pA, pB, pG);
+	if (res)
+		m_constraints.push_back(c);
+	return res;
+}
+
+bool SimulationModel::addElasticRodBendAndTwistConstraint(const unsigned int pA, const unsigned int pB,
+	const unsigned int pC, const unsigned int pD, const unsigned int pE)
+{
+	ElasticRodBendAndTwistConstraint *c = new ElasticRodBendAndTwistConstraint();
+	const bool res = c->initConstraint(*this, pA, pB, pC, pD, pE);
+	if (res)
+		m_constraints.push_back(c);
+	return res;
+}
 
 void SimulationModel::addTriangleModel(
 	const unsigned int nPoints, 
@@ -382,6 +416,14 @@ void SimulationModel::addTetModel(
 		m_particles.addVertex(points[i]);
 
 	tetModel->initMesh(nPoints, nTets, startIndex, indices);
+}
+
+void PBD::SimulationModel::addElasticRodModel(
+	const unsigned int nPoints, 
+	Eigen::Vector3f * points)
+{
+
+
 }
 
 
