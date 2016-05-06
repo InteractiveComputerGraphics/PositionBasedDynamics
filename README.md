@@ -16,6 +16,11 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added SceneGenerator.py to generate new scenarios easily by simple Python scripting
+* added scene loader based on json 
+* added collision detection based on distance functions
+* added collision handling for rigid and deformable bodies
+* high resolution visualization mesh can be attached to a deformable body
 * added support for Mac OS X
 * added automatic computation of inertia tensor for arbitrary triangle meshes
 * added OBJ file loader
@@ -26,11 +31,8 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 * added target angle motor hinge joint
 * parallelized unified solver using graph coloring
 * implemented unified solver for rigid bodies and deformable solids 
-* added generic constraint demo
 * added generic constraint
-* added coupling demo
-* added ball joint which links a rigid body and a particle
-* added new joint demo
+
 
 ## Features
 
