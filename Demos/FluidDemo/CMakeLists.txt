@@ -1,5 +1,5 @@
-set(SIMULATION_LINK_LIBRARIES AntTweakBar glew PositionBasedDynamics)
-set(SIMULATION_DEPENDENCIES AntTweakBar glew PositionBasedDynamics)
+set(SIMULATION_LINK_LIBRARIES AntTweakBar glew PositionBasedDynamics Simulation)
+set(SIMULATION_DEPENDENCIES AntTweakBar glew PositionBasedDynamics Simulation)
 
 if(WIN32)
   set(SIMULATION_LINK_LIBRARIES freeglut opengl32.lib glu32.lib ${SIMULATION_LINK_LIBRARIES})
@@ -24,14 +24,10 @@ add_executable(FluidDemo
 	  FluidModel.h	  
 	  
 	  ${VIS_FILES}          
-	  ${PROJECT_PATH}/Demos/Utils/Config.h			
+	  ${PROJECT_PATH}/Common/Common.h
+	  ${PROJECT_PATH}/Demos/Common/Config.h	
 	  ${PROJECT_PATH}/Demos/Utils/Utilities.cpp
 	  ${PROJECT_PATH}/Demos/Utils/Utilities.h
-	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.cpp	
-	  ${PROJECT_PATH}/Demos/Simulation/TimeManager.h		
-	  ${PROJECT_PATH}/Demos/Simulation/ParticleData.h	
-	  ${PROJECT_PATH}/Demos/Simulation/NeighborhoodSearchSpatialHashing.cpp  
-	  ${PROJECT_PATH}/Demos/Simulation/NeighborhoodSearchSpatialHashing.h
 	  
 	  CMakeLists.txt
 )

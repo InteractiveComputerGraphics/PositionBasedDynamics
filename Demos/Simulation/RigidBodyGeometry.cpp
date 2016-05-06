@@ -17,7 +17,7 @@ RigidBodyGeometry::Mesh &RigidBodyGeometry::getMesh()
 	return m_mesh;
 }
 
-void RigidBodyGeometry::initMesh(const unsigned int nVertices, const unsigned int nFaces, const Eigen::Vector3f *vertices, const unsigned int* indices, const Mesh::UVIndices& uvIndices, const Mesh::UVs& uvs)
+void RigidBodyGeometry::initMesh(const unsigned int nVertices, const unsigned int nFaces, const Vector3r *vertices, const unsigned int* indices, const Mesh::UVIndices& uvIndices, const Mesh::UVs& uvs, const Vector3r &scale)
 {
 	m_mesh.release();
 	m_mesh.initMesh(nVertices, nFaces * 2, nFaces);
@@ -25,8 +25,8 @@ void RigidBodyGeometry::initMesh(const unsigned int nVertices, const unsigned in
 	m_vertexData.resize(nVertices);
 	for (unsigned int i = 0; i < nVertices; i++)
 	{
-		m_vertexData_local.getPosition(i) = vertices[i];
-		m_vertexData.getPosition(i) = vertices[i];
+		m_vertexData_local.getPosition(i) = vertices[i].cwiseProduct(scale);
+		m_vertexData.getPosition(i) = m_vertexData_local.getPosition(i);
 	}
 
 	for (unsigned int i = 0; i < nFaces; i++)
@@ -40,11 +40,11 @@ void RigidBodyGeometry::initMesh(const unsigned int nVertices, const unsigned in
 
 void RigidBodyGeometry::updateMeshNormals(const VertexData &vd)
 {
-	m_mesh.updateNormals(vd);
+	m_mesh.updateNormals(vd, 0);
 	m_mesh.updateVertexNormals(vd);
 }
 
-void RigidBodyGeometry::updateMeshTransformation(const Eigen::Vector3f &x, const Eigen::Matrix3f &R)
+void RigidBodyGeometry::updateMeshTransformation(const Vector3r &x, const Matrix3r &R)
 {
 	for (unsigned int i = 0; i < m_vertexData_local.size(); i++)
 	{

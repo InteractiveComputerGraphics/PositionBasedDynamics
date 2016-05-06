@@ -18,13 +18,13 @@ TimeStepFluidModel::~TimeStepFluidModel(void)
 void TimeStepFluidModel::step(FluidModel &model)
 {
 	TimeManager *tm = TimeManager::getCurrent ();
-	const float h = tm->getTimeStepSize();
+	const Real h = tm->getTimeStepSize();
 	ParticleData &pd = model.getParticles();
 
 	clearAccelerations(model);
 
 	// Update time step size by CFL condition
-	updateTimeStepSizeCFL(model, 0.0001f, 0.005f);
+	updateTimeStepSizeCFL(model, 0.0001, 0.005);
 
 	// Time integration
 	for (unsigned int i = 0; i < pd.size(); i++)
@@ -65,13 +65,13 @@ void TimeStepFluidModel::clearAccelerations(FluidModel &model)
 {
 	ParticleData &pd = model.getParticles();
 	const unsigned int count = pd.size();
-	const Eigen::Vector3f grav(0.0f, -9.81f, 0.0f);
+	const Vector3r grav(0.0, -9.81, 0.0);
 	for (unsigned int i=0; i < count; i++)
 	{
 		// Clear accelerations of dynamic particles
 		if (pd.getMass(i) != 0.0)
 		{
-			Eigen::Vector3f &a = pd.getAcceleration(i);
+			Vector3r &a = pd.getAcceleration(i);
 			a = grav;
 		}
 	}
@@ -91,8 +91,8 @@ void TimeStepFluidModel::computeDensities(FluidModel &model)
 		#pragma omp for schedule(static)  
 		for (int i = 0; i < (int) numParticles; i++)
 		{
-			float &density = model.getDensity(i);
-			float density_err;
+			Real &density = model.getDensity(i);
+			Real density_err;
 			PositionBasedFluids::computePBFDensity(i, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, density);
 		}
 	}
@@ -100,28 +100,28 @@ void TimeStepFluidModel::computeDensities(FluidModel &model)
 
 /** Update time step size by CFL condition.
 */
-void TimeStepFluidModel::updateTimeStepSizeCFL(FluidModel &model, const float minTimeStepSize, const float maxTimeStepSize)
+void TimeStepFluidModel::updateTimeStepSizeCFL(FluidModel &model, const Real minTimeStepSize, const Real maxTimeStepSize)
 {
-	const float radius = model.getParticleRadius();
-	const float cflFactor = 1.0f;
-	float h = TimeManager::getCurrent()->getTimeStepSize();
+	const Real radius = model.getParticleRadius();
+	const Real cflFactor = 1.0;
+	Real h = TimeManager::getCurrent()->getTimeStepSize();
 
 	// Approximate max. position change due to current velocities
-	float maxVel = 0.1f;
+	Real maxVel = 0.1;
 	ParticleData &pd = model.getParticles();
 	const unsigned int numParticles = pd.size();
-	const float diameter = 2.0f*radius;
+	const Real diameter = 2.0*radius;
 	for (unsigned int i = 0; i < numParticles; i++)
 	{
-		const Eigen::Vector3f &vel = pd.getVelocity(i);
-		const Eigen::Vector3f &accel = pd.getAcceleration(i);
-		const float velMag = (vel + accel*h).squaredNorm();
+		const Vector3r &vel = pd.getVelocity(i);
+		const Vector3r &accel = pd.getAcceleration(i);
+		const Real velMag = (vel + accel*h).squaredNorm();
 		if (velMag > maxVel)
 			maxVel = velMag;
 	}
 
 	// Approximate max. time step size 		
-	h = cflFactor * .4f * (diameter / (sqrt(maxVel)));
+	h = cflFactor * .4 * (diameter / (sqrt(maxVel)));
 
 	h = min(h, maxTimeStepSize);
 	h = max(h, minTimeStepSize);
@@ -139,8 +139,8 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 	unsigned int **neighbors = model.getNeighborhoodSearch()->getNeighbors();
 	unsigned int *numNeighbors = model.getNeighborhoodSearch()->getNumNeighbors();
 
-	const float viscosity = model.getViscosity();
-	const float h = TimeManager::getCurrent()->getTimeStepSize();
+	const Real viscosity = model.getViscosity();
+	const Real h = TimeManager::getCurrent()->getTimeStepSize();
 
 	// Compute viscosity forces (XSPH)
 	#pragma omp parallel default(shared)
@@ -148,24 +148,24 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 		#pragma omp for schedule(static)  
 		for (int i = 0; i < (int)numParticles; i++)
 		{
-			const Eigen::Vector3f &xi = pd.getPosition(i);
-			Eigen::Vector3f &vi = pd.getVelocity(i);
-			const float density_i = model.getDensity(i);
+			const Vector3r &xi = pd.getPosition(i);
+			Vector3r &vi = pd.getVelocity(i);
+			const Real density_i = model.getDensity(i);
 			for (unsigned int j = 0; j < numNeighbors[i]; j++)
 			{
 				const unsigned int neighborIndex = neighbors[i][j];
 				if (neighborIndex < numParticles)		// Test if fluid particle
 				{
 					// Viscosity
-					const Eigen::Vector3f &xj = pd.getPosition(neighborIndex);
-					const Eigen::Vector3f &vj = pd.getVelocity(neighborIndex);
-					const float density_j = model.getDensity(neighborIndex);
+					const Vector3r &xj = pd.getPosition(neighborIndex);
+					const Vector3r &vj = pd.getVelocity(neighborIndex);
+					const Real density_j = model.getDensity(neighborIndex);
 					vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
 
 				}
 // 				else 
 // 				{
-// 					const Eigen::Vector3f &xj = model.getBoundaryX(neighborIndex - numParticles);
+// 					const Vector3r &xj = model.getBoundaryX(neighborIndex - numParticles);
 // 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
 // 				}
 			}
@@ -196,14 +196,14 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 
 	while (iter < maxIter)
 	{
-		float avg_density_err = 0.0;
+		Real avg_density_err = 0.0;
 
 		#pragma omp parallel default(shared)
 		{
 			#pragma omp for schedule(static)  
 			for (int i = 0; i < (int)nParticles; i++)
 			{
-				float density_err;
+				Real density_err;
 				PositionBasedFluids::computePBFDensity(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, model.getDensity(i));
 				PositionBasedFluids::computePBFLagrangeMultiplier(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), model.getDensity(i), numNeighbors[i], neighbors[i], model.getDensity0(), true, model.getLambda(i));
 			}
@@ -214,7 +214,7 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 			#pragma omp for schedule(static)  
 			for (int i = 0; i < (int)nParticles; i++)
 			{
-				Eigen::Vector3f corr;
+				Vector3r corr;
 				PositionBasedFluids::solveDensityConstraint(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, &model.getLambda(0), corr);
 				model.getDeltaX(i) = corr;
 			}

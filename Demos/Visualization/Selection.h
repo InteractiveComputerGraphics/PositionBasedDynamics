@@ -1,7 +1,7 @@
 #ifndef __SELECTION_H__
 #define __SELECTION_H__
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "MiniGL.h"
 
 #ifdef WIN32
@@ -30,8 +30,8 @@ namespace PBD
 
 		struct SelectionPlane
 		{
-			Eigen::Vector3f normal;
-			float d;
+			Vector3r normal;
+			Real d;
 		};
 
 		template<typename PositionIteratorType>
@@ -44,10 +44,10 @@ namespace PBD
 			int itop = ip1y > ip2y ? ip1y : ip2y;
 			int ibottom = ip1y < ip2y ? ip1y : ip2y;
 
-			float left = (float) ileft;
-			float right = (float) iright;
-			float top = (float) itop;
-			float bottom = (float) ibottom;
+			float left = (float)ileft;
+			float right = (float)iright;
+			float top = (float)itop;
+			float bottom = (float)ibottom;
 
 			if (left != right && top != bottom)
 			{
@@ -61,17 +61,17 @@ namespace PBD
 				float zNear = MiniGL::getZNear();
 				float zFar = MiniGL::getZFar();
 				gluUnProject(left, viewport[3] - top, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Eigen::Vector3f vector0((float)resx,(float) resy,(float) resz);
+				const Vector3r vector0((Real)resx, (Real)resy, (Real)resz);
 				gluUnProject(left, viewport[3] - top, zFar , mv, pm, viewport, &resx, &resy, &resz);
-				const Eigen::Vector3f vector1((float)resx, (float)resy, (float)resz);
+				const Vector3r vector1((Real)resx, (Real)resy, (Real)resz);
 				gluUnProject(left, viewport[3] - bottom, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Eigen::Vector3f vector2((float)resx, (float)resy, (float)resz);
+				const Vector3r vector2((Real)resx, (Real)resy, (Real)resz);
 				gluUnProject(right, viewport[3] - top, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Eigen::Vector3f vector3((float)resx, (float)resy, (float)resz);
+				const Vector3r vector3((Real)resx, (Real)resy, (Real)resz);
 				gluUnProject(right, viewport[3] - bottom, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Eigen::Vector3f vector4((float)resx, (float)resy, (float)resz);
+				const Vector3r vector4((Real)resx, (Real)resy, (Real)resz);
 				gluUnProject(right, viewport[3] - bottom, zFar , mv, pm, viewport, &resx, &resy, &resz);
-				const Eigen::Vector3f vector5((float)resx, (float)resy, (float)resz);
+				const Vector3r vector5((Real)resx, (Real)resy, (Real)resz);
 
 				SelectionPlane plane[4];
 				plane[0].normal = (vector3-vector0).cross(vector1-vector0);
@@ -97,10 +97,10 @@ namespace PBD
 			while (true) 
 			{
 				bool inQuad = true;
-				const Eigen::Vector3f &p = *posIter;
+				const Vector3r &p = *posIter;
 				for (int j = 0; j < 4; ++j)
 				{
-					const float d = planes[j].normal.dot(p) + planes[j].d;
+					const Real d = planes[j].normal.dot(p) + planes[j].d;
 					inQuad &= (d < 0);
 					if (!inQuad)
 						break;

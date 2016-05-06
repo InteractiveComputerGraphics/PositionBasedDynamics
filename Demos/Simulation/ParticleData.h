@@ -1,9 +1,9 @@
 #ifndef __PARTICLEDATA_H__
 #define __PARTICLEDATA_H__
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include <vector>
-#include <Eigen/Dense>
+#include "Common/Common.h"
 
 
 namespace PBD
@@ -14,7 +14,7 @@ namespace PBD
 	class VertexData
 	{
 	private:
-		std::vector<Eigen::Vector3f> m_x;
+		std::vector<Vector3r> m_x;
 
 	public:
 		FORCE_INLINE VertexData(void) :
@@ -27,22 +27,22 @@ namespace PBD
 			m_x.clear();
 		}
 
-		FORCE_INLINE void addVertex(const Eigen::Vector3f &vertex)
+		FORCE_INLINE void addVertex(const Vector3r &vertex)
 		{
 			m_x.push_back(vertex);
 		}
 
-		FORCE_INLINE Eigen::Vector3f &getPosition(const unsigned int i)
+		FORCE_INLINE Vector3r &getPosition(const unsigned int i)
 		{
 			return m_x[i];
 		}
 
-		FORCE_INLINE const Eigen::Vector3f &getPosition(const unsigned int i) const
+		FORCE_INLINE const Vector3r &getPosition(const unsigned int i) const
 		{
 			return m_x[i];
 		}
 
-		FORCE_INLINE void setPosition(const unsigned int i, const Eigen::Vector3f &pos)
+		FORCE_INLINE void setPosition(const unsigned int i, const Vector3r &pos)
 		{
 			m_x[i] = pos;
 		}
@@ -74,6 +74,11 @@ namespace PBD
 		{
 			return (unsigned int)m_x.size();
 		}
+
+		FORCE_INLINE const std::vector<Vector3r>* getVertices()
+		{
+			return &m_x;
+		}
 	};
 
 	/** This class encapsulates the state of all particles of a particle model.
@@ -84,16 +89,16 @@ namespace PBD
 		private:
 			// Mass
 			// If the mass is zero, the particle is static
-			std::vector<float> m_masses;
-			std::vector<float> m_invMasses;
+			std::vector<Real> m_masses;
+			std::vector<Real> m_invMasses;
 
 			// Dynamic state
-			std::vector<Eigen::Vector3f> m_x0;
-			std::vector<Eigen::Vector3f> m_x;
-			std::vector<Eigen::Vector3f> m_v;
-			std::vector<Eigen::Vector3f> m_a;
-			std::vector<Eigen::Vector3f> m_oldX;
-			std::vector<Eigen::Vector3f> m_lastX;
+			std::vector<Vector3r> m_x0;
+			std::vector<Vector3r> m_x;
+			std::vector<Vector3r> m_v;
+			std::vector<Vector3r> m_a;
+			std::vector<Vector3r> m_oldX;
+			std::vector<Vector3r> m_lastX;
 
 		public:
 			FORCE_INLINE ParticleData(void)	:
@@ -120,7 +125,7 @@ namespace PBD
 				m_lastX.clear();
 			}
 
-			FORCE_INLINE void addVertex(const Eigen::Vector3f &vertex)
+			FORCE_INLINE void addVertex(const Vector3r &vertex)
 			{
 				m_x0.push_back(vertex);
 				m_x.push_back(vertex);
@@ -128,120 +133,120 @@ namespace PBD
 				m_lastX.push_back(vertex);
 				m_masses.push_back(1.0);
 				m_invMasses.push_back(1.0);
-				m_v.push_back(Eigen::Vector3f(0.0, 0.0, 0.0));
-				m_a.push_back(Eigen::Vector3f(0.0, 0.0, 0.0));
+				m_v.push_back(Vector3r(0.0, 0.0, 0.0));
+				m_a.push_back(Vector3r(0.0, 0.0, 0.0));
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getPosition(const unsigned int i)
+			FORCE_INLINE Vector3r &getPosition(const unsigned int i)
 			{
 				return m_x[i];
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getPosition(const unsigned int i) const 
+			FORCE_INLINE const Vector3r &getPosition(const unsigned int i) const 
 			{
 				return m_x[i];
 			}
 
-			FORCE_INLINE void setPosition(const unsigned int i, const Eigen::Vector3f &pos)
+			FORCE_INLINE void setPosition(const unsigned int i, const Vector3r &pos)
 			{
 				m_x[i] = pos;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getPosition0(const unsigned int i)
+			FORCE_INLINE Vector3r &getPosition0(const unsigned int i)
 			{
 				return m_x0[i];
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getPosition0(const unsigned int i) const
+			FORCE_INLINE const Vector3r &getPosition0(const unsigned int i) const
 			{
 				return m_x0[i];
 			}
 
-			FORCE_INLINE void setPosition0(const unsigned int i, const Eigen::Vector3f &pos)
+			FORCE_INLINE void setPosition0(const unsigned int i, const Vector3r &pos)
 			{
 				m_x0[i] = pos;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getLastPosition(const unsigned int i)
+			FORCE_INLINE Vector3r &getLastPosition(const unsigned int i)
 			{
 				return m_lastX[i];
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getLastPosition(const unsigned int i) const
+			FORCE_INLINE const Vector3r &getLastPosition(const unsigned int i) const
 			{
 				return m_lastX[i];
 			}
 
-			FORCE_INLINE void setLastPosition(const unsigned int i, const Eigen::Vector3f &pos)
+			FORCE_INLINE void setLastPosition(const unsigned int i, const Vector3r &pos)
 			{
 				m_lastX[i] = pos;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getOldPosition(const unsigned int i)
+			FORCE_INLINE Vector3r &getOldPosition(const unsigned int i)
 			{
 				return m_oldX[i];
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getOldPosition(const unsigned int i) const
+			FORCE_INLINE const Vector3r &getOldPosition(const unsigned int i) const
 			{
 				return m_oldX[i];
 			}
 
-			FORCE_INLINE void setOldPosition(const unsigned int i, const Eigen::Vector3f &pos)
+			FORCE_INLINE void setOldPosition(const unsigned int i, const Vector3r &pos)
 			{
 				m_oldX[i] = pos;
 			}
 			
-			FORCE_INLINE Eigen::Vector3f &getVelocity(const unsigned int i)
+			FORCE_INLINE Vector3r &getVelocity(const unsigned int i)
 			{
 				return m_v[i];
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getVelocity(const unsigned int i) const 
+			FORCE_INLINE const Vector3r &getVelocity(const unsigned int i) const 
 			{
 				return m_v[i];
 			}
 
-			FORCE_INLINE void setVelocity(const unsigned int i, const Eigen::Vector3f &vel)
+			FORCE_INLINE void setVelocity(const unsigned int i, const Vector3r &vel)
 			{
 				m_v[i] = vel;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getAcceleration(const unsigned int i)
+			FORCE_INLINE Vector3r &getAcceleration(const unsigned int i)
 			{
 				return m_a[i];
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getAcceleration(const unsigned int i) const 
+			FORCE_INLINE const Vector3r &getAcceleration(const unsigned int i) const 
 			{
 				return m_a[i];
 			}
 
-			FORCE_INLINE void setAcceleration(const unsigned int i, const Eigen::Vector3f &accel)
+			FORCE_INLINE void setAcceleration(const unsigned int i, const Vector3r &accel)
 			{
 				m_a[i] = accel;
 			}
 
-			FORCE_INLINE const float getMass(const unsigned int i) const
+			FORCE_INLINE const Real getMass(const unsigned int i) const
 			{
 				return m_masses[i];
 			}
 
-			FORCE_INLINE float& getMass(const unsigned int i)
+			FORCE_INLINE Real& getMass(const unsigned int i)
 			{
 				return m_masses[i];
 			}
 
-			FORCE_INLINE void setMass(const unsigned int i, const float mass)
+			FORCE_INLINE void setMass(const unsigned int i, const Real mass)
 			{
 				m_masses[i] = mass;
-				if (mass != 0.0f)
-					m_invMasses[i] = 1.0f / mass;
+				if (mass != 0.0)
+					m_invMasses[i] = 1.0 / mass;
 				else
-					m_invMasses[i] = 0.0f;
+					m_invMasses[i] = 0.0;
 			}
 
-			FORCE_INLINE const float getInvMass(const unsigned int i) const
+			FORCE_INLINE const Real getInvMass(const unsigned int i) const
 			{
 				return m_invMasses[i];
 			}

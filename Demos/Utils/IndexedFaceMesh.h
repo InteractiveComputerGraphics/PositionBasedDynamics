@@ -2,7 +2,7 @@
 #define __INDEXEDFACEMESH_H__
 
 #include <vector>
-#include <Eigen/Dense>
+#include "Common/Common.h"
 #include <iterator>
 
 namespace PBD
@@ -95,14 +95,14 @@ namespace PBD
 
 	public:
 		typedef std::vector<unsigned int> Faces;
-		typedef std::vector<Eigen::Vector3f> FaceNormals;
-		typedef std::vector<Eigen::Vector3f> VertexNormals;
+		typedef std::vector<Vector3r> FaceNormals;
+		typedef std::vector<Vector3r> VertexNormals;
 		typedef std::vector<Face> FaceData;
 		typedef std::vector<Edge> Edges;
 		typedef std::vector<VertexFaces> VerticesFaces;
 		typedef std::vector<VertexEdges> VerticesEdges;
 		typedef std::vector<unsigned int> UVIndices;
-		typedef std::vector<Eigen::Vector2f> UVs;
+		typedef std::vector<Vector2r> UVs;
 
 	protected:
 		unsigned int m_numPoints;
@@ -129,9 +129,9 @@ namespace PBD
 		void initMesh(const unsigned int nPoints, const unsigned int nEdges, const unsigned int nFaces);
 		void addFace(const unsigned int * const indices);
 		void addFace(const int * const indices);
-		void addUV(const float u, const float v);
+		void addUV(const Real u, const Real v);
 		void addUVIndex(const unsigned int index);
-		void addVertex(const Eigen::Vector3f &vertex);
+		void addVertex(const Vector3r &vertex);
 
 		const Faces& getFaces() const { return m_indices; }
 		Faces& getFaces(){ return m_indices; }
@@ -158,7 +158,7 @@ namespace PBD
 		void buildNeighbors();
 
 		template<class PositionData>
-		void updateNormals(const PositionData &pd);
+		void updateNormals(const PositionData &pd, const unsigned int offset);
 
 		template<class PositionData>
 		void updateVertexNormals(const PositionData &pd);
@@ -168,22 +168,27 @@ namespace PBD
 
 
 	template<class PositionData>
-	void IndexedFaceMesh::updateNormals(const PositionData &pd)
+	void IndexedFaceMesh::updateNormals(const PositionData &pd, const unsigned int offset)
 	{
 		m_normals.resize(numFaces());
-		for (unsigned int i = 0u; i < numFaces(); i++)
+
+		#pragma omp parallel default(shared)
 		{
-			// Get first three points of face
-			const Eigen::Vector3f &a = pd.getPosition(m_indices[m_verticesPerFace*i]);
-			const Eigen::Vector3f &b = pd.getPosition(m_indices[m_verticesPerFace*i + 1]);
-			const Eigen::Vector3f &c = pd.getPosition(m_indices[m_verticesPerFace*i + 2]);
+			#pragma omp for schedule(static)  
+			for (int i = 0; i < (int) numFaces(); i++)
+			{
+				// Get first three points of face
+				const Vector3r &a = pd.getPosition(m_indices[m_verticesPerFace*i] + offset);
+				const Vector3r &b = pd.getPosition(m_indices[m_verticesPerFace*i + 1] + offset);
+				const Vector3r &c = pd.getPosition(m_indices[m_verticesPerFace*i + 2] + offset);
 
-			// Create normal
-			Eigen::Vector3f v1 = b - a;
-			Eigen::Vector3f v2 = c - a;
+				// Create normal
+				Vector3r v1 = b - a;
+				Vector3r v2 = c - a;
 
-			m_normals[i] = v1.cross(v2);
-			m_normals[i].normalize();
+				m_normals[i] = v1.cross(v2);
+				m_normals[i].normalize();
+			}
 		}
 	}
 
@@ -200,7 +205,7 @@ namespace PBD
 
 		for (unsigned int i = 0u; i < numFaces(); i++)
 		{
-			const Eigen::Vector3f &n = m_normals[i];
+			const Vector3r &n = m_normals[i];
 			m_vertexNormals[m_indices[m_verticesPerFace*i]] += n;
 			m_vertexNormals[m_indices[m_verticesPerFace*i + 1]] += n;
 			m_vertexNormals[m_indices[m_verticesPerFace*i + 2]] += n;

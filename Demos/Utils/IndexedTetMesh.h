@@ -2,7 +2,7 @@
 #define __INDEXEDTETMESH_H__
 
 #include <vector>
-#include <Eigen/Dense>
+#include "Common/Common.h"
 
 namespace PBD 
 {

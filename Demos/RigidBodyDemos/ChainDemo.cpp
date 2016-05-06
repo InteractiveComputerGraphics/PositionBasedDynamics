@@ -1,4 +1,4 @@
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
@@ -42,12 +42,12 @@ SimulationModel model;
 TimeStepController sim;
 
 const int numberOfBodies = 10;
-const float width = 1.0f;
-const float height = 0.1f;
-const float depth = 0.1f;
+const Real width = 1.0;
+const Real height = 0.1;
+const Real depth = 0.1;
 bool doPause = true;
 std::vector<unsigned int> selectedBodies;
-Eigen::Vector3f oldMousePos;
+Vector3r oldMousePos;
 Shader *shader;
 string exePath;
 string dataPath;
@@ -72,10 +72,10 @@ int main( int argc, char **argv )
 	buildModel ();
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3f (5.0, -10.0, 30.0), Vector3f (5.0, 0.0, 0.0));
+	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
+	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 
@@ -119,17 +119,17 @@ void reset()
 
 void mouseMove(int x, int y)
 {
-	Eigen::Vector3f mousePos;
+	Vector3r mousePos;
 	MiniGL::unproject(x, y, mousePos);
-	const Eigen::Vector3f diff = mousePos - oldMousePos;
+	const Vector3r diff = mousePos - oldMousePos;
 
 	TimeManager *tm = TimeManager::getCurrent();
-	const float h = tm->getTimeStepSize();
+	const Real h = tm->getTimeStepSize();
 
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	for (size_t j = 0; j < selectedBodies.size(); j++)
 	{
-		rb[selectedBodies[j]]->getVelocity() += 1.0f / h * diff;
+		rb[selectedBodies[j]]->getVelocity() += 1.0 / h * diff;
 	}
 	oldMousePos = mousePos;
 }
@@ -140,7 +140,7 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
  	selectedBodies.clear();
  
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f> > x;
+	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
 	x.resize(rb.size());
  	for (unsigned int i = 0; i < rb.size(); i++)
  	{
@@ -168,15 +168,15 @@ void timeStep ()
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (0.005f);
+	TimeManager::getCurrent ()->setTimeStepSize (0.005);
 
 	createBodyModel();
 }
 
 void renderBallJoint(BallJoint &bj)
 {
-	float jointColor[4] = { 0.0f, 0.6f, 0.2f, 1 };
-	MiniGL::drawSphere(bj.m_jointInfo.col(2), 1.25f*height, jointColor);
+	float jointColor[4] = { 0.0, 0.6f, 0.2f, 1 };
+	MiniGL::drawSphere(bj.m_jointInfo.col(2), 1.25f*(float) height, jointColor);
 }
 
 void render ()
@@ -194,7 +194,7 @@ void render ()
 	if (shader)
 	{
 		shader->begin();
-		glUniform1f(shader->getUniform("shininess"), 5.0f);
+		glUniform1f(shader->getUniform("shininess"), 5.0);
 		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
 
 		GLfloat matrix[16];
@@ -220,13 +220,13 @@ void render ()
 		{
 			if (shader)
 				glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
-			Visualization::drawMesh(vd, mesh, surfaceColor);
+			Visualization::drawMesh(vd, mesh, 0, surfaceColor);
 		}
 		else
 		{
 			if (shader)
 				glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
-			Visualization::drawMesh(vd, mesh, selectionColor);
+			Visualization::drawMesh(vd, mesh, 0, selectionColor);
 		}
 	}
 	if (shader)
@@ -254,48 +254,48 @@ void createBodyModel()
 	string fileName = dataPath + "/models/cube.obj";
 	IndexedFaceMesh mesh;
 	VertexData vd;
-	OBJLoader::loadObj(fileName, vd, mesh, Eigen::Vector3f(width, height, depth));
+	OBJLoader::loadObj(fileName, vd, mesh, Vector3r(width, height, depth));
 
 	string fileName2 = dataPath + "/models/bunny_10k.obj";
 	IndexedFaceMesh mesh2;
 	VertexData vd2;
-	OBJLoader::loadObj(fileName2, vd2, mesh2, Eigen::Vector3f(2.0f, 2.0f, 2.0f));
+	OBJLoader::loadObj(fileName2, vd2, mesh2, Vector3r(2.0, 2.0, 2.0));
 
 	rb.resize(numberOfBodies);	
-	const float density = 1.0f;
+	const Real density = 1.0;
 	for (unsigned int i = 0; i < numberOfBodies-1; i++)
 	{			
 		rb[i] = new RigidBody();
 		rb[i]->initBody(density, 
-			Eigen::Vector3f((float)i*width, 0.0f, 0.0f),
-			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f), 
+			Vector3r((Real)i*width, 0.0, 0.0),
+			Quaternionr(1.0, 0.0, 0.0, 0.0), 
 			vd, mesh);
 	}
 	// Make first body static
-	rb[0]->setMass(0.0f);
+	rb[0]->setMass(0.0);
 
 	// bunny
-	const Eigen::Quaternionf q(Eigen::AngleAxisf((float) (1.0/6.0*M_PI), Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
-	const Eigen::Vector3f t(0.411f + ((float)numberOfBodies - 1.0f)*width, -1.776f, 0.356f);
+	const Quaternionr q(AngleAxisr((1.0/6.0*M_PI), Vector3r(0.0, 0.0, 1.0)));
+	const Vector3r t(0.411 + ((Real)numberOfBodies - 1.0)*width, -1.776, 0.356);
 	rb[numberOfBodies - 1] = new RigidBody();
 	rb[numberOfBodies - 1]->initBody(density, t, q, vd2, mesh2);
 
 	constraints.reserve(numberOfBodies - 1);
 	for (unsigned int i = 0; i < numberOfBodies-1; i++)
 	{
-		model.addBallJoint(i, i + 1, Eigen::Vector3f((float)i*width + 0.5f*width, 0.0f, 0.0f));
+		model.addBallJoint(i, i + 1, Vector3r((Real)i*width + 0.5*width, 0.0, 0.0));
 	}
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	TimeManager::getCurrent()->setTimeStepSize(val);
 }
 
 void TW_CALL getTimeStep(void *value, void *clientData)
 {
-	*(float *)(value) = TimeManager::getCurrent()->getTimeStepSize();
+	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
 }
 
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)

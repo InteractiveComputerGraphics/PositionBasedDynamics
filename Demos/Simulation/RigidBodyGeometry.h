@@ -1,7 +1,8 @@
 #ifndef __RIGIDBODYGEOMETRY_H__
 #define __RIGIDBODYGEOMETRY_H__
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
+#include "Common/Common.h"
 #include "Demos/Utils/IndexedFaceMesh.h"
 #include "Demos/Simulation/ParticleData.h"
 #include <vector>
@@ -28,8 +29,8 @@ namespace PBD
 			VertexData &getVertexDataLocal();
 			const VertexData &getVertexDataLocal() const;
 
-			void initMesh(const unsigned int nVertices, const unsigned int nFaces, const Eigen::Vector3f *vertices, const unsigned int* indices, const Mesh::UVIndices& uvIndices, const Mesh::UVs& uvs);
-			void updateMeshTransformation(const Eigen::Vector3f &x, const Eigen::Matrix3f &R);
+			void initMesh(const unsigned int nVertices, const unsigned int nFaces, const Vector3r *vertices, const unsigned int* indices, const Mesh::UVIndices& uvIndices, const Mesh::UVs& uvs, const Vector3r &scale = Vector3r(1.0, 1.0, 1.0));
+			void updateMeshTransformation(const Vector3r &x, const Matrix3r &R);
 			void updateMeshNormals(const VertexData &vd);
 			
 	};

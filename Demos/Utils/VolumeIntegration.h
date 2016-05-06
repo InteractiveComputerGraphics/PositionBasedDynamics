@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 
-#include <Eigen/Dense>
+#include "Common/Common.h"
 #include "Demos/Utils/IndexedFaceMesh.h"
 #include "Demos/Simulation/ParticleData.h"
 
@@ -21,14 +21,14 @@ namespace PBD
 		int C;
 
 		// projection integrals 
-		float P1, Pa, Pb, Paa, Pab, Pbb, Paaa, Paab, Pabb, Pbbb;
+		Real P1, Pa, Pb, Paa, Pab, Pbb, Paaa, Paab, Pabb, Pbbb;
 		// face integrals 
-		float Fa, Fb, Fc, Faa, Fbb, Fcc, Faaa, Fbbb, Fccc, Faab, Fbbc, Fcca;
+		Real Fa, Fb, Fc, Faa, Fbb, Fcc, Faaa, Fbbb, Fccc, Faab, Fbbc, Fcca;
 		// volume integrals 
-		float T0;
-		float T1[3];
-		float T2[3];
-		float TP[3];
+		Real T0;
+		Real T1[3];
+		Real T2[3];
+		Real TP[3];
 
 	public:
 
@@ -36,16 +36,16 @@ namespace PBD
 
 		/** Compute inertia tensor for given geometry and given density. 
 		*/
-		void compute_inertia_tensor(float density);
+		void compute_inertia_tensor(Real density);
 
 		/** Return mass of body. */
-		float getMass() const { return m_mass; }
+		Real getMass() const { return m_mass; }
 		/** Return volume of body. */
-		float getVolume() const { return m_volume; }
+		Real getVolume() const { return m_volume; }
 		/** Return inertia tensor of body. */
-		Eigen::Matrix3f const& getInertia() const { return m_theta; }
+		Matrix3r const& getInertia() const { return m_theta; }
 		/** Return center of mass. */
-		Eigen::Vector3f const& getCenterOfMass() const { return m_r; }
+		Vector3r const& getCenterOfMass() const { return m_r; }
 
 	private:
 
@@ -57,14 +57,15 @@ namespace PBD
 		void projection_integrals(unsigned int i);
 
 
-		std::vector<Eigen::Vector3f> m_face_normals;
-		std::vector<float> m_weights;
+		std::vector<Vector3r> m_face_normals;
+		std::vector<Real> m_weights;
 		IndexedFaceMesh const& m_mesh;
-		VertexData const& m_vertices;
+		VertexData m_vertices;
 
-		float m_mass, m_volume;
-		Eigen::Vector3f m_r;
-		Eigen::Matrix3f m_theta;
+		Real m_mass, m_volume;
+		Vector3r m_r;
+		Vector3r m_x;
+		Matrix3r m_theta;
 	};
 }
 

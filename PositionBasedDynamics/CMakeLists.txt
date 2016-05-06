@@ -1,4 +1,6 @@
 add_library(PositionBasedDynamics
+		 ${PROJECT_PATH}/Common/Common.h
+		
 		MathFunctions.cpp
 		MathFunctions.h
 		PositionBasedDynamics.cpp
@@ -12,6 +14,7 @@ add_library(PositionBasedDynamics
 		SPHKernels.h
 		TimeIntegration.cpp
 		TimeIntegration.h
+		
 		CMakeLists.txt
 )
 

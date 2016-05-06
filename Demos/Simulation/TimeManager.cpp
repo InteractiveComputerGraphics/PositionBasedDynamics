@@ -7,7 +7,7 @@ TimeManager* TimeManager::current = 0;
 TimeManager::TimeManager () 
 {
 	time = 0;
-	h = 0.005f;
+	h = 0.005;
 }
 
 TimeManager::~TimeManager () 
@@ -34,22 +34,22 @@ bool TimeManager::hasCurrent()
 	return (current != 0);
 }
 
-float TimeManager::getTime()
+Real TimeManager::getTime()
 {
 	return time;
 }
 
-void TimeManager::setTime(float t)
+void TimeManager::setTime(Real t)
 {
 	time = t;
 }
 
-float TimeManager::getTimeStepSize()
+Real TimeManager::getTimeStepSize()
 {
 	return h;
 }
 
-void TimeManager::setTimeStepSize(float tss)
+void TimeManager::setTimeStepSize(Real tss)
 {
 	h = tss;
 }

@@ -103,9 +103,9 @@ void IndexedFaceMesh::addFace(const int * const indices)
 		m_indices.push_back((unsigned int) indices[i]);
 }
 
-void IndexedFaceMesh::addUV(const float u, const float v)
+void IndexedFaceMesh::addUV(const Real u, const Real v)
 {
-	Eigen::Vector2f uv;
+	Vector2r uv;
 	uv[0] = u;
 	uv[1] = v;
 	m_uvs.push_back(uv);

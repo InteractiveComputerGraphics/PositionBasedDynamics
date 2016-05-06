@@ -7,9 +7,9 @@ using namespace PBD;
 FluidModel::FluidModel() :
 	m_particles()
 {	
-	m_density0 = 1000.0f;
-	m_particleRadius = 0.025f;
-	viscosity = 0.02f;
+	m_density0 = 1000.0;
+	m_particleRadius = 0.025;
+	viscosity = 0.02;
 	m_neighborhoodSearch = NULL;
 }
 
@@ -33,15 +33,15 @@ void FluidModel::reset()
 	
 	for(unsigned int i=0; i < nPoints; i++)
 	{
-		const Eigen::Vector3f& x0 = m_particles.getPosition0(i);
+		const Vector3r& x0 = m_particles.getPosition0(i);
 		m_particles.getPosition(i) = x0;
 		m_particles.getLastPosition(i) = m_particles.getPosition(i);
 		m_particles.getOldPosition(i) = m_particles.getPosition(i);
 		m_particles.getVelocity(i).setZero();
 		m_particles.getAcceleration(i).setZero();
 		m_deltaX[i].setZero();
-		m_lambda[i] = 0.0f;
-		m_density[i] = 0.0f;
+		m_lambda[i] = 0.0;
+		m_density[i] = 0.0;
 	}
 }
 
@@ -53,14 +53,14 @@ ParticleData & PBD::FluidModel::getParticles()
 void FluidModel::initMasses()
 {
 	const int nParticles = (int) m_particles.size();
-	const float diam = 2.0f*m_particleRadius;
+	const Real diam = 2.0*m_particleRadius;
 
 	#pragma omp parallel default(shared)
 	{
 		#pragma omp for schedule(static)  
 		for (int i = 0; i < nParticles; i++)
 		{
-			m_particles.setMass(i, 0.8f * diam*diam*diam * m_density0);		// each particle represents a cube with a side length of r		
+			m_particles.setMass(i, 0.8 * diam*diam*diam * m_density0);		// each particle represents a cube with a side length of r		
 																			// mass is slightly reduced to prevent pressure at the beginning of the simulation
 		}
 	}
@@ -88,7 +88,7 @@ void FluidModel::releaseFluidParticles()
 	m_deltaX.clear();
 }
 
-void FluidModel::initModel(const unsigned int nFluidParticles, Eigen::Vector3f* fluidParticles, const unsigned int nBoundaryParticles, Eigen::Vector3f* boundaryParticles)
+void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidParticles, const unsigned int nBoundaryParticles, Vector3r* boundaryParticles)
 {
 	releaseFluidParticles();
 	resizeFluidParticles(nFluidParticles);
@@ -139,13 +139,13 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Eigen::Vector3f* 
 		#pragma omp for schedule(static)  
 		for (int i = 0; i < (int) nBoundaryParticles; i++)
 		{
-			float delta = CubicKernel::W_zero();
+			Real delta = CubicKernel::W_zero();
 			for (unsigned int j = 0; j < numNeighbors[i]; j++)
 			{
 				const unsigned int neighborIndex = neighbors[i][j];
 				delta += CubicKernel::W(m_boundaryX[i] - m_boundaryX[neighborIndex]);
 			}
-			const float volume = 1.0f / delta;
+			const Real volume = 1.0 / delta;
 			m_boundaryPsi[i] = m_density0 * volume;
 		}
 	}

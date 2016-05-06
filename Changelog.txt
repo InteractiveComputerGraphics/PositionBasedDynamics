@@ -1,3 +1,11 @@
+1.5.0
+	- added SceneGenerator.py to generate new scenarios easily by simple Python scripting
+	- added scene loader demo
+	- added scene loader based on json 
+	- added collision demos
+	- added collision detection based on distance functions
+	- added collision handling for rigid and deformable bodies
+	- high resolution visualization mesh can be attached to a deformable body
 	- added support for Mac OS X
 	- added shader support
 	- added automatic computation of inertia tensor for arbitrary triangle meshes

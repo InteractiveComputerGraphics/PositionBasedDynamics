@@ -6,22 +6,28 @@ using namespace PBD;
 
 SimulationModel::SimulationModel()
 {
-	m_cloth_stiffness = 1.0f;
-	m_cloth_bendingStiffness = 0.01f;
-	m_cloth_xxStiffness = 1.0f;
-	m_cloth_yyStiffness = 1.0f;
-	m_cloth_xyStiffness = 1.0f;
-	m_cloth_xyPoissonRatio = 0.3f;
-	m_cloth_yxPoissonRatio = 0.3f;
+	m_cloth_stiffness = 1.0;
+	m_cloth_bendingStiffness = 0.01;
+	m_cloth_xxStiffness = 1.0;
+	m_cloth_yyStiffness = 1.0;
+	m_cloth_xyStiffness = 1.0;
+	m_cloth_xyPoissonRatio = 0.3;
+	m_cloth_yxPoissonRatio = 0.3;
 	m_cloth_normalizeShear = false;
 	m_cloth_normalizeStretch = false;
 
-	m_solid_stiffness = 1.0f;
-	m_solid_poissonRatio = 0.3f;
+	m_solid_stiffness = 1.0;
+	m_solid_poissonRatio = 0.3;
 	m_solid_normalizeShear = false;
 	m_solid_normalizeStretch = false;
 
+	m_contactStiffnessRigidBody = 1.0;
+	m_contactStiffnessParticleRigidBody = 100.0;
+
 	m_groupsInitialized = false;
+
+	m_rigidBodyContactConstraints.reserve(10000);
+	m_particleRigidBodyContactConstraints.reserve(10000);
 }
 
 SimulationModel::~SimulationModel(void)
@@ -31,6 +37,7 @@ SimulationModel::~SimulationModel(void)
 
 void SimulationModel::cleanup()
 {
+	resetContacts();
 	for (unsigned int i = 0; i < m_rigidBodies.size(); i++)
 		delete m_rigidBodies[i];
 	m_rigidBodies.clear();
@@ -44,10 +51,13 @@ void SimulationModel::cleanup()
 		delete m_constraints[i];
 	m_constraints.clear();
 	m_particles.release();
+	m_groupsInitialized = false;
 }
 
 void SimulationModel::reset()
 {
+	resetContacts();
+
 	// rigid bodies
 	for (size_t i = 0; i < m_rigidBodies.size(); i++)
 	{
@@ -58,7 +68,7 @@ void SimulationModel::reset()
 	// particles
 	for (unsigned int i = 0; i < m_particles.size(); i++)
 	{
-		const Eigen::Vector3f& x0 = m_particles.getPosition0(i);
+		const Vector3r& x0 = m_particles.getPosition0(i);
 		m_particles.getPosition(i) = x0;
 		m_particles.getLastPosition(i) = m_particles.getPosition(i);
 		m_particles.getOldPosition(i) = m_particles.getPosition(i);
@@ -94,6 +104,16 @@ SimulationModel::ConstraintVector & SimulationModel::getConstraints()
 	return m_constraints;
 }
 
+SimulationModel::RigidBodyContactConstraintVector & SimulationModel::getRigidBodyContactConstraints()
+{
+	return m_rigidBodyContactConstraints;
+}
+
+SimulationModel::ParticleRigidBodyContactConstraintVector & SimulationModel::getParticleRigidBodyContactConstraints()
+{
+	return m_particleRigidBodyContactConstraints;
+}
+
 SimulationModel::ConstraintGroupVector & SimulationModel::getConstraintGroups()
 {
 	return m_constraintGroups;
@@ -106,7 +126,7 @@ void SimulationModel::updateConstraints()
 }
 
 
-bool SimulationModel::addBallJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos)
+bool SimulationModel::addBallJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos)
 {
 	BallJoint *bj = new BallJoint();
 	const bool res = bj->initConstraint(*this, rbIndex1, rbIndex2, pos);
@@ -118,7 +138,7 @@ bool SimulationModel::addBallJoint(const unsigned int rbIndex1, const unsigned i
 	return res;
 }
 
-bool SimulationModel::addBallOnLineJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &dir)
+bool SimulationModel::addBallOnLineJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &dir)
 {
 	BallOnLineJoint *bj = new BallOnLineJoint();
 	const bool res = bj->initConstraint(*this, rbIndex1, rbIndex2, pos, dir);
@@ -130,7 +150,7 @@ bool SimulationModel::addBallOnLineJoint(const unsigned int rbIndex1, const unsi
 	return res;
 }
 
-bool SimulationModel::addHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+bool SimulationModel::addHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
 {
 	HingeJoint *hj = new HingeJoint();
 	const bool res = hj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
@@ -142,7 +162,7 @@ bool SimulationModel::addHingeJoint(const unsigned int rbIndex1, const unsigned 
 	return res;
 }
 
-bool SimulationModel::addUniversalJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis1, const Eigen::Vector3f &axis2)
+bool SimulationModel::addUniversalJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis1, const Vector3r &axis2)
 {
 	UniversalJoint *uj = new UniversalJoint();
 	const bool res = uj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis1, axis2);
@@ -154,7 +174,7 @@ bool SimulationModel::addUniversalJoint(const unsigned int rbIndex1, const unsig
 	return res;
 }
 
-bool SimulationModel::addSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+bool SimulationModel::addSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
 {
 	SliderJoint *joint = new SliderJoint();
 	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
@@ -166,7 +186,7 @@ bool SimulationModel::addSliderJoint(const unsigned int rbIndex1, const unsigned
 	return res;
 }
 
-bool SimulationModel::addTargetPositionMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+bool SimulationModel::addTargetPositionMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
 {
 	TargetPositionMotorSliderJoint *joint = new TargetPositionMotorSliderJoint();
 	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
@@ -178,7 +198,7 @@ bool SimulationModel::addTargetPositionMotorSliderJoint(const unsigned int rbInd
 	return res;
 }
 
-bool SimulationModel::addTargetVelocityMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+bool SimulationModel::addTargetVelocityMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
 {
 	TargetVelocityMotorSliderJoint *joint = new TargetVelocityMotorSliderJoint();
 	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
@@ -191,7 +211,7 @@ bool SimulationModel::addTargetVelocityMotorSliderJoint(const unsigned int rbInd
 }
 
 
-bool SimulationModel::addTargetAngleMotorHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+bool SimulationModel::addTargetAngleMotorHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
 {
 	TargetAngleMotorHingeJoint *hj = new TargetAngleMotorHingeJoint();
 	const bool res = hj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
@@ -203,7 +223,7 @@ bool SimulationModel::addTargetAngleMotorHingeJoint(const unsigned int rbIndex1,
 	return res;
 }
 
-bool SimulationModel::addTargetVelocityMotorHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Eigen::Vector3f &pos, const Eigen::Vector3f &axis)
+bool SimulationModel::addTargetVelocityMotorHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
 {
 	TargetVelocityMotorHingeJoint *hj = new TargetVelocityMotorHingeJoint();
 	const bool res = hj->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
@@ -225,6 +245,30 @@ bool SimulationModel::addRigidBodyParticleBallJoint(const unsigned int rbIndex, 
 		m_groupsInitialized = false;
 	}
 	return res;
+}
+
+bool SimulationModel::addRigidBodyContactConstraint(const unsigned int rbIndex1, const unsigned int rbIndex2, 
+	const Vector3r &cp1, const Vector3r &cp2, 
+	const Vector3r &normal, const Real dist,
+	const Real restitutionCoeff, const Real frictionCoeff)
+{
+	RigidBodyContactConstraint &cc = m_rigidBodyContactConstraints.create();
+	const bool res = cc.initConstraint(*this, rbIndex1, rbIndex2, cp1, cp2, normal, dist, restitutionCoeff, m_contactStiffnessRigidBody, frictionCoeff);
+	if (!res)
+		m_rigidBodyContactConstraints.pop_back();
+	return res;
+}
+
+ bool SimulationModel::addParticleRigidBodyContactConstraint(const unsigned int particleIndex, const unsigned int rbIndex, 
+ 	const Vector3r &cp1, const Vector3r &cp2, 
+ 	const Vector3r &normal, const Real dist,
+ 	const Real restitutionCoeff, const Real frictionCoeff)
+{
+ 	ParticleRigidBodyContactConstraint &cc = m_particleRigidBodyContactConstraints.create();
+ 	const bool res = cc.initConstraint(*this, particleIndex, rbIndex, cp1, cp2, normal, dist, restitutionCoeff, m_contactStiffnessParticleRigidBody, frictionCoeff);
+ 	if (!res)
+ 		m_particleRigidBodyContactConstraints.pop_back();
+ 	return res;
 }
 
 bool SimulationModel::addDistanceConstraint(const unsigned int particle1, const unsigned int particle2)
@@ -346,7 +390,7 @@ bool SimulationModel::addShapeMatchingConstraint(const unsigned int numberOfPart
 void SimulationModel::addTriangleModel(
 	const unsigned int nPoints, 
 	const unsigned int nFaces, 
-	Eigen::Vector3f *points,
+	Vector3r *points,
 	unsigned int* indices, 
 	const TriangleModel::ParticleMesh::UVIndices& uvIndices, 
 	const TriangleModel::ParticleMesh::UVs& uvs)
@@ -369,7 +413,7 @@ void SimulationModel::addTriangleModel(
 void SimulationModel::addTetModel(
 	const unsigned int nPoints,
 	const unsigned int nTets,
-	Eigen::Vector3f *points,
+	Vector3r *points,
 	unsigned int* indices)
 {
 	TetModel *tetModel = new TetModel();
@@ -448,3 +492,10 @@ void SimulationModel::initConstraintGroups()
 
 	m_groupsInitialized = true;
 }
+
+void SimulationModel::resetContacts()
+{
+	m_rigidBodyContactConstraints.reset();
+	m_particleRigidBodyContactConstraints.reset();
+}
+

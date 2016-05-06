@@ -1,7 +1,7 @@
 #ifndef MATH_FUNCTIONS_H
 #define MATH_FUNCTIONS_H
 
-#include <Eigen/Dense>
+#include "Common/Common.h"
 
 // ------------------------------------------------------------------------------------
 namespace PBD
@@ -9,40 +9,40 @@ namespace PBD
 	class MathFunctions
 	{
 	private:
-		static void jacobiRotate(Eigen::Matrix3f &A,
-			Eigen::Matrix3f &R,
+		static void jacobiRotate(Matrix3r &A,
+			Matrix3r &R,
 			int p,
 			int q);
 
 	public:
-		static float infNorm(const Eigen::Matrix3f &A);
-		static float oneNorm(const Eigen::Matrix3f &A);
+		static Real infNorm(const Matrix3r &A);
+		static Real oneNorm(const Matrix3r &A);
 
-		static void eigenDecomposition(const Eigen::Matrix3f &A,
-			Eigen::Matrix3f &eigenVecs,
-			Eigen::Vector3f &eigenVals);
+		static void eigenDecomposition(const Matrix3r &A,
+			Matrix3r &eigenVecs,
+			Vector3r &eigenVals);
 
-		static void polarDecomposition(const Eigen::Matrix3f &A,
-			Eigen::Matrix3f &R,
-			Eigen::Matrix3f &U,
-			Eigen::Matrix3f &D);
+		static void polarDecomposition(const Matrix3r &A,
+			Matrix3r &R,
+			Matrix3r &U,
+			Matrix3r &D);
 
-		static void polarDecompositionStable(const Eigen::Matrix3f &M,
-			const float tolerance,
-			Eigen::Matrix3f &R);
+		static void polarDecompositionStable(const Matrix3r &M,
+			const Real tolerance,
+			Matrix3r &R);
 
-		static void svdWithInversionHandling(const Eigen::Matrix3f &A,
-			Eigen::Vector3f &sigma,
-			Eigen::Matrix3f &U,
-			Eigen::Matrix3f &VT);
+		static void svdWithInversionHandling(const Matrix3r &A,
+			Vector3r &sigma,
+			Matrix3r &U,
+			Matrix3r &VT);
 
-		static float cotTheta(const Eigen::Vector3f &v, const Eigen::Vector3f &w);
+		static Real cotTheta(const Vector3r &v, const Vector3r &w);
 
 		/** Computes the cross product matrix of a vector.
 		 * @param  v		input vector
 		 * @param  v_hat	resulting cross product matrix
 		 */	
-		static void crossProductMatrix(const Eigen::Vector3f &v, Eigen::Matrix3f &v_hat);
+		static void crossProductMatrix(const Vector3r &v, Matrix3r &v_hat);
 	};
 }
 

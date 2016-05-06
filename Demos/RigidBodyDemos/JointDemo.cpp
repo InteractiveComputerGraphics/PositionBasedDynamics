@@ -1,4 +1,4 @@
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
@@ -42,18 +42,18 @@ void TW_CALL getMaxIterations(void *value, void *clientData);
 SimulationModel model;
 TimeStepController sim;
 
-const float width = 0.4f;
-const float height = 0.4f;
-const float depth = 2.0f;
+const Real width = 0.4;
+const Real height = 0.4;
+const Real depth = 2.0;
 bool doPause = true;
 std::vector<unsigned int> selectedBodies;
-Eigen::Vector3f oldMousePos;
+Vector3r oldMousePos;
 Shader *shader;
 string exePath;
 string dataPath;
-float jointColor[4] = { 0.0f, 0.4f, 0.2f, 1.0f };
-float dynamicBodyColor[4] = { 0.1f, 0.4f, 0.8f, 1.0f };
-float staticBodyColor[4] = { 0.4f, 0.4f, 0.4f, 1.0f };
+float jointColor[4] = { 0.0f, 0.4f, 0.2f, 1.0 };
+float dynamicBodyColor[4] = { 0.1f, 0.4f, 0.8f, 1.0 };
+float staticBodyColor[4] = { 0.4f, 0.4f, 0.4f, 1.0 };
 
 // main 
 int main( int argc, char **argv )
@@ -74,10 +74,10 @@ int main( int argc, char **argv )
 	buildModel ();
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (60.0f, 0.1f, 500.0f, Vector3f (6.0f, -5.5f, 15.0f), Vector3f (6.0f, -3.0f, 0.0f));
+	MiniGL::setViewport (60.0, 0.1f, 500.0, Vector3r (6.0, 1.0, 15.0), Vector3r (6.0, -3.0, 0.0));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
+	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 	TwAddVarCB(MiniGL::getTweakBar(), "MaxIter", TW_TYPE_UINT32, setMaxIterations, getMaxIterations, &sim, " label='Max. iterations'  min=1 step=1 group=Simulation ");
@@ -123,17 +123,17 @@ void reset()
 
 void mouseMove(int x, int y)
 {
-	Eigen::Vector3f mousePos;
+	Vector3r mousePos;
 	MiniGL::unproject(x, y, mousePos);
-	const Eigen::Vector3f diff = mousePos - oldMousePos;
+	const Vector3r diff = mousePos - oldMousePos;
 
 	TimeManager *tm = TimeManager::getCurrent();
-	const float h = tm->getTimeStepSize();
+	const Real h = tm->getTimeStepSize();
 
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	for (size_t j = 0; j < selectedBodies.size(); j++)
 	{
-		rb[selectedBodies[j]]->getVelocity() += 1.0f / h * diff;
+		rb[selectedBodies[j]]->getVelocity() += 1.0 / h * diff;
 	}
 	oldMousePos = mousePos;
 }
@@ -144,7 +144,7 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
  	selectedBodies.clear();
  
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f> > x;
+	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
 	x.resize(rb.size());
  	for (unsigned int i = 0; i < rb.size(); i++)
  	{
@@ -171,19 +171,19 @@ void timeStep ()
 		sim.step(model);
 
 		// set target angle of motors for an animation
-		const float currentTargetAngle = (float)M_PI * 0.5f - (float)M_PI * 0.5f * cos(0.25f*TimeManager::getCurrent()->getTime());
+		const Real currentTargetAngle = (Real)M_PI * 0.5 - (Real)M_PI * 0.5 * cos(0.25*TimeManager::getCurrent()->getTime());
 		SimulationModel::ConstraintVector &constraints = model.getConstraints();
 		TargetAngleMotorHingeJoint &joint1 = (*(TargetAngleMotorHingeJoint*)constraints[8]);
 		TargetVelocityMotorHingeJoint &joint2 = (*(TargetVelocityMotorHingeJoint*)constraints[9]);
 		joint1.setTargetAngle(currentTargetAngle);
-		joint2.setTargetAngularVelocity(3.5f);
+		joint2.setTargetAngularVelocity(3.5);
 
-		const float currentTargetPos = 1.5f*sin(2.0f*TimeManager::getCurrent()->getTime());
+		const Real currentTargetPos = 1.5*sin(2.0*TimeManager::getCurrent()->getTime());
 		TargetPositionMotorSliderJoint &joint3 = (*(TargetPositionMotorSliderJoint*)constraints[12]);
 		joint3.setTargetPosition(currentTargetPos);
 
-		float currentTargetVel = 0.25f;
-		if (((int) (0.25f*TimeManager::getCurrent()->getTime())) % 2 == 1)
+		Real currentTargetVel = 0.25;
+		if (((int) (0.25*TimeManager::getCurrent()->getTime())) % 2 == 1)
 			currentTargetVel = -currentTargetVel;
 		TargetVelocityMotorSliderJoint &joint4 = (*(TargetVelocityMotorSliderJoint*)constraints[14]);
 		joint4.setTargetVelocity(currentTargetVel);
@@ -192,7 +192,7 @@ void timeStep ()
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (0.005f);
+	TimeManager::getCurrent ()->setTimeStepSize (0.005);
 
 	createBodyModel();
 }
@@ -271,7 +271,7 @@ void render ()
 	if (shader)
 	{
 		shader->begin();
-		glUniform1f(shader->getUniform("shininess"), 5.0f);
+		glUniform1f(shader->getUniform("shininess"), 5.0);
 		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
 
 		GLfloat matrix[16];
@@ -293,11 +293,11 @@ void render ()
 
 		const VertexData &vd = rb[i]->getGeometry().getVertexData();
 		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
-		if (rb[i]->getMass() == 0.0f)
+		if (rb[i]->getMass() == 0.0)
 		{
 			if (shader)
 				glUniform3fv(shader->getUniform("surface_color"), 1, staticBodyColor);
-			Visualization::drawMesh(vd, mesh, staticBodyColor);
+			Visualization::drawMesh(vd, mesh, 0, staticBodyColor);
 		}
 		else
 		{
@@ -305,13 +305,13 @@ void render ()
 			{
 				if (shader)
 					glUniform3fv(shader->getUniform("surface_color"), 1, dynamicBodyColor);
-				Visualization::drawMesh(vd, mesh, dynamicBodyColor);
+				Visualization::drawMesh(vd, mesh, 0, dynamicBodyColor);
 			}
 			else
 			{
 				if (shader)
 					glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
-				Visualization::drawMesh(vd, mesh, selectionColor);
+				Visualization::drawMesh(vd, mesh, 0, selectionColor);
 			}
 		}		
 	}
@@ -358,27 +358,27 @@ void render ()
 		}
 	}
 
-	float textColor[4] = { 0.0f, .2f, .4f, 1 };
-	MiniGL::drawStrokeText(-0.5f, 1.5f, 1.0f, 0.002f, "ball joint", 11, textColor);
-	MiniGL::drawStrokeText(3.0f, 1.5f, 1.0f, 0.002f, "ball-on-line joint", 19, textColor);
-	MiniGL::drawStrokeText(7.3f, 1.5f, 1.0f, 0.002f, "hinge joint", 12, textColor);
-	MiniGL::drawStrokeText(11.2f, 1.5f, 1.0f, 0.002f, "universal joint", 15, textColor);
+	float textColor[4] = { 0.0, .2f, .4f, 1 };
+	MiniGL::drawStrokeText(-0.5, 1.5, 1.0, 0.002f, "ball joint", 11, textColor);
+	MiniGL::drawStrokeText(3.0, 1.5, 1.0, 0.002f, "ball-on-line joint", 19, textColor);
+	MiniGL::drawStrokeText(7.3f, 1.5, 1.0, 0.002f, "hinge joint", 12, textColor);
+	MiniGL::drawStrokeText(11.2f, 1.5, 1.0, 0.002f, "universal joint", 15, textColor);
 
-	MiniGL::drawStrokeText(-1.0f, -4.0f, 1.0f, 0.002f, "motor hinge joint", 17, textColor);
-	MiniGL::drawStrokeText(3.4f, -4.0f, 1.0f, 0.002f, "slider joint", 12, textColor);
-	MiniGL::drawStrokeText(6.6f, -4.0f, 1.0f, 0.002f, "target position motor", 21, textColor);
-	MiniGL::drawStrokeText(10.6f, -4.0f, 1.0f, 0.002f, "target velocity motor", 21, textColor);
+	MiniGL::drawStrokeText(-1.0, -4.0, 1.0, 0.002f, "motor hinge joint", 17, textColor);
+	MiniGL::drawStrokeText(3.4f, -4.0, 1.0, 0.002f, "slider joint", 12, textColor);
+	MiniGL::drawStrokeText(6.6f, -4.0, 1.0, 0.002f, "target position motor", 21, textColor);
+	MiniGL::drawStrokeText(10.6f, -4.0, 1.0, 0.002f, "target velocity motor", 21, textColor);
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
 
 // Compute diagonal inertia tensor
-Eigen::Vector3f computeInertiaTensorBox(const float mass, const float width, const float height, const float depth)
+Vector3r computeInertiaTensorBox(const Real mass, const Real width, const Real height, const Real depth)
 {
-	const float Ix = (mass / 12.0f) * (height*height + depth*depth);
-	const float Iy = (mass / 12.0f) * (width*width + depth*depth);
-	const float Iz = (mass / 12.0f) * (width*width + height*height);
-	return Eigen::Vector3f(Ix, Iy, Iz);
+	const Real Ix = (mass / 12.0) * (height*height + depth*depth);
+	const Real Iy = (mass / 12.0) * (width*width + depth*depth);
+	const Real Iz = (mass / 12.0) * (width*width + height*height);
+	return Vector3r(Ix, Iy, Iz);
 }
 
 
@@ -391,96 +391,96 @@ void createBodyModel()
 	string fileName = dataPath + "/models/cube.obj";
 	IndexedFaceMesh mesh;
 	VertexData vd;
-	OBJLoader::loadObj(fileName, vd, mesh, Eigen::Vector3f(width, height, depth));
+	OBJLoader::loadObj(fileName, vd, mesh, Vector3r(width, height, depth));
 	IndexedFaceMesh meshStatic;
 	VertexData vdStatic;
-	OBJLoader::loadObj(fileName, vdStatic, meshStatic, Eigen::Vector3f(0.5f, 0.5f, 0.5f));
+	OBJLoader::loadObj(fileName, vdStatic, meshStatic, Vector3r(0.5, 0.5, 0.5));
 
 	// static body
 	const unsigned int numberOfBodies = 24;
 	rb.resize(numberOfBodies);
-	float startX = 0.0f;
-	float startY = 1.0f;
+	Real startX = 0.0;
+	Real startY = 1.0;
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		rb[3*i] = new RigidBody();
-		rb[3*i]->initBody(0.0f,
-			Eigen::Vector3f(startX, startY, 1.0f),
-			computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		rb[3*i]->initBody(0.0,
+			Vector3r(startX, startY, 1.0),
+			computeInertiaTensorBox(1.0, 0.5, 0.5, 0.5),
+			Quaternionr(1.0, 0.0, 0.0, 0.0),
 			vdStatic, meshStatic);
 
 		// dynamic body
 		rb[3*i+1] = new RigidBody();
-		rb[3*i+1]->initBody(1.0f,
-			Eigen::Vector3f(startX, startY-0.25f, 2.0f),
-			computeInertiaTensorBox(1.0f, width, height, depth),
-			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		rb[3*i+1]->initBody(1.0,
+			Vector3r(startX, startY-0.25, 2.0),
+			computeInertiaTensorBox(1.0, width, height, depth),
+			Quaternionr(1.0, 0.0, 0.0, 0.0),
 			vd, mesh);
 
 		// dynamic body
 		rb[3 * i + 2] = new RigidBody();
-		rb[3 * i + 2]->initBody(1.0f,
-			Eigen::Vector3f(startX, startY - 0.25f, 4.0f),
-			computeInertiaTensorBox(1.0f, width, height, depth),
-			Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+		rb[3 * i + 2]->initBody(1.0,
+			Vector3r(startX, startY - 0.25, 4.0),
+			computeInertiaTensorBox(1.0, width, height, depth),
+			Quaternionr(1.0, 0.0, 0.0, 0.0),
 			vd, mesh);
 		
-		startX += 4.0f;
+		startX += 4.0;
 
 		if (i == 3)
 		{
-			startY -= 5.5f;
-			startX = 0.0f;
+			startY -= 5.5;
+			startX = 0.0;
 		}
 	}
 
 // 	// create geometries
 // 	for (unsigned int i = 0; i < numberOfBodies; i++)
 // 	{
-// 		if (rb[i]->getMass() != 0.0f)
+// 		if (rb[i]->getMass() != 0.0)
 // 			rb[i]->getGeometry().initMesh(vd.size(), mesh.numFaces(), &vd.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs());
 // 		else
 // 			rb[i]->getGeometry().initMesh(vdStatic.size(), meshStatic.numFaces(), &vdStatic.getPosition(0), meshStatic.getFaces().data(), meshStatic.getUVIndices(), meshStatic.getUVs());
 // 		rb[i]->getGeometry().updateMeshTransformation(rb[i]->getPosition(), rb[i]->getRotationMatrix());
 // 	}
 
-	float jointY = 0.75f;
-	model.addBallJoint(0, 1, Eigen::Vector3f(0.25f, jointY, 1.0f));
-	model.addBallJoint(1, 2, Eigen::Vector3f(0.25f, jointY, 3.0f));
+	Real jointY = 0.75;
+	model.addBallJoint(0, 1, Vector3r(0.25, jointY, 1.0));
+	model.addBallJoint(1, 2, Vector3r(0.25, jointY, 3.0));
 	
-	model.addBallOnLineJoint(3, 4, Eigen::Vector3f(4.25f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addBallJoint(4, 5, Eigen::Vector3f(4.25f, jointY, 3.0f));
+	model.addBallOnLineJoint(3, 4, Vector3r(4.25, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model.addBallJoint(4, 5, Vector3r(4.25, jointY, 3.0));
 	
-	model.addHingeJoint(6, 7, Eigen::Vector3f(8.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addBallJoint(7, 8, Eigen::Vector3f(8.25f, jointY, 3.0f));
+	model.addHingeJoint(6, 7, Vector3r(8.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model.addBallJoint(7, 8, Vector3r(8.25, jointY, 3.0));
 
-	model.addUniversalJoint(9, 10, Eigen::Vector3f(12.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
-	model.addBallJoint(10, 11, Eigen::Vector3f(12.25f, jointY, 3.0f));
+	model.addUniversalJoint(9, 10, Vector3r(12.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0), Vector3r(0.0, 1.0, 0.0));
+	model.addBallJoint(10, 11, Vector3r(12.25, jointY, 3.0));
 
-	jointY -= 5.5f;
-	model.addTargetAngleMotorHingeJoint(12, 13, Eigen::Vector3f(0.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addTargetVelocityMotorHingeJoint(13, 14, Eigen::Vector3f(0.0f, jointY, 3.0f), Eigen::Vector3f(0.0f, 1.0f, 0.0f));
+	jointY -= 5.5;
+	model.addTargetAngleMotorHingeJoint(12, 13, Vector3r(0.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model.addTargetVelocityMotorHingeJoint(13, 14, Vector3r(0.0, jointY, 3.0), Vector3r(0.0, 1.0, 0.0));
   
-	model.addSliderJoint(15, 16, Eigen::Vector3f(4.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addBallJoint(16, 17, Eigen::Vector3f(4.25f, jointY, 3.0f));
+	model.addSliderJoint(15, 16, Vector3r(4.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model.addBallJoint(16, 17, Vector3r(4.25, jointY, 3.0));
 
-	model.addTargetPositionMotorSliderJoint(18, 19, Eigen::Vector3f(8.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addBallJoint(19, 20, Eigen::Vector3f(8.25f, jointY, 3.0f));
+	model.addTargetPositionMotorSliderJoint(18, 19, Vector3r(8.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model.addBallJoint(19, 20, Vector3r(8.25, jointY, 3.0));
 
-	model.addTargetVelocityMotorSliderJoint(21, 22, Eigen::Vector3f(12.0f, jointY, 1.0f), Eigen::Vector3f(1.0f, 0.0f, 0.0f));
-	model.addBallJoint(22, 23, Eigen::Vector3f(12.25f, jointY, 3.0f));
+	model.addTargetVelocityMotorSliderJoint(21, 22, Vector3r(12.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model.addBallJoint(22, 23, Vector3r(12.25, jointY, 3.0));
 }
 
 void TW_CALL setTimeStep(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	TimeManager::getCurrent()->setTimeStepSize(val);
 }
 
 void TW_CALL getTimeStep(void *value, void *clientData)
 {
-	*(float *)(value) = TimeManager::getCurrent()->getTimeStepSize();
+	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
 }
 
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)

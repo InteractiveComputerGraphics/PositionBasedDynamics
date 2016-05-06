@@ -1,7 +1,7 @@
 #ifndef __TimeStepFluidModel_h__
 #define __TimeStepFluidModel_h__
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "FluidModel.h"
 
 namespace PBD
@@ -14,7 +14,7 @@ namespace PBD
 		void clearAccelerations(FluidModel &model);
 		void computeXSPHViscosity(FluidModel &model);
 		void computeDensities(FluidModel &model);
-		void updateTimeStepSizeCFL(FluidModel &model, const float minTimeStepSize, const float maxTimeStepSize);
+		void updateTimeStepSizeCFL(FluidModel &model, const Real minTimeStepSize, const Real maxTimeStepSize);
 		void constraintProjection(FluidModel &model);
 
 	public:

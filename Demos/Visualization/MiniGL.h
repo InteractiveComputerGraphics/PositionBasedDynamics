@@ -1,11 +1,34 @@
 #ifndef __MINIGL_H__
 #define __MINIGL_H__
 
-#include "Demos/Utils/Config.h"
-#include <Eigen/Dense>
+#include "Demos/Common/Config.h"
+#include "Common/Common.h"
 #include <Eigen/Geometry> 
 #include "Demos/Visualization/Shader.h"
 #include "extern/AntTweakBar/include/AntTweakBar.h"
+#include "Demos/Utils/ObjectArray.h"
+
+#ifdef USE_DOUBLE
+#define glNormal3v glNormal3dv
+#define glVertex3v glVertex3dv
+#define glVertex3 glVertex3d
+#define glMultMatrix glMultMatrixd
+#define glGetRealv glGetDoublev
+#define glLoadMatrix glLoadMatrixd
+#define glTranslate glTranslated
+#define GL_REAL GL_DOUBLE
+#define TW_TYPE_REAL TW_TYPE_DOUBLE
+#else
+#define glNormal3v glNormal3fv
+#define glVertex3v glVertex3fv
+#define glVertex3 glVertex3f
+#define glMultMatrix glMultMatrixf
+#define glGetRealv glGetFloatv
+#define glLoadMatrix glLoadMatrixf
+#define glTranslate glTranslatef
+#define GL_REAL GL_FLOAT
+#define TW_TYPE_REAL TW_TYPE_FLOAT
+#endif
 
 
 namespace PBD
@@ -17,6 +40,29 @@ namespace PBD
 	#define IMAGE_COLS 128
 
 	private:
+		struct Line
+		{
+			Vector3r a;
+			Vector3r b;
+			float color[4];
+			float lineWidth;
+		};
+
+		struct Point
+		{
+			Vector3r a;
+			float color[4];
+			float pointSize;
+		};
+
+		struct Triangle
+		{
+			Vector3r a;
+			Vector3r b;
+			Vector3r c;
+			float color[4];
+		};
+
 		static float fovy;
 		static float znear;
 		static float zfar;
@@ -29,11 +75,11 @@ namespace PBD
 		static int idlefunchz;
 		static int width;
 		static int height;
-		static Eigen::Vector3f m_translation;
-		static Eigen::Quaternionf m_rotation;
-		static float m_zoom;
-		static float movespeed;
-		static float turnspeed;
+		static Vector3r m_translation;
+		static Quaternionr m_rotation;
+		static Real m_zoom;
+		static Real movespeed;
+		static Real turnspeed;
 		static int mouse_button;
 		static int modifier_key;
 		static int mouse_pos_x_old;
@@ -46,11 +92,16 @@ namespace PBD
 		static int mouseFuncButton;		
 		static Eigen::Vector2i m_selectionStart;
 		static TwBar *m_tweakBar;
-		static float m_time;
-		static float m_quat[4];
+		static Real m_time;
+		static Real m_quat[4];
 		static GLint m_context_major_version;
 		static GLint m_context_minor_version;
 		static GLint m_context_profile;
+		static bool m_breakPointActive;
+		static bool m_breakPointLoop;
+		static ObjectArray<Point> m_drawPoints;
+		static ObjectArray<Line> m_drawLines;
+		static ObjectArray<Triangle> m_drawTriangle;
 
 		static void reshape (int w, int h);
 		static void idle ();
@@ -59,28 +110,32 @@ namespace PBD
 		static void mousePress (int button, int state, int x, int y);
 		static void mouseMove (int x, int y);
 		static void mouseWheel(int button, int dir, int x, int y);
+
+		static void breakPointMainLoop();
+		static void drawElements();
 		
 	public:
 		static void getOpenGLVersion(int &major_version, int &minor_version);
 		static void coordinateSystem ();
-		static void drawVector (const Eigen::Vector3f &a, const Eigen::Vector3f &b, const float w, float *color);
-		static void drawCylinder(const Eigen::Vector3f &a, const Eigen::Vector3f &b, const float *color, const float radius = 0.02, const unsigned int subdivisions = 8);
-		static void drawSphere (const Eigen::Vector3f &translation, float radius, float *color, const unsigned int subDivision =  16);
-		static void drawQuad (const Eigen::Vector3f &a, const Eigen::Vector3f &b, const Eigen::Vector3f &c, const Eigen::Vector3f &d, const Eigen::Vector3f &norm, float *color);
-		static void drawTetrahedron(const Eigen::Vector3f &a, const Eigen::Vector3f &b, const Eigen::Vector3f &c, const Eigen::Vector3f &d, float *color);
-		static void drawTriangle (const Eigen::Vector3f &a, const Eigen::Vector3f &b, const Eigen::Vector3f &c, const Eigen::Vector3f &norm, float *color);
+		static void drawVector(const Vector3r &a, const Vector3r &b, const float w, float *color);
+		static void drawCylinder(const Vector3r &a, const Vector3r &b, const float *color, const float radius = 0.02, const unsigned int subdivisions = 8);
+		static void drawSphere(const Vector3r &translation, float radius, float *color, const unsigned int subDivision = 16);
+		static void drawTorus(const Vector3r &translation, float innerRadius, float outerRadius, float *color, const unsigned int nsides = 16, const unsigned int rings = 16);
+		static void drawQuad (const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d, const Vector3r &norm, float *color);
+		static void drawTetrahedron(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d, float *color);
+		static void drawTriangle (const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &norm, float *color);
 		static void drawBitmapText (float x, float y, const char *str, int strLength, float *color);
-		static void drawStrokeText (const float x, const float y, const float z, float scale, const char *str, int strLength, float *color);
-		static void drawStrokeText (const Eigen::Vector3f &pos, float scale, const char *str, int strLength, float *color);
-		static void drawCube (const Eigen::Vector3f &translation, const Eigen::Matrix3f &rotation, float width, float height, float depth, float *color);		
-		static void drawPoint (const Eigen::Vector3f &translation, const float pointSize, const float * const color);
-		static void setViewport (float pfovy, float pznear, float pzfar, const Eigen::Vector3f &peyepoint, const Eigen::Vector3f &plookat);
+		static void drawStrokeText(const Real x, const Real y, const Real z, float scale, const char *str, int strLength, float *color);
+		static void drawStrokeText (const Vector3r &pos, float scale, const char *str, int strLength, float *color);
+		static void drawCube (const Vector3r &translation, const Matrix3r &rotation, float width, float height, float depth, float *color);		
+		static void drawPoint (const Vector3r &translation, const float pointSize, const float * const color);
+		static void setViewport (float pfovy, float pznear, float pzfar, const Vector3r &peyepoint, const Vector3r &plookat);
 		static void setViewport (float pfovy, float pznear, float pzfar);
 		static void setClientSceneFunc (void (*func)(void));
 		static void display ();
 		static void setClientIdleFunc (int hz, void (*func) (void));
 		static void setKeyFunc (int nr, unsigned char k, void (*func) (void));
-		static void init (int argc, char **argv, int width, int height, int posx, int posy, char *name);
+		static void init(int argc, char **argv, const int width, const int height, const int posx, const int posy, const char *name);
 		static void destroy ();
 		static void viewport ();
 		static void initLights ();
@@ -89,16 +144,26 @@ namespace PBD
 		static void initTexture ();
 		static void bindTexture();
 		static void unbindTexture();
-		static void move (float x, float y, float z);
-		static void rotateX (float x);
-		static void rotateY (float y);
+		static void move (Real x, Real y, Real z);
+		static void rotateX (Real x);
+		static void rotateY (Real y);
 		static void setProjectionMatrix (int width, int height);
-		static void drawTime(const float time);
+		static void drawTime(const Real time);
 		static void setSelectionFunc(void(*func) (const Eigen::Vector2i&, const Eigen::Vector2i&));
 		static void setMouseMoveFunc(int button, void(*func) (int, int));
-		static void unproject(const int x, const int y, Eigen::Vector3f &pos);
+		static void unproject(const int x, const int y, Vector3r &pos);
 		static float getZNear();
 		static float getZFar();
+
+		static void setBreakPointActive(const bool active);
+		static void breakPoint();
+		static void clearPoints();
+		static void clearLines();
+		static void clearTriangles();
+		static void clearElements();
+		static void addPoint(const Vector3r &a, const float pointSize, const float *color);
+		static void addLine(const Vector3r &a, const Vector3r &b, const float lineWidth, const float *color);
+		static void addTriangle(const Vector3r &a, const Vector3r &b, const Vector3r &c, const float *color);
 
 		static void initTweakBar();
 		static TwBar *getTweakBar();

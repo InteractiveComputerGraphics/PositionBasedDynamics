@@ -1,7 +1,7 @@
 #ifndef _GENERICCONSTRAINTS_H
 #define _GENERICCONSTRAINTS_H
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include <Eigen/Dense>
 #include "Demos/Simulation/Constraints.h"
 
@@ -13,22 +13,22 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		float m_restLength;
+		Real m_restLength;
 
 		static void constraintFct(
 			const unsigned int numberOfParticles,
-			const float invMass[],
-			const Eigen::Vector3f x[],
+			const Real invMass[],
+			const Vector3r x[],
 			void *userData,
-			Eigen::Matrix<float, 1, 1> &constraintValue);
+			Eigen::Matrix<Real, 1, 1> &constraintValue);
 
 		static void gradientFct(
 			const unsigned int i,
 			const unsigned int numberOfParticles,
-			const float invMass[],
-			const Eigen::Vector3f x[],
+			const Real invMass[],
+			const Vector3r x[],
 			void *userData,
-			Eigen::Matrix<float, 1, 3> &jacobian);
+			Eigen::Matrix<Real, 1, 3> &jacobian);
 
 		GenericDistanceConstraint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -41,11 +41,11 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix4f m_Q;
+		Matrix4r m_Q;
 
 		static void constraintFct(
 			const unsigned int numberOfParticles,
-			const float invMass[],
+			const Real invMass[],
 			const Eigen::Vector3d x[],
 			void *userData,
 			Eigen::Matrix<double, 1, 1> &constraintValue);

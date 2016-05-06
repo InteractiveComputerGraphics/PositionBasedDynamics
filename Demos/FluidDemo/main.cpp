@@ -1,4 +1,4 @@
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "GL/glew.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
@@ -22,15 +22,15 @@ using namespace std;
 void timeStep ();
 void buildModel ();
 void createBreakingDam();
-void addWall(const Eigen::Vector3f &minX, const Eigen::Vector3f &maxX, std::vector<Eigen::Vector3f> &boundaryParticles);
-void initBoundaryData(std::vector<Eigen::Vector3f> &boundaryParticles);
+void addWall(const Vector3r &minX, const Vector3r &maxX, std::vector<Vector3r> &boundaryParticles);
+void initBoundaryData(std::vector<Vector3r> &boundaryParticles);
 void render ();
 void cleanup();
 void reset();
 void hsvToRgb(float h, float s, float v, float *rgb);
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
-void createSphereBuffers(float radius, int resolution);
-void renderSphere(const Eigen::Vector3f &x, const float color[]);
+void createSphereBuffers(Real radius, int resolution);
+void renderSphere(const Vector3r &x, const float color[]);
 void releaseSphereBuffers();
 void TW_CALL setTimeStep(const void *value, void *clientData);
 void TW_CALL getTimeStep(void *value, void *clientData);
@@ -44,16 +44,16 @@ void TW_CALL getViscosity(void *value, void *clientData);
 FluidModel model;
 TimeStepFluidModel simulation;
 
-const float particleRadius = 0.025f;
+const Real particleRadius = 0.025;
 const unsigned int width = 15;
 const unsigned int depth = 15;
 const unsigned int height = 20;
-const float containerWidth = (width + 1)*particleRadius*2.0f * 5.0f;
-const float containerDepth = (depth + 1)*particleRadius*2.0f;
-const float containerHeight = 4.0f;
+const Real containerWidth = (width + 1)*particleRadius*2.0 * 5.0;
+const Real containerDepth = (depth + 1)*particleRadius*2.0;
+const Real containerHeight = 4.0;
 bool doPause = true;
 std::vector<unsigned int> selectedParticles;
-Eigen::Vector3f oldMousePos;
+Vector3r oldMousePos;
 // initiate buffers
 GLuint elementbuffer;
 GLuint normalbuffer;
@@ -82,18 +82,18 @@ int main( int argc, char **argv )
 	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3f (0.0, -3.0, 8.0), Vector3f (0.0, 0.0, 0.0));
+	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 3.0, 8.0), Vector3r (0.0, 0.0, 0.0));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
+	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &simulation, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "Viscosity", TW_TYPE_FLOAT, setViscosity, getViscosity, &model, " label='Viscosity'  min=0.0 max = 0.5 step=0.001 precision=4 group=Simulation ");
+	TwAddVarCB(MiniGL::getTweakBar(), "Viscosity", TW_TYPE_REAL, setViscosity, getViscosity, &model, " label='Viscosity'  min=0.0 max = 0.5 step=0.001 precision=4 group=Simulation ");
 
 	buildModel();
 
 	if (context_major_version >= 3)
-		createSphereBuffers((float)particleRadius, 8);
+		createSphereBuffers((Real)particleRadius, 8);
 
 	glutMainLoop ();	
 
@@ -118,12 +118,12 @@ void reset()
 
 void mouseMove(int x, int y)
 {
-	Eigen::Vector3f mousePos;
+	Vector3r mousePos;
 	MiniGL::unproject(x, y, mousePos);
-	const Eigen::Vector3f diff = mousePos - oldMousePos;
+	const Vector3r diff = mousePos - oldMousePos;
 
 	TimeManager *tm = TimeManager::getCurrent();
-	const float h = tm->getTimeStepSize();
+	const Real h = tm->getTimeStepSize();
 
 	ParticleData &pd = model.getParticles();
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
@@ -159,7 +159,7 @@ void timeStep ()
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (0.0025f);
+	TimeManager::getCurrent ()->setTimeStepSize (0.0025);
 
 	createBreakingDam();
 }
@@ -200,20 +200,20 @@ void render ()
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
 	glColor3fv(surfaceColor);
 
-	glPointSize(4.0f);
+	glPointSize(4.0);
 
-	const float supportRadius = model.getSupportRadius();
-	float vmax = 0.4f*2.0f*supportRadius / TimeManager::getCurrent()->getTimeStepSize();
-	float vmin = 0.0f;
+	const Real supportRadius = model.getSupportRadius();
+	Real vmax = 0.4*2.0*supportRadius / TimeManager::getCurrent()->getTimeStepSize();
+	Real vmin = 0.0;
 
 	if (context_major_version > 3)
 	{
 		for (unsigned int i = 0; i < nParticles; i++)
 		{
-			float v = pd.getVelocity(i).norm();
-			v = 0.5f*((v - vmin) / (vmax - vmin));
-			v = min(128.0f*v*v, 0.5f);
-			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+			Real v = pd.getVelocity(i).norm();
+			v = 0.5*((v - vmin) / (vmax - vmin));
+			v = min(128.0*v*v, 0.5);
+			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
 			hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
 			renderSphere(pd.getPosition(i), fluidColor);
 		}
@@ -227,14 +227,14 @@ void render ()
 		glBegin(GL_POINTS);
 		for (unsigned int i = 0; i < nParticles; i++)
 		{
-			float v = pd.getVelocity(i).norm();
-			v = 0.5f*((v - vmin) / (vmax - vmin));
-			v = min(128.0f*v*v, 0.5f);
-			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+			Real v = pd.getVelocity(i).norm();
+			v = 0.5*((v - vmin) / (vmax - vmin));
+			v = min(128.0*v*v, 0.5);
+			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
 			hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
 
 			glColor3fv(fluidColor);
-			glVertex3fv(&pd.getPosition(i)[0]);
+			glVertex3v(&pd.getPosition(i)[0]);
 		}
 		glEnd();
 
@@ -266,13 +266,13 @@ void render ()
 void createBreakingDam()
 {
 	std::cout << "Initialize fluid particles\n";
-	const float diam = 2.0f*particleRadius;
-	const float startX = -0.5f*containerWidth + diam;
-	const float startY = diam;
-	const float startZ = -0.5f*containerDepth + diam;
-	const float yshift = sqrt(3.0f) * particleRadius;
+	const Real diam = 2.0*particleRadius;
+	const Real startX = -0.5*containerWidth + diam;
+	const Real startY = diam;
+	const Real startZ = -0.5*containerDepth + diam;
+	const Real yshift = sqrt(3.0) * particleRadius;
 
-	std::vector<Eigen::Vector3f> fluidParticles;
+	std::vector<Vector3r> fluidParticles;
 	fluidParticles.resize(width*height*depth);
 
 	#pragma omp parallel default(shared)
@@ -284,7 +284,7 @@ void createBreakingDam()
 			{
 				for (unsigned int k = 0; k < depth; k++)
 				{
-					fluidParticles[i*height*depth + j*depth + k] = diam*Eigen::Vector3f((float)i, (float)j, (float)k) + Eigen::Vector3f(startX, startY, startZ);
+					fluidParticles[i*height*depth + j*depth + k] = diam*Vector3r((Real)i, (Real)j, (Real)k) + Vector3r(startX, startY, startZ);
 				}
 			}
 		}
@@ -292,7 +292,7 @@ void createBreakingDam()
 
 	model.setParticleRadius(particleRadius);
 
-	std::vector<Eigen::Vector3f> boundaryParticles;
+	std::vector<Vector3r> boundaryParticles;
 	initBoundaryData(boundaryParticles);
 
 	model.initModel((unsigned int)fluidParticles.size(), fluidParticles.data(), (unsigned int)boundaryParticles.size(), boundaryParticles.data());
@@ -301,11 +301,11 @@ void createBreakingDam()
 }
 
 
-void addWall(const Eigen::Vector3f &minX, const Eigen::Vector3f &maxX, std::vector<Eigen::Vector3f> &boundaryParticles)
+void addWall(const Vector3r &minX, const Vector3r &maxX, std::vector<Vector3r> &boundaryParticles)
 {
-	const float particleDistance = 2.0f*model.getParticleRadius();
+	const Real particleDistance = 2.0*model.getParticleRadius();
 
-	const Eigen::Vector3f diff = maxX - minX;
+	const Vector3r diff = maxX - minX;
 	const unsigned int stepsX = (unsigned int)(diff[0] / particleDistance) + 1u;
 	const unsigned int stepsY = (unsigned int)(diff[1] / particleDistance) + 1u;
 	const unsigned int stepsZ = (unsigned int)(diff[2] / particleDistance) + 1u;
@@ -322,7 +322,7 @@ void addWall(const Eigen::Vector3f &minX, const Eigen::Vector3f &maxX, std::vect
 			{
 				for (unsigned int l = 0; l < stepsZ; l++)
 				{
-					const Eigen::Vector3f currPos = minX + Eigen::Vector3f(j*particleDistance, k*particleDistance, l*particleDistance);
+					const Vector3r currPos = minX + Vector3r(j*particleDistance, k*particleDistance, l*particleDistance);
 					boundaryParticles[startIndex + j*stepsY*stepsZ + k*stepsZ + l] = currPos;
 				}
 			}
@@ -330,54 +330,54 @@ void addWall(const Eigen::Vector3f &minX, const Eigen::Vector3f &maxX, std::vect
 	}
 }
 
-void initBoundaryData(std::vector<Eigen::Vector3f> &boundaryParticles)
+void initBoundaryData(std::vector<Vector3r> &boundaryParticles)
 {
-	const float x1 = -containerWidth / 2.0f;
-	const float x2 = containerWidth / 2.0f;
-	const float y1 = 0.0f;
-	const float y2 = containerHeight;
-	const float z1 = -containerDepth / 2.0f;
-	const float z2 = containerDepth / 2.0f;
+	const Real x1 = -containerWidth / 2.0;
+	const Real x2 = containerWidth / 2.0;
+	const Real y1 = 0.0;
+	const Real y2 = containerHeight;
+	const Real z1 = -containerDepth / 2.0;
+	const Real z2 = containerDepth / 2.0;
 
-	const float diam = 2.0f*particleRadius;
+	const Real diam = 2.0*particleRadius;
 
 	// Floor
-	addWall(Eigen::Vector3f(x1, y1, z1), Eigen::Vector3f(x2, y1, z2), boundaryParticles);
+	addWall(Vector3r(x1, y1, z1), Vector3r(x2, y1, z2), boundaryParticles);
 	// Top
-	addWall(Eigen::Vector3f(x1, y2, z1), Eigen::Vector3f(x2, y2, z2), boundaryParticles);
+	addWall(Vector3r(x1, y2, z1), Vector3r(x2, y2, z2), boundaryParticles);
 	// Left
-	addWall(Eigen::Vector3f(x1, y1, z1), Eigen::Vector3f(x1, y2, z2), boundaryParticles);
+	addWall(Vector3r(x1, y1, z1), Vector3r(x1, y2, z2), boundaryParticles);
 	// Right
-	addWall(Eigen::Vector3f(x2, y1, z1), Eigen::Vector3f(x2, y2, z2), boundaryParticles);
+	addWall(Vector3r(x2, y1, z1), Vector3r(x2, y2, z2), boundaryParticles);
 	// Back
-	addWall(Eigen::Vector3f(x1, y1, z1), Eigen::Vector3f(x2, y2, z1), boundaryParticles);
+	addWall(Vector3r(x1, y1, z1), Vector3r(x2, y2, z1), boundaryParticles);
 	// Front
-	addWall(Eigen::Vector3f(x1, y1, z2), Eigen::Vector3f(x2, y2, z2), boundaryParticles);
+	addWall(Vector3r(x1, y1, z2), Vector3r(x2, y2, z2), boundaryParticles);
 }
 
 
-void createSphereBuffers(float radius, int resolution)
+void createSphereBuffers(Real radius, int resolution)
 {
-	float PI = static_cast<float>(M_PI);
+	Real PI = static_cast<Real>(M_PI);
 	// vectors to hold our data
 	// vertice positions
-	std::vector<Eigen::Vector3f> v;
+	std::vector<Vector3r> v;
 	// normals
-	std::vector<Eigen::Vector3f> n;
+	std::vector<Vector3r> n;
 	std::vector<unsigned short> indices;
 
 	// initiate the variable we are going to use
-	float X1, Y1, X2, Y2, Z1, Z2;
-	float inc1, inc2, inc3, inc4, radius1, radius2;
+	Real X1, Y1, X2, Y2, Z1, Z2;
+	Real inc1, inc2, inc3, inc4, radius1, radius2;
 
 	for (int w = 0; w < resolution; w++)
 	{
 		for (int h = (-resolution / 2); h < (resolution / 2); h++)
 		{
-			inc1 = (w / (float)resolution) * 2 * PI;
-			inc2 = ((w + 1) / (float)resolution) * 2 * PI;
-			inc3 = (h / (float)resolution)*PI;
-			inc4 = ((h + 1) / (float)resolution)*PI;
+			inc1 = (w / (Real)resolution) * 2 * PI;
+			inc2 = ((w + 1) / (Real)resolution) * 2 * PI;
+			inc3 = (h / (Real)resolution)*PI;
+			inc4 = ((h + 1) / (Real)resolution)*PI;
 
 			X1 = sin(inc1);
 			Y1 = cos(inc1);
@@ -392,29 +392,29 @@ void createSphereBuffers(float radius, int resolution)
 			Z2 = radius*sin(inc4);
 
 			// insert the triangle coordinates
-			v.push_back(Eigen::Vector3f(radius1*X1, Z1, radius1*Y1));
-			v.push_back(Eigen::Vector3f(radius1*X2, Z1, radius1*Y2));
-			v.push_back(Eigen::Vector3f(radius2*X2, Z2, radius2*Y2));
+			v.push_back(Vector3r(radius1*X1, Z1, radius1*Y1));
+			v.push_back(Vector3r(radius1*X2, Z1, radius1*Y2));
+			v.push_back(Vector3r(radius2*X2, Z2, radius2*Y2));
 
 			indices.push_back((unsigned short)v.size() - 3);
 			indices.push_back((unsigned short)v.size() - 2);
 			indices.push_back((unsigned short)v.size() - 1);
 
-			v.push_back(Eigen::Vector3f(radius1*X1, Z1, radius1*Y1));
-			v.push_back(Eigen::Vector3f(radius2*X2, Z2, radius2*Y2));
-			v.push_back(Eigen::Vector3f(radius2*X1, Z2, radius2*Y1));
+			v.push_back(Vector3r(radius1*X1, Z1, radius1*Y1));
+			v.push_back(Vector3r(radius2*X2, Z2, radius2*Y2));
+			v.push_back(Vector3r(radius2*X1, Z2, radius2*Y1));
 
 			indices.push_back((unsigned short)v.size() - 3);
 			indices.push_back((unsigned short)v.size() - 2);
 			indices.push_back((unsigned short)v.size() - 1);
 
 			// insert the normal data
-			n.push_back(Eigen::Vector3f(X1, Z1, Y1));
-			n.push_back(Eigen::Vector3f(X2, Z1, Y2));
-			n.push_back(Eigen::Vector3f(X2, Z2, Y2));
-			n.push_back(Eigen::Vector3f(X1, Z1, Y1));
-			n.push_back(Eigen::Vector3f(X2, Z2, Y2));
-			n.push_back(Eigen::Vector3f(X1, Z2, Y1));
+			n.push_back(Vector3r(X1, Z1, Y1));
+			n.push_back(Vector3r(X2, Z1, Y2));
+			n.push_back(Vector3r(X2, Z2, Y2));
+			n.push_back(Vector3r(X1, Z1, Y1));
+			n.push_back(Vector3r(X2, Z2, Y2));
+			n.push_back(Vector3r(X1, Z2, Y1));
 		}
 	}
 
@@ -424,11 +424,11 @@ void createSphereBuffers(float radius, int resolution)
 
 	glGenBuffersARB(1, &vertexbuffer);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexbuffer);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, v.size() * sizeof(Eigen::Vector3f), &v[0], GL_STATIC_DRAW);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, v.size() * sizeof(Vector3r), &v[0], GL_STATIC_DRAW);
 
 	glGenBuffersARB(1, &normalbuffer);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalbuffer);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, n.size() * sizeof(Eigen::Vector3f), &n[0], GL_STATIC_DRAW);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, n.size() * sizeof(Vector3r), &n[0], GL_STATIC_DRAW);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	// Generate a buffer for the indices as well
@@ -446,7 +446,7 @@ void createSphereBuffers(float radius, int resolution)
 	v.clear();
 }
 
-void renderSphere(const Eigen::Vector3f &x, const float color[])
+void renderSphere(const Vector3r &x, const float color[])
 {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -456,10 +456,10 @@ void renderSphere(const Eigen::Vector3f &x, const float color[])
 
 
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexbuffer);
-	glVertexPointer(3, GL_FLOAT, 0, 0);
+	glVertexPointer(3, GL_REAL, 0, 0);
 
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalbuffer);
-	glNormalPointer(GL_FLOAT, 0, 0);
+	glNormalPointer(GL_REAL, 0, 0);
 
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, elementbuffer);
 
@@ -496,13 +496,13 @@ void releaseSphereBuffers()
 
 void TW_CALL setTimeStep(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	TimeManager::getCurrent()->setTimeStepSize(val);
 }
 
 void TW_CALL getTimeStep(void *value, void *clientData)
 {
-	*(float *)(value) = TimeManager::getCurrent()->getTimeStepSize();
+	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
 }
 
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
@@ -518,12 +518,12 @@ void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
 
 void TW_CALL setViscosity(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((FluidModel*)clientData)->setViscosity(val);
 }
 
 void TW_CALL getViscosity(void *value, void *clientData)
 {
-	*(float *)(value) = ((FluidModel*)clientData)->getViscosity();
+	*(Real *)(value) = ((FluidModel*)clientData)->getViscosity();
 }
 

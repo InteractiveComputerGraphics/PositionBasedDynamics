@@ -1,10 +1,10 @@
 #ifndef __NEIGHBORHOODSEARCHSPATIALHASHING_H__
 #define __NEIGHBORHOODSEARCHSPATIALHASHING_H__
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "Demos/Utils/Hashmap.h"
 #include <vector>
-#include <Eigen/Dense>
+#include "Common/Common.h"
 
 namespace PBD
 {
@@ -22,7 +22,7 @@ namespace PBD
 	class NeighborhoodSearchSpatialHashing
 	{
 	public: 
-		NeighborhoodSearchSpatialHashing(const unsigned int numParticles = 0, const float radius = 0.1f, const unsigned int maxNeighbors = 60u, const unsigned int maxParticlesPerCell = 50u);
+		NeighborhoodSearchSpatialHashing(const unsigned int numParticles = 0, const Real radius = 0.1, const unsigned int maxNeighbors = 60u, const unsigned int maxParticlesPerCell = 50u);
 		~NeighborhoodSearchSpatialHashing();
 
 		// Spatial hashing
@@ -33,22 +33,22 @@ namespace PBD
 			std::vector<unsigned int> particleIndices;
 		};
 
-		FORCE_INLINE static int floor(const float v)
+		FORCE_INLINE static int floor(const Real v)
 		{
 			return (int)(v + 32768.f) - 32768;			// Shift to get positive values 
 		}
 
 		void cleanup();
-		void neighborhoodSearch(Eigen::Vector3f *x);
-		void neighborhoodSearch(Eigen::Vector3f *x, const unsigned int numBoundaryParticles, Eigen::Vector3f *boundaryX);
+		void neighborhoodSearch(Vector3r *x);
+		void neighborhoodSearch(Vector3r *x, const unsigned int numBoundaryParticles, Vector3r *boundaryX);
 		void update();
 		unsigned int **getNeighbors() const;
 		unsigned int *getNumNeighbors() const;
 		const unsigned int getMaxNeighbors() const { return m_maxNeighbors;	}
 
 		unsigned int getNumParticles() const;
-		void setRadius(const float radius);
-		float getRadius() const;
+		void setRadius(const Real radius);
+		Real getRadius() const;
 
 		FORCE_INLINE unsigned int n_neighbors(unsigned int i) const 
 		{
@@ -66,8 +66,8 @@ namespace PBD
 		unsigned int m_maxParticlesPerCell;
 		unsigned int **m_neighbors;
 		unsigned int *m_numNeighbors;
-		float m_cellGridSize;
-		float m_radius2;
+		Real m_cellGridSize;
+		Real m_radius2;
 		unsigned int m_currentTimestamp;
 		Hashmap<NeighborhoodSearchCellPos*, HashEntry*> m_gridMap;	
 	};

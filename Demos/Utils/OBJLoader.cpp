@@ -14,14 +14,26 @@ struct MeshFaceIndices
     int normalIndices[3];
 };
 
+void OBJLoader::tokenize(const string& str,	vector<string>& tokens,	const string& delimiters)
+{
+	string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+	string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+	while (string::npos != pos || string::npos != lastPos)
+	{
+		tokens.push_back(str.substr(lastPos, pos - lastPos));
+		lastPos = str.find_first_not_of(delimiters, pos);
+		pos = str.find_first_of(delimiters, lastPos);
+	}
+}
  
-void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, IndexedFaceMesh &mesh, const Eigen::Vector3f &scale)
+void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, IndexedFaceMesh &mesh, const Vector3r &scale)
 {
 	std::cout << "Loading " << filename << std::endl;
 
-	vector<Eigen::Vector3f> positions;
-	vector<Eigen::Vector2f> texcoords;
-	vector<Eigen::Vector3f> normals;
+	vector<Vector3r> positions;
+	vector<Vector2r> texcoords;
+	vector<Vector3r> normals;
 	vector<MeshFaceIndices> faces;
     
     ifstream filestream;
@@ -36,6 +48,9 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 	bool vt = false;
 	bool vn = false;
 
+	std::vector<std::string> pos_buffer;
+	std::vector<std::string> f_buffer;
+
     while(getline(filestream, line_stream))
 	{
         stringstream str_stream(line_stream);
@@ -44,62 +59,90 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 
         if(type_str == "v")
 		{
-			Eigen::Vector3f pos;
-			str_stream >> pos[0] >> pos[1] >> pos[2];
+			Vector3r pos;
+			pos_buffer.clear();
+			std::string parse_str = line_stream.substr(line_stream.find("v") + 1);
+			tokenize(parse_str, pos_buffer);
 			for (unsigned int i = 0; i < 3; i++)
-				pos[i] = pos[i] * scale[i];
+				pos[i] = stof(pos_buffer[i]) * scale[i];
 
 			positions.push_back(pos);
         }
 		else if(type_str == "vt")
 		{
-			Eigen::Vector2f tex;
-			str_stream >> tex[0] >> tex[1];
+			Vector2r tex;
+			pos_buffer.clear();
+			std::string parse_str = line_stream.substr(line_stream.find("vt") + 2);
+			tokenize(parse_str, pos_buffer);
+			for (unsigned int i = 0; i < 2; i++)
+				tex[i] = stof(pos_buffer[i]);
+
 			texcoords.push_back(tex);
 			vt = true;
         }
 		else if(type_str == "vn")
 		{
-			Eigen::Vector3f nor;
-			str_stream >> nor[0] >> nor[1] >> nor[2];
+			Vector3r nor;
+			pos_buffer.clear();
+			std::string parse_str = line_stream.substr(line_stream.find("vn") + 2);
+			tokenize(parse_str, pos_buffer);
+			for (unsigned int i = 0; i < 3; i++)
+				nor[i] = stof(pos_buffer[i]);
+
 			normals.push_back(nor);
 			vn = true;
         }
 		else if(type_str == "f")
 		{
             MeshFaceIndices faceIndex;
-            char interupt;
 			if (vn && vt)
 			{
+				f_buffer.clear();
+				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
+				tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
-					str_stream >> faceIndex.posIndices[i] >> interupt
-						>> faceIndex.texIndices[i]  >> interupt
-						>> faceIndex.normalIndices[i];
+					pos_buffer.clear();
+					tokenize(f_buffer[i], pos_buffer, "/");
+					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
+					faceIndex.texIndices[i] = stoi(pos_buffer[1]);
+					faceIndex.normalIndices[i] = stoi(pos_buffer[2]);
 				}
 			}
 			else if (vn)
 			{
+				f_buffer.clear();
+				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
+				tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
-					str_stream >> faceIndex.posIndices[i] >> interupt
-						>> interupt  
-						>> faceIndex.normalIndices[i];
+					pos_buffer.clear();
+					tokenize(f_buffer[i], pos_buffer, "/");
+					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
+					faceIndex.normalIndices[i] = stoi(pos_buffer[1]);
 				}
 			}
 			else if (vt)
 			{
+				f_buffer.clear();
+				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
+				tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
-					str_stream >> faceIndex.posIndices[i] >> interupt						
-						>> faceIndex.texIndices[i];
+					pos_buffer.clear();
+					tokenize(f_buffer[i], pos_buffer, "/");
+					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
+					faceIndex.texIndices[i] = stoi(pos_buffer[1]);
 				}
 			}
 			else 
 			{
+				f_buffer.clear();
+				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
+				tokenize(parse_str, f_buffer);
 				for (int i = 0; i < 3; ++i)
 				{
-					str_stream >> faceIndex.posIndices[i];
+					faceIndex.posIndices[i] = stoi(f_buffer[i]);
 				}
 			}
             faces.push_back(faceIndex);
@@ -139,4 +182,7 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 		mesh.addFace(&posIndices[0]);
 	}
 	mesh.buildNeighbors();
+
+	std::cout << "Number of triangles: " << nFaces << "\n";
+	std::cout << "Number of vertices: " << nPoints << "\n";
 }

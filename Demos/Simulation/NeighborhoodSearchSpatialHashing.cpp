@@ -2,7 +2,7 @@
 
 using namespace PBD;
 
-NeighborhoodSearchSpatialHashing::NeighborhoodSearchSpatialHashing(const unsigned int numParticles, const float radius, const unsigned int maxNeighbors, const unsigned int maxParticlesPerCell) :
+NeighborhoodSearchSpatialHashing::NeighborhoodSearchSpatialHashing(const unsigned int numParticles, const Real radius, const unsigned int maxNeighbors, const unsigned int maxParticlesPerCell) :
 	m_gridMap(numParticles*2)
 {
 	m_cellGridSize = radius;
@@ -68,13 +68,13 @@ unsigned int NeighborhoodSearchSpatialHashing::getNumParticles() const
 	return m_numParticles;
 }
 
-void NeighborhoodSearchSpatialHashing::setRadius(const float radius)
+void NeighborhoodSearchSpatialHashing::setRadius(const Real radius)
 {
 	m_cellGridSize = radius;
 	m_radius2 = radius*radius;
 }
 
-float NeighborhoodSearchSpatialHashing::getRadius() const
+Real NeighborhoodSearchSpatialHashing::getRadius() const
 {
 	return sqrt(m_radius2);
 }
@@ -85,9 +85,9 @@ void NeighborhoodSearchSpatialHashing::update()
 }
 
 
-void NeighborhoodSearchSpatialHashing::neighborhoodSearch(Eigen::Vector3f *x) 
+void NeighborhoodSearchSpatialHashing::neighborhoodSearch(Vector3r *x) 
 {		
-	const float factor = 1.0f/m_cellGridSize;
+	const Real factor = 1.0/m_cellGridSize;
 	for (int i=0; i < (int) m_numParticles; i++)
 	{
 		const int cellPos1 = NeighborhoodSearchSpatialHashing::floor(x[i][0] * factor)+1;
@@ -140,7 +140,7 @@ void NeighborhoodSearchSpatialHashing::neighborhoodSearch(Eigen::Vector3f *x)
 								const unsigned int pi = (*entry)->particleIndices[m];
 								if (pi != i)
 								{
-									const float dist2 = (x[i]-x[pi]).squaredNorm();
+									const Real dist2 = (x[i]-x[pi]).squaredNorm();
 									if (dist2 < m_radius2)
 									{
 										if (m_numNeighbors[i] < m_maxNeighbors)
@@ -158,9 +158,9 @@ void NeighborhoodSearchSpatialHashing::neighborhoodSearch(Eigen::Vector3f *x)
 	}
 }
 
-void NeighborhoodSearchSpatialHashing::neighborhoodSearch(Eigen::Vector3f *x, const unsigned int numBoundaryParticles, Eigen::Vector3f *boundaryX)
+void NeighborhoodSearchSpatialHashing::neighborhoodSearch(Vector3r *x, const unsigned int numBoundaryParticles, Vector3r *boundaryX)
 {		
-	const float factor = 1.0f/m_cellGridSize;
+	const Real factor = 1.0/m_cellGridSize;
 	for (int i=0; i < (int) m_numParticles; i++)
 	{
 		const int cellPos1 = NeighborhoodSearchSpatialHashing::floor(x[i][0] * factor)+1;
@@ -239,7 +239,7 @@ void NeighborhoodSearchSpatialHashing::neighborhoodSearch(Eigen::Vector3f *x, co
 								const unsigned int pi = (*entry)->particleIndices[m];
 								if (pi != i)
 								{
-									float dist2;
+									Real dist2;
 									if (pi < m_numParticles)
 										dist2 = (x[i]-x[pi]).squaredNorm();
 									else

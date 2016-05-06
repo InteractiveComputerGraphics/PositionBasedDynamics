@@ -1,4 +1,4 @@
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
@@ -66,22 +66,24 @@ TimeStepController sim;
 
 const int nRows = 20;
 const int nCols = 20;
-const float clothWidth = 10.0f;
-const float clothHeight = 10.0f;
-const float width = 0.2f;
-const float height = 2.0f;
-const float depth = 0.2f;
+const Real clothWidth = 10.0;
+const Real clothHeight = 10.0;
+const Real width = 0.2;
+const Real height = 2.0;
+const Real depth = 0.2;
+short simulationMethod = 2;
+short bendingMethod = 2;
 bool doPause = true;
 std::vector<unsigned int> selectedBodies;
 std::vector<unsigned int> selectedParticles;
-Eigen::Vector3f oldMousePos;
+Vector3r oldMousePos;
 Shader *shader;
 Shader *shaderTex;
 string exePath;
 string dataPath;
-float jointColor[4] = { 0.0f, 0.4f, 0.2f, 1.0f };
+float jointColor[4] = { 0.0, 0.4f, 0.2f, 1.0 };
 float dynamicBodyColor[4] = { 0.1f, 0.4f, 0.8f, 1 };
-float staticBodyColor[4] = { 0.4f, 0.4f, 0.4f, 1.0f };
+float staticBodyColor[4] = { 0.4f, 0.4f, 0.4f, 1.0 };
 
 
 // main 
@@ -104,28 +106,28 @@ int main( int argc, char **argv )
 	buildModel ();
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3f (0.0, -10.0, 30.0), Vector3f (0.0, 0.0, 0.0));
+	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 10.0, 30.0), Vector3r (0.0, 0.0, 0.0));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, 0, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
+	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, 0, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &sim, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_FLOAT, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Distance constraints' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffness", TW_TYPE_FLOAT, setXXStiffness, getXXStiffness, &model, " label='Stiffness XX'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffness", TW_TYPE_FLOAT, setYYStiffness, getYYStiffness, &model, " label='Stiffness YY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffness", TW_TYPE_FLOAT, setXYStiffness, getXYStiffness, &model, " label='Stiffness XY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffnessFEM", TW_TYPE_FLOAT, setXXStiffness, getXXStiffness, &model, " label='Youngs modulus XX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffnessFEM", TW_TYPE_FLOAT, setYYStiffness, getYYStiffness, &model, " label='Youngs modulus YY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffnessFEM", TW_TYPE_FLOAT, setXYStiffness, getXYStiffness, &model, " label='Youngs modulus XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYPoissonRatioFEM", TW_TYPE_FLOAT, setXYPoissonRatio, getXYPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YXPoissonRatioFEM", TW_TYPE_FLOAT, setYXPoissonRatio, getYXPoissonRatio, &model, " label='Poisson ratio YX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_REAL, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Distance constraints' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffness", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Stiffness XX'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffness", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Stiffness YY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffness", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Stiffness XY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffnessFEM", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Youngs modulus XX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffnessFEM", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Youngs modulus YY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffnessFEM", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Youngs modulus XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XYPoissonRatioFEM", TW_TYPE_REAL, setXYPoissonRatio, getXYPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "YXPoissonRatioFEM", TW_TYPE_REAL, setYXPoissonRatio, getYXPoissonRatio, &model, " label='Poisson ratio YX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, &model, " label='Normalize stretch' group='Strain based dynamics' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, &model, " label='Normalize shear' group='Strain based dynamics' ");
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &sim, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_FLOAT, setBendingStiffness, getBendingStiffness, &model, " label='Bending stiffness'  min=0.0 step=0.01 precision=4 group=Bending ");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, &model, " label='Bending stiffness'  min=0.0 step=0.01 precision=4 group=Bending ");
 
 	glutMainLoop ();	
 
@@ -187,17 +189,17 @@ void reset()
 
 void mouseMove(int x, int y)
 {
-	Eigen::Vector3f mousePos;
+	Vector3r mousePos;
 	MiniGL::unproject(x, y, mousePos);
-	const Eigen::Vector3f diff = mousePos - oldMousePos;
+	const Vector3r diff = mousePos - oldMousePos;
 
 	TimeManager *tm = TimeManager::getCurrent();
-	const float h = tm->getTimeStepSize();
+	const Real h = tm->getTimeStepSize();
 
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	for (size_t j = 0; j < selectedBodies.size(); j++)
 	{
-		rb[selectedBodies[j]]->getVelocity() += 1.0f / h * diff;
+		rb[selectedBodies[j]]->getVelocity() += 1.0 / h * diff;
 	}
 	ParticleData &pd = model.getParticles();
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
@@ -217,7 +219,7 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 	
 	selectedBodies.clear(); 
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f> > x;
+	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
 	x.resize(rb.size());
  	for (unsigned int i = 0; i < rb.size(); i++)
  	{
@@ -248,7 +250,7 @@ void timeStep ()
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (0.005f);
+	TimeManager::getCurrent ()->setTimeStepSize (0.005);
 
 	createClothMesh();
 	createRigidBodyModel();	
@@ -277,7 +279,7 @@ void renderRigidBodyModel()
 	if (shader)
 	{
 		shader->begin();
-		glUniform1f(shader->getUniform("shininess"), 5.0f);
+		glUniform1f(shader->getUniform("shininess"), 5.0);
 		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
 
 		GLfloat matrix[16];
@@ -297,7 +299,7 @@ void renderRigidBodyModel()
 				selected = true;
 		}
 
-		if (rb[i]->getMass() != 0.0f)
+		if (rb[i]->getMass() != 0.0)
 		{
 
 			const VertexData &vd = rb[i]->getGeometry().getVertexData();
@@ -306,13 +308,13 @@ void renderRigidBodyModel()
 			{
 				if (shader)
 					glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
-				Visualization::drawMesh(vd, mesh, surfaceColor);
+				Visualization::drawMesh(vd, mesh, 0, surfaceColor);
 			}
 			else
 			{
 				if (shader)
 					glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
-				Visualization::drawMesh(vd, mesh, selectionColor);
+				Visualization::drawMesh(vd, mesh, 0, selectionColor);
 			}
 		}
 	}
@@ -337,13 +339,13 @@ void renderTriangleModels()
 	// Draw simulation model
 
 	const ParticleData &pd = model.getParticles();
-	float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
+	float surfaceColor[4] = { 0.2f, 0.5, 1.0, 1 };
 
 	if (shaderTex)
 	{
 		shaderTex->begin();
 		glUniform3fv(shaderTex->getUniform("surface_color"), 1, surfaceColor);
-		glUniform1f(shaderTex->getUniform("shininess"), 5.0f);
+		glUniform1f(shaderTex->getUniform("shininess"), 5.0);
 		glUniform1f(shaderTex->getUniform("specular_factor"), 0.2f);
 
 		GLfloat matrix[16];
@@ -357,13 +359,14 @@ void renderTriangleModels()
 	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
 	{
 		// mesh 
-		const IndexedFaceMesh &mesh = model.getTriangleModels()[i]->getParticleMesh();
-		Visualization::drawTexturedMesh(pd, mesh, surfaceColor);
+		TriangleModel *triModel = model.getTriangleModels()[i];
+		const IndexedFaceMesh &mesh = triModel->getParticleMesh();
+		Visualization::drawTexturedMesh(pd, mesh, triModel->getIndexOffset(), surfaceColor);
 	}
 	if (shaderTex)
 		shaderTex->end();
 
- 	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
+ 	float red[4] = { 0.8f, 0.0, 0.0, 1 };
  	for (unsigned int j = 0; j < selectedParticles.size(); j++)
  	{
  		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
@@ -382,12 +385,12 @@ void render ()
 }
 
 // Compute diagonal inertia tensor
-Eigen::Vector3f computeInertiaTensorBox(const float mass, const float width, const float height, const float depth)
+Vector3r computeInertiaTensorBox(const Real mass, const Real width, const Real height, const Real depth)
 {
-	const float Ix = (mass / 12.0f) * (height*height + depth*depth);
-	const float Iy = (mass / 12.0f) * (width*width + depth*depth);
-	const float Iz = (mass / 12.0f) * (width*width + height*height);
-	return Eigen::Vector3f(Ix, Iy, Iz);
+	const Real Ix = (mass / 12.0) * (height*height + depth*depth);
+	const Real Iy = (mass / 12.0) * (width*width + depth*depth);
+	const Real Iz = (mass / 12.0) * (width*width + height*height);
+	return Vector3r(Ix, Iy, Iz);
 }
 
 /** Create the model
@@ -400,7 +403,7 @@ void createRigidBodyModel()
 	string fileName = dataPath + "/models/cube.obj";
 	IndexedFaceMesh mesh;
 	VertexData vd;
-	OBJLoader::loadObj(fileName, vd, mesh, Eigen::Vector3f(width, height, depth));
+	OBJLoader::loadObj(fileName, vd, mesh, Vector3r(width, height, depth));
 
 	rb.resize(12);
 
@@ -408,117 +411,117 @@ void createRigidBodyModel()
 	// -5, -5
 	//////////////////////////////////////////////////////////////////////////
 	rb[0] = new RigidBody();
-	rb[0]->initBody(0.0f,
-		Eigen::Vector3f(-5.0, 0.0f, -5.0),
-		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f), 
+	rb[0]->initBody(0.0,
+		Vector3r(-5.0, 0.0, -5.0),
+		computeInertiaTensorBox(1.0, 0.5, 0.5, 0.5),
+		Quaternionr(1.0, 0.0, 0.0, 0.0), 
 		vd, mesh);
 
 	// dynamic body
 	rb[1] = new RigidBody();
-	rb[1]->initBody(1.0f,
-		Eigen::Vector3f(-5.0f, 1.0f, -5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[1]->initBody(1.0,
+		Vector3r(-5.0, 1.0, -5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
 	// dynamic body
 	rb[2] = new RigidBody();
-	rb[2]->initBody(1.0f,
-		Eigen::Vector3f(-5.0f, 3.0f, -5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[2]->initBody(1.0,
+		Vector3r(-5.0, 3.0, -5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
-	model.addBallJoint(0, 1, Eigen::Vector3f(-5.0f, 0.0f, -5.0f));
-	model.addBallJoint(1, 2, Eigen::Vector3f(-5.0f, 2.0f, -5.0f));
+	model.addBallJoint(0, 1, Vector3r(-5.0, 0.0, -5.0));
+	model.addBallJoint(1, 2, Vector3r(-5.0, 2.0, -5.0));
 
 	//////////////////////////////////////////////////////////////////////////
 	// 5, -5
 	//////////////////////////////////////////////////////////////////////////
 	rb[3] = new RigidBody();
-	rb[3]->initBody(0.0f,
-		Eigen::Vector3f(5.0, 0.0f, -5.0),
-		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[3]->initBody(0.0,
+		Vector3r(5.0, 0.0, -5.0),
+		computeInertiaTensorBox(1.0, 0.5, 0.5, 0.5),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
 	// dynamic body
 	rb[4] = new RigidBody();
-	rb[4]->initBody(1.0f,
-		Eigen::Vector3f(5.0f, 1.0f, -5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[4]->initBody(1.0,
+		Vector3r(5.0, 1.0, -5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
 	// dynamic body
 	rb[5] = new RigidBody();
-	rb[5]->initBody(1.0f,
-		Eigen::Vector3f(5.0f, 3.0f, -5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[5]->initBody(1.0,
+		Vector3r(5.0, 3.0, -5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
-	model.addBallJoint(3, 4, Eigen::Vector3f(5.0f, 0.0f, -5.0f));
-	model.addBallJoint(4, 5, Eigen::Vector3f(5.0f, 2.0f, -5.0f));
+	model.addBallJoint(3, 4, Vector3r(5.0, 0.0, -5.0));
+	model.addBallJoint(4, 5, Vector3r(5.0, 2.0, -5.0));
 
 	//////////////////////////////////////////////////////////////////////////
 	// 5, 5
 	//////////////////////////////////////////////////////////////////////////
 	rb[6] = new RigidBody();
-	rb[6]->initBody(0.0f,
-		Eigen::Vector3f(5.0, 0.0f, 5.0),
-		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[6]->initBody(0.0,
+		Vector3r(5.0, 0.0, 5.0),
+		computeInertiaTensorBox(1.0, 0.5, 0.5, 0.5),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
 	// dynamic body
 	rb[7] = new RigidBody();
-	rb[7]->initBody(1.0f,
-		Eigen::Vector3f(5.0f, 1.0f, 5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[7]->initBody(1.0,
+		Vector3r(5.0, 1.0, 5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
 	// dynamic body
 	rb[8] = new RigidBody();
-	rb[8]->initBody(1.0f,
-		Eigen::Vector3f(5.0f, 3.0f, 5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[8]->initBody(1.0,
+		Vector3r(5.0, 3.0, 5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
-	model.addBallJoint(6, 7, Eigen::Vector3f(5.0f, 0.0f, 5.0f));
-	model.addBallJoint(7, 8, Eigen::Vector3f(5.0f, 2.0f, 5.0f));
+	model.addBallJoint(6, 7, Vector3r(5.0, 0.0, 5.0));
+	model.addBallJoint(7, 8, Vector3r(5.0, 2.0, 5.0));
 
 	//////////////////////////////////////////////////////////////////////////
 	// -5, 5
 	//////////////////////////////////////////////////////////////////////////
 	rb[9] = new RigidBody();
-	rb[9]->initBody(0.0f,
-		Eigen::Vector3f(-5.0, 0.0f, 5.0),
-		computeInertiaTensorBox(1.0f, 0.5f, 0.5f, 0.5f),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[9]->initBody(0.0,
+		Vector3r(-5.0, 0.0, 5.0),
+		computeInertiaTensorBox(1.0, 0.5, 0.5, 0.5),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
 	// dynamic body
 	rb[10] = new RigidBody();
-	rb[10]->initBody(1.0f,
-		Eigen::Vector3f(-5.0f, 1.0f, 5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[10]->initBody(1.0,
+		Vector3r(-5.0, 1.0, 5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
 	// dynamic body
 	rb[11] = new RigidBody();
-	rb[11]->initBody(1.0f,
-		Eigen::Vector3f(-5.0f, 3.0f, 5.0f),
-		computeInertiaTensorBox(1.0f, width, height, depth),
-		Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f),
+	rb[11]->initBody(1.0,
+		Vector3r(-5.0, 3.0, 5.0),
+		computeInertiaTensorBox(1.0, width, height, depth),
+		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh);
 
-	model.addBallJoint(9, 10, Eigen::Vector3f(-5.0f, 0.0f, 5.0f));
-	model.addBallJoint(10, 11, Eigen::Vector3f(-5.0f, 2.0f, 5.0f));
+	model.addBallJoint(9, 10, Vector3r(-5.0, 0.0, 5.0));
+	model.addBallJoint(10, 11, Vector3r(-5.0, 2.0, 5.0));
 	
 
 	model.addRigidBodyParticleBallJoint(2, 0);
@@ -536,17 +539,17 @@ void createClothMesh()
 	TriangleModel::ParticleMesh::UVs uvs;
 	uvs.resize(nRows*nCols);
 
-	const float dy = clothWidth / (float)(nCols - 1);
-	const float dx = clothHeight / (float)(nRows - 1);
+	const Real dy = clothWidth / (Real)(nCols - 1);
+	const Real dx = clothHeight / (Real)(nRows - 1);
 
-	Eigen::Vector3f points[nRows*nCols];
+	Vector3r points[nRows*nCols];
 	for (int i = 0; i < nRows; i++)
 	{
 		for (int j = 0; j < nCols; j++)
 		{
-			const float y = (float)dy*j;
-			const float x = (float)dx*i;
-			points[i*nCols + j] = Eigen::Vector3f(x - 5.0f, 4.0f, y - 5.0f);
+			const Real y = (Real)dy*j;
+			const Real x = (Real)dx*i;
+			points[i*nCols + j] = Vector3r(x - 5.0, 4.0, y - 5.0);
 
 			uvs[i*nCols + j][0] = x / clothWidth;
 			uvs[i*nCols + j][1] = y / clothHeight;
@@ -598,7 +601,7 @@ void createClothMesh()
 	// init constraints
 	for (unsigned int cm = 0; cm < model.getTriangleModels().size(); cm++)
 	{
-		if (sim.getSimulationMethod() == 1)
+		if (simulationMethod == 1)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			const unsigned int nEdges = model.getTriangleModels()[cm]->getParticleMesh().numEdges();
@@ -611,7 +614,7 @@ void createClothMesh()
 				model.addDistanceConstraint(v1, v2);
 			}
 		}
-		else if (sim.getSimulationMethod() == 2)
+		else if (simulationMethod == 2)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
@@ -625,7 +628,7 @@ void createClothMesh()
 				model.addFEMTriangleConstraint(v1, v2, v3);
 			}
 		}
-		else if (sim.getSimulationMethod() == 3)
+		else if (simulationMethod == 3)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
@@ -639,7 +642,7 @@ void createClothMesh()
 				model.addStrainTriangleConstraint(v1, v2, v3);
 			}
 		}
-		if (sim.getBendingMethod() != 0)
+		if (bendingMethod != 0)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
@@ -679,9 +682,9 @@ void createClothMesh()
 						const unsigned int vertex2 = point2 + offset;
 						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
 						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
-						if (sim.getBendingMethod() == 1)
+						if (bendingMethod == 1)
 							model.addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
-						else if (sim.getBendingMethod() == 2)
+						else if (bendingMethod == 2)
 							model.addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
 					}
 				}
@@ -696,13 +699,13 @@ void createClothMesh()
 
 void TW_CALL setTimeStep(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	TimeManager::getCurrent()->setTimeStepSize(val);
 }
 
 void TW_CALL getTimeStep(void *value, void *clientData)
 {
-	*(float *)(value) = TimeManager::getCurrent()->getTimeStepSize();
+	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
 }
 
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
@@ -718,68 +721,68 @@ void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
 
 void TW_CALL setStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothStiffness(val);
 }
 
 void TW_CALL getStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
 }
 
 void TW_CALL setXXStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothXXStiffness(val);
 }
 
 void TW_CALL getXXStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
 }
 
 void TW_CALL setYYStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothYYStiffness(val);
 }
 
 void TW_CALL getYYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
 }
 
 void TW_CALL setXYStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothXYStiffness(val);
 }
 
 void TW_CALL getXYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
 }
 
 void TW_CALL setYXPoissonRatio(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothYXPoissonRatio(val);
 }
 
 void TW_CALL getYXPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
 }
 
 void TW_CALL setXYPoissonRatio(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothXYPoissonRatio(val);
 }
 
 void TW_CALL getXYPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
 }
 
 void TW_CALL setNormalizeStretch(const void *value, void *clientData)
@@ -806,35 +809,35 @@ void TW_CALL getNormalizeShear(void *value, void *clientData)
 
 void TW_CALL setBendingStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothBendingStiffness(val);
 }
 
 void TW_CALL getBendingStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
 }
 
 void TW_CALL setBendingMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepController*)clientData)->setBendingMethod((unsigned int)val);
+	*((short*)clientData) = val;
 	reset();
 }
 
 void TW_CALL getBendingMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepController*)clientData)->getBendingMethod();
+	*(short *)(value) = *((short*)clientData);
 }
 
 void TW_CALL setSimulationMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepController*)clientData)->setSimulationMethod((unsigned int)val);
+	*((short*)clientData) = val;
 	reset();
 }
 
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepController*)clientData)->getSimulationMethod();
+	*(short *)(value) = *((short*)clientData);
 }

@@ -7,6 +7,8 @@ using namespace PBD;
 TriangleModel::TriangleModel() :
 	m_particleMesh()
 {
+	m_restitutionCoeff = 0.6;
+	m_frictionCoeff = 0.2;
 }
 
 TriangleModel::~TriangleModel(void)
@@ -21,7 +23,7 @@ void TriangleModel::cleanupModel()
 
 void TriangleModel::updateMeshNormals(const ParticleData &pd)
 {
-	m_particleMesh.updateNormals(pd);
+	m_particleMesh.updateNormals(pd, m_indexOffset);
 	m_particleMesh.updateVertexNormals(pd);
 }
 

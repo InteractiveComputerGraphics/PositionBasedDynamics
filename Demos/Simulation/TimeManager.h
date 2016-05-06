@@ -1,16 +1,17 @@
 #ifndef _TIMEMANAGER_H
 #define _TIMEMANAGER_H
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
+#include "Common/Common.h"
 
 namespace PBD
 {
 	class TimeManager
 	{
 	private:
-		float time;
+		Real time;
 		static TimeManager *current;
-		float h;
+		Real h;
 
 	public:
 		TimeManager ();
@@ -21,10 +22,10 @@ namespace PBD
 		static void setCurrent (TimeManager* tm);
 		static bool hasCurrent();
 
-		float getTime();
-		void setTime(float t);
-		float getTimeStepSize();
-		void setTimeStepSize(float tss);
+		Real getTime();
+		void setTime(Real t);
+		Real getTimeStepSize();
+		void setTimeStepSize(Real tss);
 	};
 }
 

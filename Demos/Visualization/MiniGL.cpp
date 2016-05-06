@@ -25,7 +25,6 @@
 #include <iostream>
 
 using namespace PBD;
-using namespace Eigen;
 
 float MiniGL::fovy = 45;
 float MiniGL::znear = 0.5f;
@@ -36,11 +35,11 @@ void (*MiniGL::exitfunc)(void) = NULL;
 int MiniGL::idlefunchz = 0;
 int MiniGL::width = 0;
 int MiniGL::height = 0;
-Quaternionf MiniGL::m_rotation;
-float MiniGL::m_zoom = 1.0f;
-Vector3f MiniGL::m_translation;
-float MiniGL::movespeed = 1.0f;
-float MiniGL::turnspeed = 0.01f;
+Quaternionr MiniGL::m_rotation;
+Real MiniGL::m_zoom = 1.0;
+Vector3r MiniGL::m_translation;
+Real MiniGL::movespeed = 1.0;
+Real MiniGL::turnspeed = 0.01;
 int MiniGL::mouse_button = -1;
 int MiniGL::modifier_key = 0;
 int MiniGL::mouse_pos_x_old = 0;
@@ -50,8 +49,8 @@ unsigned char MiniGL::key [MAX_KEY_FUNC] = {0,0};
 int MiniGL::numberOfKeyFunc = 0;
 int MiniGL::drawMode = GL_FILL;
 TwBar *MiniGL::m_tweakBar = NULL;
-float MiniGL::m_time = 0.0f;
-float MiniGL::m_quat[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+Real MiniGL::m_time = 0.0;
+Real MiniGL::m_quat[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 unsigned char MiniGL::texData[IMAGE_ROWS][IMAGE_COLS][3];
 unsigned int MiniGL::m_texId = 0;
 void(*MiniGL::selectionfunc)(const Eigen::Vector2i&, const Eigen::Vector2i&) = NULL;
@@ -61,11 +60,17 @@ Eigen::Vector2i MiniGL::m_selectionStart;
 GLint MiniGL::m_context_major_version = 0;
 GLint MiniGL::m_context_minor_version = 0;
 GLint MiniGL::m_context_profile = 0;
+bool MiniGL::m_breakPointActive = true;
+bool MiniGL::m_breakPointLoop = false;
+ObjectArray<MiniGL::Triangle> MiniGL::m_drawTriangle;
+ObjectArray<MiniGL::Line> MiniGL::m_drawLines;
+ObjectArray<MiniGL::Point> MiniGL::m_drawPoints;
 
 
-void MiniGL::drawTime( const float time )
+
+void MiniGL::drawTime( const Real time )
 {
-	m_time = (float) time;
+	m_time = (Real) time;
 	TwRefreshBar(m_tweakBar);
 }
 
@@ -87,10 +92,10 @@ void MiniGL::getOpenGLVersion(int &major_version, int &minor_version)
 
 void MiniGL::coordinateSystem() 
 {
-	Vector3f a(0,0,0);
-	Vector3f b(2,0,0);
-	Vector3f c(0,2,0);
-	Vector3f d(0,0,2);
+	Eigen::Vector3f a(0,0,0);
+	Eigen::Vector3f b(2,0,0);
+	Eigen::Vector3f c(0,2,0);
+	Eigen::Vector3f d(0,0,2);
 
 	float diffcolor [4] = {1,0,0,1};
 	float speccolor [4] = {1,1,1,1};
@@ -105,7 +110,7 @@ void MiniGL::coordinateSystem()
 		glVertex3fv (&b[0]);
 	glEnd ();
 
-	float diffcolor2 [4] = {0,1,0,1};
+	float diffcolor2[4] = { 0, 1, 0, 1 };
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, diffcolor2);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, diffcolor2);
 
@@ -114,7 +119,7 @@ void MiniGL::coordinateSystem()
 		glVertex3fv (&c[0]);
 	glEnd ();
 
-	float diffcolor3 [4] = {0,0,1,1};
+	float diffcolor3[4] = { 0, 0, 1, 1 };
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, diffcolor3);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, diffcolor3);
 
@@ -125,7 +130,7 @@ void MiniGL::coordinateSystem()
 	glLineWidth (1);
 }
 
-void MiniGL::drawVector (const Vector3f &a, const Vector3f &b, const float w, float *color)
+void MiniGL::drawVector(const Vector3r &a, const Vector3r &b, const float w, float *color)
 {
 	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
@@ -137,8 +142,8 @@ void MiniGL::drawVector (const Vector3f &a, const Vector3f &b, const float w, fl
 	glLineWidth (w);
 
 	glBegin (GL_LINES);
-		glVertex3fv(&a[0]);
-		glVertex3fv(&b[0]);
+		glVertex3v(&a[0]);
+		glVertex3v(&b[0]);
 	glEnd ();
 	
 	glLineWidth (1);
@@ -147,7 +152,7 @@ void MiniGL::drawVector (const Vector3f &a, const Vector3f &b, const float w, fl
 /**
 * Renders a closed cylinder between two points.
 */
-void MiniGL::drawCylinder(const Vector3f &a, const Vector3f &b, const float *color, const float radius, const unsigned int subdivisions)
+void MiniGL::drawCylinder(const Vector3r &a, const Vector3r &b, const float *color, const float radius, const unsigned int subdivisions)
 {
 	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
@@ -156,31 +161,31 @@ void MiniGL::drawCylinder(const Vector3f &a, const Vector3f &b, const float *col
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
 	glColor3fv(color);
 
-	float vx = (float)(b.x() - a.x());
-	float vy = (float)(b.y() - a.y());
-	float vz = (float)(b.z() - a.z());
+	Real vx = (b.x() - a.x());
+	Real vy = (b.y() - a.y());
+	Real vz = (b.z() - a.z());
 	//handle the degenerate case with an approximation
 	if (vz == 0)
-		vz = .00000001f;
-	float v = sqrt(vx*vx + vy*vy + vz*vz);
-	float ax = 57.2957795f*acos(vz / v);
+		vz = .00000001;
+	Real v = sqrt(vx*vx + vy*vy + vz*vz);
+	Real ax = 57.2957795*acos(vz / v);
 	if (vz < 0.0)
 		ax = -ax;
-	float rx = -vy*vz;
-	float ry = vx*vz;
+	Real rx = -vy*vz;
+	Real ry = vx*vz;
 
 	GLUquadricObj *quadric = gluNewQuadric();
 	gluQuadricNormals(quadric, GLU_SMOOTH);
 
 	glPushMatrix();
 	glTranslatef((float)a.x(), (float)a.y(), (float)a.z());
-	glRotatef(ax, rx, ry, 0.0);
+	glRotatef((float)ax, (float)rx, (float)ry, 0.0f);
 	//draw the cylinder
 	gluCylinder(quadric, radius, radius, v, subdivisions, 1);
 	gluQuadricOrientation(quadric, GLU_INSIDE);
 	//draw the first cap
 	gluDisk(quadric, 0.0, radius, subdivisions, 1);
-	glTranslatef(0, 0, v);
+	glTranslatef(0, 0, (float)v);
 	//draw the second cap
 	gluQuadricOrientation(quadric, GLU_OUTSIDE);
 	gluDisk(quadric, 0.0, radius, subdivisions, 1);
@@ -189,7 +194,7 @@ void MiniGL::drawCylinder(const Vector3f &a, const Vector3f &b, const float *col
 	gluDeleteQuadric(quadric);
 }
 
-void MiniGL::drawSphere (const Vector3f &translation, float radius, float *color, const unsigned int subDivision)
+void MiniGL::drawSphere(const Vector3r &translation, float radius, float *color, const unsigned int subDivision)
 {
 	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
@@ -204,7 +209,23 @@ void MiniGL::drawSphere (const Vector3f &translation, float radius, float *color
 	glPopMatrix ();
 }
 
-void MiniGL::drawPoint (const Vector3f &translation, const float pointSize, const float * const color)
+void MiniGL::drawTorus(const Vector3r &translation, float innerRadius, float outerRadius, float *color, const unsigned int nsides, const unsigned int rings)
+{
+	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+	glColor3fv(color);
+
+	glPushMatrix();
+	glTranslated((translation)[0], (translation)[1], (translation)[2]);
+	glRotated(90.0, 1.0, 0.0, 0.0);
+	glutSolidTorus(innerRadius, outerRadius, nsides, rings);
+	glPopMatrix();
+}
+
+void MiniGL::drawPoint(const Vector3r &translation, const float pointSize, const float * const color)
 {	
 	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
@@ -216,14 +237,14 @@ void MiniGL::drawPoint (const Vector3f &translation, const float pointSize, cons
 	glPointSize(pointSize);
 
 	glBegin (GL_POINTS);
-	glVertex3fv(&translation[0]);
+	glVertex3v(&translation[0]);
 	glEnd ();
 
 	glPointSize(1);
 }
 
 
-void MiniGL::drawCube (const Vector3f &translation, const Matrix3f &rotation, float width, float height, float depth, float *color)
+void MiniGL::drawCube(const Vector3r &translation, const Matrix3r &rotation, float width, float height, float depth, float *color)
 {
 	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
@@ -231,22 +252,22 @@ void MiniGL::drawCube (const Vector3f &translation, const Matrix3f &rotation, fl
 	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
 	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
 
-	float val[16];
+	Real val[16];
 	val[0] = width*(rotation)(0,0); val[1] = width*(rotation)(0,1); val[2] = width*(rotation)(0,2); val[3] = 0;
 	val[4] = height*(rotation)(1,0); val[5] = height*(rotation)(1,1); val[6] = height*(rotation)(1,2); val[7] = 0;
 	val[8] = depth*(rotation)(2,0); val[9] = depth*(rotation)(2,1); val[10] = depth*(rotation)(2,2); val[11] = 0;
 	val[12] = (translation)[0]; val[13] = (translation)[1]; val[14] = (translation)[2]; val[15] = 1;
 
 	glPushMatrix ();
-	glMultMatrixf (val);
+	glMultMatrix (val);
 	glutSolidCube(1.0);
 	glPopMatrix ();
 }
 
 
-void MiniGL::drawBitmapText (float x, float y, const char *str, int strLength, float *color)
+void MiniGL::drawBitmapText(float x, float y, const char *str, int strLength, float *color)
 {
-	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
+	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
@@ -268,16 +289,16 @@ void MiniGL::drawBitmapText (float x, float y, const char *str, int strLength, f
 	glPopMatrix ();
 }
 
-void MiniGL::drawStrokeText (const float x, const float y, const float z, float scale, const char *str, int strLength, float *color)
+void MiniGL::drawStrokeText(const Real x, const Real y, const Real z, float scale, const char *str, int strLength, float *color)
 {
-	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
+	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
 	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
 
 	glPushMatrix ();
-	glTranslated (x, y, z);
+	glTranslate (x, y, z);
 	glScalef (scale, scale, scale);
 
 	for (int i=0; i < strLength; i++)
@@ -285,60 +306,60 @@ void MiniGL::drawStrokeText (const float x, const float y, const float z, float 
 	glPopMatrix ();
 }
 
-void MiniGL::drawStrokeText (const Vector3f &pos, float scale, const char *str, int strLength, float *color)
+void MiniGL::drawStrokeText(const Vector3r &pos, float scale, const char *str, int strLength, float *color)
 {
 	drawStrokeText(pos[0], pos[1], pos[2], scale, str, strLength, color);
 }
 
 
-void MiniGL::drawQuad (const Vector3f &a, const Vector3f &b, const Vector3f &c, const Vector3f &d, const Vector3f &norm, float *color)
+void MiniGL::drawQuad(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d, const Vector3r &norm, float *color)
 {
-	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
+	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
 	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
 
 	glBegin (GL_QUADS);
-		glNormal3fv(&norm[0]);
-		glVertex3fv(&a[0]);
-		glVertex3fv(&b[0]);
-		glVertex3fv(&c[0]);
-		glVertex3fv(&d[0]);
+		glNormal3v(&norm[0]);
+		glVertex3v(&a[0]);
+		glVertex3v(&b[0]);
+		glVertex3v(&c[0]);
+		glVertex3v(&d[0]);
 	glEnd ();
 }
 
-void MiniGL::drawTriangle (const Vector3f &a, const Vector3f &b, const Vector3f &c, const Vector3f &norm, float *color)
+void MiniGL::drawTriangle (const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &norm, float *color)
 {
-	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
+	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
 	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
 	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
 
 	glBegin (GL_TRIANGLES);
-		glNormal3fv(&norm[0]);
-		glVertex3fv(&a[0]);
-		glVertex3fv(&b[0]);
-		glVertex3fv(&c[0]);
+		glNormal3v(&norm[0]);
+		glVertex3v(&a[0]);
+		glVertex3v(&b[0]);
+		glVertex3v(&c[0]);
 	glEnd ();
 }
 
 /** Draw a tetrahedron.
  */
-void MiniGL::drawTetrahedron(const Vector3f &a, const Vector3f &b, const Vector3f &c, const Vector3f &d, float *color)
+void MiniGL::drawTetrahedron(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d, float *color)
 {
-	Vector3f normal1 = (b-a).cross(c-a);
-	Vector3f normal2 = (b-a).cross(d-a);
-	Vector3f normal3 = (c-a).cross(d-a);
-	Vector3f normal4 = (c-b).cross(d-b);
+	Vector3r normal1 = (b-a).cross(c-a);
+	Vector3r normal2 = (b-a).cross(d-a);
+	Vector3r normal3 = (c-a).cross(d-a);
+	Vector3r normal4 = (c-b).cross(d-b);
 	drawTriangle(a, b, c, normal1, color);
 	drawTriangle(a, b, d, normal2, color);
 	drawTriangle(a, c, d, normal3, color);
 	drawTriangle(b, c, d, normal4, color);
 }
 
-void MiniGL::setViewport (float pfovy, float pznear, float pzfar, const Vector3f &peyepoint, const Vector3f &plookat)
+void MiniGL::setViewport(float pfovy, float pznear, float pzfar, const Vector3r &peyepoint, const Vector3r &plookat)
 {
 	fovy = pfovy;
 	znear = pznear;
@@ -347,34 +368,32 @@ void MiniGL::setViewport (float pfovy, float pznear, float pzfar, const Vector3f
 	glLoadIdentity ();
 	gluLookAt (peyepoint [0], peyepoint [1], peyepoint [2], plookat[0], plookat[1], plookat[2], 0, 1, 0);
 
-	Matrix4f transformation;
-	float *lookAtMatrix = transformation.data();
-	glGetFloatv (GL_MODELVIEW_MATRIX, &lookAtMatrix[0]);
+	Matrix4r transformation;
+	Real *lookAtMatrix = transformation.data();
+	glGetRealv(GL_MODELVIEW_MATRIX, &lookAtMatrix[0]);
 	
-	Matrix3f rot;
-	Vector3f scale;
+	Matrix3r rot;
+	Vector3r scale;
 
-	transformation.transposeInPlace();
-
-	rot.row(0) = Vector3f (transformation(0,0), transformation(0,1), transformation(0,2));
-	rot.row(1) = Vector3f (transformation(1,0), transformation(1,1), transformation(1,2));
-	rot.row(2) = Vector3f (transformation(2,0), transformation(2,1), transformation(2,2));
+	rot.row(0) = Vector3r (transformation(0,0), transformation(0,1), transformation(0,2));
+	rot.row(1) = Vector3r (transformation(1,0), transformation(1,1), transformation(1,2));
+	rot.row(2) = Vector3r (transformation(2,0), transformation(2,1), transformation(2,2));
 	scale[0] = rot.col(0).norm();
 	scale[1] = rot.col(1).norm();
 	scale[2] = rot.col(2).norm();
-	m_translation = Vector3f (transformation(3,0), transformation(3,1), transformation(3,2));
+	m_translation = Vector3r (transformation(0,3), transformation(1,3), transformation(2,3));
 
-	rot.col(0) = 1.0f/scale[0] * rot.col(0);
-	rot.col(1) = 1.0f/scale[1] * rot.col(1);
-	rot.col(2) = 1.0f/scale[2] * rot.col(2);
+	rot.col(0) = 1.0/scale[0] * rot.col(0);
+	rot.col(1) = 1.0/scale[1] * rot.col(1);
+	rot.col(2) = 1.0/scale[2] * rot.col(2);
 
 	m_zoom = scale[0];
-	m_rotation = Quaternionf(rot);
+	m_rotation = Quaternionr(rot);
 
 	glLoadIdentity ();
 }
 
-void MiniGL::setViewport (float pfovy, float pznear, float pzfar)
+void MiniGL::setViewport(float pfovy, float pznear, float pzfar)
 {
 	fovy = pfovy;
 	znear = pznear;
@@ -391,6 +410,8 @@ void MiniGL::display ()
 	glPolygonMode (GL_FRONT_AND_BACK, drawMode); 
 	viewport ();
 
+	drawElements();
+
 	if (scenefunc != NULL)
 		scenefunc ();
 
@@ -398,7 +419,7 @@ void MiniGL::display ()
 	glutSwapBuffers();
 }
 
-void MiniGL::init (int argc, char **argv, int width, int height, int posx, int posy, char *name)
+void MiniGL::init(int argc, char **argv, const int width, const int height, const int posx, const int posy, const char *name)
 {
 	fovy = 60;
 	znear = 0.5f;
@@ -524,7 +545,7 @@ void MiniGL::initTweakBar()
 	TwDefine(" GLOBAL help='MiniGL TweakBar.' "); // Message added to the help bar.
 	TwDefine(" TweakBar size='300 600' valueswidth=120 position='5 5' color='96 200 224' text=dark "); // change default tweak bar size and color
 
-	TwAddVarRO(m_tweakBar, "Time", TW_TYPE_FLOAT, &m_time, " label='Time' precision=5");
+	TwAddVarRO(m_tweakBar, "Time", TW_TYPE_REAL, &m_time, " label='Time' precision=5");
 
 	TwAddVarCB(m_tweakBar, "Rotation", TW_TYPE_QUAT4F, setRotationCB, getRotationCB, &m_quat, 
 		" label='Rotation' open help='Change the rotation.' ");
@@ -552,20 +573,20 @@ void TW_CALL MiniGL::getWireframeCB(void *value, void *clientData)
 void TW_CALL MiniGL::setRotationCB(const void *value, void *clientData)
 {
 	const float *val = (const float *)(value);
-	m_rotation.x() = (float) val[0];
-	m_rotation.y() = (float) val[1];
-	m_rotation.z() = (float) val[2];
-	m_rotation.w() = -(float) val[3];
+	m_rotation.x() = (Real) val[0];
+	m_rotation.y() = (Real) val[1];
+	m_rotation.z() = (Real) val[2];
+	m_rotation.w() = -(Real) val[3];
 
 }
 
 void TW_CALL MiniGL::getRotationCB(void *value, void *clientData)
 {
 	float *val = (float*)(value);
-	val[0] = (float) m_rotation.x();
-	val[1] = (float) m_rotation.y();
-	val[2] = (float) m_rotation.z();
-	val[3] = -(float) m_rotation.w();
+	val[0] = (float)m_rotation.x();
+	val[1] = (float)m_rotation.y();
+	val[2] = (float)m_rotation.z();
+	val[3] = -(float)m_rotation.w();
 }
 
 void MiniGL::setMouseMoveFunc(int button, void(*func) (int, int))
@@ -647,6 +668,8 @@ void MiniGL::keyboard (unsigned char k, int x, int y)
 
 	if (k == 27)
 	{
+		m_breakPointLoop = false;
+		m_breakPointActive = false;
 #ifndef __APPLE__
 		glutLeaveMainLoop();
 #else
@@ -690,6 +713,8 @@ void MiniGL::special (int k, int x, int y)
 		move (movespeed, 0, 0);
 	else if (k == GLUT_KEY_RIGHT)
 		move (-movespeed, 0, 0);
+	else if (k == GLUT_KEY_F5)
+		m_breakPointLoop = false;
 	glutPostRedisplay ();
 }
 
@@ -697,7 +722,7 @@ void MiniGL::setProjectionMatrix (int width, int height)
 { 
 	glMatrixMode(GL_PROJECTION); 
 	glLoadIdentity(); 
-	gluPerspective (fovy, (float)width/(float)height, znear, zfar); 
+	gluPerspective(fovy, (Real)width / (Real)height, znear, zfar);
 }
 
 void MiniGL::viewport ()
@@ -711,18 +736,18 @@ void MiniGL::viewport ()
 	setProjectionMatrix (width, height);
 	glMatrixMode (GL_MODELVIEW);
 
-	glTranslatef((float) m_translation[0], (float) m_translation[1], (float) m_translation[2]);
-	Matrix3f rot;
+	glTranslatef((float)m_translation[0], (float)m_translation[1], (float)m_translation[2]);
+	Matrix3r rot;
 	rot = m_rotation.toRotationMatrix();
-	Matrix4f transform(Matrix4f::Identity());
-	Vector3f scale(m_zoom, m_zoom, m_zoom);
+	Matrix4r transform(Matrix4r::Identity());
+	Vector3r scale(m_zoom, m_zoom, m_zoom);
 	transform.block<3,3>(0,0) = rot;
 	transform.block<3,1>(0,3) = m_translation;
 	transform(0,0) *= scale[0];
 	transform(1,1) *= scale[1];
 	transform(2,2) *= scale[2];
-	float *transformMatrix = transform.data();
-	glLoadMatrixf(&transformMatrix[0]);
+	Real *transformMatrix = transform.data();
+	glLoadMatrix(&transformMatrix[0]);
 }
 
 void MiniGL::initLights ()
@@ -766,24 +791,24 @@ void MiniGL::initLights ()
 
 }
 
-void MiniGL::move (float x, float y, float z)
+void MiniGL::move(Real x, Real y, Real z)
 {
 	m_translation[0] += x;
 	m_translation[1] += y;
 	m_translation[2] += z;
 }
 
-void MiniGL::rotateY (float y)
+void MiniGL::rotateY (Real y)
 {
-	AngleAxisf angleAxis(y, Vector3f(0,1,0));
-	Quaternionf quat(angleAxis);
+	AngleAxisr angleAxis(y, Vector3r(0,1,0));
+	Quaternionr quat(angleAxis);
 	m_rotation = m_rotation*quat;
 }
 
-void MiniGL::rotateX (float x)
+void MiniGL::rotateX(Real x)
 {
-	AngleAxisf angleAxis(x, Vector3f(1,0,0));
-	Quaternionf quat(angleAxis);
+	AngleAxisr angleAxis(x, Vector3r(1,0,0));
+	Quaternionr quat(angleAxis);
 	m_rotation = m_rotation*quat;
 }
 
@@ -843,18 +868,18 @@ void MiniGL::mouseMove (int x, int y)
 		// translate scene in z direction		
 		if (modifier_key == GLUT_ACTIVE_CTRL)
 		{
-			move (0, 0, -(d_x + d_y) / 10.0f);
+			move (0, 0, -(d_x + d_y) / 10.0);
 		}
 		// translate scene in x/y direction
 		else if (modifier_key == GLUT_ACTIVE_SHIFT)
 		{
-			move (-d_x / 20.0f, -d_y / 20.0f, 0);
+			move (-d_x / 20.0f, -d_y / 20.0, 0);
 		}
 		// rotate scene around x, y axis
 		else if (modifier_key == GLUT_ACTIVE_ALT)
 		{
-			rotateX(d_y/ 100.0f);
-			rotateY(-d_x/ 100.0f);
+			rotateX(d_y/ 100.0);
+			rotateY(-d_x/ 100.0);
 		}
 	}
 
@@ -871,7 +896,7 @@ void MiniGL::mouseMove (int x, int y)
 }
 
 
-void MiniGL::unproject(const int x, const int y, Eigen::Vector3f &pos)
+void MiniGL::unproject(const int x, const int y, Vector3r &pos)
 {
 	GLint viewport[4];
 	GLdouble mv[16], pm[16];
@@ -881,9 +906,9 @@ void MiniGL::unproject(const int x, const int y, Eigen::Vector3f &pos)
 
 	GLdouble resx, resy, resz;
 	gluUnProject(x, viewport[3] - y, znear, mv, pm, viewport, &resx, &resy, &resz);
-	pos[0] = (float) resx;
-	pos[1] = (float) resy;
-	pos[2] = (float) resz;
+	pos[0] = (Real) resx;
+	pos[1] = (Real) resy;
+	pos[2] = (Real) resz;
 }
 
 float MiniGL::getZNear()
@@ -925,4 +950,99 @@ Shader *MiniGL::createShader(const std::string &vertexShader, const std::string 
 		return shader;
 	}
 	return NULL;
+}
+
+void MiniGL::drawElements()
+{
+	for (unsigned int i = 0; i < m_drawLines.size(); i++)
+	{
+		Line &l = m_drawLines[i];
+		drawVector(l.a, l.b, l.lineWidth, l.color);
+	}
+	for (unsigned int i = 0; i < m_drawTriangle.size(); i++)
+	{
+		Triangle &t = m_drawTriangle[i];
+		Vector3r n = ((t.b - t.a).cross(t.c - t.a));
+		n.normalize();
+		drawTriangle(t.a, t.b, t.c, n, t.color);
+	}
+	for (unsigned int i = 0; i < m_drawPoints.size(); i++)
+	{
+		Point &p = m_drawPoints[i];
+		drawSphere(p.a, p.pointSize, p.color);
+	}
+}
+
+void MiniGL::clearPoints()
+{
+	m_drawPoints.clear();
+}
+
+void MiniGL::clearLines()
+{
+	m_drawLines.clear();
+}
+
+void MiniGL::clearTriangles()
+{
+	m_drawTriangle.clear();
+}
+
+void MiniGL::clearElements()
+{
+	clearPoints();
+	clearLines();
+	clearTriangles();
+}
+
+void MiniGL::addPoint(const Vector3r &a, const float pointSize, const float *color)
+{
+	Point &p = m_drawPoints.create();
+	p.a = a;
+	p.pointSize = pointSize;
+	for (unsigned char i = 0; i < 4; i++)
+		p.color[i] = color[i];
+}
+
+void MiniGL::addLine(const Vector3r &a, const Vector3r &b, const float lineWidth, const float *color)
+{
+	Line &l = m_drawLines.create();
+	l.a = a;
+	l.b = b;
+	l.lineWidth = lineWidth;
+	for (unsigned char i = 0; i < 4; i++)
+		l.color[i] = color[i];
+}
+
+void MiniGL::addTriangle(const Vector3r &a, const Vector3r &b, const Vector3r &c, const float *color)
+{
+	Triangle &t = m_drawTriangle.create();
+	t.a = a;
+	t.b = b;
+	t.c = c;
+	for (unsigned char i = 0; i < 4; i++)
+		t.color[i] = color[i];
+}
+
+void MiniGL::setBreakPointActive(const bool active)
+{
+	m_breakPointActive = active;
+}
+
+void MiniGL::breakPoint()
+{
+	glutPostRedisplay();
+	breakPointMainLoop();
+}
+
+void MiniGL::breakPointMainLoop()
+{
+	if (m_breakPointActive)
+	{
+		m_breakPointLoop = true;
+		while (m_breakPointLoop)
+		{
+			glutMainLoopEvent();
+		}
+	}
 }

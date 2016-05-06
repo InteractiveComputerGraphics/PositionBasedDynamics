@@ -1,0 +1,99 @@
+{
+	"Name": "ClothCollisionScene1",
+	"Simulation": 
+	{
+		"timeStepSize": 0.0025,
+		"maxIter" : 5,
+		"maxIterVel" : 5,
+		"velocityUpdateMethod" : 0,
+		"contactTolerance": 0.05,
+		"triangleModelSimulationMethod": 2,
+		"triangleModelBendingMethod": 2,
+		"contactStiffnessRigidBody" : 1.0,
+		"contactStiffnessParticleRigidBody": 100.0,
+		"cloth_stiffness": 1.0,
+		"cloth_bendingStiffness": 0.005,
+		"cloth_xxStiffness": 1.0,
+		"cloth_yyStiffness": 1.0,
+		"cloth_xyStiffness": 1.0,
+		"cloth_xyPoissonRatio": 0.3,
+		"cloth_yxPoissonRatio": 0.3,
+		"cloth_normalizeStretch": 0,
+		"cloth_normalizeShear": 0
+	},	
+	"TriangleModels": [
+		{
+			"id": 0,
+			"geometryFile": "../models/plane_50x50.obj",
+			"translation": [5,8,0],
+			"rotationAxis": [1, 0, 0],
+			"rotationAngle": 0.0,
+			"scale": [10, 10, 10],
+			"staticParticles": [0,49],
+			"restitution" : 0.1,
+			"friction" : 0.1
+		}
+	],
+	"RigidBodies": [
+		{
+			"id": 1,
+			"geometryFile": "../models/cube.obj",
+			"isDynamic": 0, 
+			"density": 500, 
+			"translation": [0,0,0],
+			"rotationAxis": [1, 0, 0],
+			"rotationAngle": 0.0,
+			"scale": [100, 1, 100],
+			"restitution" : 0.6,
+			"friction" : 0.0,
+			"collisionObjectType": 2,
+			"collisionObjectScale": [100, 1, 100]	
+		}, 
+		{
+			"id": 2,
+			"geometryFile": "../models/sphere.obj",
+			"isDynamic": 1, 
+			"density": 200, 
+			"translation": [5,6,0],
+			"rotationAxis": [1, 0, 0],
+			"rotationAngle": 0.0,
+			"scale": [1.5, 1.5, 1.5],
+			"velocity": [0,0,0],
+			"restitution" : 0.6,
+			"friction" : 0.2,
+			"collisionObjectType": 1,
+			"collisionObjectScale": [1.5, 1.5, 1.5]
+		}, 
+		{
+			"id": 3,
+			"geometryFile": "../models/cylinder.obj",
+			"isDynamic": 1, 
+			"density": 200, 
+			"translation": [6, 11, 3],
+			"rotationAxis": [0, 0, 1],
+			"rotationAngle": 1.5,
+			"scale": [0.25, 3, 0.25],
+			"angularVelocity": [1,0,0],
+			"restitution" : 0.6,
+			"friction" : 0.2,
+			"collisionObjectType": 3,
+			"collisionObjectScale": [0.25, 3, 0.25]
+		},
+		{
+			"id": 4,
+			"geometryFile": "../models/torus.obj",
+			"isDynamic": 1, 
+			"density": 200, 
+			"translation": [5,3,0],
+			"rotationAxis": [0, 0, 1],
+			"rotationAngle": 0.25,
+			"scale": [1.5, 1.5, 1.5],
+			"restitution" : 0.6,
+			"friction" : 0.2,
+			"collisionObjectType": 4,
+			"collisionObjectScale": [1.5, 0.75, 1.5]	
+		}
+	]
+}
+
+

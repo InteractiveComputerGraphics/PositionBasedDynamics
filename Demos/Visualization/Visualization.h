@@ -1,8 +1,9 @@
 #ifndef __VISUALIZATION_H__
 #define __VISUALIZATION_H__
 
-#include "Demos/Utils/Config.h"
-#include <Eigen/Dense>
+#include "Demos/Common/Config.h"
+#include "Common/Common.h"
+#include "MiniGL.h"
 
 namespace PBD
 {
@@ -10,25 +11,25 @@ namespace PBD
 	{	
 	public:
 		template<class PositionData>
-		static void drawMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const float * const color);
+		static void drawMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color);
 		template<class PositionData>
-		static void drawTexturedMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const float * const color);
+		static void drawTexturedMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color);
 	};
 
 	template<class PositionData>
-	void Visualization::drawMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const float * const color)
+	void Visualization::drawMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color)
 	{
 		// draw mesh 
 		const unsigned int *faces = mesh.getFaces().data();
 		const unsigned int nFaces = mesh.numFaces();
-		const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
+		const Vector3r *vertexNormals = mesh.getVertexNormals().data();
 
 		if (MiniGL::checkOpenGLVersion(3, 3))
 		{
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, &pd.getPosition(0)[0]);
+			glVertexAttribPointer(0, 3, GL_REAL, GL_FALSE, 0, &pd.getPosition(offset)[0]);
 			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, &vertexNormals[0][0]);
+			glVertexAttribPointer(2, 3, GL_REAL, GL_FALSE, 0, &vertexNormals[0][0]);
 		}
 		else
 		{
@@ -41,8 +42,8 @@ namespace PBD
 
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_NORMAL_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(0)[0]);
-			glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
+			glVertexPointer(3, GL_REAL, 0, &pd.getPosition(0)[0]);
+			glNormalPointer(GL_REAL, 0, &vertexNormals[0][0]);
 		}
 
 		glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());
@@ -60,24 +61,24 @@ namespace PBD
 	}
 
 	template<class PositionData>
-	void Visualization::drawTexturedMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const float * const color)
+	void Visualization::drawTexturedMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color)
 	{
 		// draw mesh 
 		const unsigned int *faces = mesh.getFaces().data();
 		const unsigned int nFaces = mesh.numFaces();
-		const Eigen::Vector3f *vertexNormals = mesh.getVertexNormals().data();
-		const Eigen::Vector2f *uvs = mesh.getUVs().data();
+		const Vector3r *vertexNormals = mesh.getVertexNormals().data();
+		const Vector2r *uvs = mesh.getUVs().data();
 
 		MiniGL::bindTexture();
 
 		if (MiniGL::checkOpenGLVersion(3,3))
 		{
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, &pd.getPosition(0)[0]);
+			glVertexAttribPointer(0, 3, GL_REAL, GL_FALSE, 0, &pd.getPosition(offset)[0]);
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, &uvs[0][0]);
+			glVertexAttribPointer(1, 2, GL_REAL, GL_FALSE, 0, &uvs[0][0]);
 			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, &vertexNormals[0][0]);
+			glVertexAttribPointer(2, 3, GL_REAL, GL_FALSE, 0, &vertexNormals[0][0]);
 		}
 		else
 		{
@@ -91,9 +92,9 @@ namespace PBD
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_NORMAL_ARRAY);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, &pd.getPosition(0)[0]);
-			glTexCoordPointer(2, GL_FLOAT, 0, &uvs[0][0]);
-			glNormalPointer(GL_FLOAT, 0, &vertexNormals[0][0]);
+			glVertexPointer(3, GL_REAL, 0, &pd.getPosition(0)[0]);
+			glTexCoordPointer(2, GL_REAL, 0, &uvs[0][0]);
+			glNormalPointer(GL_REAL, 0, &vertexNormals[0][0]);
 		}
 
 		glDrawElements(GL_TRIANGLES, (GLsizei)3 * mesh.numFaces(), GL_UNSIGNED_INT, mesh.getFaces().data());	

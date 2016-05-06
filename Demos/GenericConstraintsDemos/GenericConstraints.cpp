@@ -2,11 +2,12 @@
 #include "Demos/Simulation/SimulationModel.h"
 #include "PositionBasedDynamics/PositionBasedGenericConstraints.h"
 #include "PositionBasedDynamics/MathFunctions.h"
+#include "Demos/Simulation/IDFactory.h"
 
 using namespace PBD;
 
-int GenericDistanceConstraint::TYPE_ID = 1001;
-int GenericIsometricBendingConstraint::TYPE_ID = 1002;
+int GenericDistanceConstraint::TYPE_ID = IDFactory::getId();
+int GenericIsometricBendingConstraint::TYPE_ID = IDFactory::getId();
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15,13 +16,13 @@ int GenericIsometricBendingConstraint::TYPE_ID = 1002;
 
 void GenericDistanceConstraint::constraintFct(
 	const unsigned int numberOfParticles,
-	const float mass[],
-	const Eigen::Vector3f x[],
+	const Real mass[],
+	const Vector3r x[],
 	void *userData,
-	Eigen::Matrix<float, 1, 1> &constraintValue)
+	Eigen::Matrix<Real, 1, 1> &constraintValue)
 {
-	float restLength = *(float*)userData;
-	Eigen::Matrix<float, 1, 1> C;
+	Real restLength = *(Real*)userData;
+	Eigen::Matrix<Real, 1, 1> C;
 	C(0, 0) = (x[1] - x[0]).norm() - restLength;
 	constraintValue = C;
 }
@@ -29,12 +30,12 @@ void GenericDistanceConstraint::constraintFct(
 void GenericDistanceConstraint::gradientFct(
 	const unsigned int i,
 	const unsigned int numberOfParticles,
-	const float mass[],
-	const Eigen::Vector3f x[],
+	const Real mass[],
+	const Vector3r x[],
 	void *userData,
-	Eigen::Matrix<float, 1, 3> &jacobian)
+	Eigen::Matrix<Real, 1, 3> &jacobian)
 {
-	Eigen::Vector3f n = x[i] - x[1 - i];
+	Vector3r n = x[i] - x[1 - i];
 	n.normalize();
 	jacobian = n.transpose();
 }
@@ -45,8 +46,8 @@ bool GenericDistanceConstraint::initConstraint(SimulationModel &model, const uns
 	m_bodies[1] = particle2;
 	ParticleData &pd = model.getParticles();
 
-	const Eigen::Vector3f &x1_0 = pd.getPosition0(particle1);
-	const Eigen::Vector3f &x2_0 = pd.getPosition0(particle2);
+	const Vector3r &x1_0 = pd.getPosition0(particle1);
+	const Vector3r &x2_0 = pd.getPosition0(particle2);
 
 	m_restLength = (x2_0 - x1_0).norm();
 
@@ -60,15 +61,15 @@ bool GenericDistanceConstraint::solvePositionConstraint(SimulationModel &model)
 	const unsigned i1 = m_bodies[0];
 	const unsigned i2 = m_bodies[1];
 
-	Eigen::Vector3f &x1 = pd.getPosition(i1);
-	Eigen::Vector3f &x2 = pd.getPosition(i2);
-	const float invMass1 = pd.getInvMass(i1);
-	const float invMass2 = pd.getInvMass(i2);
+	Vector3r &x1 = pd.getPosition(i1);
+	Vector3r &x2 = pd.getPosition(i2);
+	const Real invMass1 = pd.getInvMass(i1);
+	const Real invMass2 = pd.getInvMass(i2);
 
-	const float invMass[2] = { invMass1, invMass2 };
-	const Eigen::Vector3f x[2] = { x1, x2 };
+	const Real invMass[2] = { invMass1, invMass2 };
+	const Vector3r x[2] = { x1, x2 };
 
-	Eigen::Vector3f corr[2];
+	Vector3r corr[2];
 	const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<2, 1>(
 		invMass, x, &m_restLength,
 		GenericDistanceConstraint::constraintFct,
@@ -77,10 +78,10 @@ bool GenericDistanceConstraint::solvePositionConstraint(SimulationModel &model)
 
 	if (res)
 	{
-		const float stiffness = model.getClothStiffness();
-		if (invMass1 != 0.0f)
+		const Real stiffness = model.getClothStiffness();
+		if (invMass1 != 0.0)
 			x1 += stiffness * corr[0];
-		if (invMass2 != 0.0f)
+		if (invMass2 != 0.0)
 			x2 += stiffness * corr[1];
 	}
 	return res;
@@ -93,12 +94,12 @@ bool GenericDistanceConstraint::solvePositionConstraint(SimulationModel &model)
 
 void GenericIsometricBendingConstraint::constraintFct(
 	const unsigned int numberOfParticles,
-	const float invMass[],
+	const Real invMass[],
 	const Eigen::Vector3d x[],
 	void *userData,
 	Eigen::Matrix<double, 1, 1> &constraintValue)
 {
-	Eigen::Matrix4f *Q = (Eigen::Matrix4f*)userData;
+	Matrix4r *Q = (Matrix4r*)userData;
 
 	double energy = 0.0;
 	for (unsigned char k = 0; k < 4; k++)
@@ -118,31 +119,31 @@ bool GenericIsometricBendingConstraint::initConstraint(SimulationModel &model, c
 	m_bodies[3] = particle2;
 	ParticleData &pd = model.getParticles();
 
-	const Eigen::Vector3f &x0 = pd.getPosition0(m_bodies[0]);
-	const Eigen::Vector3f &x1 = pd.getPosition0(m_bodies[1]);
-	const Eigen::Vector3f &x2 = pd.getPosition0(m_bodies[2]);
-	const Eigen::Vector3f &x3 = pd.getPosition0(m_bodies[3]);
+	const Vector3r &x0 = pd.getPosition0(m_bodies[0]);
+	const Vector3r &x1 = pd.getPosition0(m_bodies[1]);
+	const Vector3r &x2 = pd.getPosition0(m_bodies[2]);
+	const Vector3r &x3 = pd.getPosition0(m_bodies[3]);
 
 	// Compute matrix Q for quadratic bending
-	const Eigen::Vector3f *x[4] = { &x0, &x1, &x2, &x3 };
+	const Vector3r *x[4] = { &x0, &x1, &x2, &x3 };
 
-	const Eigen::Vector3f e0 = *x[1] - *x[0];
-	const Eigen::Vector3f e1 = *x[2] - *x[0];
-	const Eigen::Vector3f e2 = *x[3] - *x[0];
-	const Eigen::Vector3f e3 = *x[2] - *x[1];
-	const Eigen::Vector3f e4 = *x[3] - *x[1];
+	const Vector3r e0 = *x[1] - *x[0];
+	const Vector3r e1 = *x[2] - *x[0];
+	const Vector3r e2 = *x[3] - *x[0];
+	const Vector3r e3 = *x[2] - *x[1];
+	const Vector3r e4 = *x[3] - *x[1];
 
-	const float c01 = MathFunctions::cotTheta(e0, e1);
-	const float c02 = MathFunctions::cotTheta(e0, e2);
-	const float c03 = MathFunctions::cotTheta(-e0, e3);
-	const float c04 = MathFunctions::cotTheta(-e0, e4);
+	const Real c01 = MathFunctions::cotTheta(e0, e1);
+	const Real c02 = MathFunctions::cotTheta(e0, e2);
+	const Real c03 = MathFunctions::cotTheta(-e0, e3);
+	const Real c04 = MathFunctions::cotTheta(-e0, e4);
 
-	const float A0 = 0.5f * (e0.cross(e1)).norm();
-	const float A1 = 0.5f * (e0.cross(e2)).norm();
+	const Real A0 = 0.5 * (e0.cross(e1)).norm();
+	const Real A1 = 0.5 * (e0.cross(e2)).norm();
 
-	const float coef = -3.f / (2.f*(A0 + A1));
-	const float K[4] = { c03 + c04, c01 + c02, -c01 - c03, -c02 - c04 };
-	const float K2[4] = { coef*K[0], coef*K[1], coef*K[2], coef*K[3] };
+	const Real coef = -3.0 / (2.0*(A0 + A1));
+	const Real K[4] = { c03 + c04, c01 + c02, -c01 - c03, -c02 - c04 };
+	const Real K2[4] = { coef*K[0], coef*K[1], coef*K[2], coef*K[3] };
 
 	for (unsigned char j = 0; j < 4; j++)
 	{
@@ -165,19 +166,19 @@ bool GenericIsometricBendingConstraint::solvePositionConstraint(SimulationModel 
 	const unsigned i2 = m_bodies[2];
 	const unsigned i3 = m_bodies[3];
 
-	Eigen::Vector3f &x0 = pd.getPosition(i0);
-	Eigen::Vector3f &x1 = pd.getPosition(i1);
-	Eigen::Vector3f &x2 = pd.getPosition(i2);
-	Eigen::Vector3f &x3 = pd.getPosition(i3);
-	const float invMass0 = pd.getInvMass(i0);
-	const float invMass1 = pd.getInvMass(i1);
-	const float invMass2 = pd.getInvMass(i2);
-	const float invMass3 = pd.getInvMass(i3);
+	Vector3r &x0 = pd.getPosition(i0);
+	Vector3r &x1 = pd.getPosition(i1);
+	Vector3r &x2 = pd.getPosition(i2);
+	Vector3r &x3 = pd.getPosition(i3);
+	const Real invMass0 = pd.getInvMass(i0);
+	const Real invMass1 = pd.getInvMass(i1);
+	const Real invMass2 = pd.getInvMass(i2);
+	const Real invMass3 = pd.getInvMass(i3);
 
-	float invMass[4] = { invMass0, invMass1, invMass2, invMass3 };
-	const Eigen::Vector3f x[4] = { x0, x1, x2, x3 };
+	Real invMass[4] = { invMass0, invMass1, invMass2, invMass3 };
+	const Vector3r x[4] = { x0, x1, x2, x3 };
  
- 	Eigen::Vector3f corr[4];
+ 	Vector3r corr[4];
  
 	const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<4, 1>(
 		invMass, x, &m_Q,
@@ -187,14 +188,14 @@ bool GenericIsometricBendingConstraint::solvePositionConstraint(SimulationModel 
  
  	if (res)
  	{
-		const float stiffness = model.getClothBendingStiffness();
- 		if (invMass0 != 0.0f)
+		const Real stiffness = model.getClothBendingStiffness();
+ 		if (invMass0 != 0.0)
 			x0 += stiffness*corr[0];
- 		if (invMass1 != 0.0f)
+ 		if (invMass1 != 0.0)
 			x1 += stiffness*corr[1];
-		if (invMass2 != 0.0f)
+		if (invMass2 != 0.0)
 			x2 += stiffness*corr[2];
-		if (invMass3 != 0.0f)
+		if (invMass3 != 0.0)
 			x3 += stiffness*corr[3];
  	}
 	return res;

@@ -5,13 +5,13 @@ using namespace PBD;
 
 // ----------------------------------------------------------------------------------------------
 void TimeIntegration::semiImplicitEuler(
-	const float h, 
-	const float mass, 
-	Eigen::Vector3f &position,
-	Eigen::Vector3f &velocity,
-	const Eigen::Vector3f &acceleration)
+	const Real h, 
+	const Real mass, 
+	Vector3r &position,
+	Vector3r &velocity,
+	const Vector3r &acceleration)
 {				
-	if (mass != 0.0f)
+	if (mass != 0.0)
 	{
 		velocity += acceleration * h;
 		position += velocity * h;
@@ -20,77 +20,77 @@ void TimeIntegration::semiImplicitEuler(
 
 // ----------------------------------------------------------------------------------------------
 void TimeIntegration::semiImplicitEulerRotation(
-	const float h,
-	const float mass,
-	const Eigen::Matrix3f &invInertiaW,
-	Eigen::Quaternionf &rotation,
-	Eigen::Vector3f &angularVelocity,	
-	const Eigen::Vector3f &torque)
+	const Real h,
+	const Real mass,
+	const Matrix3r &invInertiaW,
+	Quaternionr &rotation,
+	Vector3r &angularVelocity,	
+	const Vector3r &torque)
 {
-	if (mass != 0.0f)
+	if (mass != 0.0)
 	{
 		// simple form without nutation effect
 		angularVelocity += h * invInertiaW * torque;
 
-		Eigen::Quaternionf angVelQ(0.0f, angularVelocity[0], angularVelocity[1], angularVelocity[2]);
-		rotation.coeffs() += h * 0.5f * (angVelQ * rotation).coeffs();
+		Quaternionr angVelQ(0.0, angularVelocity[0], angularVelocity[1], angularVelocity[2]);
+		rotation.coeffs() += h * 0.5 * (angVelQ * rotation).coeffs();
 		rotation.normalize();
 	}
 }
 
 // ----------------------------------------------------------------------------------------------
 void TimeIntegration::velocityUpdateFirstOrder(
-	const float h,
-	const float mass,
-	const Eigen::Vector3f &position,
-	const Eigen::Vector3f &oldPosition,
-	Eigen::Vector3f &velocity)
+	const Real h,
+	const Real mass,
+	const Vector3r &position,
+	const Vector3r &oldPosition,
+	Vector3r &velocity)
 {
-	if (mass != 0.0f)
-		velocity = (1.0f / h) * (position - oldPosition);
+	if (mass != 0.0)
+		velocity = (1.0 / h) * (position - oldPosition);
 }
 
 // ----------------------------------------------------------------------------------------------
 void TimeIntegration::angularVelocityUpdateFirstOrder(
-	const float h,
-	const float mass,
-	const Eigen::Quaternionf &rotation,
-	const Eigen::Quaternionf &oldRotation,
-	Eigen::Vector3f &angularVelocity)
+	const Real h,
+	const Real mass,
+	const Quaternionr &rotation,
+	const Quaternionr &oldRotation,
+	Vector3r &angularVelocity)
 {
-	if (mass != 0.0f)
+	if (mass != 0.0)
 	{
-		const Eigen::Quaternionf relRot = (rotation * oldRotation.conjugate());
-		angularVelocity = relRot.vec() *(2.0f / h);
+		const Quaternionr relRot = (rotation * oldRotation.conjugate());
+		angularVelocity = relRot.vec() *(2.0 / h);
 	}
 }
 
 // ----------------------------------------------------------------------------------------------
 void TimeIntegration::velocityUpdateSecondOrder(
-	const float h,
-	const float mass,
-	const Eigen::Vector3f &position,
-	const Eigen::Vector3f &oldPosition,
-	const Eigen::Vector3f &positionOfLastStep,
-	Eigen::Vector3f &velocity)
+	const Real h,
+	const Real mass,
+	const Vector3r &position,
+	const Vector3r &oldPosition,
+	const Vector3r &positionOfLastStep,
+	Vector3r &velocity)
 {
-	if (mass != 0.0f)
-		velocity = (1.0f / h) * (1.5f*position - 2.0f*oldPosition + 0.5f*positionOfLastStep);
+	if (mass != 0.0)
+		velocity = (1.0 / h) * (1.5*position - 2.0*oldPosition + 0.5*positionOfLastStep);
 }
 
 // ----------------------------------------------------------------------------------------------
 void TimeIntegration::angularVelocityUpdateSecondOrder(
-	const float h,
-	const float mass,
-	const Eigen::Quaternionf &rotation,				
-	const Eigen::Quaternionf &oldRotation,			
-	const Eigen::Quaternionf &rotationOfLastStep,	
-	Eigen::Vector3f &angularVelocity)
+	const Real h,
+	const Real mass,
+	const Quaternionr &rotation,				
+	const Quaternionr &oldRotation,			
+	const Quaternionr &rotationOfLastStep,	
+	Vector3r &angularVelocity)
 {
 	// ToDo: is still first order
-	if (mass != 0.0f)
+	if (mass != 0.0)
 	{
-		const Eigen::Quaternionf relRot = (rotation * oldRotation.conjugate());
-		angularVelocity = relRot.vec() *(2.0f / h);
+		const Quaternionr relRot = (rotation * oldRotation.conjugate());
+		angularVelocity = relRot.vec() *(2.0 / h);
 	}
 }

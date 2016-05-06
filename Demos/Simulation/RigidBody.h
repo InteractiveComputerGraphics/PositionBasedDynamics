@@ -1,9 +1,9 @@
 #ifndef __RIGIDBODY_H__
 #define __RIGIDBODY_H__
 
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include <vector>
-#include <Eigen/Dense>
+#include "Common/Common.h"
 #include "RigidBodyGeometry.h"
 #include "Demos/Utils/VolumeIntegration.h"
 
@@ -16,43 +16,53 @@ namespace PBD
 	{
 		private:
 			/** mass */
-			float m_mass;
+			Real m_mass;
 			/** inverse mass */
-			float m_invMass;
+			Real m_invMass;
 			/** center of mass */
-			Eigen::Vector3f m_x;
-			Eigen::Vector3f m_lastX;
-			Eigen::Vector3f m_oldX;
-			Eigen::Vector3f m_x0;
+			Vector3r m_x;
+			Vector3r m_lastX;
+			Vector3r m_oldX;
+			Vector3r m_x0;
 			/** center of mass velocity */
-			Eigen::Vector3f m_v;
+			Vector3r m_v;
 			/** acceleration (by external forces) */
-			Eigen::Vector3f m_a;
+			Vector3r m_a;
 
 			/** Inertia tensor in the principal axis system: \n
 			* After the main axis transformation the inertia tensor is a diagonal matrix.
 			* So only three values are required to store the inertia tensor. These values
 			* are constant over time.
 			*/
-			Eigen::Vector3f m_inertiaTensor;
+			Vector3r m_inertiaTensor;
 			/** Inverse inertia tensor in body space */
-			Eigen::Vector3f m_inertiaTensorInverse;
+			Vector3r m_inertiaTensorInverse;
 			/** 3x3 matrix, inverse of the inertia tensor in world space */
-			Eigen::Matrix3f m_inertiaTensorInverseW;
+			Matrix3r m_inertiaTensorInverseW;
 			/** Quaternion that describes the rotation of the body in world space */
-			Eigen::Quaternionf m_q;
-			Eigen::Quaternionf m_lastQ;
-			Eigen::Quaternionf m_oldQ;
-			Eigen::Quaternionf m_q0;
+			Quaternionr m_q;
+			Quaternionr m_lastQ;
+			Quaternionr m_oldQ;
+			Quaternionr m_q0;
+			/** Quaternion representing the rotation of the main axis transformation
+			that is performed to get a diagonal inertia tensor */
+			Quaternionr m_q_mat;
+			/** Quaternion representing the initial rotation of the geometry */
+			Quaternionr m_q_initial;
+			/** difference of the initial translation and the translation of the main axis transformation */
+			Vector3r m_x0_mat;
 			/** rotationMatrix = 3x3 matrix. 
 			* Important for the transformation from world in body space and vice versa.
 			* When using quaternions the rotation matrix is computed out of the quaternion.
 			*/
-			Eigen::Matrix3f m_rot;
+			Matrix3r m_rot;
 			/** Angular velocity, defines rotation axis and velocity (magnitude of the vector) */
-			Eigen::Vector3f m_omega;
+			Vector3r m_omega;
 			/** external torque */
-			Eigen::Vector3f m_torque;
+			Vector3r m_torque;
+
+			Real m_restitutionCoeff;
+			Real m_frictionCoeff;
 
 			RigidBodyGeometry m_geometry;
 			
@@ -65,9 +75,10 @@ namespace PBD
 			{
 			}
 
-			void initBody(const float mass, const Eigen::Vector3f &x, 
-				const Eigen::Vector3f &inertiaTensor, const Eigen::Quaternionf &rotation, 
-				const VertexData &vertices, const IndexedFaceMesh &mesh)
+			void initBody(const Real mass, const Vector3r &x, 
+				const Vector3r &inertiaTensor, const Quaternionr &rotation, 
+				const VertexData &vertices, const IndexedFaceMesh &mesh, 
+				const Vector3r &scale = Vector3r(1.0, 1.0, 1.0))
 			{
 				setMass(mass);
 				m_x = x; 
@@ -83,19 +94,25 @@ namespace PBD
 				m_lastQ = rotation;
 				m_oldQ = rotation;
 				m_rot = m_q.matrix();
+				m_q_mat = Quaternionr(1.0, 0.0, 0.0, 0.0);
+				m_q_initial = Quaternionr(1.0, 0.0, 0.0, 0.0);
+				m_x0_mat.setZero();
 				rotationUpdated();
 				m_omega.setZero();
 				m_torque.setZero();
 
-				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs());
+				m_restitutionCoeff = 0.6;
+				m_frictionCoeff = 0.2;
+
+				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs(), scale);
 				getGeometry().updateMeshTransformation(getPosition(), getRotationMatrix());
 			}
 
-			void initBody(const float density, const Eigen::Vector3f &x, const Eigen::Quaternionf &rotation,
-						const VertexData &vertices, const IndexedFaceMesh &mesh)
+			void initBody(const Real density, const Vector3r &x, const Quaternionr &rotation,
+				const VertexData &vertices, const IndexedFaceMesh &mesh, const Vector3r &scale = Vector3r(1.0, 1.0, 1.0))
 			{
-				m_mass = 1.0f;
-				m_inertiaTensor = Eigen::Vector3f(1.0f, 1.0f, 1.0f);
+				m_mass = 1.0;
+				m_inertiaTensor = Vector3r(1.0, 1.0, 1.0);
 				m_x = x;
 				m_x0 = x;
 				m_lastX = x;
@@ -112,7 +129,10 @@ namespace PBD
 				m_omega.setZero();
 				m_torque.setZero();
 
-				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs());
+				m_restitutionCoeff = 0.6;
+				m_frictionCoeff = 0.2;
+
+				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs(), scale);
 				determineMassProperties(density);
 				getGeometry().updateMeshTransformation(getPosition(), getRotationMatrix());
 			}
@@ -155,25 +175,25 @@ namespace PBD
 
 			/** Determine mass and inertia tensor of the given geometry.
 			 */
-			void determineMassProperties(const float density)
+			void determineMassProperties(const Real density)
 			{
 				// apply initial rotation
 				VertexData &vd = m_geometry.getVertexDataLocal();
 				for (unsigned int i = 0; i < vd.size(); i++)
-					vd.getPosition(i) = m_rot * vd.getPosition(i);
+					vd.getPosition(i) = m_rot * vd.getPosition(i) + m_x0;
 
 				VolumeIntegration vi(m_geometry.getMesh(), m_geometry.getVertexDataLocal());
 				vi.compute_inertia_tensor(density);
 
 				// Diagonalize Inertia Tensor
-				Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> es(vi.getInertia());
-				Eigen::Vector3f inertiaTensor = es.eigenvalues();
-				Eigen::Matrix3f R = es.eigenvectors();
+				Eigen::SelfAdjointEigenSolver<Matrix3r> es(vi.getInertia());
+				Vector3r inertiaTensor = es.eigenvalues();
+				Matrix3r R = es.eigenvectors();
 
 				setMass(vi.getMass());
 				setInertiaTensor(inertiaTensor);
 
-				if (R.determinant() < 0.0f)
+				if (R.determinant() < 0.0)
 					R = -R;
 
 				// rotate vertices back				
@@ -181,268 +201,338 @@ namespace PBD
 					vd.getPosition(i) = R.transpose() * (vd.getPosition(i) - vi.getCenterOfMass());
 
 				// set rotation
-				m_q0 = Eigen::Quaternionf(R);
-				m_q0.normalize();
+				Quaternionr qR = Quaternionr(R);
+				qR.normalize();
+				m_q_mat = qR;
+				m_q_initial = m_q0;
+				m_x0_mat = m_x0 - vi.getCenterOfMass();
+
+				m_q0 = qR;
 				m_q = m_q0;
 				m_lastQ = m_q0;
 				m_oldQ = m_q0;
 				rotationUpdated();
 
 				// set translation
-				m_x0 += vi.getCenterOfMass();
+				m_x0 = vi.getCenterOfMass();
 				m_x = m_x0;
 				m_lastX = m_x0;
 				m_oldX = m_x0;
 			}
 
-			FORCE_INLINE float &getMass()
+			FORCE_INLINE Real &getMass()
 			{
 				return m_mass;
 			}
 
-			FORCE_INLINE const float &getMass() const
+			FORCE_INLINE const Real &getMass() const
 			{
 				return m_mass;
 			}
 
-			FORCE_INLINE void setMass(const float &value)
+			FORCE_INLINE void setMass(const Real &value)
 			{
 				m_mass = value;
-				if (m_mass != 0.0f)
-					m_invMass = 1.0f / m_mass;
+				if (m_mass != 0.0)
+					m_invMass = 1.0 / m_mass;
 				else
-					m_invMass = 0.0f;
+					m_invMass = 0.0;
 			}
 
-			FORCE_INLINE const float &getInvMass() const
+			FORCE_INLINE const Real &getInvMass() const
 			{
 				return m_invMass;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getPosition()
+			FORCE_INLINE Vector3r &getPosition()
 			{
 				return m_x;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getPosition() const 
+			FORCE_INLINE const Vector3r &getPosition() const 
 			{
 				return m_x;
 			}
 
-			FORCE_INLINE void setPosition(const Eigen::Vector3f &pos)
+			FORCE_INLINE void setPosition(const Vector3r &pos)
 			{
 				m_x = pos;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getLastPosition()
+			FORCE_INLINE Vector3r &getLastPosition()
 			{
 				return m_lastX;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getLastPosition() const
+			FORCE_INLINE const Vector3r &getLastPosition() const
 			{
 				return m_lastX;
 			}
 
-			FORCE_INLINE void setLastPosition(const Eigen::Vector3f &pos)
+			FORCE_INLINE void setLastPosition(const Vector3r &pos)
 			{
 				m_lastX = pos;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getOldPosition()
+			FORCE_INLINE Vector3r &getOldPosition()
 			{
 				return m_oldX;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getOldPosition() const
+			FORCE_INLINE const Vector3r &getOldPosition() const
 			{
 				return m_oldX;
 			}
 
-			FORCE_INLINE void setOldPosition(const Eigen::Vector3f &pos)
+			FORCE_INLINE void setOldPosition(const Vector3r &pos)
 			{
 				m_oldX = pos;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getPosition0()
+			FORCE_INLINE Vector3r &getPosition0()
 			{
 				return m_x0;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getPosition0() const
+			FORCE_INLINE const Vector3r &getPosition0() const
 			{
 				return m_x0;
 			}
 
-			FORCE_INLINE void setPosition0(const Eigen::Vector3f &pos)
+			FORCE_INLINE void setPosition0(const Vector3r &pos)
 			{
 				m_x0 = pos;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getVelocity()
+			FORCE_INLINE Vector3r &getPositionInitial_MAT()
+			{
+				return m_x0_mat;
+			}
+
+			FORCE_INLINE const Vector3r &getPositionInitial_MAT() const
+			{
+				return m_x0_mat;
+			}
+
+			FORCE_INLINE void setPositionInitial_MAT(const Vector3r &pos)
+			{
+				m_x0_mat = pos;
+			}
+
+			FORCE_INLINE Vector3r &getVelocity()
 			{
 				return m_v;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getVelocity() const
+			FORCE_INLINE const Vector3r &getVelocity() const
 			{
 				return m_v;
 			}
 
-			FORCE_INLINE void setVelocity(const Eigen::Vector3f &value)
+			FORCE_INLINE void setVelocity(const Vector3r &value)
 			{
 				m_v = value;
 			}			
 
-			FORCE_INLINE Eigen::Vector3f &getAcceleration()
+			FORCE_INLINE Vector3r &getAcceleration()
 			{
 				return m_a;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getAcceleration() const 
+			FORCE_INLINE const Vector3r &getAcceleration() const 
 			{
 				return m_a;
 			}
 
-			FORCE_INLINE void setAcceleration(const Eigen::Vector3f &accel)
+			FORCE_INLINE void setAcceleration(const Vector3r &accel)
 			{
 				m_a = accel;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getInertiaTensor() const
+			FORCE_INLINE const Vector3r &getInertiaTensor() const
 			{
 				return m_inertiaTensor;
 			}
 
-			FORCE_INLINE void setInertiaTensor(const Eigen::Vector3f &value)
+			FORCE_INLINE void setInertiaTensor(const Vector3r &value)
 			{
 				m_inertiaTensor = value;
-				m_inertiaTensorInverse = Eigen::Vector3f(1.0f / value[0], 1.0f / value[1], 1.0f / value[2]);
+				m_inertiaTensorInverse = Vector3r(1.0 / value[0], 1.0 / value[1], 1.0 / value[2]);
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getInertiaTensorInverse() const
+			FORCE_INLINE const Vector3r &getInertiaTensorInverse() const
 			{
 				return m_inertiaTensorInverse;
 			}
 
-			FORCE_INLINE Eigen::Matrix3f &getInertiaTensorInverseW()
+			FORCE_INLINE Matrix3r &getInertiaTensorInverseW()
 			{
 				return m_inertiaTensorInverseW;
 			}
 
-			FORCE_INLINE const Eigen::Matrix3f &getInertiaTensorInverseW() const
+			FORCE_INLINE const Matrix3r &getInertiaTensorInverseW() const
 			{
 				return m_inertiaTensorInverseW;
 			}
 
-			FORCE_INLINE void setInertiaTensorInverseW(const Eigen::Matrix3f &value)
+			FORCE_INLINE void setInertiaTensorInverseW(const Matrix3r &value)
 			{
 				m_inertiaTensorInverseW = value;
 			}
 
-			FORCE_INLINE Eigen::Quaternionf &getRotation()
+			FORCE_INLINE Quaternionr &getRotation()
 			{
 				return m_q;
 			}
 
-			FORCE_INLINE const Eigen::Quaternionf &getRotation() const
+			FORCE_INLINE const Quaternionr &getRotation() const
 			{
 				return m_q;
 			}
 
-			FORCE_INLINE void setRotation(const Eigen::Quaternionf &value)
+			FORCE_INLINE void setRotation(const Quaternionr &value)
 			{
 				m_q = value;
 			}
 
-			FORCE_INLINE Eigen::Quaternionf &getLastRotation()
+			FORCE_INLINE Quaternionr &getLastRotation()
 			{
 				return m_lastQ;
 			}
 
-			FORCE_INLINE const Eigen::Quaternionf &getLastRotation() const
+			FORCE_INLINE const Quaternionr &getLastRotation() const
 			{
 				return m_lastQ;
 			}
 
-			FORCE_INLINE void setLastRotation(const Eigen::Quaternionf &value)
+			FORCE_INLINE void setLastRotation(const Quaternionr &value)
 			{
 				m_lastQ = value;
 			}
 
-			FORCE_INLINE Eigen::Quaternionf &getOldRotation()
+			FORCE_INLINE Quaternionr &getOldRotation()
 			{
 				return m_oldQ;
 			}
 
-			FORCE_INLINE const Eigen::Quaternionf &getOldRotation() const
+			FORCE_INLINE const Quaternionr &getOldRotation() const
 			{
 				return m_oldQ;
 			}
 
-			FORCE_INLINE void setOldRotation(const Eigen::Quaternionf &value)
+			FORCE_INLINE void setOldRotation(const Quaternionr &value)
 			{
 				m_oldQ = value;
 			}
 
-			FORCE_INLINE Eigen::Quaternionf &getRotation0()
+			FORCE_INLINE Quaternionr &getRotation0()
 			{
 				return m_q0;
 			}
 
-			FORCE_INLINE const Eigen::Quaternionf &getRotation0() const
+			FORCE_INLINE const Quaternionr &getRotation0() const
 			{
 				return m_q0;
 			}
 
-			FORCE_INLINE void setRotation0(const Eigen::Quaternionf &value)
+			FORCE_INLINE void setRotation0(const Quaternionr &value)
 			{
 				m_q0 = value;
 			}
 
-			FORCE_INLINE Eigen::Matrix3f &getRotationMatrix()
+			FORCE_INLINE Quaternionr &getRotationMAT()
+			{
+				return m_q_mat;
+			}
+
+			FORCE_INLINE const Quaternionr &getRotationMAT() const
+			{
+				return m_q_mat;
+			}
+
+			FORCE_INLINE void setRotationMAT(const Quaternionr &value)
+			{
+				m_q_mat = value;
+			}
+
+			FORCE_INLINE Quaternionr &getRotationInitial()
+			{
+				return m_q_initial;
+			}
+
+			FORCE_INLINE const Quaternionr &getRotationInitial() const
+			{
+				return m_q_initial;
+			}
+
+			FORCE_INLINE void setRotationInitial(const Quaternionr &value)
+			{
+				m_q_initial = value;
+			}
+
+			FORCE_INLINE Matrix3r &getRotationMatrix()
 			{
 				return m_rot;
 			}
 
-			FORCE_INLINE const Eigen::Matrix3f &getRotationMatrix() const
+			FORCE_INLINE const Matrix3r &getRotationMatrix() const
 			{
 				return m_rot;
 			}
 
-			FORCE_INLINE void setRotationMatrix(const Eigen::Matrix3f &value)
+			FORCE_INLINE void setRotationMatrix(const Matrix3r &value)
 			{
 				m_rot = value;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getAngularVelocity()
+			FORCE_INLINE Vector3r &getAngularVelocity()
 			{
 				return m_omega;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getAngularVelocity() const
+			FORCE_INLINE const Vector3r &getAngularVelocity() const
 			{
 				return m_omega;
 			}
 
-			FORCE_INLINE void setAngularVelocity(const Eigen::Vector3f &value)
+			FORCE_INLINE void setAngularVelocity(const Vector3r &value)
 			{
 				m_omega = value;
 			}
 
-			FORCE_INLINE Eigen::Vector3f &getTorque()
+			FORCE_INLINE Vector3r &getTorque()
 			{
 				return m_torque;
 			}
 
-			FORCE_INLINE const Eigen::Vector3f &getTorque() const
+			FORCE_INLINE const Vector3r &getTorque() const
 			{
 				return m_torque;
 			}
 
-			FORCE_INLINE void setTorque(const Eigen::Vector3f &value)
+			FORCE_INLINE void setTorque(const Vector3r &value)
 			{
 				m_torque = value;
+			}
+
+			FORCE_INLINE Real getRestitutionCoeff() const 
+			{ 
+				return m_restitutionCoeff; 
+			}
+
+			FORCE_INLINE void setRestitutionCoeff(Real val) 
+			{ 
+				m_restitutionCoeff = val; 
+			}
+
+			FORCE_INLINE Real getFrictionCoeff() const 
+			{ 
+				return m_frictionCoeff; 
+			}
+
+			FORCE_INLINE void setFrictionCoeff(Real val) 
+			{ 
+				m_frictionCoeff = val; 
 			}
 
 			RigidBodyGeometry& getGeometry()

@@ -1,4 +1,4 @@
-#include "Demos/Utils/Config.h"
+#include "Demos/Common/Config.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
@@ -60,11 +60,13 @@ TimeStepController sim;
 
 const int nRows = 50;
 const int nCols = 50;
-const float width = 10.0f;
-const float height = 10.0f;
+const Real width = 10.0;
+const Real height = 10.0;
+short simulationMethod = 2;
+short bendingMethod = 2;
 bool doPause = true;
 std::vector<unsigned int> selectedParticles;
-Eigen::Vector3f oldMousePos;
+Vector3r oldMousePos;
 Shader *shader;
 string exePath;
 string dataPath;
@@ -89,28 +91,28 @@ int main( int argc, char **argv )
 	buildModel ();
 
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3f (5.0, -10.0, 30.0), Vector3f (5.0, 0.0, 0.0));
+	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
 
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_FLOAT, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
+	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &sim, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_FLOAT, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Distance constraints' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffness", TW_TYPE_FLOAT, setXXStiffness, getXXStiffness, &model, " label='Stiffness XX'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffness", TW_TYPE_FLOAT, setYYStiffness, getYYStiffness, &model, " label='Stiffness YY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffness", TW_TYPE_FLOAT, setXYStiffness, getXYStiffness, &model, " label='Stiffness XY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffnessFEM", TW_TYPE_FLOAT, setXXStiffness, getXXStiffness, &model, " label='Youngs modulus XX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffnessFEM", TW_TYPE_FLOAT, setYYStiffness, getYYStiffness, &model, " label='Youngs modulus YY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffnessFEM", TW_TYPE_FLOAT, setXYStiffness, getXYStiffness, &model, " label='Youngs modulus XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYPoissonRatioFEM", TW_TYPE_FLOAT, setXYPoissonRatio, getXYPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YXPoissonRatioFEM", TW_TYPE_FLOAT, setYXPoissonRatio, getYXPoissonRatio, &model, " label='Poisson ratio YX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_REAL, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Distance constraints' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffness", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Stiffness XX'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffness", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Stiffness YY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffness", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Stiffness XY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffnessFEM", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Youngs modulus XX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffnessFEM", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Youngs modulus YY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffnessFEM", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Youngs modulus XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "XYPoissonRatioFEM", TW_TYPE_REAL, setXYPoissonRatio, getXYPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "YXPoissonRatioFEM", TW_TYPE_REAL, setYXPoissonRatio, getYXPoissonRatio, &model, " label='Poisson ratio YX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, &model, " label='Normalize stretch' group='Strain based dynamics' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, &model, " label='Normalize shear' group='Strain based dynamics' ");
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &sim, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_FLOAT, setBendingStiffness, getBendingStiffness, &model, " label='Bending stiffness'  min=0.0 step=0.01 precision=4 group=Bending ");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, &model, " label='Bending stiffness'  min=0.0 step=0.01 precision=4 group=Bending ");
 
 	glutMainLoop ();	
 
@@ -155,12 +157,12 @@ void reset()
 
 void mouseMove(int x, int y)
 {
-	Eigen::Vector3f mousePos;
+	Vector3r mousePos;
 	MiniGL::unproject(x, y, mousePos);
-	const Eigen::Vector3f diff = mousePos - oldMousePos;
+	const Vector3r diff = mousePos - oldMousePos;
 
 	TimeManager *tm = TimeManager::getCurrent();
-	const float h = tm->getTimeStepSize();
+	const Real h = tm->getTimeStepSize();
 
 	ParticleData &pd = model.getParticles();
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
@@ -199,7 +201,7 @@ void timeStep ()
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (0.005f);
+	TimeManager::getCurrent ()->setTimeStepSize (0.005);
 
 	createMesh();
 }
@@ -229,8 +231,9 @@ void renderTriangleModels()
 	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
 	{
 		// mesh 
-		const IndexedFaceMesh &mesh = model.getTriangleModels()[i]->getParticleMesh();
-		Visualization::drawTexturedMesh(pd, mesh, surfaceColor);
+		TriangleModel *triModel = model.getTriangleModels()[i];
+		const IndexedFaceMesh &mesh = triModel->getParticleMesh();
+		Visualization::drawTexturedMesh(pd, mesh, triModel->getIndexOffset(), surfaceColor);
 	}
 	if (shader)
 		shader->end();
@@ -261,17 +264,17 @@ void createMesh()
 	TriangleModel::ParticleMesh::UVs uvs;
 	uvs.resize(nRows*nCols);
 
-	const float dy = width / (float)(nCols-1);
-	const float dx = height / (float)(nRows-1);
+	const Real dy = width / (Real)(nCols - 1);
+	const Real dx = height / (Real)(nRows - 1);
 
-	Eigen::Vector3f points[nRows*nCols];
+	Vector3r points[nRows*nCols];
 	for (int i = 0; i < nRows; i++)
 	{
 		for (int j = 0; j < nCols; j++)
 		{
-			const float y = (float)dy*j;
-			const float x = (float)dx*i;
-			points[i*nCols + j] = Eigen::Vector3f(x, 1.0, y);
+			const Real y = (Real)dy*j;
+			const Real x = (Real)dx*i;
+			points[i*nCols + j] = Vector3r(x, 1.0, y);
 
 			uvs[i*nCols + j][0] = x/width;
 			uvs[i*nCols + j][1] = y/height;
@@ -327,7 +330,7 @@ void createMesh()
 	// init constraints
 	for (unsigned int cm = 0; cm < model.getTriangleModels().size(); cm++)
 	{
-		if (sim.getSimulationMethod() == 1)
+		if (simulationMethod == 1)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			const unsigned int nEdges = model.getTriangleModels()[cm]->getParticleMesh().numEdges();
@@ -340,7 +343,7 @@ void createMesh()
 				model.addDistanceConstraint(v1, v2);
 			}
 		}
-		else if (sim.getSimulationMethod() == 2)
+		else if (simulationMethod == 2)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
@@ -354,7 +357,7 @@ void createMesh()
 				model.addFEMTriangleConstraint(v1, v2, v3);
 			}
 		}
-		else if (sim.getSimulationMethod() == 3)
+		else if (simulationMethod == 3)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
@@ -368,7 +371,7 @@ void createMesh()
 				model.addStrainTriangleConstraint(v1, v2, v3);
 			}
 		}
-		if (sim.getBendingMethod() != 0)
+		if (bendingMethod != 0)
 		{
 			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
 			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
@@ -408,9 +411,9 @@ void createMesh()
 						const unsigned int vertex2 = point2 + offset;
 						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
 						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
-						if (sim.getBendingMethod() == 1)
+						if (bendingMethod == 1)
 							model.addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
-						else if (sim.getBendingMethod() == 2)
+						else if (bendingMethod == 2)
 							model.addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
 					}
 				}
@@ -425,79 +428,79 @@ void createMesh()
 
 void TW_CALL setTimeStep(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	TimeManager::getCurrent()->setTimeStepSize(val);
 }
 
 void TW_CALL getTimeStep(void *value, void *clientData)
 {
-	*(float *)(value) = TimeManager::getCurrent()->getTimeStepSize();
+	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
 }
 
 void TW_CALL setStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*) clientData)->setClothStiffness(val);
 }
 
 void TW_CALL getStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
 }
 
 void TW_CALL setXXStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothXXStiffness(val);
 }
 
 void TW_CALL getXXStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
 }
 
 void TW_CALL setYYStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothYYStiffness(val);
 }
 
 void TW_CALL getYYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
 }
 
 void TW_CALL setXYStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothXYStiffness(val);
 }
 
 void TW_CALL getXYStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
 }
 
 void TW_CALL setYXPoissonRatio(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothYXPoissonRatio(val);
 }
 
 void TW_CALL getYXPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
 }
 
 void TW_CALL setXYPoissonRatio(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothXYPoissonRatio(val);
 }
 
 void TW_CALL getXYPoissonRatio(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
 }
 
 void TW_CALL setNormalizeStretch(const void *value, void *clientData)
@@ -524,37 +527,37 @@ void TW_CALL getNormalizeShear(void *value, void *clientData)
 
 void TW_CALL setBendingStiffness(const void *value, void *clientData)
 {
-	const float val = *(const float *)(value);
+	const Real val = *(const Real *)(value);
 	((SimulationModel*)clientData)->setClothBendingStiffness(val);
 }
 
 void TW_CALL getBendingStiffness(void *value, void *clientData)
 {
-	*(float *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
+	*(Real *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
 }
 
 void TW_CALL setBendingMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepController*)clientData)->setBendingMethod((unsigned int) val);
+	*((short*)clientData) = val;
 	reset();
 }
 
 void TW_CALL getBendingMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepController*)clientData)->getBendingMethod();
+	*(short *)(value) = *((short*)clientData);
 }
 
 void TW_CALL setSimulationMethod(const void *value, void *clientData)
 {
 	const short val = *(const short *)(value);
-	((TimeStepController*)clientData)->setSimulationMethod((unsigned int)val);
+	*((short*)clientData) = val;
 	reset();
 }
 
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
-	*(short *)(value) = (short)((TimeStepController*)clientData)->getSimulationMethod();
+	*(short *)(value) = *((short*)clientData);
 }
 
 void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
