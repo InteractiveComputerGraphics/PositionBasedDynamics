@@ -36,6 +36,7 @@ namespace PBD
 			TriangleModelVector m_triangleModels;
 			TetModelVector m_tetModels;
 			ParticleData m_particles;
+			ParticleData m_ghostParticles;
 			ConstraintVector m_constraints;
 			RigidBodyContactConstraintVector m_rigidBodyContactConstraints;
 			ParticleRigidBodyContactConstraintVector m_particleRigidBodyContactConstraints;
@@ -58,6 +59,9 @@ namespace PBD
 
 			Real m_contactStiffnessRigidBody;
 			Real m_contactStiffnessParticleRigidBody;
+Real m_elasticrod_stretch_stiffness;
+			Real m_elasticrod_bend_and_twist_stiffness;
+
 
 	public:
 			void reset();			
@@ -65,6 +69,7 @@ namespace PBD
 
 			RigidBodyVector &getRigidBodies();
 			ParticleData &getParticles();
+			ParticleData &getGhostParticles();
 			TriangleModelVector &getTriangleModels();
 			TetModelVector &getTetModels();
 			ConstraintVector &getConstraints();
@@ -89,6 +94,9 @@ namespace PBD
 				Vector3r *points,
 				unsigned int* indices);
 
+void addElasticRodModel(
+				const unsigned int nPoints,
+				Eigen::Vector3f *points);
 			void updateConstraints();
 			void initConstraintGroups();
 
@@ -127,6 +135,16 @@ namespace PBD
 			bool addShapeMatchingConstraint(const unsigned int numberOfParticles, const unsigned int particleIndices[], const unsigned int numClusters[]);
 
 
+
+
+			bool addElasticRodEdgeConstraint(const unsigned int pA, const unsigned int pB, const unsigned int pG);
+			
+			bool addElasticRodBendAndTwistConstraint(const unsigned int pA, const unsigned int pB,
+													 const unsigned int pC, const unsigned int pD, const unsigned int pE);
+
+
+
+
 			Real getClothStiffness() const { return m_cloth_stiffness; }
 			void setClothStiffness(Real val) { m_cloth_stiffness = val; }
 			Real getClothBendingStiffness() const { return m_cloth_bendingStiffness; }
@@ -159,6 +177,12 @@ namespace PBD
 			void setContactStiffnessRigidBody(Real val) { m_contactStiffnessRigidBody = val; }
 			Real getContactStiffnessParticleRigidBody() const { return m_contactStiffnessParticleRigidBody; }
 			void setContactStiffnessParticleRigidBody(Real val) { m_contactStiffnessParticleRigidBody = val; }
+
+void setElasticRodStretchStiffness(float val) { m_elasticrod_stretch_stiffness = val; }
+			Real getElasticRodStretchStiffness() const { return m_elasticrod_stretch_stiffness; }
+			void setElasticRodBendAndTwistStiffness(float val) { m_elasticrod_bend_and_twist_stiffness = val; }
+			Real getElasticRodBendAndTwistStiffness() const { return m_elasticrod_bend_and_twist_stiffness; }
+
 	};
 }
 

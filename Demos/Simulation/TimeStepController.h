@@ -13,6 +13,7 @@ namespace PBD
 	protected:
 		CollisionDetection *m_collisionDetection;
 		unsigned int m_velocityUpdateMethod;
+float m_damping;
 		unsigned int m_maxIter;
 		unsigned int m_maxIterVel;
 		Vector3r m_gravity;		
@@ -48,6 +49,9 @@ namespace PBD
 		void setMaxIterationsV(unsigned int val) { m_maxIterVel = val; }
 		const Vector3r& getGravity() const { return m_gravity; }
 		void setGravity(const Vector3r& val) { m_gravity = val; }
+
+float getDamping() const { return m_damping; }
+		void setDamping(float val) { m_damping = val; }
 	};
 }
 
