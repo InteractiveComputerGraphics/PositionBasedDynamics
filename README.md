@@ -8,6 +8,12 @@ The library was tested on Windows 7, OpenSuse Linux 13.2, Mac OS X 10.10.5. Howe
 
 **Author**: [Jan Bender](http://www.interactive-graphics.de), **License**: MIT
 
+## News
+
+The PositionBasedDynamics library moved to
+
+https://github.com/InteractiveComputerGraphics/PositionBasedDynamics.
+
 ## Documentation
 
 The API documentation can be found here: 
