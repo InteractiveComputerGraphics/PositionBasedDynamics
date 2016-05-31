@@ -10,9 +10,8 @@ The library was tested on Windows 7, OpenSuse Linux 13.2, Mac OS X 10.10.5. Howe
 
 ## News
 
-The PositionBasedDynamics library moved to
-
-https://github.com/InteractiveComputerGraphics/PositionBasedDynamics.
+* Our new [paper](http://interactive-graphics.de/index.php/research/98-hierarchical-hp-adaptive-signed-distance-fields) about adaptive signed distance fields uses the PositionBasedDynamics library. You can watch the video  [here](https://www.youtube.com/watch?v=x_Iq2yM4FcA).
+* The PositionBasedDynamics library moved to https://github.com/InteractiveComputerGraphics/PositionBasedDynamics.
 
 ## Documentation
 
@@ -73,7 +72,14 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- ball joint between rigid body and particle
 	- Generic constraints
 
-## Screenshots		
+## Videos
+
+This video was generated with the PositionBasedDynamics library for our paper "Hierarchical hp-Adaptive Signed Distance Fields":
+
+[![Video](https://img.youtube.com/vi/x_Iq2yM4FcA/0.jpg)](https://www.youtube.com/watch?v=x_Iq2yM4FcA)
+
+
+## Screenshots
 		
 ![Cloth demo](http://www.interactive-graphics.de/j_images/PositionBasedDynamics.jpg "Cloth demo")	
 
@@ -93,6 +99,6 @@ SIGGRAPH/Eurographics Symposium on Computer Animation, 2014
 * M. Müller, B. Heidelberger, M. Hennix and J. Ratcliff, "Position based dynamics", Journal of Visual Communication and Image Representation 18, 2, 2007
 * M. Müller, B. Heidelberger, M. Teschner and M. Gross, "Meshless deformations based on shape matching", ACM Trans. Graph. 24, 3, 2005
 * M. Macklin and M. Müller, "Position based fluids", ACM Trans. Graph. 32, 4, 2013
-
+* Dan Koschier, Crispin Deul and Jan Bender, "Hierarchical hp-Adaptive Signed Distance Fields", In Proceedings of ACM SIGGRAPH / EUROGRAPHICS Symposium on Computer Animation (SCA), 2016
 
 
