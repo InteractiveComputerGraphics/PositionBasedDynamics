@@ -10,6 +10,9 @@ The library was tested on Windows 7, OpenSuse Linux 13.2, Mac OS X 10.10.5. Howe
 
 ## News
 
+* We have **2 open PhD positions** in the following projects (if you are interested, please contact [Jan Bender](https://animation.rwth-aachen.de/)):
+    * Physically-based animation of deformable solids using Eulerian approaches in computer graphics
+    * Robust methods for the physically-based animation of large deformations in computer graphics
 * Our new [paper](http://interactive-graphics.de/index.php/research/98-hierarchical-hp-adaptive-signed-distance-fields) about adaptive signed distance fields uses the PositionBasedDynamics library. You can watch the video  [here](https://www.youtube.com/watch?v=x_Iq2yM4FcA).
 * The PositionBasedDynamics library moved to https://github.com/InteractiveComputerGraphics/PositionBasedDynamics.
 
