@@ -4,7 +4,7 @@ This library supports the physically-based simulation of mechanical effects. In 
 
 The PositionBasedDynamics library allows the position-based handling of many types of constraints in a physically-based simulation. The library uses [CMake](http://www.cmake.org/), [Eigen](http://eigen.tuxfamily.org/), [AntTweakBar](http://anttweakbar.sourceforge.net/) (only for the demos) and [Boost](http://www.boost.org/). All external dependencies (except Boost) are included. 
 
-The library was tested on Windows 7, OpenSuse Linux 13.2, Mac OS X 10.10.5. However, it should also be possible to use it on Mac OS X systems. 
+The library was tested on Windows 7, OpenSuse Linux 13.2, Mac OS X 10.10.5. However, it should also be possible to use it on Mac OS X systems. Be sure that you use a 64 bit build configuration on 64 bit systems. 
 
 **Author**: [Jan Bender](http://www.interactive-graphics.de), **License**: MIT
 
