@@ -2,6 +2,7 @@
 #include "SimulationModel.h"
 #include "PositionBasedDynamics/PositionBasedDynamics.h"
 #include "PositionBasedDynamics/PositionBasedRigidBodyDynamics.h"
+#include "PositionBasedDynamics/PositionBasedElasticRod.h"
 #include "TimeManager.h"
 #include "Demos/Simulation/IDFactory.h"
 
@@ -29,6 +30,9 @@ int TargetPositionMotorSliderJoint::TYPE_ID = IDFactory::getId();
 int TargetVelocityMotorSliderJoint::TYPE_ID = IDFactory::getId();
 int RigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
 int ParticleRigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
+
+int ElasticRodEdgeConstraint::TYPE_ID = IDFactory::getId();;
+int ElasticRodBendAndTwistConstraint::TYPE_ID = IDFactory::getId();;
 
 //////////////////////////////////////////////////////////////////////////
 // BallJoint
@@ -1603,6 +1607,139 @@ bool ParticleRigidBodyContactConstraint::solveVelocityConstraint(SimulationModel
 			rb.getVelocity() += corr_v2;
 			rb.getAngularVelocity() += corr_omega2;
 		}	
+	}
+	return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ElasticRodEdgeConstraint
+//////////////////////////////////////////////////////////////////////////
+bool ElasticRodEdgeConstraint::initConstraint(SimulationModel &model, const unsigned int pA, const unsigned int pB, const unsigned int pG)
+{
+	m_bodies[0] = pA;
+	m_bodies[1] = pB;
+	m_bodies[2] = pG;
+
+	ParticleData &pd = model.getParticles();
+	ParticleData &pg = model.getGhostParticles();
+
+	const Vector3r &xA_0 = pd.getPosition0(pA);
+	const Vector3r &xB_0 = pd.getPosition0(pB);
+	const Vector3r &xG_0 = pg.getPosition0(pG);
+
+	m_restLength = 1.0f;
+
+	return true;
+}
+
+bool ElasticRodEdgeConstraint::solvePositionConstraint(SimulationModel &model)
+{
+	//ElasticRodSimulationModel simModel = dynamic_cast<ElasticRodSimulationModel&>(model);
+
+	ParticleData &pd = model.getParticles();
+	ParticleData &pg = model.getGhostParticles();
+
+	const unsigned iA = m_bodies[0];
+	const unsigned iB = m_bodies[1];
+	const unsigned iG = m_bodies[2];
+
+	Vector3r &xA = pd.getPosition(iA);
+	Vector3r &xB = pd.getPosition(iB);
+	Vector3r &xG = pg.getPosition(iG);
+
+	float wA = pd.getInvMass(iA);
+	float wB = pd.getInvMass(iB);
+	float wG = pg.getInvMass(iG);
+	
+	Vector3r corr[3];
+	//const bool res = PositionBasedDynamics::solve_DistanceConstraint(xA, wA, xB, wB, m_restLength, 1.0f, 1.0f, corr[0], corr[1]);
+	const bool res = PositionBasedElasticRod::ProjectEdgeConstraints(xA, wA, xB, wB, xG, wG, 1.0f, m_restLength, m_restLength, corr[0], corr[1], corr[2]);
+
+	if (res)
+	{
+		if (wA != 0.0f)
+			xA += corr[0];
+		
+		if (wB != 0.0f)
+			xB += corr[1];
+
+		if (wG != 0.0f)
+			xG += corr[2];
+	}
+
+	return res;
+}
+//////////////////////////////////////////////////////////////////////////
+// ElasticRodBendAndTwistConstraint
+//////////////////////////////////////////////////////////////////////////
+bool ElasticRodBendAndTwistConstraint::initConstraint(SimulationModel &model, const unsigned int pA, const unsigned int pB,
+	const unsigned int pC, const unsigned int pD, const unsigned int pE)
+{
+	m_bodies[0] = pA;
+	m_bodies[1] = pB;
+	m_bodies[2] = pC;
+	m_bodies[3] = pD; //ghost point id
+	m_bodies[4] = pE; //ghost point id
+
+	ParticleData &pd = model.getParticles();
+	ParticleData &pg = model.getGhostParticles();
+
+	const Vector3r &xA = pd.getPosition0(m_bodies[0]);
+	const Vector3r &xB = pd.getPosition0(m_bodies[1]);
+	const Vector3r &xC = pd.getPosition0(m_bodies[2]);
+	const Vector3r &xD = pg.getPosition0(m_bodies[3]);
+	const Vector3r &xE = pg.getPosition0(m_bodies[4]);
+
+	PositionBasedElasticRod::ComputeMaterialFrame(xA, xB, xD, m_dA);
+	PositionBasedElasticRod::ComputeMaterialFrame(xB, xC, xE, m_dB);
+
+	PositionBasedElasticRod::ComputeDarbouxVector(m_dA, m_dB, 1.0f, m_restDarbouxVector);
+	m_bendAndTwistKs.setOnes();
+
+	return true;
+}
+
+bool ElasticRodBendAndTwistConstraint::solvePositionConstraint(SimulationModel &model)
+{
+	ParticleData &pd = model.getParticles();
+	ParticleData &pg = model.getGhostParticles();
+
+	Vector3r &xA = pd.getPosition(m_bodies[0]);
+	Vector3r &xB = pd.getPosition(m_bodies[1]);
+	Vector3r &xC = pd.getPosition(m_bodies[2]);
+	Vector3r &xD = pg.getPosition(m_bodies[3]);
+	Vector3r &xE = pg.getPosition(m_bodies[4]);
+
+	const float wA = pd.getInvMass(m_bodies[0]);
+	const float wB = pd.getInvMass(m_bodies[1]);
+	const float wC = pd.getInvMass(m_bodies[2]);
+	const float wD = pg.getInvMass(m_bodies[3]);
+	const float wE = pg.getInvMass(m_bodies[4]);
+
+	Vector3r corr[5];
+
+	bool res = PositionBasedElasticRod::ProjectBendingAndTwistingConstraint(
+		xA, wA, xB, wB, xC, wC, xD, wD, xE, wE, 
+		m_bendAndTwistKs, 1.0f, m_restDarbouxVector, 
+		corr[0], corr[1], corr[2], corr[3], corr[4], true);
+
+	if (res)
+	{
+		const float stiffness = model.getElasticRodBendAndTwistStiffness();
+		if (wA != 0.0f)
+			xA += stiffness*corr[0];
+		
+		if (wB != 0.0f)
+			xB += stiffness*corr[1];
+		
+		if (wC != 0.0f)
+			xC += stiffness*corr[2];
+		
+		if (wD != 0.0f)
+			xD += stiffness*corr[3];
+
+		if (wE != 0.0f)
+			xE += stiffness*corr[4];
 	}
 	return res;
 }
