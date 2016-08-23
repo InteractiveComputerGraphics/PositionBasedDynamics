@@ -5,6 +5,8 @@ add_library(PositionBasedDynamics
 		MathFunctions.h
 		PositionBasedDynamics.cpp
 		PositionBasedDynamics.h
+		PositionBasedElasticRods.cpp
+		PositionBasedElasticRods.h
 		PositionBasedFluids.cpp
 		PositionBasedFluids.h
 		PositionBasedRigidBodyDynamics.cpp

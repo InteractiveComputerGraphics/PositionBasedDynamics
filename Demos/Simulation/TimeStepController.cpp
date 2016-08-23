@@ -21,8 +21,6 @@ TimeStepController::~TimeStepController(void)
 {
 }
 
-unsigned int counter = 0;
-
 void TimeStepController::step(SimulationModel &model)
 {
  	TimeManager *tm = TimeManager::getCurrent ();
