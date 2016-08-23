@@ -33,6 +33,9 @@ namespace PBD
 
 			virtual ~CollisionObject() {}
 			virtual int &getTypeId() const = 0;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct CollisionObjectWithoutGeometry : public CollisionObject

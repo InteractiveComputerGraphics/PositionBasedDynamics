@@ -31,9 +31,9 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 {
 	std::cout << "Loading " << filename << std::endl;
 
-	vector<Vector3r> positions;
-	vector<Vector2r> texcoords;
-	vector<Vector3r> normals;
+	vector<Vector3r, Alloc_Vector3r> positions;
+	vector<Vector2r, Alloc_Vector2r> texcoords;
+	vector<Vector3r, Alloc_Vector3r> normals;
 	vector<MeshFaceIndices> faces;
     
     ifstream filestream;
