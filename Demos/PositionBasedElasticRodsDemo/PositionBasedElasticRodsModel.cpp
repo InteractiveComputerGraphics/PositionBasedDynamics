@@ -1,5 +1,5 @@
 #include "PositionBasedElasticRodsModel.h"
-#include "PositionBasedElasticRods.h"
+#include "PositionBasedDynamics/PositionBasedElasticRods.h"
 #include "PositionBasedElasticRodsConstraints.h"
 
 using namespace PBD;

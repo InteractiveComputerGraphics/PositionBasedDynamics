@@ -1,3 +1,4 @@
+	- added support for x86 compilation (thanks to Josef Kohout)
 	- added implementation of "Position-Based Elastic Rods" paper and a corresponding demo
 	- fixed some problems with VS2015
 
