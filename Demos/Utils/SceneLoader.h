@@ -34,6 +34,9 @@ namespace PBD
 			bool m_testMesh;
 			Vector3r m_collisionObjectScale;
 			boost::property_tree::ptree *pt;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct TriangleModelData
@@ -47,6 +50,9 @@ namespace PBD
 			Real m_restitutionCoeff;
 			Real m_frictionCoeff;
 			boost::property_tree::ptree *pt;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct TetModelData
@@ -63,12 +69,18 @@ namespace PBD
 			Real m_restitutionCoeff;
 			Real m_frictionCoeff;
 			boost::property_tree::ptree *pt;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct BallJointData
 		{
 			unsigned int m_bodyID[2];
 			Vector3r m_position;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct BallOnLineJointData
@@ -76,6 +88,9 @@ namespace PBD
 			unsigned int m_bodyID[2];
 			Vector3r m_position;
 			Vector3r m_axis;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct HingeJointData
@@ -83,6 +98,9 @@ namespace PBD
 			unsigned int m_bodyID[2];
 			Vector3r m_position;
 			Vector3r m_axis;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct UniversalJointData
@@ -90,6 +108,9 @@ namespace PBD
 			unsigned int m_bodyID[2];
 			Vector3r m_position;
 			Vector3r m_axis[2];
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct SliderJointData
@@ -97,6 +118,9 @@ namespace PBD
 			unsigned int m_bodyID[2];
 			Vector3r m_position;
 			Vector3r m_axis;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct RigidBodyParticleBallJointData
@@ -110,6 +134,9 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct TargetVelocityMotorHingeJointData
@@ -118,6 +145,9 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct TargetPositionMotorSliderJointData
@@ -126,6 +156,9 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct TargetVelocityMotorSliderJointData
@@ -134,6 +167,9 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct SceneData
@@ -187,6 +223,9 @@ namespace PBD
 			ObjectArray<TargetVelocityMotorHingeJointData> m_targetVelocityMotorHingeJointData;
 			ObjectArray<TargetPositionMotorSliderJointData> m_targetPositionMotorSliderJointData;
 			ObjectArray<TargetVelocityMotorSliderJointData> m_targetVelocityMotorSliderJointData;
+
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		void readScene(const std::string &fileName, SceneData &sceneData);

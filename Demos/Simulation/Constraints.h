@@ -27,6 +27,9 @@ namespace PBD
 		virtual bool updateConstraint(SimulationModel &model) { return true; };
 		virtual bool solvePositionConstraint(SimulationModel &model) { return true; };
 		virtual bool solveVelocityConstraint(SimulationModel &model) { return true; };
+
+	public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+		PDB_MAKE_ALIGNED_OPERATOR_NEW
 	};
 
 	class BallJoint : public Constraint
