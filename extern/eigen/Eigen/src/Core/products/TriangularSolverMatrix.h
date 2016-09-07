@@ -81,7 +81,7 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conju
     // coherence when accessing the rhs elements
     std::ptrdiff_t l1, l2;
     manage_caching_sizes(GetAction, &l1, &l2);
-    Index subcols = cols>0 ? l2/(4 * sizeof(Scalar) * otherStride) : 0;
+    Index subcols = cols>0 ? l2/(4 * sizeof(Scalar) *  std::max<Index>(otherStride,size)) : 0;
     subcols = std::max<Index>((subcols/Traits::nr)*Traits::nr, Traits::nr);
 
     for(Index k2=IsLower ? 0 : size;
@@ -115,8 +115,9 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conju
           {
             // TODO write a small kernel handling this (can be shared with trsv)
             Index i  = IsLower ? k2+k1+k : k2-k1-k-1;
-            Index s  = IsLower ? k2+k1 : i+1;
             Index rs = actualPanelWidth - k - 1; // remaining size
+            Index s  = TriStorageOrder==RowMajor ? (IsLower ? k2+k1 : i+1)
+                                                 :  IsLower ? i+1 : i-rs;
 
             Scalar a = (Mode & UnitDiag) ? Scalar(1) : Scalar(1)/conj(tri(i,i));
             for (Index j=j2; j<j2+actual_cols; ++j)
@@ -133,7 +134,6 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conju
               }
               else
               {
-                Index s = IsLower ? i+1 : i-rs;
                 Scalar b = (other(i,j) *= a);
                 Scalar* r = &other(s,j);
                 const Scalar* l = &tri(s,i);

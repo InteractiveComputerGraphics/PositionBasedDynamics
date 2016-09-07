@@ -205,9 +205,6 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
   public:
     GeneralProduct(const Lhs& lhs, const Rhs& rhs)
     {
-      EIGEN_STATIC_ASSERT((internal::is_same<typename Lhs::RealScalar, typename Rhs::RealScalar>::value),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-
       Base::coeffRef(0,0) = (lhs.transpose().cwiseProduct(rhs)).sum();
     }
 
@@ -264,8 +261,6 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {
-      EIGEN_STATIC_ASSERT((internal::is_same<typename Lhs::RealScalar, typename Rhs::RealScalar>::value),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     }
     
     struct set  { template<typename Dst, typename Src> void operator()(const Dst& dst, const Src& src) const { dst.const_cast_derived()  = src; } };
@@ -425,15 +420,18 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
     ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
                                   * RhsBlasTraits::extractScalarFactor(prod.rhs());
 
+    // make sure Dest is a compile-time vector type (bug 1166)
+    typedef typename conditional<Dest::IsVectorAtCompileTime, Dest, typename Dest::ColXpr>::type ActualDest;
+
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
       // on, the other hand it is good for the cache to pack the vector anyways...
-      EvalToDestAtCompileTime = Dest::InnerStrideAtCompileTime==1,
+      EvalToDestAtCompileTime = (ActualDest::InnerStrideAtCompileTime==1),
       ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex),
-      MightCannotUseDest = (Dest::InnerStrideAtCompileTime!=1) || ComplexByReal
+      MightCannotUseDest = (ActualDest::InnerStrideAtCompileTime!=1) || ComplexByReal
     };
 
-    gemv_static_vector_if<ResScalar,Dest::SizeAtCompileTime,Dest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
+    gemv_static_vector_if<ResScalar,ActualDest::SizeAtCompileTime,ActualDest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
 
     bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
     bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
@@ -522,7 +520,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
         actualLhs.rows(), actualLhs.cols(),
         actualLhs.data(), actualLhs.outerStride(),
         actualRhsPtr, 1,
-        dest.data(), dest.innerStride(),
+        dest.data(), dest.col(0).innerStride(), //NOTE  if dest is not a vector at compile-time, then dest.innerStride() might be wrong. (bug 1166)
         actualAlpha);
   }
 };

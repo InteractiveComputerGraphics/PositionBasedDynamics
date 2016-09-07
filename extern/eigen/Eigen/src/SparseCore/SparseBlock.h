@@ -160,14 +160,14 @@ public:
         // realloc manually to reduce copies
         typename SparseMatrixType::Storage newdata(m_matrix.data().allocatedSize() - block_size + nnz);
 
-        std::memcpy(&newdata.value(0), &m_matrix.data().value(0), start*sizeof(Scalar));
-        std::memcpy(&newdata.index(0), &m_matrix.data().index(0), start*sizeof(Index));
+        std::memcpy(newdata.valuePtr(), m_matrix.data().valuePtr(), start*sizeof(Scalar));
+        std::memcpy(newdata.indexPtr(), m_matrix.data().indexPtr(), start*sizeof(Index));
 
-        std::memcpy(&newdata.value(start), &tmp.data().value(0), nnz*sizeof(Scalar));
-        std::memcpy(&newdata.index(start), &tmp.data().index(0), nnz*sizeof(Index));
+        std::memcpy(newdata.valuePtr() + start, tmp.data().valuePtr(), nnz*sizeof(Scalar));
+        std::memcpy(newdata.indexPtr() + start, tmp.data().indexPtr(), nnz*sizeof(Index));
 
-        std::memcpy(&newdata.value(start+nnz), &matrix.data().value(end), tail_size*sizeof(Scalar));
-        std::memcpy(&newdata.index(start+nnz), &matrix.data().index(end), tail_size*sizeof(Index));
+        std::memcpy(newdata.valuePtr()+start+nnz, matrix.data().valuePtr()+end, tail_size*sizeof(Scalar));
+        std::memcpy(newdata.indexPtr()+start+nnz, matrix.data().indexPtr()+end, tail_size*sizeof(Index));
         
         newdata.resize(m_matrix.outerIndexPtr()[m_matrix.outerSize()] - block_size + nnz);
 
@@ -178,11 +178,11 @@ public:
         // no need to realloc, simply copy the tail at its respective position and insert tmp
         matrix.data().resize(start + nnz + tail_size);
 
-        std::memmove(&matrix.data().value(start+nnz), &matrix.data().value(end), tail_size*sizeof(Scalar));
-        std::memmove(&matrix.data().index(start+nnz), &matrix.data().index(end), tail_size*sizeof(Index));
+        std::memmove(matrix.data().valuePtr()+start+nnz, matrix.data().valuePtr()+end, tail_size*sizeof(Scalar));
+        std::memmove(matrix.data().indexPtr()+start+nnz, matrix.data().indexPtr()+end, tail_size*sizeof(Index));
 
-        std::memcpy(&matrix.data().value(start), &tmp.data().value(0), nnz*sizeof(Scalar));
-        std::memcpy(&matrix.data().index(start), &tmp.data().index(0), nnz*sizeof(Index));
+        std::memcpy(matrix.data().valuePtr()+start, tmp.data().valuePtr(), nnz*sizeof(Scalar));
+        std::memcpy(matrix.data().indexPtr()+start, tmp.data().indexPtr(), nnz*sizeof(Index));
       }
       
       // update innerNonZeros
@@ -364,10 +364,11 @@ public:
 
   protected:
 
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
+
     typename SparseMatrixType::Nested m_matrix;
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, OuterSize> m_outerSize;
-
 };
 
 //----------
@@ -528,10 +529,10 @@ public:
     const internal::variable_if_dynamic<Index, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_blockRows;
     const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_blockCols;
-
+  private:
+    Index nonZeros() const;
 };
 
 } // end namespace Eigen
 
 #endif // EIGEN_SPARSE_BLOCK_H
-

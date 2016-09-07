@@ -116,17 +116,17 @@ template<typename Lhs, typename Rhs, int Mode, int Index, int Size>
 struct triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,false> {
   enum {
     IsLower = ((Mode&Lower)==Lower),
-    I = IsLower ? Index : Size - Index - 1,
-    S = IsLower ? 0     : I+1
+    RowIndex = IsLower ? Index : Size - Index - 1,
+    S = IsLower ? 0     : RowIndex+1
   };
   static void run(const Lhs& lhs, Rhs& rhs)
   {
     if (Index>0)
-      rhs.coeffRef(I) -= lhs.row(I).template segment<Index>(S).transpose()
+      rhs.coeffRef(RowIndex) -= lhs.row(RowIndex).template segment<Index>(S).transpose()
                          .cwiseProduct(rhs.template segment<Index>(S)).sum();
 
     if(!(Mode & UnitDiag))
-      rhs.coeffRef(I) /= lhs.coeff(I,I);
+      rhs.coeffRef(RowIndex) /= lhs.coeff(RowIndex,RowIndex);
 
     triangular_solver_unroller<Lhs,Rhs,Mode,Index+1,Size>::run(lhs,rhs);
   }
@@ -243,7 +243,8 @@ template<int Side, typename TriangularType, typename Rhs> struct triangular_solv
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    if(!(is_same<RhsNestedCleaned,Dest>::value && extract_data(dst) == extract_data(m_rhs)))
+    const typename Dest::Scalar *dst_data = internal::extract_data(dst);
+    if(!(is_same<RhsNestedCleaned,Dest>::value && dst_data!=0 && extract_data(dst) == extract_data(m_rhs)))
       dst = m_rhs;
     m_triangularMatrix.template solveInPlace<Side>(dst);
   }
