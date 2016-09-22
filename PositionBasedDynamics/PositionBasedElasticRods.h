@@ -2,7 +2,7 @@
 #define POSITION_BASED_ELASTIC_RODS_H
 
 #include <Eigen/Dense>
-#include "Common\Common.h"
+#include "Common/Common.h"
 
 // ------------------------------------------------------------------------------------
 namespace PBD
