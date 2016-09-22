@@ -266,7 +266,7 @@ bool PositionBasedDynamics::solve_EdgePointDistanceConstraint(
 		t = 0.5;
 	else {
 		Real d2 = d.dot(d);
-		Real t = d.dot(p - p1) / d2;
+		t = d.dot(p - p1) / d2;
 		if (t < 0.0)
 			t = 0.0;
 		else if (t > 1.0)
