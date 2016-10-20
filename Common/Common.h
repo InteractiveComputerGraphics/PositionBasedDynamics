@@ -32,7 +32,7 @@ namespace PBD
 
 	//allocators to be used in STL collections containing Eigen structures
 	using Alloc_Vector2r = Eigen::aligned_allocator<Vector2r>;
-	using Alloc_Vector3r = Eigen::aligned_allocator<Vector2r>;
+	using Alloc_Vector3r = Eigen::aligned_allocator<Vector3r>;
 	using Alloc_Vector4r = Eigen::aligned_allocator<Vector4r>;
 	using Alloc_Matrix2r = Eigen::aligned_allocator<Matrix2r>;
 	using Alloc_Matrix3r = Eigen::aligned_allocator<Matrix3r>;
