@@ -11,6 +11,7 @@ namespace PBD
 		/** Extracts the path of a file.
 		*/
 		static std::string getFilePath(const std::string &path);
+		static bool isRelativePath(const std::string &path);
 	};
 }
  

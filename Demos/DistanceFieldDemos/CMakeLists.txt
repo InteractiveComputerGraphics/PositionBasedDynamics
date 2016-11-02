@@ -2,7 +2,7 @@ set(SIMULATION_LINK_LIBRARIES AntTweakBar glew PositionBasedDynamics Simulation)
 set(SIMULATION_DEPENDENCIES AntTweakBar glew PositionBasedDynamics Simulation)
 
 if(WIN32)
-  set(SIMULATION_LINK_LIBRARIES freeglut opengl32.lib glu32.lib ${SIMULATION_LINK_LIBRARIES} ${Boost_LIBRARIES})
+  set(SIMULATION_LINK_LIBRARIES freeglut opengl32.lib glu32.lib ${SIMULATION_LINK_LIBRARIES})
   set(SIMULATION_DEPENDENCIES freeglut ${SIMULATION_DEPENDENCIES})
 else()
   find_package(GLUT REQUIRED)

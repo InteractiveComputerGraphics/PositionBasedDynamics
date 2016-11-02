@@ -830,8 +830,6 @@ void readScene()
 	camPos = data.m_camPosition;
 	camLookat = data.m_camLookat;
 
-	boost::filesystem::path basePath = boost::filesystem::path(sceneFileName).parent_path();
-
 	TimeManager::getCurrent()->setTimeStepSize(data.m_timeStepSize);
 
 	sceneName = data.m_sceneName;

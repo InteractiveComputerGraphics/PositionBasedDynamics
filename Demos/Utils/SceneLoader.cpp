@@ -1,9 +1,7 @@
 #include "SceneLoader.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/foreach.hpp>
-#include <boost/filesystem.hpp>
 #include <iostream>
+#include <fstream>
+#include "Utilities.h"
 
 using namespace PBD;
 
@@ -17,113 +15,106 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 
 	try
 	{
-		boost::property_tree::json_parser::read_json(fileName, m_ptree);
+		std::ifstream input_file(fileName);
+		if (!input_file.is_open())
+		{
+			std::cerr << "Cannot open file!\n";
+			return;
+		}
+		m_json << input_file;
 
-		readValue(m_ptree, "Name", sceneData.m_sceneName);
+		std::string basePath = Utilities::getFilePath(fileName);
+
+		readValue(m_json, "Name", sceneData.m_sceneName);
 		
 		sceneData.m_camPosition = Vector3r(5.0, 10.0, 30.0);
-		readVector(m_ptree, "cameraPosition", sceneData.m_camPosition);
+		readVector(m_json, "cameraPosition", sceneData.m_camPosition);
 		sceneData.m_camLookat = Vector3r(5.0, 0.0, 0.0);
-		readVector(m_ptree, "cameraLookat", sceneData.m_camLookat);
+		readVector(m_json, "cameraLookat", sceneData.m_camLookat);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read general 
 		//////////////////////////////////////////////////////////////////////////
-		boost::optional<boost::property_tree::ptree&> child = m_ptree.get_child_optional("Simulation");
-		if (child)
-			readSimulation(child, sceneData);
+		if (m_json.find("Simulation") != m_json.end())
+			readSimulation(m_json, "Simulation", sceneData);
 	
 		//////////////////////////////////////////////////////////////////////////
 		// read rigid bodies
 		//////////////////////////////////////////////////////////////////////////
-		boost::filesystem::path basePath = boost::filesystem::path(fileName).parent_path();
-		child = m_ptree.get_child_optional("RigidBodies");
-		if (child)
-			readRigidBodies(child, basePath, sceneData);
+		if (m_json.find("RigidBodies") != m_json.end())
+			readRigidBodies(m_json, "RigidBodies", basePath, sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read triangle models
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("TriangleModels");
-		if (child)
-			readTriangleModels(child, basePath, sceneData);
+		if (m_json.find("TriangleModels") != m_json.end())
+			readTriangleModels(m_json, "TriangleModels", basePath, sceneData);
 		
 		//////////////////////////////////////////////////////////////////////////
 		// read tet models
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("TetModels");
-		if (child)
-			readTetModels(child, basePath, sceneData);
+		if (m_json.find("TetModels") != m_json.end())
+			readTetModels(m_json, "TetModels", basePath, sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read ball joints
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("BallJoints");
-		if (child)
-			readBallJoints(child, sceneData);		
+		if (m_json.find("BallJoints") != m_json.end())
+			readBallJoints(m_json, "BallJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read ball-on-line joints
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("BallOnLineJoints");
-		if (child)
-			readBallOnLineJoints(child, sceneData);
+		if (m_json.find("BallOnLineJoints") != m_json.end())
+			readBallOnLineJoints(m_json, "BallOnLineJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read hinge joints
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("HingeJoints");
-		if (child)
-			readHingeJoints(child, sceneData);
+		if (m_json.find("HingeJoints") != m_json.end())
+			readHingeJoints(m_json, "HingeJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read universal joints
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("UniversalJoints");
-		if (child)
-			readUniversalJoints(child, sceneData);
+		if (m_json.find("UniversalJoints") != m_json.end())
+			readUniversalJoints(m_json, "UniversalJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read slider joints
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("SliderJoints");
-		if (child)
-			readSliderJoints(child, sceneData);
+		if (m_json.find("SliderJoints") != m_json.end())
+			readSliderJoints(m_json, "SliderJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read RigidBodyParticleBallJoints
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("RigidBodyParticleBallJoints");
-		if (child)
-			readRigidBodyParticleBallJoints(child, sceneData);
+		if (m_json.find("RigidBodyParticleBallJoints") != m_json.end())
+			readRigidBodyParticleBallJoints(m_json, "RigidBodyParticleBallJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read TargetAngleMotorHingeJoint
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("TargetAngleMotorHingeJoints");
-		if (child)
-			readTargetAngleMotorHingeJoints(child, sceneData);
+		if (m_json.find("TargetAngleMotorHingeJoints") != m_json.end())
+			readTargetAngleMotorHingeJoints(m_json, "TargetAngleMotorHingeJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read TargetVelocityMotorHingeJoint
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("TargetVelocityMotorHingeJoints");
-		if (child)
-			readTargetVelocityMotorHingeJoints(child, sceneData);
+		if (m_json.find("TargetVelocityMotorHingeJoints") != m_json.end())
+			readTargetVelocityMotorHingeJoints(m_json, "TargetVelocityMotorHingeJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read TargetPositionMotorSliderJoint
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("TargetPositionMotorSliderJoints");
-		if (child)
-			readTargetPositionMotorSliderJoints(child, sceneData);
+		if (m_json.find("TargetPositionMotorSliderJoints") != m_json.end())
+			readTargetPositionMotorSliderJoints(m_json, "TargetPositionMotorSliderJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
 		// read TargetVelocityMotorSliderJoint
 		//////////////////////////////////////////////////////////////////////////
-		child = m_ptree.get_child_optional("TargetVelocityMotorSliderJoints");
-		if (child)
-			readTargetVelocityMotorSliderJoints(child, sceneData);
+		if (m_json.find("TargetVelocityMotorSliderJoints") != m_json.end())
+			readTargetVelocityMotorSliderJoints(m_json, "TargetVelocityMotorSliderJoints", sceneData);
 	}
 	catch (std::exception& e)
 	{
@@ -132,96 +123,100 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 	}
 }
 
-void SceneLoader::readSimulation(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readSimulation(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
+	const nlohmann::json &child = j[key];
+
 	sceneData.m_timeStepSize = 0.005;
-	readValue(child.get(), "timeStepSize", sceneData.m_timeStepSize);
+	readValue(child, "timeStepSize", sceneData.m_timeStepSize);
 
 	sceneData.m_gravity = Vector3r(0, -9.81, 0);
-	readVector(child.get(), "gravity", sceneData.m_gravity);
+	readVector(child, "gravity", sceneData.m_gravity);
 
 	sceneData.m_maxIter = 5;
-	readValue(child.get(), "maxIter", sceneData.m_maxIter);
+	readValue(child, "maxIter", sceneData.m_maxIter);
 
 	sceneData.m_maxIterVel = 5;
-	readValue(child.get(), "maxIterVel", sceneData.m_maxIterVel);
+	readValue(child, "maxIterVel", sceneData.m_maxIterVel);
 
 	sceneData.m_velocityUpdateMethod = 0;
-	readValue(child.get(), "velocityUpdateMethod", sceneData.m_velocityUpdateMethod);
+	readValue(child, "velocityUpdateMethod", sceneData.m_velocityUpdateMethod);
 
 	sceneData.m_triangleModelSimulationMethod = -1;
-	readValue(child.get(), "triangleModelSimulationMethod", sceneData.m_triangleModelSimulationMethod);
+	readValue(child, "triangleModelSimulationMethod", sceneData.m_triangleModelSimulationMethod);
 
 	sceneData.m_triangleModelBendingMethod = -1;
-	readValue(child.get(), "triangleModelBendingMethod", sceneData.m_triangleModelBendingMethod);
+	readValue(child, "triangleModelBendingMethod", sceneData.m_triangleModelBendingMethod);
 
 	sceneData.m_tetModelSimulationMethod = -1;
-	readValue(child.get(), "tetModelSimulationMethod", sceneData.m_tetModelSimulationMethod);
+	readValue(child, "tetModelSimulationMethod", sceneData.m_tetModelSimulationMethod);
 
 	sceneData.m_contactTolerance = 0.0;
-	readValue(child.get(), "contactTolerance", sceneData.m_contactTolerance);
+	readValue(child, "contactTolerance", sceneData.m_contactTolerance);
 
 	sceneData.m_contactStiffnessRigidBody = 1.0;
-	readValue(child.get(), "contactStiffnessRigidBody", sceneData.m_contactStiffnessRigidBody);
+	readValue(child, "contactStiffnessRigidBody", sceneData.m_contactStiffnessRigidBody);
 
 	sceneData.m_contactStiffnessParticleRigidBody = 100.0;
-	readValue(child.get(), "contactStiffnessParticleRigidBody", sceneData.m_contactStiffnessParticleRigidBody);
+	readValue(child, "contactStiffnessParticleRigidBody", sceneData.m_contactStiffnessParticleRigidBody);
 
 	// stiffness
 	sceneData.m_cloth_stiffness = 1.0;
-	readValue(child.get(), "cloth_stiffness", sceneData.m_cloth_stiffness);
+	readValue(child, "cloth_stiffness", sceneData.m_cloth_stiffness);
 
 	// bendingStiffness
 	sceneData.m_cloth_bendingStiffness = 0.01;
-	readValue(child.get(), "cloth_bendingStiffness", sceneData.m_cloth_bendingStiffness);
+	readValue(child, "cloth_bendingStiffness", sceneData.m_cloth_bendingStiffness);
 
 	// xxStiffness, yyStiffness, xyStiffness
 	sceneData.m_cloth_xxStiffness = 1.0;
 	sceneData.m_cloth_yyStiffness = 1.0;
 	sceneData.m_cloth_xyStiffness = 1.0;
-	readValue(child.get(), "cloth_xxStiffness", sceneData.m_cloth_xxStiffness);
-	readValue(child.get(), "cloth_yyStiffness", sceneData.m_cloth_yyStiffness);
-	readValue(child.get(), "cloth_xyStiffness", sceneData.m_cloth_xyStiffness);
+	readValue(child, "cloth_xxStiffness", sceneData.m_cloth_xxStiffness);
+	readValue(child, "cloth_yyStiffness", sceneData.m_cloth_yyStiffness);
+	readValue(child, "cloth_xyStiffness", sceneData.m_cloth_xyStiffness);
 
 	// xyPoissonRatio, yxPoissonRatio				  
 	sceneData.m_cloth_xyPoissonRatio = 0.3;
 	sceneData.m_cloth_yxPoissonRatio = 0.3;
-	readValue(child.get(), "cloth_xyPoissonRatio", sceneData.m_cloth_xyPoissonRatio);
-	readValue(child.get(), "cloth_yxPoissonRatio", sceneData.m_cloth_yxPoissonRatio);
+	readValue(child, "cloth_xyPoissonRatio", sceneData.m_cloth_xyPoissonRatio);
+	readValue(child, "cloth_yxPoissonRatio", sceneData.m_cloth_yxPoissonRatio);
 
 	// normalize
 	sceneData.m_cloth_normalizeStretch = false;
 	sceneData.m_cloth_normalizeShear = false;
-	readValue(child.get(), "cloth_normalizeStretch", sceneData.m_cloth_normalizeStretch);
-	readValue(child.get(), "cloth_normalizeShear", sceneData.m_cloth_normalizeShear);
+	readValue(child, "cloth_normalizeStretch", sceneData.m_cloth_normalizeStretch);
+	readValue(child, "cloth_normalizeShear", sceneData.m_cloth_normalizeShear);
 
 	// solid stiffness
 	sceneData.m_cloth_stiffness = 1.0;
-	readValue(child.get(), "solid_stiffness", sceneData.m_solid_stiffness);
+	readValue(child, "solid_stiffness", sceneData.m_solid_stiffness);
 
 	// Poisson ratio
 	sceneData.m_cloth_stiffness = 0.3;
-	readValue(child.get(), "solid_poissonRatio", sceneData.m_solid_poissonRatio);
+	readValue(child, "solid_poissonRatio", sceneData.m_solid_poissonRatio);
 
 	// normalize
 	sceneData.m_solid_normalizeStretch = false;
 	sceneData.m_solid_normalizeShear = false;
-	readValue(child.get(), "solid_normalizeStretch", sceneData.m_solid_normalizeStretch);
-	readValue(child.get(), "solid_normalizeShear", sceneData.m_solid_normalizeShear);
+	readValue(child, "solid_normalizeStretch", sceneData.m_solid_normalizeStretch);
+	readValue(child, "solid_normalizeShear", sceneData.m_solid_normalizeShear);
 }
 
-void SceneLoader::readRigidBodies(const boost::optional<boost::property_tree::ptree&> child, const boost::filesystem::path &basePath, SceneData &sceneData)
+void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &key, const std::string &basePath, SceneData &sceneData)
 {
+	const nlohmann::json &child = j[key];
+
 	sceneData.m_rigidBodyData.reserve(5000);
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &rigidBodies, child.get())
+
+	for (auto& rigidBody : child)
 	{
 		std::string geomFileName;
-		if (readValue<std::string>(rigidBodies.second, "geometryFile", geomFileName))
+		if (readValue<std::string>(rigidBody, "geometryFile", geomFileName))
 		{
-			boost::filesystem::path p(geomFileName);
-			if (p.is_relative())
+			if (Utilities::isRelativePath(geomFileName))
 			{
-				geomFileName = boost::filesystem::path(basePath / geomFileName).string();
+				geomFileName = basePath + "/" + geomFileName;
 			}
 
 			RigidBodyData &rbd = sceneData.m_rigidBodyData.create();
@@ -229,26 +224,26 @@ void SceneLoader::readRigidBodies(const boost::optional<boost::property_tree::pt
 
 			// id
 			rbd.m_id = 0;
-			readValue(rigidBodies.second, "id", rbd.m_id);
+			readValue(rigidBody, "id", rbd.m_id);
 
 			// is dynamic body
 			rbd.m_isDynamic = true;
-			readValue(rigidBodies.second, "isDynamic", rbd.m_isDynamic);
+			readValue(rigidBody, "isDynamic", rbd.m_isDynamic);
 
 			// density
 			rbd.m_density = 1.0;
-			readValue(rigidBodies.second, "density", rbd.m_density);
+			readValue(rigidBody, "density", rbd.m_density);
 
 			// translation
 			rbd.m_x.setZero();
-			readVector(rigidBodies.second, "translation", rbd.m_x);
+			readVector(rigidBody, "translation", rbd.m_x);
 
 			// rotation axis
 			Vector3r axis;
 			axis.setZero();
 			Real angle = 0.0;
-			if (readVector(rigidBodies.second, "rotationAxis", axis) &&
-				readValue<Real>(rigidBodies.second, "rotationAngle", angle))
+			if (readVector(rigidBody, "rotationAxis", axis) &&
+				readValue<Real>(rigidBody, "rotationAngle", angle))
 			{
 				axis.normalize();
 				rbd.m_q = Quaternionr(AngleAxisr(angle, axis));
@@ -258,52 +253,53 @@ void SceneLoader::readRigidBodies(const boost::optional<boost::property_tree::pt
 
 			// scale
 			rbd.m_scale = Vector3r(1.0, 1.0, 1.0);
-			readVector(rigidBodies.second, "scale", rbd.m_scale);
+			readVector(rigidBody, "scale", rbd.m_scale);
 
 			// velocity
 			rbd.m_v.setZero();
-			readVector(rigidBodies.second, "velocity", rbd.m_v);
+			readVector(rigidBody, "velocity", rbd.m_v);
 
 			// angular velocity
 			rbd.m_omega.setZero();
-			readVector(rigidBodies.second, "angularVelocity", rbd.m_omega);
+			readVector(rigidBody, "angularVelocity", rbd.m_omega);
 
 			// restitution
 			rbd.m_restitutionCoeff = 0.6;
-			readValue(rigidBodies.second, "restitution", rbd.m_restitutionCoeff);
+			readValue(rigidBody, "restitution", rbd.m_restitutionCoeff);
 
 			// friction
 			rbd.m_frictionCoeff = 0.2;
-			readValue(rigidBodies.second, "friction", rbd.m_frictionCoeff);
+			readValue(rigidBody, "friction", rbd.m_frictionCoeff);
 
 			// collision object type
 			rbd.m_collisionObjectType = RigidBodyData::CollisionObjectTypes::No_Collision_Object;
-			readValue(rigidBodies.second, "collisionObjectType", rbd.m_collisionObjectType);
+			readValue(rigidBody, "collisionObjectType", rbd.m_collisionObjectType);
 
 			// test mesh
 			rbd.m_testMesh = true;
-			readValue(rigidBodies.second, "testMesh", rbd.m_testMesh);
+			readValue(rigidBody, "testMesh", rbd.m_testMesh);
 
 			// scale
 			rbd.m_collisionObjectScale = Vector3r(1.0, 1.0, 1.0);
-			readVector(rigidBodies.second, "collisionObjectScale", rbd.m_collisionObjectScale);
+			readVector(rigidBody, "collisionObjectScale", rbd.m_collisionObjectScale);
 
-			rbd.pt = &rigidBodies.second;
+			rbd.m_json = rigidBody;
 		}
 	}
 }
 
-void SceneLoader::readTriangleModels(const boost::optional<boost::property_tree::ptree&> child, const boost::filesystem::path &basePath, SceneData &sceneData)
+void SceneLoader::readTriangleModels(const nlohmann::json &j, const std::string &key, const std::string &basePath, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &triModels, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& triModel : child) 
 	{
 		std::string geomFileName;
-		if (readValue<std::string>(triModels.second, "geometryFile", geomFileName))
+		if (readValue<std::string>(triModel, "geometryFile", geomFileName))
 		{
-			boost::filesystem::path p(geomFileName);
-			if (p.is_relative())
+			if (Utilities::isRelativePath(geomFileName))
 			{
-				geomFileName = boost::filesystem::path(basePath / geomFileName).string();
+				geomFileName = basePath + "/" + geomFileName;
 			}
 
 			TriangleModelData &data = sceneData.m_triangleModelData.create();
@@ -311,18 +307,18 @@ void SceneLoader::readTriangleModels(const boost::optional<boost::property_tree:
 
 			// id
 			data.m_id = 0;
-			readValue(triModels.second, "id", data.m_id);
+			readValue(triModel, "id", data.m_id);
 
 			// translation
 			data.m_x.setZero();
-			readVector(triModels.second, "translation", data.m_x);
+			readVector(triModel, "translation", data.m_x);
 
 			// rotation axis
 			Vector3r axis;
 			axis.setZero();
 			Real angle = 0.0;
-			if (readVector(triModels.second, "rotationAxis", axis) &&
-				readValue<Real>(triModels.second, "rotationAngle", angle))
+			if (readVector(triModel, "rotationAxis", axis) &&
+				readValue<Real>(triModel, "rotationAngle", angle))
 			{
 				axis.normalize();
 				data.m_q = Quaternionr(AngleAxisr(angle, axis));
@@ -332,58 +328,56 @@ void SceneLoader::readTriangleModels(const boost::optional<boost::property_tree:
 
 			// scale
 			data.m_scale = Vector3r(1.0, 1.0, 1.0);
-			readVector(triModels.second, "scale", data.m_scale);
+			readVector(triModel, "scale", data.m_scale);
 
 			// static particles
 			unsigned int index = 0;
-			boost::optional<boost::property_tree::ptree&> child2 = triModels.second.get_child_optional("staticParticles");
-			if (child2)
+			if (triModel.find("staticParticles") != triModel.end())
 			{
-				data.m_staticParticles.reserve((unsigned int)child2.get().size());
-				for (auto& item : child2.get())
-					data.m_staticParticles.push_back(item.second.get_value<unsigned int>());
+				data.m_staticParticles.reserve((unsigned int)triModel["staticParticles"].size());
+				for (auto& item : triModel["staticParticles"])
+					data.m_staticParticles.push_back(item.get<unsigned int>());
 			}
 
 			// restitution
 			data.m_restitutionCoeff = 0.1;
-			readValue(triModels.second, "restitution", data.m_restitutionCoeff);
+			readValue(triModel, "restitution", data.m_restitutionCoeff);
 
 			// friction
 			data.m_frictionCoeff = 0.2;
-			readValue(triModels.second, "friction", data.m_frictionCoeff);
+			readValue(triModel, "friction", data.m_frictionCoeff);
 
-			data.pt = &triModels.second;
+			data.m_json = triModel;
 		}
 	}
 }
 
-void SceneLoader::readTetModels(const boost::optional<boost::property_tree::ptree&> child, const boost::filesystem::path &basePath, SceneData &sceneData)
+void SceneLoader::readTetModels(const nlohmann::json &j, const std::string &key, const std::string &basePath, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &tetModels, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& tetModel : child)
 	{
 		std::string nodeFileName, eleFileName;
-		if (readValue<std::string>(tetModels.second, "nodeFile", nodeFileName) &&
-			readValue<std::string>(tetModels.second, "eleFile", eleFileName))
+		if (readValue<std::string>(tetModel, "nodeFile", nodeFileName) &&
+			readValue<std::string>(tetModel, "eleFile", eleFileName))
 		{
-			boost::filesystem::path pNode(nodeFileName);
-			if (pNode.is_relative())
+			if (Utilities::isRelativePath(nodeFileName))
 			{
-				nodeFileName = boost::filesystem::path(basePath / nodeFileName).string();
+				nodeFileName = basePath + "/" + nodeFileName;
 			}
 
-			boost::filesystem::path pEle(eleFileName);
-			if (pEle.is_relative())
+			if (Utilities::isRelativePath(eleFileName))
 			{
-				eleFileName = boost::filesystem::path(basePath / eleFileName).string();
+				eleFileName = basePath + "/" + eleFileName;
 			}
 
 			std::string visFileName = "";
-			if (readValue<std::string>(tetModels.second, "visFile", visFileName))
+			if (readValue<std::string>(tetModel, "visFile", visFileName))
 			{
-				boost::filesystem::path pVis(visFileName);
-				if (pVis.is_relative())
+				if (Utilities::isRelativePath(visFileName))
 				{
-					visFileName = boost::filesystem::path(basePath / visFileName).string();
+					visFileName = basePath + "/" + visFileName;
 				}
 			}
 
@@ -394,18 +388,18 @@ void SceneLoader::readTetModels(const boost::optional<boost::property_tree::ptre
 
 			// id
 			data.m_id = 0;
-			readValue(tetModels.second, "id", data.m_id);
+			readValue(tetModel, "id", data.m_id);
 
 			// translation
 			data.m_x.setZero();
-			readVector(tetModels.second, "translation", data.m_x);
+			readVector(tetModel, "translation", data.m_x);
 
 			// rotation axis
 			Vector3r axis;
 			axis.setZero();
 			Real angle = 0.0;
-			if (readVector(tetModels.second, "rotationAxis", axis) &&
-				readValue<Real>(tetModels.second, "rotationAngle", angle))
+			if (readVector(tetModel, "rotationAxis", axis) &&
+				readValue<Real>(tetModel, "rotationAngle", angle))
 			{
 				axis.normalize();
 				data.m_q = Quaternionr(AngleAxisr(angle, axis));
@@ -415,39 +409,40 @@ void SceneLoader::readTetModels(const boost::optional<boost::property_tree::ptre
 
 			// scale
 			data.m_scale = Vector3r(1.0, 1.0, 1.0);
-			readVector(tetModels.second, "scale", data.m_scale);
+			readVector(tetModel, "scale", data.m_scale);
 
 			// static particles
 			unsigned int index = 0;
-			boost::optional<boost::property_tree::ptree&> child2 = tetModels.second.get_child_optional("staticParticles");
-			if (child2)
+			if (tetModel.find("staticParticles") != tetModel.end())
 			{
-				data.m_staticParticles.reserve((unsigned int)child2.get().size());
-				for (auto& item : child2.get())
-					data.m_staticParticles.push_back(item.second.get_value<unsigned int>());
+				data.m_staticParticles.reserve((unsigned int)tetModel["staticParticles"].size());
+				for (auto& item : tetModel["staticParticles"])
+					data.m_staticParticles.push_back(item.get<unsigned int>());
 			}
 
 			// restitution
 			data.m_restitutionCoeff = 0.1;
-			readValue(tetModels.second, "restitution", data.m_restitutionCoeff);
+			readValue(tetModel, "restitution", data.m_restitutionCoeff);
 
 			// friction
 			data.m_frictionCoeff = 0.2;
-			readValue(tetModels.second, "friction", data.m_frictionCoeff);
+			readValue(tetModel, "friction", data.m_frictionCoeff);
 
-			data.pt = &tetModels.second;
+			data.m_json = tetModel;
 		}
 	}
 }
 
-void SceneLoader::readBallJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readBallJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		BallJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position))
 		{
 			sceneData.m_ballJointData.push_back(jd);
 		}
@@ -455,138 +450,156 @@ void SceneLoader::readBallJoints(const boost::optional<boost::property_tree::ptr
 }
 
 
-void SceneLoader::readBallOnLineJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readBallOnLineJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		BallOnLineJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis", jd.m_axis))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis", jd.m_axis))
 		{
 			sceneData.m_ballOnLineJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readHingeJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readHingeJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		HingeJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis", jd.m_axis))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis", jd.m_axis))
 		{
 			sceneData.m_hingeJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readUniversalJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readUniversalJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		UniversalJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis1", jd.m_axis[0]) &&
-			readVector(joints.second, "axis2", jd.m_axis[1]))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis1", jd.m_axis[0]) &&
+			readVector(joint, "axis2", jd.m_axis[1]))
 		{
 			sceneData.m_universalJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readSliderJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readSliderJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		SliderJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis", jd.m_axis))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis", jd.m_axis))
 		{
 			sceneData.m_sliderJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readRigidBodyParticleBallJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readRigidBodyParticleBallJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		RigidBodyParticleBallJointData jd;
-		if (readValue(joints.second, "rbID", jd.m_bodyID[0]) &&
-			readValue(joints.second, "particleID", jd.m_bodyID[1]))
+		if (readValue(joint, "rbID", jd.m_bodyID[0]) &&
+			readValue(joint, "particleID", jd.m_bodyID[1]))
 		{
 			sceneData.m_rigidBodyParticleBallJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readTargetAngleMotorHingeJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readTargetAngleMotorHingeJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		TargetAngleMotorHingeJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis", jd.m_axis) &&
-			readValue(joints.second, "target", jd.m_target))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis", jd.m_axis) &&
+			readValue(joint, "target", jd.m_target))
 		{
 			sceneData.m_targetAngleMotorHingeJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readTargetVelocityMotorHingeJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readTargetVelocityMotorHingeJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		TargetVelocityMotorHingeJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis", jd.m_axis) &&
-			readValue(joints.second, "target", jd.m_target))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis", jd.m_axis) &&
+			readValue(joint, "target", jd.m_target))
 		{
 			sceneData.m_targetVelocityMotorHingeJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readTargetPositionMotorSliderJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readTargetPositionMotorSliderJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		TargetPositionMotorSliderJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis", jd.m_axis) &&
-			readValue(joints.second, "target", jd.m_target))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis", jd.m_axis) &&
+			readValue(joint, "target", jd.m_target))
 		{
 			sceneData.m_targetPositionMotorSliderJointData.push_back(jd);
 		}
 	}
 }
 
-void SceneLoader::readTargetVelocityMotorSliderJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData)
+void SceneLoader::readTargetVelocityMotorSliderJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
 {
-	BOOST_FOREACH(boost::property_tree::ptree::value_type &joints, child.get())
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
 	{
 		TargetVelocityMotorSliderJointData jd;
-		if (readValue(joints.second, "bodyID1", jd.m_bodyID[0]) &&
-			readValue(joints.second, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joints.second, "position", jd.m_position) &&
-			readVector(joints.second, "axis", jd.m_axis) &&
-			readValue(joints.second, "target", jd.m_target))
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position", jd.m_position) &&
+			readVector(joint, "axis", jd.m_axis) &&
+			readValue(joint, "target", jd.m_target))
 		{
 			sceneData.m_targetVelocityMotorSliderJointData.push_back(jd);
 		}

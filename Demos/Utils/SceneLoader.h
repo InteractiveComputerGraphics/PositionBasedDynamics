@@ -4,16 +4,15 @@
 #include "Demos/Common/Config.h"
 #include <string>
 #include "ObjectArray.h"
-#include <boost/property_tree/ptree.hpp>
+#include "extern/json/json.hpp"
 #include "Common/Common.h"
-#include <boost/filesystem/operations.hpp>
 
 namespace PBD
 {
 	class SceneLoader
 	{
 	protected:
-		boost::property_tree::ptree m_ptree;
+		nlohmann::json m_json;
 
 	public:
 		struct RigidBodyData
@@ -33,7 +32,7 @@ namespace PBD
 			int m_collisionObjectType;
 			bool m_testMesh;
 			Vector3r m_collisionObjectScale;
-			boost::property_tree::ptree *pt;
+			nlohmann::json m_json;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			PDB_MAKE_ALIGNED_OPERATOR_NEW
@@ -49,7 +48,7 @@ namespace PBD
 			ObjectArray<unsigned int> m_staticParticles;
 			Real m_restitutionCoeff;
 			Real m_frictionCoeff;
-			boost::property_tree::ptree *pt;
+			nlohmann::json m_json;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			PDB_MAKE_ALIGNED_OPERATOR_NEW
@@ -68,7 +67,7 @@ namespace PBD
 			ObjectArray<unsigned int> m_staticParticles;
 			Real m_restitutionCoeff;
 			Real m_frictionCoeff;
-			boost::property_tree::ptree *pt;
+			nlohmann::json m_json;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -229,57 +228,62 @@ namespace PBD
 		};
 
 		void readScene(const std::string &fileName, SceneData &sceneData);
-		void readSimulation(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readRigidBodies(const boost::optional<boost::property_tree::ptree&> child, const boost::filesystem::path &basePath, SceneData &sceneData);
-		void readTriangleModels(const boost::optional<boost::property_tree::ptree&> child, const boost::filesystem::path &basePath, SceneData &sceneData);
-		void readTetModels(const boost::optional<boost::property_tree::ptree&> child, const boost::filesystem::path &basePath, SceneData &sceneData);
-		void readBallJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readBallOnLineJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readHingeJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readUniversalJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readSliderJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readRigidBodyParticleBallJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readTargetAngleMotorHingeJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readTargetVelocityMotorHingeJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readTargetPositionMotorSliderJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
-		void readTargetVelocityMotorSliderJoints(const boost::optional<boost::property_tree::ptree&> child, SceneData &sceneData);
+		void readSimulation(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readRigidBodies(const nlohmann::json &child, const std::string &key, const std::string &basePath, SceneData &sceneData);
+		void readTriangleModels(const nlohmann::json &child, const std::string &key, const std::string &basePath, SceneData &sceneData);
+		void readTetModels(const nlohmann::json &child, const std::string &key, const std::string &basePath, SceneData &sceneData);
+		void readBallJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readBallOnLineJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readHingeJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readUniversalJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readSliderJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readRigidBodyParticleBallJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readTargetAngleMotorHingeJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readTargetVelocityMotorHingeJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readTargetPositionMotorSliderJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readTargetVelocityMotorSliderJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
 
 		template <typename T>
-		static bool readValue(const boost::property_tree::ptree &pt, const boost::property_tree::ptree::key_type &key, T &v);
+		static bool readValue(const nlohmann::json &j, const std::string &key, T &v);
+
+		template <>
+		static bool readValue(const nlohmann::json &j, const std::string &key, bool &v);
 
 		template <typename T, int size>
-		static bool readVector(const boost::property_tree::ptree &pt, const boost::property_tree::ptree::key_type &key, Eigen::Matrix<T, size, 1> &vec);		
+		static bool readVector(const nlohmann::json &j, const std::string &key, Eigen::Matrix<T, size, 1> &vec);
 	};
 
 	template <typename T>
-	bool SceneLoader::readValue(const boost::property_tree::ptree &pt, const boost::property_tree::ptree::key_type &key, T &v)
+	bool SceneLoader::readValue(const nlohmann::json &j, const std::string &key, T &v)
 	{
-		boost::optional<T> val = pt.get_optional<T>(key);
-		if (val.is_initialized())
-		{
-			v = val.get();
-			return true;
-		}
-		return false;
+		if (j.find(key) == j.end())
+			return false;
+
+		v = j[key].get<T>();
+		return true;
+	}
+
+	template <>
+	bool SceneLoader::readValue(const nlohmann::json &j, const std::string &key, bool &v)
+	{
+		if (j.find(key) == j.end())
+			return false;
+
+		int val = j[key].get<int>();
+		v = val != 0;
+		return true;
 	}
 
 	template <typename T, int size>
-	bool SceneLoader::readVector(const boost::property_tree::ptree &pt, const boost::property_tree::ptree::key_type &key, Eigen::Matrix<T, size, 1> &vec)
+	bool SceneLoader::readVector(const nlohmann::json &j, const std::string &key, Eigen::Matrix<T, size, 1> &vec)
 	{
-		unsigned int index = 0;
-		boost::optional<const boost::property_tree::ptree&> child = pt.get_child_optional(key);
-		if (child)
-		{
-			vec.setZero();
-			for (auto& item : child.get())
-			{
-				vec[index++] = item.second.get_value<T>();
-				if (index >= size)
-					break;
-			}
-			return true;
-		}
-		return false;
+		if (j.find(key) == j.end())
+			return false;
+
+		std::vector<T> values = j[key].get<std::vector<T>>();
+		for (unsigned int i = 0; i < values.size(); i++)
+			vec[i] = values[i];
+		return true;
 	}
 
 
