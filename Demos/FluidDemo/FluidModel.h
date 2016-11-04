@@ -1,7 +1,6 @@
 #ifndef __FluidModel_h__
 #define __FluidModel_h__
 
-#include "Demos/Common/Config.h"
 #include "Demos/Simulation/ParticleData.h"
 #include <vector>
 #include "Demos/Simulation/NeighborhoodSearchSpatialHashing.h"

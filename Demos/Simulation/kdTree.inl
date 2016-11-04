@@ -1,5 +1,6 @@
 
 #include "BoundingSphere.h"
+#include "omp.h"
 
 template<typename HullType> void
 KDTree<HullType>::construct()

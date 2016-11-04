@@ -16,5 +16,11 @@ else()
   subdirs(extern/AntTweakBar extern/glew Demos PositionBasedDynamics)
 endif()
 
+install(DIRECTORY ./Common
+DESTINATION include
+FILES_MATCHING PATTERN "*.h")
 
+install(DIRECTORY ./data
+DESTINATION include
+FILES_MATCHING PATTERN "*.glsl")
 

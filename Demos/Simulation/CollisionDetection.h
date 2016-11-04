@@ -1,7 +1,6 @@
 #ifndef _COLLISIONDETECTION_H
 #define _COLLISIONDETECTION_H
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include "Demos/Utils/ObjectArray.h"
 #include "SimulationModel.h"

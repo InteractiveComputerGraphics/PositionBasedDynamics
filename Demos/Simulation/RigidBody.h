@@ -1,7 +1,6 @@
 #ifndef __RIGIDBODY_H__
 #define __RIGIDBODY_H__
 
-#include "Demos/Common/Config.h"
 #include <vector>
 #include "Common/Common.h"
 #include "RigidBodyGeometry.h"
@@ -65,6 +64,12 @@ namespace PBD
 			Real m_frictionCoeff;
 
 			RigidBodyGeometry m_geometry;
+
+			// transformation required to transform a point to local space or vice vera
+			Matrix3r m_transformation_R;
+			Vector3r m_transformation_v1;
+			Vector3r m_transformation_v2;
+			Vector3r m_transformation_R_X_v1;
 			
 		public:
 			RigidBody(void) 
@@ -156,12 +161,31 @@ namespace PBD
 				rotationUpdated();
 			}
 
+			void updateInverseTransformation()
+			{
+				// remove the rotation of the main axis transformation that is performed
+				// to get a diagonal inertia tensor since the distance function is 
+				// evaluated in local coordinates
+				//
+				// transformation world to local:
+				// p_local = R_initial^T ( R_MAT R^T (p_world - x) - x_initial + x_MAT)
+				// 
+				// transformation local to world:
+				// p_world = R R_MAT^T (R_initial p_local + x_initial - x_MAT) + x
+				//
+				m_transformation_R = (getRotationInitial().inverse() * getRotationMAT() * getRotation().inverse()).matrix();
+				m_transformation_v1 = -getRotationInitial().inverse().matrix() * getPositionInitial_MAT();
+				m_transformation_v2 = (getRotation()*getRotationMAT().inverse()).matrix() * getPositionInitial_MAT() + getPosition();
+				m_transformation_R_X_v1 = -m_transformation_R * getPosition() + m_transformation_v1;
+			}
+
 			void rotationUpdated()
 			{
 				if (m_mass != 0.0)
 				{
 					m_rot = m_q.matrix();
 					updateInverseInertiaW();
+					updateInverseTransformation();
 				}
 			}
 
@@ -218,7 +242,13 @@ namespace PBD
 				m_x = m_x0;
 				m_lastX = m_x0;
 				m_oldX = m_x0;
+				updateInverseTransformation();
 			}
+
+			const Matrix3r &getTransformationR() { return m_transformation_R;  }
+			const Vector3r &getTransformationV1() { return m_transformation_v1; }
+			const Vector3r &getTransformationV2() { return m_transformation_v2; }
+			const Vector3r &getTransformationRXV1() { return m_transformation_R_X_v1; }
 
 			FORCE_INLINE Real &getMass()
 			{

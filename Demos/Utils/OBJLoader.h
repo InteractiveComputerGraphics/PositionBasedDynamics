@@ -7,6 +7,13 @@
 
 namespace PBD
 {
+	struct MeshFaceIndices
+	{
+		int posIndices[3];
+		int texIndices[3];
+		int normalIndices[3];
+	};
+
 	class OBJLoader
 	{
 	public:

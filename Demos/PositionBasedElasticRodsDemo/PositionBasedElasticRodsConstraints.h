@@ -1,7 +1,6 @@
 #ifndef _POSITIONBASEDELASTICRODSCONSTRAINTS_H
 #define _POSITIONBASEDELASTICRODSCONSTRAINTS_H
 
-#include "Demos/Common/Config.h"
 #include <Eigen/Dense>
 #include "Demos/Simulation/Constraints.h"
 #include "PositionBasedElasticRodsModel.h"

@@ -1,11 +1,9 @@
 #ifndef __POSITIONBASEDELASTICRODSMODEL_H__
 #define __POSITIONBASEDELASTICRODSMODEL_H__
 
-#include "Demos/Common/Config.h"
 #include "Demos/Simulation/ParticleData.h"
 #include "Demos/Simulation/SimulationModel.h"
 #include <vector>
-#include <Eigen/StdVector>
 
 namespace PBD 
 {	

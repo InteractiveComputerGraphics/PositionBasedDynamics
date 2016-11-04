@@ -41,3 +41,11 @@ include_directories(${PROJECT_PATH}/extern/Miniball)
 target_link_libraries(Simulation PositionBasedDynamics)
 
 
+install(TARGETS Simulation
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+install(DIRECTORY .
+DESTINATION include/Demos/Simulation
+FILES_MATCHING PATTERN "*.h" PATTERN "*.inl")

@@ -1,7 +1,7 @@
 #ifndef __HASHMAP_H__
 #define __HASHMAP_H__
 
-#include "Demos/Common/Config.h"
+#include "Common/Common.h"
 #include <map>
 #include <stdlib.h>
 

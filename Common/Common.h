@@ -2,8 +2,10 @@
 #define COMMON_H
 
 #include <Eigen/Dense>
+#include "float.h"
 
 #define USE_DOUBLE
+#define MIN_PARALLEL_SIZE 64
 
 #ifdef USE_DOUBLE
 typedef double Real;
@@ -44,6 +46,7 @@ namespace PBD
 
 #if EIGEN_ALIGN
 	#define PDB_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	#define REPORT_MEMORY_LEAKS
 
 #if defined(WIN32) || defined(_WIN32) || defined(WIN64)	   
 #ifdef _DEBUG
@@ -57,19 +60,42 @@ namespace PBD
 		void *operator new[](size_t size, int const block_use, char const*  file_name, int const line_number) { \
 			return operator new(size, block_use, file_name, line_number); \
 		}\
-		void operator delete(void* block, int const block_use, char const*  file_name, int const line_number) noexcept { \
+		void operator delete(void* block, int const block_use, char const*  file_name, int const line_number) { \
 		\
 			return _aligned_free_dbg(block); \
 		} \
-		void operator delete[](void* block, int const block_use, char const*  file_name, int const line_number) noexcept { \
+		void operator delete[](void* block, int const block_use, char const*  file_name, int const line_number) { \
 			return operator delete(block, block_use, file_name, line_number); \
 		}	
-
 #endif
 #endif
 #else
-	#define PDB_MAKE_ALIGNED_OPERATOR_NEW
+	#define PBD_MAKE_ALIGNED_OPERATOR_NEW
+
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)	   
+	// Enable memory leak detection
+#ifdef _DEBUG
+	#define _CRTDBG_MAP_ALLOC 
+	#include <stdlib.h> 
+	#include <crtdbg.h> 
+	#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__) 	
+	#define REPORT_MEMORY_LEAKS _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#else
+	#define REPORT_MEMORY_LEAKS
+#endif
+#else
+	#define REPORT_MEMORY_LEAKS
+#endif
+
 #endif
 }
 
 #endif
+
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)	   
+#define FORCE_INLINE __forceinline
+#else
+#define FORCE_INLINE __attribute__((always_inline))
+#endif
+
+

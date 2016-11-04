@@ -1,7 +1,6 @@
 #ifndef __TimeStepFluidModel_h__
 #define __TimeStepFluidModel_h__
 
-#include "Demos/Common/Config.h"
 #include "FluidModel.h"
 
 namespace PBD

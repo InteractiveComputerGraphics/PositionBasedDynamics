@@ -1,7 +1,6 @@
 #ifndef __NEIGHBORHOODSEARCHSPATIALHASHING_H__
 #define __NEIGHBORHOODSEARCHSPATIALHASHING_H__
 
-#include "Demos/Common/Config.h"
 #include "Demos/Utils/Hashmap.h"
 #include <vector>
 #include "Common/Common.h"

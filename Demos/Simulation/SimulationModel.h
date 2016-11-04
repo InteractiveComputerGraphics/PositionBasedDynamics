@@ -1,12 +1,10 @@
 #ifndef __SIMULATIONMODEL_H__
 #define __SIMULATIONMODEL_H__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include <vector>
 #include "Demos/Simulation/RigidBody.h"
 #include "Demos/Simulation/ParticleData.h"
-#include <Eigen/StdVector>
 #include "TriangleModel.h"
 #include "TetModel.h"
 #include "Demos/Utils/ObjectArray.h"

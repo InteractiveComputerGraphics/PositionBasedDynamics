@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 
 

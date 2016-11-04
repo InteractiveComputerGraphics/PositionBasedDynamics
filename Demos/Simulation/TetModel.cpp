@@ -115,7 +115,7 @@ void TetModel::attachVisMesh(const ParticleData &pd)
 			int curT[nNearstT];
 			for (int k = 0; k < nNearstT; k++)
 			{
-				curDist[k] = FLT_MAX;
+				curDist[k] = REAL_MAX;
 				curT[k] = -1;
 			}
 			Vector3r curBary[nNearstT];
@@ -160,7 +160,7 @@ void TetModel::attachVisMesh(const ParticleData &pd)
 			}
 
 			// take the best bary coords we find from the best 5 triangles
-			Real error = FLT_MAX;
+			Real error = REAL_MAX;
 			int current_k = 0;
 			Real current_dist = 0.0;
 			Vector3r current_bary;

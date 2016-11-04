@@ -1,7 +1,6 @@
 #ifndef __SCENELOADER_H__
 #define __SCENELOADER_H__
 
-#include "Demos/Common/Config.h"
 #include <string>
 #include "ObjectArray.h"
 #include "extern/json/json.hpp"
@@ -17,7 +16,9 @@ namespace PBD
 	public:
 		struct RigidBodyData
 		{
-			enum CollisionObjectTypes {No_Collision_Object=0, Sphere, Box, Cylinder, Torus};
+			enum CollisionObjectTypes {
+				No_Collision_Object = 0, Sphere, Box, Cylinder, Torus, HollowSphere, HollowBox
+			};
 			unsigned int m_id;
 			std::string m_modelFile;
 			bool m_isDynamic;
@@ -32,6 +33,9 @@ namespace PBD
 			int m_collisionObjectType;
 			bool m_testMesh;
 			Vector3r m_collisionObjectScale;
+			bool m_invertSDF;
+			Real m_thicknessSDF;
+
 			nlohmann::json m_json;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
@@ -244,49 +248,30 @@ namespace PBD
 		void readTargetVelocityMotorSliderJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
 
 		template <typename T>
-		static bool readValue(const nlohmann::json &j, const std::string &key, T &v);
+		static bool readValue(const nlohmann::json &j, const std::string &key, T &v)
+		{
+			if (j.find(key) == j.end())
+				return false;
 
-		template <>
-		static bool readValue(const nlohmann::json &j, const std::string &key, bool &v);
+			v = j[key].get<T>();
+			return true;
+		}
 
 		template <typename T, int size>
-		static bool readVector(const nlohmann::json &j, const std::string &key, Eigen::Matrix<T, size, 1> &vec);
+		static bool readVector(const nlohmann::json &j, const std::string &key, Eigen::Matrix<T, size, 1> &vec)
+		{
+			if (j.find(key) == j.end())
+				return false;
+
+			std::vector<T> values = j[key].get<std::vector<T>>();
+			for (unsigned int i = 0; i < values.size(); i++)
+				vec[i] = values[i];
+			return true;
+		}
 	};
 
-	template <typename T>
-	bool SceneLoader::readValue(const nlohmann::json &j, const std::string &key, T &v)
-	{
-		if (j.find(key) == j.end())
-			return false;
-
-		v = j[key].get<T>();
-		return true;
-	}
-
 	template <>
-	bool SceneLoader::readValue(const nlohmann::json &j, const std::string &key, bool &v)
-	{
-		if (j.find(key) == j.end())
-			return false;
-
-		int val = j[key].get<int>();
-		v = val != 0;
-		return true;
-	}
-
-	template <typename T, int size>
-	bool SceneLoader::readVector(const nlohmann::json &j, const std::string &key, Eigen::Matrix<T, size, 1> &vec)
-	{
-		if (j.find(key) == j.end())
-			return false;
-
-		std::vector<T> values = j[key].get<std::vector<T>>();
-		for (unsigned int i = 0; i < values.size(); i++)
-			vec[i] = values[i];
-		return true;
-	}
-
-
+	bool SceneLoader::readValue<bool>(const nlohmann::json &j, const std::string &key, bool &v);	
 }
 
 #endif

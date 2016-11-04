@@ -3,17 +3,11 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include "ObjectArray.h"
 
 using namespace PBD;
 using namespace std;
  
-struct MeshFaceIndices
-{
-    int posIndices[3];
-    int texIndices[3];
-    int normalIndices[3];
-};
-
 void OBJLoader::tokenize(const string& str,	vector<string>& tokens,	const string& delimiters)
 {
 	string::size_type lastPos = str.find_first_not_of(delimiters, 0);
@@ -34,7 +28,7 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 	vector<Vector3r, Alloc_Vector3r> positions;
 	vector<Vector2r, Alloc_Vector2r> texcoords;
 	vector<Vector3r, Alloc_Vector3r> normals;
-	vector<MeshFaceIndices> faces;
+	ObjectArray<MeshFaceIndices> faces;
     
     ifstream filestream;
     filestream.open(filename.c_str());
@@ -182,6 +176,9 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 		mesh.addFace(&posIndices[0]);
 	}
 	mesh.buildNeighbors();
+
+	mesh.updateNormals(vertexData, 0);
+	mesh.updateVertexNormals(vertexData);
 
 	std::cout << "Number of triangles: " << nFaces << "\n";
 	std::cout << "Number of vertices: " << nPoints << "\n";

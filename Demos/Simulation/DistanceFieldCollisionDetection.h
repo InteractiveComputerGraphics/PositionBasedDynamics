@@ -15,11 +15,12 @@ namespace PBD
 		struct DistanceFieldCollisionObject : public CollisionObject
 		{		
 			bool m_testMesh;
+			Real m_invertSDF;
 			PointCloudBSH m_bvh;
 
-			DistanceFieldCollisionObject() { m_testMesh = true; }
+			DistanceFieldCollisionObject() { m_testMesh = true; m_invertSDF = 1.0; }
 			virtual ~DistanceFieldCollisionObject() {}
-			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist);
+			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0);
 			virtual void approximateNormal(const Eigen::Vector3d &x, const Real tolerance, Vector3r &n);
 
 			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance) = 0;
@@ -31,7 +32,7 @@ namespace PBD
 
 			virtual ~DistanceFieldCollisionObjectWithoutGeometry() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
-			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist) { return false; }
+			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0) { return false; }
 			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance) { return 0.0; }
 		};
 
@@ -52,7 +53,7 @@ namespace PBD
 
 			virtual ~DistanceFieldCollisionSphere() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
-			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist);
+			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0);
 			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
 		};
 
@@ -72,6 +73,29 @@ namespace PBD
 			static int TYPE_ID;
 
 			virtual ~DistanceFieldCollisionCylinder() {}
+			virtual int &getTypeId() const { return TYPE_ID; }
+			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+		};
+
+		struct DistanceFieldCollisionHollowSphere : public DistanceFieldCollisionObject
+		{
+			Real m_radius;
+			Real m_thickness;
+			static int TYPE_ID;
+
+			virtual ~DistanceFieldCollisionHollowSphere() {}
+			virtual int &getTypeId() const { return TYPE_ID; }
+			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0);
+			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+		};
+
+		struct DistanceFieldCollisionHollowBox : public DistanceFieldCollisionObject
+		{
+			Vector3r m_box;
+			Real m_thickness;
+			static int TYPE_ID;
+
+			virtual ~DistanceFieldCollisionHollowBox() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
 			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
 		};
@@ -109,10 +133,12 @@ namespace PBD
 
 		virtual bool isDistanceFieldCollisionObject(CollisionObject *co) const;
 
-		void addCollisionBox(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector3r &box, const bool testMesh = true);
-		void addCollisionSphere(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Real radius, const bool testMesh = true);
-		void addCollisionTorus(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector2r &radii, const bool testMesh = true);
+		void addCollisionBox(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector3r &box, const bool testMesh = true, const bool invertSDF = false);
+		void addCollisionSphere(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Real radius, const bool testMesh = true, const bool invertSDF = false);
+		void addCollisionTorus(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector2r &radii, const bool testMesh = true, const bool invertSDF = false);
 		void addCollisionObjectWithoutGeometry(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices);
+		void addCollisionHollowSphere(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Real radius, const Real thickness, const bool testMesh = true, const bool invertSDF = false);
+		void addCollisionHollowBox(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector3r &box, const Real thickness, const bool testMesh = true, const bool invertSDF = false);
 
 		/** Add collision cylinder
 		 *
@@ -120,7 +146,7 @@ namespace PBD
 		 * @param  bodyType type of corresponding body
 		 * @param  dim (radius, height) of cylinder
 		 */		
-		void addCollisionCylinder(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector2r &dim, const bool testMesh = true);
+		void addCollisionCylinder(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector2r &dim, const bool testMesh = true, const bool invertSDF = false);
 	};
 }
 

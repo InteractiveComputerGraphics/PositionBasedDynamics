@@ -1,8 +1,8 @@
 #ifndef __OBJECTARRAY_H__
 #define __OBJECTARRAY_H__
 
-#include "Demos/Common/Config.h"
 #include <memory.h>
+#include "Common/Common.h"
 
 namespace PBD 
 {

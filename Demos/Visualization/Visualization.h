@@ -1,7 +1,6 @@
 #ifndef __VISUALIZATION_H__
 #define __VISUALIZATION_H__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include "MiniGL.h"
 

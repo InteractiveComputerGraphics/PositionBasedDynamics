@@ -1,7 +1,6 @@
 #ifndef _GENERICCONSTRAINTS_H
 #define _GENERICCONSTRAINTS_H
 
-#include "Demos/Common/Config.h"
 #include <Eigen/Dense>
 #include "Demos/Simulation/Constraints.h"
 

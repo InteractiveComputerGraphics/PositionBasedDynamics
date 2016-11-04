@@ -1,7 +1,6 @@
 #ifndef __POSITIONBASEDELASTICRODSTSC_H__
 #define __POSITIONBASEDELASTICRODSTSC_H__
 
-#include "Demos/Common/Config.h"
 #include "Demos/Simulation/TimeStepController.h"
 #include "PositionBasedElasticRodsModel.h"
 

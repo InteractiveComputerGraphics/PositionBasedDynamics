@@ -1,4 +1,4 @@
-#include "Demos/Common/Config.h"
+#include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
@@ -11,7 +11,7 @@
 #include "Demos/Utils/Utilities.h"
 
 // Enable memory leak detection
-#ifdef _DEBUG
+#if defined(_DEBUG) && !defined(EIGEN_ALIGN)
 	#define new DEBUG_NEW 
 #endif
 

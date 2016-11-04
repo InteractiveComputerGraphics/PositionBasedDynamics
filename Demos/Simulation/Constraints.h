@@ -1,7 +1,6 @@
 #ifndef _CONSTRAINTS_H
 #define _CONSTRAINTS_H
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 
 namespace PBD

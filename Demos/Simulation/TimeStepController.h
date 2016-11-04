@@ -1,7 +1,6 @@
 #ifndef __TIMESTEPCONTROLLER_h__
 #define __TIMESTEPCONTROLLER_h__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include "SimulationModel.h"
 #include "CollisionDetection.h"

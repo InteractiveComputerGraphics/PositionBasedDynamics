@@ -1,7 +1,6 @@
 #ifndef __RIGIDBODYGEOMETRY_H__
 #define __RIGIDBODYGEOMETRY_H__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include "Demos/Utils/IndexedFaceMesh.h"
 #include "Demos/Simulation/ParticleData.h"

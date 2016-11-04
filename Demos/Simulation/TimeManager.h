@@ -1,7 +1,6 @@
 #ifndef _TIMEMANAGER_H
 #define _TIMEMANAGER_H
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 
 namespace PBD

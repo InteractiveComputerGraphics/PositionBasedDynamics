@@ -1,7 +1,6 @@
 #ifndef __PARTICLEDATA_H__
 #define __PARTICLEDATA_H__
 
-#include "Demos/Common/Config.h"
 #include <vector>
 #include "Common/Common.h"
 

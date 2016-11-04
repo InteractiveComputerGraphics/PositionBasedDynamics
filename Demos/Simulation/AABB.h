@@ -1,7 +1,6 @@
 #ifndef __AABB_H__
 #define __AABB_H__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 
 namespace PBD

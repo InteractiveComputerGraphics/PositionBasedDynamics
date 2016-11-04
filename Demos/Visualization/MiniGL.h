@@ -1,7 +1,6 @@
 #ifndef __MINIGL_H__
 #define __MINIGL_H__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include <Eigen/Geometry> 
 #include "Demos/Visualization/Shader.h"

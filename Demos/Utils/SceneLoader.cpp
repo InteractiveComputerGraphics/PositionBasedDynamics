@@ -8,11 +8,6 @@ using namespace PBD;
 
 void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 {
-	FILE *file = fopen(fileName.c_str(), "r");
-	if (file == NULL)
-		return;
-	fclose(file);
-
 	try
 	{
 		std::ifstream input_file(fileName);
@@ -35,6 +30,30 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 		//////////////////////////////////////////////////////////////////////////
 		// read general 
 		//////////////////////////////////////////////////////////////////////////
+		sceneData.m_timeStepSize = 0.005;
+		sceneData.m_gravity = Vector3r(0, -9.81, 0);
+		sceneData.m_maxIter = 5;
+		sceneData.m_maxIterVel = 5;
+		sceneData.m_velocityUpdateMethod = 0;
+		sceneData.m_triangleModelSimulationMethod = -1;
+		sceneData.m_triangleModelBendingMethod = -1;
+		sceneData.m_tetModelSimulationMethod = -1;
+		sceneData.m_contactTolerance = 0.0;
+		sceneData.m_contactStiffnessRigidBody = 1.0;
+		sceneData.m_contactStiffnessParticleRigidBody = 100.0;
+		sceneData.m_cloth_stiffness = 1.0;
+		sceneData.m_cloth_bendingStiffness = 0.01;
+		sceneData.m_cloth_xxStiffness = 1.0;
+		sceneData.m_cloth_yyStiffness = 1.0;
+		sceneData.m_cloth_xyStiffness = 1.0;
+		sceneData.m_cloth_xyPoissonRatio = 0.3;
+		sceneData.m_cloth_yxPoissonRatio = 0.3;
+		sceneData.m_cloth_normalizeStretch = false;
+		sceneData.m_cloth_normalizeShear = false;
+		sceneData.m_cloth_stiffness = 1.0;
+		sceneData.m_cloth_stiffness = 0.3;
+		sceneData.m_solid_normalizeStretch = false;
+		sceneData.m_solid_normalizeShear = false;
 		if (m_json.find("Simulation") != m_json.end())
 			readSimulation(m_json, "Simulation", sceneData);
 	
@@ -127,78 +146,44 @@ void SceneLoader::readSimulation(const nlohmann::json &j, const std::string &key
 {
 	const nlohmann::json &child = j[key];
 
-	sceneData.m_timeStepSize = 0.005;
 	readValue(child, "timeStepSize", sceneData.m_timeStepSize);
-
-	sceneData.m_gravity = Vector3r(0, -9.81, 0);
 	readVector(child, "gravity", sceneData.m_gravity);
-
-	sceneData.m_maxIter = 5;
 	readValue(child, "maxIter", sceneData.m_maxIter);
-
-	sceneData.m_maxIterVel = 5;
 	readValue(child, "maxIterVel", sceneData.m_maxIterVel);
-
-	sceneData.m_velocityUpdateMethod = 0;
 	readValue(child, "velocityUpdateMethod", sceneData.m_velocityUpdateMethod);
-
-	sceneData.m_triangleModelSimulationMethod = -1;
 	readValue(child, "triangleModelSimulationMethod", sceneData.m_triangleModelSimulationMethod);
-
-	sceneData.m_triangleModelBendingMethod = -1;
 	readValue(child, "triangleModelBendingMethod", sceneData.m_triangleModelBendingMethod);
-
-	sceneData.m_tetModelSimulationMethod = -1;
 	readValue(child, "tetModelSimulationMethod", sceneData.m_tetModelSimulationMethod);
-
-	sceneData.m_contactTolerance = 0.0;
 	readValue(child, "contactTolerance", sceneData.m_contactTolerance);
-
-	sceneData.m_contactStiffnessRigidBody = 1.0;
 	readValue(child, "contactStiffnessRigidBody", sceneData.m_contactStiffnessRigidBody);
-
-	sceneData.m_contactStiffnessParticleRigidBody = 100.0;
 	readValue(child, "contactStiffnessParticleRigidBody", sceneData.m_contactStiffnessParticleRigidBody);
 
 	// stiffness
-	sceneData.m_cloth_stiffness = 1.0;
 	readValue(child, "cloth_stiffness", sceneData.m_cloth_stiffness);
 
 	// bendingStiffness
-	sceneData.m_cloth_bendingStiffness = 0.01;
 	readValue(child, "cloth_bendingStiffness", sceneData.m_cloth_bendingStiffness);
 
 	// xxStiffness, yyStiffness, xyStiffness
-	sceneData.m_cloth_xxStiffness = 1.0;
-	sceneData.m_cloth_yyStiffness = 1.0;
-	sceneData.m_cloth_xyStiffness = 1.0;
 	readValue(child, "cloth_xxStiffness", sceneData.m_cloth_xxStiffness);
 	readValue(child, "cloth_yyStiffness", sceneData.m_cloth_yyStiffness);
 	readValue(child, "cloth_xyStiffness", sceneData.m_cloth_xyStiffness);
 
 	// xyPoissonRatio, yxPoissonRatio				  
-	sceneData.m_cloth_xyPoissonRatio = 0.3;
-	sceneData.m_cloth_yxPoissonRatio = 0.3;
 	readValue(child, "cloth_xyPoissonRatio", sceneData.m_cloth_xyPoissonRatio);
 	readValue(child, "cloth_yxPoissonRatio", sceneData.m_cloth_yxPoissonRatio);
 
 	// normalize
-	sceneData.m_cloth_normalizeStretch = false;
-	sceneData.m_cloth_normalizeShear = false;
 	readValue(child, "cloth_normalizeStretch", sceneData.m_cloth_normalizeStretch);
 	readValue(child, "cloth_normalizeShear", sceneData.m_cloth_normalizeShear);
 
 	// solid stiffness
-	sceneData.m_cloth_stiffness = 1.0;
 	readValue(child, "solid_stiffness", sceneData.m_solid_stiffness);
 
 	// Poisson ratio
-	sceneData.m_cloth_stiffness = 0.3;
 	readValue(child, "solid_poissonRatio", sceneData.m_solid_poissonRatio);
 
 	// normalize
-	sceneData.m_solid_normalizeStretch = false;
-	sceneData.m_solid_normalizeShear = false;
 	readValue(child, "solid_normalizeStretch", sceneData.m_solid_normalizeStretch);
 	readValue(child, "solid_normalizeShear", sceneData.m_solid_normalizeShear);
 }
@@ -282,6 +267,12 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 			// scale
 			rbd.m_collisionObjectScale = Vector3r(1.0, 1.0, 1.0);
 			readVector(rigidBody, "collisionObjectScale", rbd.m_collisionObjectScale);
+
+			rbd.m_invertSDF = false;
+			readValue(rigidBody, "invertSDF", rbd.m_invertSDF);
+
+			rbd.m_thicknessSDF = 0.1;
+			readValue(rigidBody, "thickness", rbd.m_thicknessSDF);
 
 			rbd.m_json = rigidBody;
 		}
@@ -604,4 +595,20 @@ void SceneLoader::readTargetVelocityMotorSliderJoints(const nlohmann::json &j, c
 			sceneData.m_targetVelocityMotorSliderJointData.push_back(jd);
 		}
 	}
+}
+
+template <>
+bool SceneLoader::readValue<bool>(const nlohmann::json &j, const std::string &key, bool &v)
+{
+	if (j.find(key) == j.end())
+		return false;
+
+	if (j[key].is_number_integer())
+	{
+		int val = j[key].get<int>();
+		v = val != 0;
+	}
+	else
+		v = j[key].get<bool>();
+	return true;
 }

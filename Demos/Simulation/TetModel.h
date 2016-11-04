@@ -1,7 +1,6 @@
 #ifndef __TETMODEL_H__
 #define __TETMODEL_H__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include "Demos/Utils/IndexedFaceMesh.h"
 #include "Demos/Utils/IndexedTetMesh.h"

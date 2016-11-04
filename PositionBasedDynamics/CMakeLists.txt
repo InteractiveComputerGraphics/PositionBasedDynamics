@@ -23,7 +23,14 @@ add_library(PositionBasedDynamics
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
 
+install(TARGETS PositionBasedDynamics
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
+install(DIRECTORY .
+DESTINATION include/PositionBasedDynamics
+FILES_MATCHING PATTERN "*.h")
 
 
 

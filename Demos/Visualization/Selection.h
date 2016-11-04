@@ -1,7 +1,6 @@
 #ifndef __SELECTION_H__
 #define __SELECTION_H__
 
-#include "Demos/Common/Config.h"
 #include "MiniGL.h"
 
 #ifdef WIN32

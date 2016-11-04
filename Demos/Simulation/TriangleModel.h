@@ -1,13 +1,11 @@
 #ifndef __TRIANGLEMODEL_H__
 #define __TRIANGLEMODEL_H__
 
-#include "Demos/Common/Config.h"
 #include "Common/Common.h"
 #include <vector>
 #include "Demos/Simulation/RigidBody.h"
 #include "Demos/Utils/IndexedFaceMesh.h"
 #include "Demos/Simulation/ParticleData.h"
-#include <Eigen/StdVector>
 #include "Constraints.h"
 
 namespace PBD 

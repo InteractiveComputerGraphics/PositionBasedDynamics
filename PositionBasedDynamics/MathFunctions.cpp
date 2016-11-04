@@ -274,7 +274,7 @@ void MathFunctions::svdWithInversionHandling(const Matrix3r &A, Vector3r &sigma,
 	const Real detV = V.determinant();
 	if (detV < 0.0)
 	{
-		Real minLambda = FLT_MAX;
+		Real minLambda = REAL_MAX;
 		unsigned char pos = 0;
 		for (unsigned char l = 0; l < 3; l++)
 		{
@@ -368,7 +368,7 @@ void MathFunctions::svdWithInversionHandling(const Matrix3r &A, Vector3r &sigma,
 	if (detU < 0.0)
 	{
 		//std::cout << "Inversion!\n";
-		Real minLambda = FLT_MAX;
+		Real minLambda = REAL_MAX;
 		unsigned char pos = 0;
 		for (unsigned char l = 0; l < 3; l++)
 		{

@@ -1,12 +1,10 @@
 #ifndef __GENERICCONSTRAINTSMODEL_H__
 #define __GENERICCONSTRAINTSMODEL_H__
 
-#include "Demos/Common/Config.h"
 #include "Demos/Utils/IndexedFaceMesh.h"
 #include "Demos/Simulation/ParticleData.h"
 #include "Demos/Simulation/SimulationModel.h"
 #include <vector>
-#include <Eigen/StdVector>
 
 namespace PBD 
 {	
