@@ -45,8 +45,13 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 	}
 
 	//omp_set_num_threads(1);
-	std::vector<std::vector<ContactData> > contacts_mt;
-	contacts_mt.resize(omp_get_max_threads());
+	std::vector<std::vector<ContactData> > contacts_mt;	
+#ifdef _DEBUG
+	const unsigned int maxThreads = 1;
+#else
+	const unsigned int maxThreads = omp_get_max_threads();
+#endif
+	contacts_mt.resize(maxThreads);
 
 	#pragma omp parallel default(shared)
 	{
@@ -206,7 +211,11 @@ void DistanceFieldCollisionDetection::collisionDetectionRigidBodies(RigidBody *r
 				const Vector3r cp_w = R.transpose() * cp + v2;
 				const Vector3r n_w = R.transpose() * n;
 
+#ifdef _DEBUG
+				int tid = 0;
+#else
 				int tid = omp_get_thread_num();
+#endif			
 				contacts_mt[tid].push_back({ 0, co1->m_bodyIndex, co2->m_bodyIndex, x_w, cp_w, n_w, dist, restitutionCoeff, frictionCoeff });
 			}
 		}
@@ -281,7 +290,11 @@ void DistanceFieldCollisionDetection::collisionDetectionRBSolid(const ParticleDa
 				const Vector3r cp_w = R.transpose() * cp + v2;
 				const Vector3r n_w = R.transpose() * n;
 
+#ifdef _DEBUG
+				int tid = 0;
+#else
 				int tid = omp_get_thread_num();
+#endif			
 				contacts_mt[tid].push_back({ 1, index, co2->m_bodyIndex, x_w, cp_w, n_w, dist, restitutionCoeff, frictionCoeff });
 			}
 		}

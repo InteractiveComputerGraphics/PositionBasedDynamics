@@ -240,30 +240,30 @@ void mouseMove(int x, int y)
 
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 {
- 	std::vector<unsigned int> hits;
+	std::vector<unsigned int> hits;
 
 	selectedParticles.clear();
 	ParticleData &pd = model.getParticles();
 	if (pd.size() > 0)
 		Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
 
- 	selectedBodies.clear();
+	selectedBodies.clear();
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
 	x.resize(rb.size());
- 	for (unsigned int i = 0; i < rb.size(); i++)
- 	{
+	for (unsigned int i = 0; i < rb.size(); i++)
+	{
 		x[i] = rb[i]->getPosition();
- 	}
+	}
  
 	if (rb.size() > 0)
- 		Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
+		Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
 	if ((selectedBodies.size() > 0) || (selectedParticles.size() > 0))
- 		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
- 	else
- 		MiniGL::setMouseMoveFunc(-1, NULL);
+		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
+	else
+		MiniGL::setMouseMoveFunc(-1, NULL);
  
- 	MiniGL::unproject(end[0], end[1], oldMousePos);
+	MiniGL::unproject(end[0], end[1], oldMousePos);
 }
 
 void timeStep ()
@@ -516,26 +516,26 @@ void render ()
 
 		const VertexData &vd = rb[i]->getGeometry().getVertexData();
 		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
-		if (shader)
+		if (!selected)
 		{
-			if (!selected)
+			if (rb[i]->getMass() == 0.0)
 			{
-				if (rb[i]->getMass() == 0.0)
-				{
+				if (shader)
 					glUniform3fv(shader->getUniform("surface_color"), 1, staticColor);
-					Visualization::drawMesh(vd, mesh, 0, staticColor);
-				}
-				else
-				{
-					glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
-					Visualization::drawMesh(vd, mesh, 0, surfaceColor);
-				}
+				Visualization::drawMesh(vd, mesh, 0, staticColor);
 			}
 			else
 			{
-				glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
-				Visualization::drawMesh(vd, mesh, 0, selectionColor);
+				if (shader)
+					glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
+				Visualization::drawMesh(vd, mesh, 0, surfaceColor);
 			}
+		}
+		else
+		{
+			if (shader)
+				glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
+			Visualization::drawMesh(vd, mesh, 0, selectionColor);
 		}
 	}
 

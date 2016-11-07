@@ -266,26 +266,25 @@ void render ()
 
 		const VertexData &vd = rb[i]->getGeometry().getVertexData();
 		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
-		if (shader)
+		if (rb[i]->getMass() != 0.0)
 		{
-			if (rb[i]->getMass() != 0.0)
+			if (!selected)
 			{
-				if (!selected)
-				{
+				if (shader)
 					glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
-					Visualization::drawMesh(vd, mesh, 0, surfaceColor);
-				}
-				else
-				{
+				Visualization::drawMesh(vd, mesh, 0, surfaceColor);
+			}
+			else
+			{
+				if (shader)
 					glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
-					Visualization::drawMesh(vd, mesh, 0, selectionColor);
-				}
+				Visualization::drawMesh(vd, mesh, 0, selectionColor);
 			}
 		}
 	}
 
-	if (shaderTex)
-		shaderTex->end();
+	if (shader)
+		shader->end();
 
 	if (shaderTex)
 	{
@@ -312,20 +311,19 @@ void render ()
 
 		const VertexData &vd = rb[i]->getGeometry().getVertexData();
 		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
-		if (shaderTex)
+		if (rb[i]->getMass() == 0.0)
 		{
-			if (rb[i]->getMass() == 0.0)
+			if (!selected)
 			{
-				if (!selected)
-				{
+				if (shaderTex)
 					glUniform3fv(shaderTex->getUniform("surface_color"), 1, staticColor);
-					Visualization::drawTexturedMesh(vd, mesh, 0, staticColor);
-				}
-				else
-				{
+				Visualization::drawTexturedMesh(vd, mesh, 0, staticColor);
+			}
+			else
+			{
+				if (shaderTex)
 					glUniform3fv(shaderTex->getUniform("surface_color"), 1, selectionColor);
-					Visualization::drawTexturedMesh(vd, mesh, 0, selectionColor);
-				}
+				Visualization::drawTexturedMesh(vd, mesh, 0, selectionColor);
 			}
 		}
 	}

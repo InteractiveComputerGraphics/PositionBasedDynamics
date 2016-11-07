@@ -8,7 +8,7 @@ string Utilities::getFilePath(const std::string &path)
 {
 	std::string result = path;
 	size_t i = result.rfind('.', result.length());
-	if (i != std::string::npos)
+	if ((i > 0) && (i != std::string::npos))
 	{
 		result = result.substr(0, i);
 	}
