@@ -8,6 +8,7 @@
 #include "PositionBasedElasticRodsConstraints.h"
 #include "PositionBasedElasticRodsTSC.h"
 #include <iostream>
+#include "Demos/Utils/Timing.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -92,6 +93,8 @@ int main( int argc, char **argv )
 	glutMainLoop ();	
 
 	cleanup ();
+
+	Timing::printAverageTimes();
 	
 	return 0;
 }
@@ -103,6 +106,9 @@ void cleanup()
 
 void reset()
 {
+	Timing::printAverageTimes();
+	Timing::reset();
+
 	model.reset();
 	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);

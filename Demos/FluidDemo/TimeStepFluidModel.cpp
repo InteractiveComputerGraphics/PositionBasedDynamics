@@ -3,6 +3,7 @@
 #include "PositionBasedDynamics/PositionBasedFluids.h"
 #include "PositionBasedDynamics/TimeIntegration.h"
 #include "PositionBasedDynamics/SPHKernels.h"
+#include "Demos/Utils/Timing.h"
 
 using namespace PBD;
 using namespace std;
@@ -17,6 +18,7 @@ TimeStepFluidModel::~TimeStepFluidModel(void)
 
 void TimeStepFluidModel::step(FluidModel &model)
 {
+	START_TIMING("simulation step");
 	TimeManager *tm = TimeManager::getCurrent ();
 	const Real h = tm->getTimeStepSize();
 	ParticleData &pd = model.getParticles();
@@ -36,10 +38,14 @@ void TimeStepFluidModel::step(FluidModel &model)
 	}
 
 	// Perform neighborhood search
+	START_TIMING("neighborhood search");
 	model.getNeighborhoodSearch()->neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
+	STOP_TIMING_AVG;
 
 	// Solve density constraint
+	START_TIMING("constraint projection");
 	constraintProjection(model);
+	STOP_TIMING_AVG;
 
 	// Update velocities	
 	for (unsigned int i = 0; i < pd.size(); i++)
@@ -56,6 +62,7 @@ void TimeStepFluidModel::step(FluidModel &model)
 	// Compute new time	
 	tm->setTime (tm->getTime () + h);
 	model.getNeighborhoodSearch()->update();
+	STOP_TIMING_AVG;
 }
 
 

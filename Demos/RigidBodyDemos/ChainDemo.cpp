@@ -10,6 +10,7 @@
 #include "Demos/Utils/OBJLoader.h"
 #include "Demos/Visualization/Visualization.h"
 #include "Demos/Utils/Utilities.h"
+#include "Demos/Utils/Timing.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -82,6 +83,8 @@ int main( int argc, char **argv )
 	glutMainLoop ();	
 
 	cleanup ();
+
+	Timing::printAverageTimes();
 	
 	return 0;
 }
@@ -112,6 +115,9 @@ void cleanup()
 
 void reset()
 {
+	Timing::printAverageTimes();
+	Timing::reset();
+
 	model.reset();
 	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);
@@ -136,24 +142,24 @@ void mouseMove(int x, int y)
 
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 {
- 	std::vector<unsigned int> hits;
- 	selectedBodies.clear();
+	std::vector<unsigned int> hits;
+	selectedBodies.clear();
  
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
 	x.resize(rb.size());
- 	for (unsigned int i = 0; i < rb.size(); i++)
- 	{
- 		x[i] = rb[i]->getPosition();
- 	}
+	for (unsigned int i = 0; i < rb.size(); i++)
+	{
+		x[i] = rb[i]->getPosition();
+	}
  
- 	Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
- 	if (selectedBodies.size() > 0)
- 		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
- 	else
- 		MiniGL::setMouseMoveFunc(-1, NULL);
+	Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
+	if (selectedBodies.size() > 0)
+		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
+	else
+		MiniGL::setMouseMoveFunc(-1, NULL);
  
- 	MiniGL::unproject(end[0], end[1], oldMousePos);
+	MiniGL::unproject(end[0], end[1], oldMousePos);
 }
 
 void timeStep ()

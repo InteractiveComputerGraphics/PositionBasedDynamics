@@ -13,6 +13,7 @@
 #include "Demos/Simulation/DistanceFieldCollisionDetection.h"
 #include "Demos/Utils/SceneLoader.h"
 #include "Demos/Utils/TetGenLoader.h"
+#include "Demos/Utils/Timing.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -162,6 +163,8 @@ int main( int argc, char **argv )
 	glutMainLoop ();	
 
 	cleanup ();
+
+	Timing::printAverageTimes();
 	
 	return 0;
 }
@@ -208,6 +211,8 @@ void cleanup()
 
 void reset()
 {
+	Timing::printAverageTimes();
+	Timing::reset();
 	sim.getCollisionDetection()->cleanup();
 	model.cleanup();
 	sim.reset();

@@ -1,3 +1,4 @@
+	- added Timing class
 	- removed Boost dependency
 	- update to Eigen 3.2.9
 	- added support for x86 compilation (thanks to Josef Kohout)

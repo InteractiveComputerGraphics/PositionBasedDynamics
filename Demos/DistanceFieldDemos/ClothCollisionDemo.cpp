@@ -12,6 +12,7 @@
 #include "Demos/Utils/Utilities.h"
 #include "Demos/Simulation/DistanceFieldCollisionDetection.h"
 #include "Demos/Utils/OBJLoader.h"
+#include "Demos/Utils/Timing.h"
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
@@ -141,6 +142,8 @@ int main( int argc, char **argv )
 	glutMainLoop ();	
 
 	cleanup ();
+
+	Timing::printAverageTimes();
 	
 	return 0;
 }
@@ -187,6 +190,9 @@ void cleanup()
 
 void reset()
 {
+	Timing::printAverageTimes();
+	Timing::reset();
+
 	model.reset();
 	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);

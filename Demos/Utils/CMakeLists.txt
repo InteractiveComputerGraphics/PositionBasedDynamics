@@ -11,6 +11,8 @@ add_library(Utils
 		SceneLoader.h
 		TetGenLoader.cpp
 		TetGenLoader.h
+		Timing.cpp
+		Timing.h
 		Utilities.cpp
 		Utilities.h
 		VolumeIntegration.cpp

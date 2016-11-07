@@ -9,6 +9,7 @@
 #include "Demos/Simulation/TimeStepController.h"
 #include "Demos/Visualization/Visualization.h"
 #include "Demos/Utils/Utilities.h"
+#include "Demos/Utils/Timing.h"
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
@@ -84,6 +85,8 @@ int main( int argc, char **argv )
 
 	cleanup ();
 	
+	Timing::printAverageTimes();
+
 	return 0;
 }
 
@@ -113,6 +116,9 @@ void cleanup()
 
 void reset()
 {
+	Timing::printAverageTimes();
+	Timing::reset();
+
 	model.reset();
 	simulation.reset();
 	TimeManager::getCurrent()->setTime(0.0);

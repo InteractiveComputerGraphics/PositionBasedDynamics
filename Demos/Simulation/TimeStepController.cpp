@@ -4,6 +4,7 @@
 #include "PositionBasedDynamics/TimeIntegration.h"
 #include <iostream>
 #include "PositionBasedDynamics/PositionBasedDynamics.h"
+#include "Demos/Utils/Timing.h"
 
 using namespace PBD;
 using namespace std;
@@ -23,13 +24,14 @@ TimeStepController::~TimeStepController(void)
 
 void TimeStepController::step(SimulationModel &model)
 {
- 	TimeManager *tm = TimeManager::getCurrent ();
- 	const Real h = tm->getTimeStepSize();
+	START_TIMING("simulation step");
+	TimeManager *tm = TimeManager::getCurrent ();
+	const Real h = tm->getTimeStepSize();
  
 	//////////////////////////////////////////////////////////////////////////
 	// rigid body model
 	//////////////////////////////////////////////////////////////////////////
- 	clearAccelerations(model);
+	clearAccelerations(model);
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	ParticleData &pd = model.getParticles();
 
@@ -38,7 +40,7 @@ void TimeStepController::step(SimulationModel &model)
 	{
 		#pragma omp for schedule(static) nowait
 		for (int i = 0; i < numBodies; i++)
- 		{ 
+		{ 
 			rb[i]->getLastPosition() = rb[i]->getOldPosition();
 			rb[i]->getOldPosition() = rb[i]->getPosition();
 			TimeIntegration::semiImplicitEuler(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getVelocity(), rb[i]->getAcceleration());
@@ -46,7 +48,7 @@ void TimeStepController::step(SimulationModel &model)
 			rb[i]->getOldRotation() = rb[i]->getRotation();
 			TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
 			rb[i]->rotationUpdated();
- 		}
+		}
 
 		//////////////////////////////////////////////////////////////////////////
 		// particle model
@@ -60,14 +62,16 @@ void TimeStepController::step(SimulationModel &model)
 		}
 	}
 
+	START_TIMING("position constraints projection");
 	positionConstraintProjection(model);
+	STOP_TIMING_AVG;
  
 	#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
 	{
- 		// Update velocities	
+		// Update velocities	
 		#pragma omp for schedule(static) nowait
 		for (int i = 0; i < numBodies; i++)
- 		{
+		{
 			if (m_velocityUpdateMethod == 0)
 			{
 				TimeIntegration::velocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getVelocity());
@@ -80,7 +84,7 @@ void TimeStepController::step(SimulationModel &model)
 			}
 			// update geometry
 			rb[i]->getGeometry().updateMeshTransformation(rb[i]->getPosition(), rb[i]->getRotationMatrix());
- 		}
+		}
 
 		// Update velocities	
 		#pragma omp for schedule(static) 
@@ -94,12 +98,17 @@ void TimeStepController::step(SimulationModel &model)
 	}
 
 	if (m_collisionDetection)
+	{
+		START_TIMING("collision detection");
 		m_collisionDetection->collisionDetection(model);
+		STOP_TIMING_AVG;
+	}
 
 	velocityConstraintProjection(model);
 	
 	// compute new time	
 	tm->setTime (tm->getTime () + h);
+	STOP_TIMING_AVG;
 }
 
 void TimeStepController::clearAccelerations(SimulationModel &model)
@@ -109,15 +118,15 @@ void TimeStepController::clearAccelerations(SimulationModel &model)
 	//////////////////////////////////////////////////////////////////////////
 
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
- 	for (size_t i=0; i < rb.size(); i++)
- 	{
- 		// Clear accelerations of dynamic particles
- 		if (rb[i]->getMass() != 0.0)
- 		{
+	for (size_t i=0; i < rb.size(); i++)
+	{
+		// Clear accelerations of dynamic particles
+		if (rb[i]->getMass() != 0.0)
+		{
 			Vector3r &a = rb[i]->getAcceleration();
- 			a = m_gravity;
- 		}
- 	}
+			a = m_gravity;
+		}
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// particle model
@@ -154,7 +163,7 @@ void TimeStepController::positionConstraintProjection(SimulationModel &model)
 	SimulationModel::RigidBodyContactConstraintVector &contacts = model.getRigidBodyContactConstraints();
 
 	while (iter < m_maxIter)
- 	{
+	{
 		for (unsigned int group = 0; group < groups.size(); group++)
 		{
 			const int groupSize = (int)groups[group].size();
@@ -171,8 +180,8 @@ void TimeStepController::positionConstraintProjection(SimulationModel &model)
 			}
 		}
  
- 		iter++;
- 	}
+		iter++;
+	}
 }
 
 

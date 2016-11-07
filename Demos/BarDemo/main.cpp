@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Demos/Visualization/Visualization.h"
 #include "Demos/Utils/Utilities.h"
+#include "Demos/Utils/Timing.h"
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
@@ -94,6 +95,8 @@ int main( int argc, char **argv )
 
 	cleanup ();
 
+	Timing::printAverageTimes();
+
 	return 0;
 }
 
@@ -123,6 +126,8 @@ void cleanup()
 
 void reset()
 {
+	Timing::printAverageTimes();
+	Timing::reset();
 	model.reset();
 	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);
@@ -224,12 +229,12 @@ void render ()
 	// Draw simulation model
 	renderTetModels();
  
- 	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
+	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
 	const ParticleData &pd = model.getParticles();
- 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
- 	{
- 		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
- 	}
+	for (unsigned int j = 0; j < selectedParticles.size(); j++)
+	{
+		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
+	}
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }

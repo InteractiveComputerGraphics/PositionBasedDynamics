@@ -11,6 +11,7 @@
 #include "Demos/Visualization/Visualization.h"
 #include "Demos/Utils/OBJLoader.h"
 #include "Demos/Utils/Utilities.h"
+#include "Demos/Utils/Timing.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -179,6 +180,9 @@ void cleanup()
 
 void reset()
 {
+	Timing::printAverageTimes();
+	Timing::reset();
+
 	model.reset();
 	sim.reset();
 	TimeManager::getCurrent()->setTime(0.0);
@@ -211,8 +215,8 @@ void mouseMove(int x, int y)
 
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 {
- 	std::vector<unsigned int> hits;
- 	
+	std::vector<unsigned int> hits;
+	
 	selectedParticles.clear();
 	ParticleData &pd = model.getParticles();
 	Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
@@ -221,18 +225,18 @@ void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
 	x.resize(rb.size());
- 	for (unsigned int i = 0; i < rb.size(); i++)
- 	{
- 		x[i] = rb[i]->getPosition();
- 	}
+	for (unsigned int i = 0; i < rb.size(); i++)
+	{
+		x[i] = rb[i]->getPosition();
+	}
  
- 	Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
+	Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
 	if ((selectedBodies.size() > 0) || (selectedParticles.size() > 0))
- 		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
- 	else
- 		MiniGL::setMouseMoveFunc(-1, NULL);
+		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
+	else
+		MiniGL::setMouseMoveFunc(-1, NULL);
  
- 	MiniGL::unproject(end[0], end[1], oldMousePos);
+	MiniGL::unproject(end[0], end[1], oldMousePos);
 }
 
 void timeStep ()
@@ -366,11 +370,11 @@ void renderTriangleModels()
 	if (shaderTex)
 		shaderTex->end();
 
- 	float red[4] = { 0.8f, 0.0, 0.0, 1 };
- 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
- 	{
- 		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
- 	}
+	float red[4] = { 0.8f, 0.0, 0.0, 1 };
+	for (unsigned int j = 0; j < selectedParticles.size(); j++)
+	{
+		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
+	}
 }
 
 
