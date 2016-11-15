@@ -36,7 +36,7 @@ namespace PBD
 
 	struct TimingHelper
 	{
-		std::chrono::time_point<std::chrono::system_clock> start;
+		std::chrono::time_point<std::chrono::high_resolution_clock> start;
 		std::string name;
 	};
 
@@ -68,7 +68,7 @@ namespace PBD
 		FORCE_INLINE static void startTiming(const std::string& name = std::string(""))
 		{
 			TimingHelper h;
-			h.start = std::chrono::system_clock::now();
+			h.start = std::chrono::high_resolution_clock::now();
 			h.name = name;
 			Timing::m_timingStack.push(h);
 			Timing::m_startCounter++;
@@ -79,7 +79,7 @@ namespace PBD
 			if (!Timing::m_timingStack.empty())
 			{
 				Timing::m_stopCounter++;
-				std::chrono::time_point<std::chrono::system_clock> stop = std::chrono::system_clock::now();
+				std::chrono::time_point<std::chrono::high_resolution_clock> stop = std::chrono::high_resolution_clock::now();
 				TimingHelper h = Timing::m_timingStack.top();
 				Timing::m_timingStack.pop();
 				std::chrono::duration<double> elapsed_seconds = stop - h.start;
@@ -99,7 +99,7 @@ namespace PBD
 			if (!Timing::m_timingStack.empty())
 			{
 				Timing::m_stopCounter++;
-				std::chrono::time_point<std::chrono::system_clock> stop = std::chrono::system_clock::now();
+				std::chrono::time_point<std::chrono::high_resolution_clock> stop = std::chrono::high_resolution_clock::now();
 				TimingHelper h = Timing::m_timingStack.top();
 				Timing::m_timingStack.pop();
 

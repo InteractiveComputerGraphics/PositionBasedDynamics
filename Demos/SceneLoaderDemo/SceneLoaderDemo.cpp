@@ -112,7 +112,7 @@ int main( int argc, char **argv )
 	if (argc > 1)
 		sceneFileName = string(argv[1]);
 	else
-		sceneFileName = dataPath + sceneFileName;
+		sceneFileName = Utilities::normalizePath(dataPath + sceneFileName);
 
 	buildModel();
 
@@ -878,7 +878,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			OBJLoader::loadObj(rbd.m_modelFile, vd, mesh);
+			OBJLoader::loadObj(Utilities::normalizePath(rbd.m_modelFile), vd, mesh);
 			objFiles[rbd.m_modelFile] = { vd, mesh };
 		}
 	}
@@ -893,7 +893,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			OBJLoader::loadObj(tmd.m_modelFileVis, vd, mesh);
+			OBJLoader::loadObj(Utilities::normalizePath(tmd.m_modelFileVis), vd, mesh);
 			objFiles[tmd.m_modelFileVis] = { vd, mesh };
 		}
 	}
@@ -972,7 +972,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			OBJLoader::loadObj(tmd.m_modelFile, vd, mesh);
+			OBJLoader::loadObj(Utilities::normalizePath(tmd.m_modelFile), vd, mesh);
 			triFiles[tmd.m_modelFile] = { vd, mesh };
 		}
 	}
@@ -1031,7 +1031,7 @@ void readScene()
 		{
 			vector<Vector3r> vertices;
 			vector<unsigned int> tets;
-			TetGenLoader::loadTetgenModel(tmd.m_modelFileNodes, tmd.m_modelFileElements, vertices, tets);
+			TetGenLoader::loadTetgenModel(Utilities::normalizePath(tmd.m_modelFileNodes), Utilities::normalizePath(tmd.m_modelFileElements), vertices, tets);
 			tetFiles[fileNames] = { vertices, tets };
 		}
 	}

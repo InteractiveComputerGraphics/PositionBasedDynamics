@@ -210,12 +210,12 @@ void buildModel ()
 	createMesh();
 
 	// create static rigid body
-	string fileName = dataPath + "/models/cube.obj";
+	string fileName = Utilities::normalizePath(dataPath + "/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	OBJLoader::loadObj(fileName, vd, mesh);	
 
-	string fileNameTorus = dataPath + "/models/torus.obj";
+	string fileNameTorus = Utilities::normalizePath(dataPath + "/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	OBJLoader::loadObj(fileNameTorus, vdTorus, meshTorus);

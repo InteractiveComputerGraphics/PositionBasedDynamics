@@ -2,19 +2,29 @@ include(Visualization/CMakeLists.txt)
 add_definitions(-DPBD_DATA_PATH="../data")
 
 # search all demos
-file (
-  GLOB _demo_dirs
-  RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-           "${CMAKE_CURRENT_SOURCE_DIR}/*/CMakeLists.txt"
+set(PBD_DEMOS 
+	BarDemo
+	ClothDemo
+	CouplingDemos
+	DistanceFieldDemos
+	FluidDemo
+	GenericConstraintsDemos
+	PositionBasedElasticRodsDemo
+	RigidBodyDemos
+	SceneLoaderDemo
 )
 
-foreach (_demo_dir ${_demo_dirs})
-	get_filename_component (_demo_name ${_demo_dir} PATH)
-	option(Build_${_demo_name} "Build ${_demo_name}"	ON)
-	if (Build_${_demo_name})
-		add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/${_demo_name})
-	endif (Build_${_demo_name})
-endforeach ()
+add_subdirectory(Simulation)
+add_subdirectory(Utils)
+
+if (NOT PBD_NO_DEMOS)
+	foreach (_demo_name ${PBD_DEMOS})
+		option(Build_${_demo_name} "Build ${_demo_name}"	ON)
+		if (Build_${_demo_name})
+			add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/${_demo_name})
+		endif (Build_${_demo_name})
+	endforeach ()
+endif()
 
 install(DIRECTORY ./Common
 DESTINATION include/Demos

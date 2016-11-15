@@ -21,7 +21,6 @@ namespace PBD
 		  * Only triangulated meshes are supported at the moment. 
 		  */
 		static void loadObj(const std::string &filename, VertexData &vertexData, IndexedFaceMesh &mesh, const Vector3r &scale = Vector3r(1.0, 1.0, 1.0));
-		static void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters = " ");
 	};
 }
  

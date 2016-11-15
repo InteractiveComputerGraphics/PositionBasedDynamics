@@ -172,24 +172,24 @@ void mouseMove(int x, int y)
 
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
 {
- 	std::vector<unsigned int> hits;
- 	selectedBodies.clear();
+	std::vector<unsigned int> hits;
+	selectedBodies.clear();
  
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
 	x.resize(rb.size());
- 	for (unsigned int i = 0; i < rb.size(); i++)
- 	{
+	for (unsigned int i = 0; i < rb.size(); i++)
+	{
 		x[i] = rb[i]->getPosition();
- 	}
+	}
  
- 	Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
- 	if (selectedBodies.size() > 0)
- 		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
- 	else
- 		MiniGL::setMouseMoveFunc(-1, NULL);
+	Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
+	if (selectedBodies.size() > 0)
+		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
+	else
+		MiniGL::setMouseMoveFunc(-1, NULL);
  
- 	MiniGL::unproject(end[0], end[1], oldMousePos);
+	MiniGL::unproject(end[0], end[1], oldMousePos);
 }
 
 void timeStep ()
@@ -356,27 +356,27 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
-	string fileNameBox = dataPath + "/models/cube.obj";
+	string fileNameBox = Utilities::normalizePath(dataPath + "/models/cube.obj");
 	IndexedFaceMesh meshBox;
 	VertexData vdBox;
 	OBJLoader::loadObj(fileNameBox, vdBox, meshBox);
 
-	string fileNameCylinder = dataPath + "/models/cylinder.obj";
+	string fileNameCylinder = Utilities::normalizePath(dataPath + "/models/cylinder.obj");
 	IndexedFaceMesh meshCylinder;
 	VertexData vdCylinder;
 	OBJLoader::loadObj(fileNameCylinder, vdCylinder, meshCylinder);
 
-	string fileNameTorus = dataPath + "/models/torus.obj";
+	string fileNameTorus = Utilities::normalizePath(dataPath + "/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	OBJLoader::loadObj(fileNameTorus, vdTorus, meshTorus);
 
-	string fileNameCube = dataPath + "/models/cube_5.obj";
+	string fileNameCube = Utilities::normalizePath(dataPath + "/models/cube_5.obj");
 	IndexedFaceMesh meshCube;
 	VertexData vdCube;
 	OBJLoader::loadObj(fileNameCube, vdCube, meshCube);
 
-	string fileNameSphere = dataPath + "/models/sphere.obj";
+	string fileNameSphere = Utilities::normalizePath(dataPath + "/models/sphere.obj");
 	IndexedFaceMesh meshSphere;
 	VertexData vdSphere;
 	OBJLoader::loadObj(fileNameSphere, vdSphere, meshSphere);

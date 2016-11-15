@@ -394,7 +394,7 @@ void createBodyModel()
 {
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 
-	string fileName = dataPath + "/models/cube.obj";
+	string fileName = Utilities::normalizePath(dataPath + "/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	OBJLoader::loadObj(fileName, vd, mesh, Vector3r(width, height, depth));

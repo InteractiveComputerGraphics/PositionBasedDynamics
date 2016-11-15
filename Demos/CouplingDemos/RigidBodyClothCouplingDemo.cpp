@@ -404,7 +404,7 @@ void createRigidBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
-	string fileName = dataPath + "/models/cube.obj";
+	string fileName = Utilities::normalizePath(dataPath + "/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	OBJLoader::loadObj(fileName, vd, mesh, Vector3r(width, height, depth));

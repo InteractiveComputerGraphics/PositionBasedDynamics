@@ -4,22 +4,10 @@
 #include <fstream>
 #include <iostream>
 #include "ObjectArray.h"
+#include "Utilities.h"
 
 using namespace PBD;
 using namespace std;
- 
-void OBJLoader::tokenize(const string& str,	vector<string>& tokens,	const string& delimiters)
-{
-	string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-	string::size_type pos = str.find_first_of(delimiters, lastPos);
-
-	while (string::npos != pos || string::npos != lastPos)
-	{
-		tokens.push_back(str.substr(lastPos, pos - lastPos));
-		lastPos = str.find_first_not_of(delimiters, pos);
-		pos = str.find_first_of(delimiters, lastPos);
-	}
-}
  
 void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, IndexedFaceMesh &mesh, const Vector3r &scale)
 {
@@ -29,75 +17,75 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 	vector<Vector2r, Alloc_Vector2r> texcoords;
 	vector<Vector3r, Alloc_Vector3r> normals;
 	ObjectArray<MeshFaceIndices> faces;
-    
-    ifstream filestream;
-    filestream.open(filename.c_str());
+	
+	ifstream filestream;
+	filestream.open(filename.c_str());
 	if (filestream.fail())
 	{
 		std::cerr << "Failed to open file: " << filename << "\n";
 		return;
 	}
 
-    string line_stream; 
+	string line_stream; 
 	bool vt = false;
 	bool vn = false;
 
 	std::vector<std::string> pos_buffer;
 	std::vector<std::string> f_buffer;
 
-    while(getline(filestream, line_stream))
+	while(getline(filestream, line_stream))
 	{
-        stringstream str_stream(line_stream);
-        string type_str;
-        str_stream >> type_str;
+		stringstream str_stream(line_stream);
+		string type_str;
+		str_stream >> type_str;
 
-        if(type_str == "v")
+		if(type_str == "v")
 		{
 			Vector3r pos;
 			pos_buffer.clear();
 			std::string parse_str = line_stream.substr(line_stream.find("v") + 1);
-			tokenize(parse_str, pos_buffer);
+			Utilities::tokenize(parse_str, pos_buffer);
 			for (unsigned int i = 0; i < 3; i++)
 				pos[i] = stof(pos_buffer[i]) * scale[i];
 
 			positions.push_back(pos);
-        }
+		}
 		else if(type_str == "vt")
 		{
 			Vector2r tex;
 			pos_buffer.clear();
 			std::string parse_str = line_stream.substr(line_stream.find("vt") + 2);
-			tokenize(parse_str, pos_buffer);
+			Utilities::tokenize(parse_str, pos_buffer);
 			for (unsigned int i = 0; i < 2; i++)
 				tex[i] = stof(pos_buffer[i]);
 
 			texcoords.push_back(tex);
 			vt = true;
-        }
+		}
 		else if(type_str == "vn")
 		{
 			Vector3r nor;
 			pos_buffer.clear();
 			std::string parse_str = line_stream.substr(line_stream.find("vn") + 2);
-			tokenize(parse_str, pos_buffer);
+			Utilities::tokenize(parse_str, pos_buffer);
 			for (unsigned int i = 0; i < 3; i++)
 				nor[i] = stof(pos_buffer[i]);
 
 			normals.push_back(nor);
 			vn = true;
-        }
+		}
 		else if(type_str == "f")
 		{
-            MeshFaceIndices faceIndex;
+			MeshFaceIndices faceIndex;
 			if (vn && vt)
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				tokenize(parse_str, f_buffer);
+				Utilities::tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
 					pos_buffer.clear();
-					tokenize(f_buffer[i], pos_buffer, "/");
+					Utilities::tokenize(f_buffer[i], pos_buffer, "/");
 					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
 					faceIndex.texIndices[i] = stoi(pos_buffer[1]);
 					faceIndex.normalIndices[i] = stoi(pos_buffer[2]);
@@ -107,11 +95,11 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				tokenize(parse_str, f_buffer);
+				Utilities::tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
 					pos_buffer.clear();
-					tokenize(f_buffer[i], pos_buffer, "/");
+					Utilities::tokenize(f_buffer[i], pos_buffer, "/");
 					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
 					faceIndex.normalIndices[i] = stoi(pos_buffer[1]);
 				}
@@ -120,11 +108,11 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				tokenize(parse_str, f_buffer);
+				Utilities::tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
 					pos_buffer.clear();
-					tokenize(f_buffer[i], pos_buffer, "/");
+					Utilities::tokenize(f_buffer[i], pos_buffer, "/");
 					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
 					faceIndex.texIndices[i] = stoi(pos_buffer[1]);
 				}
@@ -133,16 +121,16 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				tokenize(parse_str, f_buffer);
+				Utilities::tokenize(parse_str, f_buffer);
 				for (int i = 0; i < 3; ++i)
 				{
 					faceIndex.posIndices[i] = stoi(f_buffer[i]);
 				}
 			}
-            faces.push_back(faceIndex);
-        }
-    }
-    filestream.close();
+			faces.push_back(faceIndex);
+		}
+	}
+	filestream.close();
 	mesh.release();
 	vertexData.release();
 	const unsigned int nPoints = (unsigned int) positions.size();
@@ -166,11 +154,11 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 		for (int j=0; j < 3; j++)
 		{
 			posIndices[j] = faces[i].posIndices[j]-1;
-            if (nTexCoords > 0)
-            {
-                texIndices[j] = faces[i].texIndices[j] - 1;
-                mesh.addUVIndex(texIndices[j]);
-            }
+			if (nTexCoords > 0)
+			{
+				texIndices[j] = faces[i].texIndices[j] - 1;
+				mesh.addUVIndex(texIndices[j]);
+			}
 		}
 
 		mesh.addFace(&posIndices[0]);

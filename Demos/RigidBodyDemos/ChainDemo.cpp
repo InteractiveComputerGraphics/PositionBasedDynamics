@@ -257,12 +257,12 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
-	string fileName = dataPath + "/models/cube.obj";
+	string fileName = Utilities::normalizePath(dataPath + "/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	OBJLoader::loadObj(fileName, vd, mesh, Vector3r(width, height, depth));
 
-	string fileName2 = dataPath + "/models/bunny_10k.obj";
+	string fileName2 = Utilities::normalizePath(dataPath + "/models/bunny_10k.obj");
 	IndexedFaceMesh mesh2;
 	VertexData vd2;
 	OBJLoader::loadObj(fileName2, vd2, mesh2, Vector3r(2.0, 2.0, 2.0));
