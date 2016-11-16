@@ -76,7 +76,10 @@ std::string Utilities::normalizePath(const std::string &path)
 		}
 		index++;
 	}
-	result = tokens[0];
+	result = "";
+	if (path[0] == '/')
+		result = "/";
+	result = result + tokens[0];
 	for (unsigned int i = 1; i < tokens.size(); i++)
 		result = result + "/" + tokens[i];
 
