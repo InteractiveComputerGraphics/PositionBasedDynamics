@@ -10,8 +10,17 @@ The library was tested on Windows 10, Ubuntu 16.10 and Mac OS X 10.10.5.
 
 ## News
 
+* SPlisHSPlasH is our new open-source fluid simulator which uses the PositionBasedDynamics library to handle rigid-fluid coupling. It can be downloaded here:
+[https://github.com/InteractiveComputerGraphics/SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
 * Our new [paper](http://interactive-graphics.de/index.php/research/98-hierarchical-hp-adaptive-signed-distance-fields) about adaptive signed distance fields uses the PositionBasedDynamics library. You can watch the video  [here](https://www.youtube.com/watch?v=x_Iq2yM4FcA).
-* The PositionBasedDynamics library moved to https://github.com/InteractiveComputerGraphics/PositionBasedDynamics.
+
+## Build Instructions
+
+This project is based on [CMake](https://cmake.org/). Simply generate project, Makefiles, etc. using [CMake](https://cmake.org/) and compile the project with the compiler of your choice. The code was tested with the following configurations:
+- Windows 10 64-bit, CMake 3.5.2, Visual Studio 2015
+- Ubuntu 16.10 64-bit, CMake 3.5.2, GCC 6.2.0.
+
+Note: Please use a 64-bit target on a 64-bit operating system.
 
 ## Documentation
 
