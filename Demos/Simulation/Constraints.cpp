@@ -1482,7 +1482,7 @@ bool RigidBodyContactConstraint::initConstraint(SimulationModel &model, const un
 		rb2.getInertiaTensorInverseW(),
 		rb2.getRotation(),
 		rb2.getAngularVelocity(),
- 		cp1, cp2, normal, restitutionCoeff, 
+		cp1, cp2, normal, restitutionCoeff, 
 		m_constraintInfo);
 }
 

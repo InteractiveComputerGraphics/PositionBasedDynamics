@@ -2,6 +2,8 @@
 #include "MathFunctions.h"
 #include <cfloat>
 #include <iostream>
+#define _USE_MATH_DEFINES
+#include "math.h"
 
 using namespace PBD;
 
@@ -869,11 +871,11 @@ bool PositionBasedRigidBodyDynamics::update_SliderJoint(
 	// transform perpendicular vector on joint axis of body 1 to world space 
 	jointInfo.col(13) = rot1 * jointInfo.col(12);
 
-  	const Vector3r dir = jointInfo.col(8);
-  	const Vector3r p = jointInfo.col(6);
-  	const Vector3r s = jointInfo.col(7);
-  	// move the joint point of body 0 to the closest point on the line to joint point 1
-  	jointInfo.col(6) = p + (dir * (((s - p).dot(dir)) / dir.squaredNorm()));
+	const Vector3r dir = jointInfo.col(8);
+	const Vector3r p = jointInfo.col(6);
+	const Vector3r s = jointInfo.col(7);
+	// move the joint point of body 0 to the closest point on the line to joint point 1
+	jointInfo.col(6) = p + (dir * (((s - p).dot(dir)) / dir.squaredNorm()));
 
 	return true;
 }
@@ -1681,10 +1683,10 @@ bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
 	Real c = t1.dot(t3);
 	c = std::min(1.0, c);
 	c = std::max(-1.0, c);
- 	if ((t1.cross(t3)).dot(axis) > 0.0)
- 		delta -= acos(c);
-  	else
- 		delta += acos(c);
+	if ((t1.cross(t3)).dot(axis) > 0.0)
+		delta -= acos(c);
+	else
+		delta += acos(c);
 
 	const Real pi = (Real)M_PI;
 	if (delta < -pi)
@@ -1911,8 +1913,8 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 	b(3, 0) = t1.dot(deltaOmega);
 	b(4, 0) = t2.dot(deltaOmega);
 
- 	// determine correction angle
- 	Real delta = targetAngularVelocity;
+	// determine correction angle
+	Real delta = targetAngularVelocity;
 	delta -= axis.dot(deltaOmega);
 
 	b(5, 0) = -delta;
@@ -2243,8 +2245,8 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_RigidBodyContactConstraint(
 
 	Real correctionMagnitude = nKn_inv * delta_u_reln;
 
- 	if (correctionMagnitude < -sum_impulses)
- 		correctionMagnitude = -sum_impulses;
+	if (correctionMagnitude < -sum_impulses)
+		correctionMagnitude = -sum_impulses;
 
 	// add penalty impulse to counteract penetration
 	if (d < 0.0)

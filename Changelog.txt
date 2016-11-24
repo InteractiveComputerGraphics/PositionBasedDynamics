@@ -1,3 +1,5 @@
+	- update to Eigen 3.3
+	
 1.5.1
 	- added Timing class
 	- removed Boost dependency

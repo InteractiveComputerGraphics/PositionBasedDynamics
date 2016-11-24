@@ -2,6 +2,8 @@
 #define _CONSTRAINTS_H
 
 #include "Common/Common.h"
+#define _USE_MATH_DEFINES
+#include "math.h"
 
 namespace PBD
 {
@@ -46,46 +48,46 @@ namespace PBD
 	};
 
 	class BallOnLineJoint : public Constraint
- 	{
+	{
 	public:
 		static int TYPE_ID;
 		Eigen::Matrix<Real, 3, 10> m_jointInfo;
 
 		BallOnLineJoint() : Constraint(2) {} 
- 		virtual int &getTypeId() const { return TYPE_ID; }
+		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &dir);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model);
- 	};
+	};
  
 	class HingeJoint : public Constraint
- 	{
+	{
 	public:
 		static int TYPE_ID;
- 		Eigen::Matrix<Real, 3, 12> m_jointInfo;
+		Eigen::Matrix<Real, 3, 12> m_jointInfo;
 
 		HingeJoint() : Constraint(2) {}
- 		virtual int &getTypeId() const { return TYPE_ID; }
+		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model);
- 	};
+	};
  
 	class UniversalJoint : public Constraint
- 	{
+	{
 	public:
 		static int TYPE_ID;
- 		Eigen::Matrix<Real, 3, 8> m_jointInfo;
+		Eigen::Matrix<Real, 3, 8> m_jointInfo;
 
 		UniversalJoint() : Constraint(2) {}
- 		virtual int &getTypeId() const { return TYPE_ID; }
+		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis1, const Vector3r &axis2);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model);
- 	};
+	};
 
 	class SliderJoint : public Constraint
 	{
@@ -179,18 +181,18 @@ namespace PBD
 	};
  
 	class RigidBodyParticleBallJoint : public Constraint
- 	{
+	{
 	public:
 		static int TYPE_ID;
- 		Eigen::Matrix<Real, 3, 2> m_jointInfo;
+		Eigen::Matrix<Real, 3, 2> m_jointInfo;
 
 		RigidBodyParticleBallJoint() : Constraint(2) {}
- 		virtual int &getTypeId() const { return TYPE_ID; }
+		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex, const unsigned int particleIndex);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model);
- 	};
+	};
  
 	class DistanceConstraint : public Constraint
 	{

@@ -10,6 +10,8 @@
 #include <iostream>
 #include "Demos/Utils/Utilities.h"
 #include "Demos/Utils/Timing.h"
+#define _USE_MATH_DEFINES
+#include "math.h"
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)

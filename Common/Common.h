@@ -70,7 +70,7 @@ namespace PBD
 #endif
 #endif
 #else
-	#define PBD_MAKE_ALIGNED_OPERATOR_NEW
+	#define PDB_MAKE_ALIGNED_OPERATOR_NEW
 
 #if defined(WIN32) || defined(_WIN32) || defined(WIN64)	   
 	// Enable memory leak detection
