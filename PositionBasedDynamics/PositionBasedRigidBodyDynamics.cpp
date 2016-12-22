@@ -934,8 +934,8 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 	// determine correction angle (slider axis)
 	Real delta = 0.0;
 	Real c = t1.dot(t3);
-	c = std::min(1.0, c);
-	c = std::max(-1.0, c);
+	c = std::min<Real>(1.0, c);
+	c = std::max<Real>(-1.0, c);
 	if ((t1.cross(t3)).dot(axis) > 0.0)
 		delta -= acos(c);
 	else
@@ -1229,8 +1229,8 @@ bool PositionBasedRigidBodyDynamics::solve_TargetPositionMotorSliderJoint(
 	// determine correction angle (slider axis)
 	Real delta = 0.0;
 	Real c = t1.dot(t3);
-	c = std::min(1.0, c);
-	c = std::max(-1.0, c);
+	c = std::min<Real>(1.0, c);
+	c = std::max<Real>(-1.0, c);
 	if ((t1.cross(t3)).dot(axis) > 0.0)
 		delta -= acos(c);
 	else
@@ -1681,8 +1681,8 @@ bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
 	// determine correction angle
 	Real delta = targetAngle;
 	Real c = t1.dot(t3);
-	c = std::min(1.0, c);
-	c = std::max(-1.0, c);
+	c = std::min<Real>(1.0, c);
+	c = std::max<Real>(-1.0, c);
 	if ((t1.cross(t3)).dot(axis) > 0.0)
 		delta -= acos(c);
 	else

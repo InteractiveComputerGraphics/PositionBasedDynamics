@@ -45,14 +45,14 @@ namespace PBD
 		static void constraintFct(
 			const unsigned int numberOfParticles,
 			const Real invMass[],
-			const Eigen::Vector3d x[],
+			const Vector3r x[],
 			void *userData,
-			Eigen::Matrix<double, 1, 1> &constraintValue);
+			Eigen::Matrix<Real, 1, 1> &constraintValue);
 
 		GenericIsometricBendingConstraint() : Constraint(4) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, 
+		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 								const unsigned int particle3, const unsigned int particle4);
 		virtual bool solvePositionConstraint(SimulationModel &model);
 	};

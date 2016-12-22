@@ -95,9 +95,9 @@ bool GenericDistanceConstraint::solvePositionConstraint(SimulationModel &model)
 void GenericIsometricBendingConstraint::constraintFct(
 	const unsigned int numberOfParticles,
 	const Real invMass[],
-	const Eigen::Vector3d x[],
+	const Vector3r x[],
 	void *userData,
-	Eigen::Matrix<double, 1, 1> &constraintValue)
+	Eigen::Matrix<Real, 1, 1> &constraintValue)
 {
 	Matrix4r *Q = (Matrix4r*)userData;
 
@@ -177,27 +177,27 @@ bool GenericIsometricBendingConstraint::solvePositionConstraint(SimulationModel 
 
 	Real invMass[4] = { invMass0, invMass1, invMass2, invMass3 };
 	const Vector3r x[4] = { x0, x1, x2, x3 };
- 
- 	Vector3r corr[4];
- 
+
+	Vector3r corr[4];
+
 	const bool res = PositionBasedGenericConstraints::solve_GenericConstraint<4, 1>(
 		invMass, x, &m_Q,
 		GenericIsometricBendingConstraint::constraintFct,
 		//GenericIsometricBendingConstraint::gradientFct,
- 		corr);
- 
- 	if (res)
- 	{
+		corr);
+
+	if (res)
+	{
 		const Real stiffness = model.getClothBendingStiffness();
- 		if (invMass0 != 0.0)
+		if (invMass0 != 0.0)
 			x0 += stiffness*corr[0];
- 		if (invMass1 != 0.0)
+		if (invMass1 != 0.0)
 			x1 += stiffness*corr[1];
 		if (invMass2 != 0.0)
 			x2 += stiffness*corr[2];
 		if (invMass3 != 0.0)
 			x3 += stiffness*corr[3];
- 	}
+	}
 	return res;
 }
 
