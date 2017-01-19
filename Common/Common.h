@@ -2,7 +2,7 @@
 #define COMMON_H
 
 #include <Eigen/Dense>
-#include "float.h"
+#include <float.h>
 
 #define USE_DOUBLE
 #define MIN_PARALLEL_SIZE 64
@@ -48,7 +48,7 @@ namespace PBD
 	#define PDB_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	#define REPORT_MEMORY_LEAKS
 
-#if defined(WIN32) || defined(_WIN32) || defined(WIN64)	   
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)
 #ifdef _DEBUG
 	// Enable memory leak detection for Eigen new
 	#undef PDB_MAKE_ALIGNED_OPERATOR_NEW
@@ -72,12 +72,12 @@ namespace PBD
 #else
 	#define PDB_MAKE_ALIGNED_OPERATOR_NEW
 
-#if defined(WIN32) || defined(_WIN32) || defined(WIN64)	   
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)
 	// Enable memory leak detection
 #ifdef _DEBUG
 	#define _CRTDBG_MAP_ALLOC 
-	#include <stdlib.h> 
-	#include <crtdbg.h> 
+	#include <stdlib.h>
+	#include <crtdbg.h>
 	#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__) 	
 	#define REPORT_MEMORY_LEAKS _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #else
@@ -85,6 +85,7 @@ namespace PBD
 #endif
 #else
 	#define REPORT_MEMORY_LEAKS
+	#define DEBUG_NEW new
 #endif
 
 #endif
@@ -92,7 +93,7 @@ namespace PBD
 
 #endif
 
-#if defined(WIN32) || defined(_WIN32) || defined(WIN64)	   
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64)
 #define FORCE_INLINE __forceinline
 #else
 #define FORCE_INLINE __attribute__((always_inline))

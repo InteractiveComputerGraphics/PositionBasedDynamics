@@ -45,7 +45,7 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 	}
 
 	//omp_set_num_threads(1);
-	std::vector<std::vector<ContactData> > contacts_mt;	
+	std::vector<std::vector<ContactData> > contacts_mt;
 #ifdef _DEBUG
 	const unsigned int maxThreads = 1;
 #else
@@ -56,7 +56,7 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 	#pragma omp parallel default(shared)
 	{
 		// Update BVHs
-		#pragma omp for schedule(static)  
+		#pragma omp for schedule(static)
 		for (int i = 0; i < (int)m_collisionObjects.size(); i++)
 		{
 			CollisionDetection::CollisionObject *co = m_collisionObjects[i];
@@ -90,7 +90,7 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 			if ((co1->m_bodyType == CollisionDetection::CollisionObject::RigidBodyCollisionObjectType) &&
 				((DistanceFieldCollisionObject*) co1)->m_testMesh)
 			{
-				RigidBody *rb1 = rigidBodies[co1->m_bodyIndex];				
+				RigidBody *rb1 = rigidBodies[co1->m_bodyIndex];
 				const Real restitutionCoeff = rb1->getRestitutionCoeff() * rb2->getRestitutionCoeff();
 				const Real frictionCoeff = rb1->getFrictionCoeff() + rb2->getFrictionCoeff();
 				collisionDetectionRigidBodies(rb1, (DistanceFieldCollisionObject*)co1, rb2, (DistanceFieldCollisionObject*)co2,
@@ -131,18 +131,18 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 		for (unsigned int j = 0; j < contacts_mt[i].size(); j++)
 		{
 			if (contacts_mt[i][j].m_type == 1)
-				addParticleRigidBodyContact(contacts_mt[i][j].m_index1, contacts_mt[i][j].m_index2, 
-				contacts_mt[i][j].m_cp1, contacts_mt[i][j].m_cp2, contacts_mt[i][j].m_normal, 
+				addParticleRigidBodyContact(contacts_mt[i][j].m_index1, contacts_mt[i][j].m_index2,
+				contacts_mt[i][j].m_cp1, contacts_mt[i][j].m_cp2, contacts_mt[i][j].m_normal,
 				contacts_mt[i][j].m_dist, contacts_mt[i][j].m_restitution, contacts_mt[i][j].m_friction);
 			else
-				addRigidBodyContact(contacts_mt[i][j].m_index1, contacts_mt[i][j].m_index2, 
-				contacts_mt[i][j].m_cp1, contacts_mt[i][j].m_cp2, contacts_mt[i][j].m_normal, 
+				addRigidBodyContact(contacts_mt[i][j].m_index1, contacts_mt[i][j].m_index2,
+				contacts_mt[i][j].m_cp1, contacts_mt[i][j].m_cp2, contacts_mt[i][j].m_normal,
 				contacts_mt[i][j].m_dist, contacts_mt[i][j].m_restitution, contacts_mt[i][j].m_friction);
 		}
 	}
 }
 
-void DistanceFieldCollisionDetection::collisionDetectionRigidBodies(RigidBody *rb1, DistanceFieldCollisionObject *co1, RigidBody *rb2, DistanceFieldCollisionObject *co2, 
+void DistanceFieldCollisionDetection::collisionDetectionRigidBodies(RigidBody *rb1, DistanceFieldCollisionObject *co1, RigidBody *rb2, DistanceFieldCollisionObject *co2,
 	const Real restitutionCoeff, const Real frictionCoeff
 	, std::vector<std::vector<ContactData> > &contacts_mt
 	)
@@ -155,12 +155,12 @@ void DistanceFieldCollisionDetection::collisionDetectionRigidBodies(RigidBody *r
 	const Vector3r &com2 = rb2->getPosition();
 
 	// remove the rotation of the main axis transformation that is performed
-	// to get a diagonal inertia tensor since the distance function is 
+	// to get a diagonal inertia tensor since the distance function is
 	// evaluated in local coordinates
 	//
 	// transformation world to local:
 	// p_local = R_initial^T ( R_MAT R^T (p_world - x) - x_initial + x_MAT)
-	// 
+	//
 	// transformation local to:
 	// p_world = R R_MAT^T (R_initial p_local + x_initial - x_MAT) + x
 	//
@@ -215,7 +215,7 @@ void DistanceFieldCollisionDetection::collisionDetectionRigidBodies(RigidBody *r
 				int tid = 0;
 #else
 				int tid = omp_get_thread_num();
-#endif			
+#endif
 				contacts_mt[tid].push_back({ 0, co1->m_bodyIndex, co2->m_bodyIndex, x_w, cp_w, n_w, dist, restitutionCoeff, frictionCoeff });
 			}
 		}
@@ -225,7 +225,7 @@ void DistanceFieldCollisionDetection::collisionDetectionRigidBodies(RigidBody *r
 
 
 void DistanceFieldCollisionDetection::collisionDetectionRBSolid(const ParticleData &pd, const unsigned int offset, const unsigned int numVert,
-	DistanceFieldCollisionObject *co1, RigidBody *rb2, DistanceFieldCollisionObject *co2, 
+	DistanceFieldCollisionObject *co1, RigidBody *rb2, DistanceFieldCollisionObject *co2,
 	const Real restitutionCoeff, const Real frictionCoeff
 	, std::vector<std::vector<ContactData> > &contacts_mt
 	)
@@ -233,12 +233,12 @@ void DistanceFieldCollisionDetection::collisionDetectionRBSolid(const ParticleDa
 	const Vector3r &com2 = rb2->getPosition();
 
 	// remove the rotation of the main axis transformation that is performed
-	// to get a diagonal inertia tensor since the distance function is 
+	// to get a diagonal inertia tensor since the distance function is
 	// evaluated in local coordinates
 	//
 	// transformation world to local:
 	// p_local = R_initial^T ( R_MAT R^T (p_world - x) - x_initial + x_MAT)
-	// 
+	//
 	// transformation local to:
 	// p_world = R R_MAT^T (R_initial p_local + x_initial - x_MAT) + x
 	//
@@ -294,7 +294,7 @@ void DistanceFieldCollisionDetection::collisionDetectionRBSolid(const ParticleDa
 				int tid = 0;
 #else
 				int tid = omp_get_thread_num();
-#endif			
+#endif
 				contacts_mt[tid].push_back({ 1, index, co2->m_bodyIndex, x_w, cp_w, n_w, dist, restitutionCoeff, frictionCoeff });
 			}
 		}
@@ -305,9 +305,9 @@ void DistanceFieldCollisionDetection::collisionDetectionRBSolid(const ParticleDa
 
 bool DistanceFieldCollisionDetection::isDistanceFieldCollisionObject(CollisionObject *co) const
 {
- 	return (co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionBox::TYPE_ID) ||
- 		(co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionSphere::TYPE_ID) ||
- 		(co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionTorus::TYPE_ID) ||
+	return (co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionBox::TYPE_ID) ||
+		(co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionSphere::TYPE_ID) ||
+		(co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionTorus::TYPE_ID) ||
 		(co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionCylinder::TYPE_ID) ||
 		(co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionHollowSphere::TYPE_ID) ||
 		(co->getTypeId() == DistanceFieldCollisionDetection::DistanceFieldCollisionHollowBox::TYPE_ID) ||
@@ -319,7 +319,7 @@ void DistanceFieldCollisionDetection::addCollisionBox(const unsigned int bodyInd
 	DistanceFieldCollisionDetection::DistanceFieldCollisionBox *cf = new DistanceFieldCollisionDetection::DistanceFieldCollisionBox();
 	cf->m_bodyIndex = bodyIndex;
 	cf->m_bodyType = bodyType;
-	// distance function requires 0.5*box 
+	// distance function requires 0.5*box
 	cf->m_box = 0.5*box;
 	cf->m_bvh.init(vertices, numVertices);
 	cf->m_bvh.construct();
@@ -393,7 +393,7 @@ void DistanceFieldCollisionDetection::addCollisionHollowBox(const unsigned int b
 	DistanceFieldCollisionDetection::DistanceFieldCollisionHollowBox *cf = new DistanceFieldCollisionDetection::DistanceFieldCollisionHollowBox();
 	cf->m_bodyIndex = bodyIndex;
 	cf->m_bodyType = bodyType;
-	// distance function requires 0.5*box 
+	// distance function requires 0.5*box
 	cf->m_box = 0.5*box;
 	cf->m_thickness = thickness;
 	cf->m_bvh.init(vertices, numVertices);
@@ -416,18 +416,18 @@ void DistanceFieldCollisionDetection::addCollisionObjectWithoutGeometry(const un
 	m_collisionObjects.push_back(co);
 }
 
-Real DistanceFieldCollisionDetection::DistanceFieldCollisionBox::distance(const Eigen::Vector3d &x, const Real tolerance)
+Real DistanceFieldCollisionDetection::DistanceFieldCollisionBox::distance(const Vector3r &x, const Real tolerance)
 {
-	const Eigen::Vector3d box_d = m_box.template cast<Real>();
-	const Eigen::Vector3d x_d = x.template cast<Real>();
-	const Eigen::Vector3d d(fabs(x_d.x()) - box_d.x(), fabs(x_d.y()) - box_d.y(), fabs(x_d.z()) - box_d.z());
-	const Eigen::Vector3d max_d(std::max(d.x(), 0.0), std::max(d.y(), 0.0), std::max(d.z(), 0.0));
-	return m_invertSDF*(std::min(std::max(d.x(), std::max(d.y(), d.z())), 0.0) + max_d.norm()) - tolerance;
+	const Vector3r box_d = m_box.template cast<Real>();
+	const Vector3r x_d = x.template cast<Real>();
+	const Vector3r d(fabs(x_d.x()) - box_d.x(), fabs(x_d.y()) - box_d.y(), fabs(x_d.z()) - box_d.z());
+	const Vector3r max_d(std::max<Real>(d.x(), 0.0), std::max<Real>(d.y(), 0.0), std::max<Real>(d.z(), 0.0));
+	return m_invertSDF*(std::min<Real>(std::max<Real>(d.x(), std::max<Real>(d.y(), d.z())), 0.0) + max_d.norm()) - tolerance;
 }
 
-Real DistanceFieldCollisionDetection::DistanceFieldCollisionSphere::distance(const Eigen::Vector3d &x, const Real tolerance)
+Real DistanceFieldCollisionDetection::DistanceFieldCollisionSphere::distance(const Vector3r &x, const Real tolerance)
 {
-	const Eigen::Vector3d d = x.template cast<Real>();
+	const Vector3r d = x.template cast<Real>();
 	const Real dl = d.norm();
 	return m_invertSDF*(dl - static_cast<Real>(m_radius)) - tolerance;
 }
@@ -450,25 +450,25 @@ bool DistanceFieldCollisionDetection::DistanceFieldCollisionSphere::collisionTes
 	return false;
 }
 
-Real DistanceFieldCollisionDetection::DistanceFieldCollisionTorus::distance(const Eigen::Vector3d &x, const Real tolerance)
+Real DistanceFieldCollisionDetection::DistanceFieldCollisionTorus::distance(const Vector3r &x, const Real tolerance)
 {
-	const Eigen::Vector2d radii_d = m_radii.template cast<Real>();
-	const Eigen::Vector2d q(Vector2r(x.x(), x.z()).norm() - radii_d.x(), x.y());
+	const Vector2r radii_d = m_radii.template cast<Real>();
+	const Vector2r q(Vector2r(x.x(), x.z()).norm() - radii_d.x(), x.y());
 	return m_invertSDF*(q.norm() - radii_d.y()) - tolerance;
 }
 
-Real DistanceFieldCollisionDetection::DistanceFieldCollisionCylinder::distance(const Eigen::Vector3d &x, const Real tolerance)
+Real DistanceFieldCollisionDetection::DistanceFieldCollisionCylinder::distance(const Vector3r &x, const Real tolerance)
 {
 	const Real l = sqrt(x.x()*x.x() + x.z()*x.z());
-	const Eigen::Vector2d d = Eigen::Vector2d(fabs(l), fabs(x.y())) - m_dim.template cast<Real>();
-	const Eigen::Vector2d max_d(std::max(d.x(), 0.0), std::max(d.y(), 0.0));
-	return m_invertSDF*(std::min(std::max(d.x(), d.y()), 0.0) + max_d.norm()) - tolerance;
+	const Vector2r d = Vector2r(std::abs(l), std::abs(x.y())) - m_dim.template cast<Real>();
+	const Vector2r max_d(std::max<Real>(d.x(), 0.0), std::max<Real>(d.y(), 0.0));
+	return m_invertSDF*(std::min<Real>(std::max<Real>(d.x(), d.y()), 0.0) + max_d.norm()) - tolerance;
 }
 
 
-Real DistanceFieldCollisionDetection::DistanceFieldCollisionHollowSphere::distance(const Eigen::Vector3d &x, const Real tolerance)
+Real DistanceFieldCollisionDetection::DistanceFieldCollisionHollowSphere::distance(const Vector3r &x, const Real tolerance)
 {
-	const Eigen::Vector3d d = x.template cast<Real>();
+	const Vector3r d = x.template cast<Real>();
 	const Real dl = d.norm();
 	return m_invertSDF*(fabs(dl - m_radius) - m_thickness) - tolerance;
 }
@@ -493,21 +493,21 @@ bool DistanceFieldCollisionDetection::DistanceFieldCollisionHollowSphere::collis
 	return false;
 }
 
-Real DistanceFieldCollisionDetection::DistanceFieldCollisionHollowBox::distance(const Eigen::Vector3d &x, const Real tolerance)
+Real DistanceFieldCollisionDetection::DistanceFieldCollisionHollowBox::distance(const Vector3r &x, const Real tolerance)
 {
-	const Eigen::Vector3d box_d = m_box.template cast<Real>();
- 	const Eigen::Vector3d x_d = x.template cast<Real>();
-	const Eigen::Vector3d d = x_d.cwiseAbs() - box_d;
-	const Eigen::Vector3d max_d = d.cwiseMax(Eigen::Vector3d(0.0, 0.0, 0.0));
-	return m_invertSDF * (fabs(std::min(d.maxCoeff(), 0.0) + max_d.norm()) - m_thickness) - tolerance;
+	const Vector3r box_d = m_box.template cast<Real>();
+	const Vector3r x_d = x.template cast<Real>();
+	const Vector3r d = x_d.cwiseAbs() - box_d;
+	const Vector3r max_d = d.cwiseMax(Vector3r(0.0, 0.0, 0.0));
+	return m_invertSDF * (std::abs(std::min<Real>(d.maxCoeff(), 0.0) + max_d.norm()) - m_thickness) - tolerance;
 }
 
-void DistanceFieldCollisionDetection::DistanceFieldCollisionObject::approximateNormal(const Eigen::Vector3d &x, const Real tolerance, Vector3r &n)
+void DistanceFieldCollisionDetection::DistanceFieldCollisionObject::approximateNormal(const Vector3r &x, const Real tolerance, Vector3r &n)
 {
 	// approximate gradient
 	Real eps = 1.e-6;
 	n.setZero();
-	Eigen::Vector3d xTmp = x;
+	Vector3r xTmp = x;
 	for (unsigned int j = 0; j < 3; j++)
 	{
 		xTmp[j] += eps;
@@ -538,7 +538,7 @@ bool DistanceFieldCollisionDetection::DistanceFieldCollisionObject::collisionTes
 	if (dist < maxDist)
 	{
 		// approximate gradient
-		const Eigen::Vector3d x_d = x.template cast<Real>();
+		const Vector3r x_d = x.template cast<Real>();
 
 		approximateNormal(x_d, t_d, n);
 

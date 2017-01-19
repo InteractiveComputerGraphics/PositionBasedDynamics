@@ -71,7 +71,7 @@ namespace PBD
 			void(*constraintFct)(
 				const unsigned int numParticles,
 				const Real invMass[],							// inverse mass is zero if particle is static
-				const Eigen::Vector3d x[],						// positions of particles
+				const Vector3r x[],						// positions of particles
 				void *userData,
 				Eigen::Matrix<Real, dim, 1> &constraintValue),
 
@@ -96,7 +96,7 @@ namespace PBD
 			void(*constraintFct)(
 				const unsigned int numParticles,
 				const Real invMass[],							// inverse mass is zero if particle is static
-				const Eigen::Vector3d x[],						// positions of particles
+				const Vector3r x[],						// positions of particles
 				void *userData,
 				Eigen::Matrix<Real, dim, 1> &constraintValue),
 
@@ -178,7 +178,7 @@ namespace PBD
 		void(*constraintFct)(
 			const unsigned int numParticles,
 			const Real invMass[],							// inverse mass is zero if particle is static
-			const Eigen::Vector3d x[],						// positions of particles
+			const Vector3r x[],						// positions of particles
 			void *userData,
 			Eigen::Matrix<Real, dim, 1> &constraintValue),
 
@@ -186,7 +186,7 @@ namespace PBD
 	{
 		// evaluate constraint function
 		Eigen::Matrix<Real, dim, 1> Cd;
-		Eigen::Vector3d xTemp[numberOfParticles];
+		Vector3r xTemp[numberOfParticles];
 		for (unsigned int j = 0; j < numberOfParticles; j++)
 			xTemp[j] = x[j].template cast<Real>();
 
@@ -239,19 +239,19 @@ namespace PBD
 		void(*constraintFct)(
 			const unsigned int numParticles,
 			const Real invMass[],							// inverse mass is zero if particle is static
-			const Eigen::Vector3d x[],						// positions of particles
+			const Vector3r x[],						// positions of particles
 			void *userData,
 			Eigen::Matrix<Real, dim, 1> &constraintValue),
 
 		Eigen::Matrix<Real, dim, 3> &jacobian)
 	{
-		Eigen::Vector3d xTemp[numberOfParticles];
+		Vector3r xTemp[numberOfParticles];
 		for (unsigned int j = 0; j < numberOfParticles; j++)
 			xTemp[j] = x[j].template cast<Real>();
 
 		Real eps = 1.e-6;
 		jacobian.setZero();
-		Eigen::Vector3d x_i = xTemp[i];
+		Vector3r x_i = xTemp[i];
 		for (unsigned int j = 0; j < 3; j++)
 		{
 			xTemp[i][j] += eps;

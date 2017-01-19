@@ -13,7 +13,7 @@ namespace PBD
 	{
 	public:
 		struct DistanceFieldCollisionObject : public CollisionObject
-		{		
+		{
 			bool m_testMesh;
 			Real m_invertSDF;
 			PointCloudBSH m_bvh;
@@ -21,9 +21,9 @@ namespace PBD
 			DistanceFieldCollisionObject() { m_testMesh = true; m_invertSDF = 1.0; }
 			virtual ~DistanceFieldCollisionObject() {}
 			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0);
-			virtual void approximateNormal(const Eigen::Vector3d &x, const Real tolerance, Vector3r &n);
+			virtual void approximateNormal(const Vector3r &x, const Real tolerance, Vector3r &n);
 
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance) = 0;
+			virtual Real distance(const Vector3r &x, const Real tolerance) = 0;
 		};
 
 		struct DistanceFieldCollisionObjectWithoutGeometry : public DistanceFieldCollisionObject
@@ -33,7 +33,7 @@ namespace PBD
 			virtual ~DistanceFieldCollisionObjectWithoutGeometry() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
 			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0) { return false; }
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance) { return 0.0; }
+			virtual Real distance(const Vector3r &x, const Real tolerance) { return 0.0; }
 		};
 
 		struct DistanceFieldCollisionBox : public DistanceFieldCollisionObject
@@ -43,7 +43,7 @@ namespace PBD
 
 			virtual ~DistanceFieldCollisionBox() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+			virtual Real distance(const Vector3r &x, const Real tolerance);
 		};
 
 		struct DistanceFieldCollisionSphere : public DistanceFieldCollisionObject
@@ -54,7 +54,7 @@ namespace PBD
 			virtual ~DistanceFieldCollisionSphere() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
 			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0);
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+			virtual Real distance(const Vector3r &x, const Real tolerance);
 		};
 
 		struct DistanceFieldCollisionTorus : public DistanceFieldCollisionObject
@@ -64,7 +64,7 @@ namespace PBD
 
 			virtual ~DistanceFieldCollisionTorus() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+			virtual Real distance(const Vector3r &x, const Real tolerance);
 		};
 
 		struct DistanceFieldCollisionCylinder : public DistanceFieldCollisionObject
@@ -74,7 +74,7 @@ namespace PBD
 
 			virtual ~DistanceFieldCollisionCylinder() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+			virtual Real distance(const Vector3r &x, const Real tolerance);
 		};
 
 		struct DistanceFieldCollisionHollowSphere : public DistanceFieldCollisionObject
@@ -86,7 +86,7 @@ namespace PBD
 			virtual ~DistanceFieldCollisionHollowSphere() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
 			virtual bool collisionTest(const Vector3r &x, const Real tolerance, Vector3r &cp, Vector3r &n, Real &dist, const Real maxDist = 0.0);
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+			virtual Real distance(const Vector3r &x, const Real tolerance);
 		};
 
 		struct DistanceFieldCollisionHollowBox : public DistanceFieldCollisionObject
@@ -97,7 +97,7 @@ namespace PBD
 
 			virtual ~DistanceFieldCollisionHollowBox() {}
 			virtual int &getTypeId() const { return TYPE_ID; }
-			virtual Real distance(const Eigen::Vector3d &x, const Real tolerance);
+			virtual Real distance(const Vector3r &x, const Real tolerance);
 		};
 
 		struct ContactData
@@ -118,8 +118,8 @@ namespace PBD
 			const Real restitutionCoeff, const Real frictionCoeff
 			, std::vector<std::vector<ContactData> > &contacts_mt
 			);
-		void collisionDetectionRBSolid(const ParticleData &pd, const unsigned int offset, const unsigned int numVert, 
-			DistanceFieldCollisionObject *co1, RigidBody *rb2, DistanceFieldCollisionObject *co2, 
+		void collisionDetectionRBSolid(const ParticleData &pd, const unsigned int offset, const unsigned int numVert,
+			DistanceFieldCollisionObject *co1, RigidBody *rb2, DistanceFieldCollisionObject *co2,
 			const Real restitutionCoeff, const Real frictionCoeff
 			, std::vector<std::vector<ContactData> > &contacts_mt
 			);
@@ -145,7 +145,7 @@ namespace PBD
 		 * @param  bodyIndex index of corresponding body
 		 * @param  bodyType type of corresponding body
 		 * @param  dim (radius, height) of cylinder
-		 */		
+		 */
 		void addCollisionCylinder(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector2r &dim, const bool testMesh = true, const bool invertSDF = false);
 	};
 }
