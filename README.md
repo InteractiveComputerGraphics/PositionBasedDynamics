@@ -30,6 +30,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added implementation of the paper Kugelstadt, Schoemer, "Position and Orientation Based Cosserat Rods", SCA 2016
 * removed Boost dependency
 * added SceneGenerator.py to generate new scenarios easily by simple Python scripting
 * added scene loader based on json 
@@ -56,6 +57,9 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 * Demos 
 * Library is free even for commercial applications.
 * Library supports many constraints: 
+	- Elastic rods:
+		- bend-twist constraint
+		- stretch-shear constraint
 	- Deformable solids:		
 		- point-point distance constraint
 		- point-edge distance constraint
@@ -110,5 +114,6 @@ SIGGRAPH/Eurographics Symposium on Computer Animation, 2014
 * M. Müller, B. Heidelberger, M. Teschner and M. Gross, "Meshless deformations based on shape matching", ACM Trans. Graph. 24, 3, 2005
 * M. Macklin and M. Müller, "Position based fluids", ACM Trans. Graph. 32, 4, 2013
 * Dan Koschier, Crispin Deul and Jan Bender, "Hierarchical hp-Adaptive Signed Distance Fields", In Proceedings of ACM SIGGRAPH / EUROGRAPHICS Symposium on Computer Animation (SCA), 2016
+* Tassilo Kugelstadt, Elmar Schoemer, "Position and Orientation Based Cosserat Rods", In Proceedings of ACM SIGGRAPH / EUROGRAPHICS Symposium on Computer Animation (SCA), 2016
 
 

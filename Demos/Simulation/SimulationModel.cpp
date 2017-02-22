@@ -24,6 +24,13 @@ SimulationModel::SimulationModel()
 	m_contactStiffnessRigidBody = 1.0;
 	m_contactStiffnessParticleRigidBody = 100.0;
 
+	m_rod_shearingStiffness1 = 1.0;
+	m_rod_shearingStiffness2 = 1.0;
+	m_rod_stretchingStiffness = 1.0;
+	m_rod_bendingStiffness1 = 0.5;
+	m_rod_bendingStiffness2 = 0.5;
+	m_rod_twistingStiffness = 0.5;
+
 	m_groupsInitialized = false;
 
 	m_rigidBodyContactConstraints.reserve(10000);
@@ -47,10 +54,14 @@ void SimulationModel::cleanup()
 	for (unsigned int i = 0; i < m_tetModels.size(); i++)
 		delete m_tetModels[i];
 	m_tetModels.clear();
+	for (unsigned int i = 0; i < m_lineModels.size(); i++)
+		delete m_lineModels[i];
+	m_lineModels.clear();
 	for (unsigned int i = 0; i < m_constraints.size(); i++)
 		delete m_constraints[i];
 	m_constraints.clear();
 	m_particles.release();
+	m_orientations.release();
 	m_groupsInitialized = false;
 }
 
@@ -76,6 +87,17 @@ void SimulationModel::reset()
 		m_particles.getAcceleration(i).setZero();
 	}
 
+	// orientations
+	for(unsigned int i = 0; i < m_orientations.size(); i++)
+	{
+		const Quaternionr& q0 = m_orientations.getQuaternion0(i);
+		m_orientations.getQuaternion(i) = q0;
+		m_orientations.getLastQuaternion(i) = q0;
+		m_orientations.getOldQuaternion(i) = q0;
+		m_orientations.getVelocity(i).setZero();
+		m_orientations.getAcceleration(i).setZero();
+	}
+
 	updateConstraints();
 }
 
@@ -89,6 +111,11 @@ ParticleData & SimulationModel::getParticles()
 	return m_particles;
 }
 
+OrientationData & SimulationModel::getOrientations()
+{
+	return m_orientations;
+}
+
 SimulationModel::TriangleModelVector & SimulationModel::getTriangleModels()
 {
 	return m_triangleModels;
@@ -97,6 +124,11 @@ SimulationModel::TriangleModelVector & SimulationModel::getTriangleModels()
 SimulationModel::TetModelVector & SimulationModel::getTetModels()
 {
 	return m_tetModels;
+}
+
+SimulationModel::LineModelVector & SimulationModel::getLineModels()
+{
+	return m_lineModels;
 }
 
 SimulationModel::ConstraintVector & SimulationModel::getConstraints()
@@ -386,6 +418,29 @@ bool SimulationModel::addShapeMatchingConstraint(const unsigned int numberOfPart
 	return res;
 }
 
+bool SimulationModel::addStretchShearConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1)
+{
+	StretchShearConstraint *c = new StretchShearConstraint();
+	const bool res = c->initConstraint(*this, particle1, particle2, quaternion1);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
+bool SimulationModel::addBendTwistConstraint(const unsigned int quaternion1, const unsigned int quaternion2)
+{
+	BendTwistConstraint *c = new BendTwistConstraint();
+	const bool res = c->initConstraint(*this, quaternion1, quaternion2);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
 
 void SimulationModel::addTriangleModel(
 	const unsigned int nPoints, 
@@ -428,7 +483,31 @@ void SimulationModel::addTetModel(
 	tetModel->initMesh(nPoints, nTets, startIndex, indices);
 }
 
+void SimulationModel::addLineModel(
+	const unsigned int nPoints,
+	const unsigned int nQuaternions,
+	Vector3r *points,
+	Quaternionr *quaternions,
+	unsigned int *indices,
+	unsigned int *indicesQuaternions)
+{
+	LineModel *lineModel = new LineModel();
+	m_lineModels.push_back(lineModel);
 
+	unsigned int startIndex = m_particles.size();
+	m_particles.reserve(startIndex + nPoints);
+
+	for (unsigned int i = 0; i < nPoints; i++)
+		m_particles.addVertex(points[i]);
+
+	unsigned int startIndexOrientations = m_orientations.size();
+	m_orientations.reserve(startIndexOrientations + nQuaternions);
+
+	for (unsigned int i = 0; i < nQuaternions; i++)
+		m_orientations.addQuaternion(quaternions[i]);
+
+	lineModel->initMesh(nPoints, nQuaternions, startIndex, startIndexOrientations, indices, indicesQuaternions);
+}
 
 void SimulationModel::initConstraintGroups()
 {

@@ -386,6 +386,32 @@ namespace PBD
 			const Real restitutionCoeff, const Real stiffness, const Real frictionCoeff);
 		virtual bool solveVelocityConstraint(SimulationModel &model);
 	};
+
+	class StretchShearConstraint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Real m_restLength;
+
+		StretchShearConstraint() : Constraint(3) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
+	class BendTwistConstraint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Quaternionr m_restDarbouxVector;
+
+		BendTwistConstraint() : Constraint(2) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel &model, const unsigned int quaternion1, const unsigned int quaternion2);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
 }
 
 #endif

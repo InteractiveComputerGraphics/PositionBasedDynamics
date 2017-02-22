@@ -5,6 +5,7 @@ add_definitions(-DPBD_DATA_PATH="../data")
 set(PBD_DEMOS 
 	BarDemo
 	ClothDemo
+	CosseratRodsDemo
 	CouplingDemos
 	DistanceFieldDemos
 	FluidDemo

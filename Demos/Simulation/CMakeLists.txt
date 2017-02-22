@@ -8,6 +8,8 @@ add_library(Simulation
 		DistanceFieldCollisionDetection.h
 		IDFactory.cpp
 		IDFactory.h
+		LineModel.cpp
+		LineModel.h
 		NeighborhoodSearchSpatialHashing.cpp
 		NeighborhoodSearchSpatialHashing.h
 		ParticleData.h

@@ -12,6 +12,59 @@ const int permutation[3][3] = {
 };
 
 // ----------------------------------------------------------------------------------------------
+bool PositionBasedCosseratRods::solve_StretchShearConstraint(
+	const Vector3r& p0, Real invMass0,
+	const Vector3r& p1, Real invMass1,
+	const Quaternionr& q0, Real invMassq0,
+	const Vector3r& stretchingAndShearingKs,
+	const Real restLength,
+	Vector3r& corr0, Vector3r& corr1, Quaternionr& corrq0)
+{
+	Vector3r d3;	//third director d3 = q0 * e_3 * q0_conjugate
+	d3[0] = 2.0 * (q0.x() * q0.z() + q0.w() * q0.y());
+	d3[1] = 2.0 * (q0.y() * q0.z() - q0.w() * q0.x());
+	d3[2] = q0.w() * q0.w() - q0.x() * q0.x() - q0.y() * q0.y() + q0.z() * q0.z();
+
+	Vector3r gamma = (p1 - p0) / restLength - d3;
+	gamma /= (invMass1 + invMass0) / restLength + invMassq0 * 4.0*restLength + 1.0e-6;
+	for (int i = 0; i<3; i++) gamma[i] *= stretchingAndShearingKs[i];
+
+	corr0 = invMass0 * gamma;
+	corr1 = -invMass1 * gamma;
+
+	Quaternionr q_e_3_bar(q0.z(), -q0.y(), q0.x(), -q0.w());	//compute q*e_3.conjugate (cheaper than quaternion product)
+	corrq0 = Quaternionr(0.0, gamma.x(), gamma.y(), gamma.z()) * q_e_3_bar;
+	corrq0.coeffs() *= 2.0 * invMassq0 * restLength;
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedCosseratRods::solve_BendTwistConstraint(
+	const Quaternionr& q0, Real invMassq0,
+	const Quaternionr& q1, Real invMassq1,
+	const Vector3r& bendingAndTwistingKs,
+	const Quaternionr& restDarbouxVector,
+	Quaternionr& corrq0, Quaternionr& corrq1)
+{
+	Quaternionr omega = q0.conjugate() * q1;   //darboux vector
+
+	Quaternionr omega_plus;
+	omega_plus.coeffs() = omega.coeffs() + restDarbouxVector.coeffs();     //delta Omega with -Omega_0
+	omega.coeffs() = omega.coeffs() - restDarbouxVector.coeffs();                 //delta Omega with + omega_0
+	if (omega.squaredNorm() > omega_plus.squaredNorm()) omega = omega_plus;
+
+	for (int i = 0; i < 3; i++) omega.coeffs()[i] *= bendingAndTwistingKs[i] / (invMassq0 + invMassq1 + 1.0e-6);
+	omega.w() = 0.0;    //discrete Darboux vector does not have vanishing scalar part
+
+	corrq0 = q1 * omega;
+	corrq1 = q0 * omega;
+	corrq0.coeffs() *= invMassq0;
+	corrq1.coeffs() *= -invMassq1;
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
 bool PositionBasedElasticRods::solve_PerpendiculaBisectorConstraint(
 	const Vector3r &p0, Real invMass0,
 	const Vector3r &p1, Real invMass1,

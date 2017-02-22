@@ -1,3 +1,4 @@
+	- added implementation of the paper Kugelstadt, Schoemer, "Position and Orientation Based Cosserat Rods", SCA 2016 and a corresponding demo
 	- update to Eigen 3.3
 	
 1.5.1

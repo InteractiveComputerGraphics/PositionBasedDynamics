@@ -34,6 +34,7 @@ void TimeStepController::step(SimulationModel &model)
 	clearAccelerations(model);
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	ParticleData &pd = model.getParticles();
+	OrientationData &od = model.getOrientations();
 
 	const int numBodies = (int)rb.size();
 	#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
@@ -59,6 +60,17 @@ void TimeStepController::step(SimulationModel &model)
 			pd.getLastPosition(i) = pd.getOldPosition(i);
 			pd.getOldPosition(i) = pd.getPosition(i);
 			TimeIntegration::semiImplicitEuler(h, pd.getMass(i), pd.getPosition(i), pd.getVelocity(i), pd.getAcceleration(i));
+		}
+
+		//////////////////////////////////////////////////////////////////////////
+		// orientation model
+		//////////////////////////////////////////////////////////////////////////
+		#pragma omp for schedule(static) 
+		for (int i = 0; i < (int)od.size(); i++)
+		{
+			od.getLastQuaternion(i) = od.getOldQuaternion(i);
+			od.getOldQuaternion(i) = od.getQuaternion(i);
+			TimeIntegration::semiImplicitEulerRotation(h, od.getMass(i), od.getInvMass(i) * Matrix3r::Identity() ,od.getQuaternion(i), od.getVelocity(i), Vector3r(0,0,0));
 		}
 	}
 
@@ -94,6 +106,16 @@ void TimeStepController::step(SimulationModel &model)
 				TimeIntegration::velocityUpdateFirstOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getVelocity(i));
 			else
 				TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
+		}
+
+		// Update velocites of orientations
+		#pragma omp for schedule(static) 
+		for (int i = 0; i < (int)od.size(); i++)
+		{
+			if (m_velocityUpdateMethod == 0)
+				TimeIntegration::angularVelocityUpdateFirstOrder(h, od.getMass(i), od.getQuaternion(i), od.getOldQuaternion(i), od.getVelocity(i));
+			else
+				TimeIntegration::angularVelocityUpdateSecondOrder(h, od.getMass(i), od.getQuaternion(i), od.getOldQuaternion(i), od.getLastQuaternion(i), od.getVelocity(i));
 		}
 	}
 

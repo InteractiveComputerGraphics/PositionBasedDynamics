@@ -4,6 +4,7 @@
 #include "PositionBasedDynamics/PositionBasedRigidBodyDynamics.h"
 #include "TimeManager.h"
 #include "Demos/Simulation/IDFactory.h"
+#include "PositionBasedDynamics/PositionBasedElasticRods.h"
 
 using namespace PBD;
 
@@ -29,6 +30,8 @@ int TargetPositionMotorSliderJoint::TYPE_ID = IDFactory::getId();
 int TargetVelocityMotorSliderJoint::TYPE_ID = IDFactory::getId();
 int RigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
 int ParticleRigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
+int StretchShearConstraint::TYPE_ID = IDFactory::getId();
+int BendTwistConstraint::TYPE_ID = IDFactory::getId();
 
 //////////////////////////////////////////////////////////////////////////
 // BallJoint
@@ -1607,3 +1610,121 @@ bool ParticleRigidBodyContactConstraint::solveVelocityConstraint(SimulationModel
 	return res;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// StretchShearConstraint
+//////////////////////////////////////////////////////////////////////////
+bool StretchShearConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1)
+{
+	m_bodies[0] = particle1;
+	m_bodies[1] = particle2;
+	m_bodies[2] = quaternion1;
+	ParticleData &pd = model.getParticles();
+
+	const Vector3r &x1_0 = pd.getPosition0(particle1);
+	const Vector3r &x2_0 = pd.getPosition0(particle2);
+
+	m_restLength = (x2_0 - x1_0).norm();
+
+	return true;
+}
+
+bool StretchShearConstraint::solvePositionConstraint(SimulationModel &model)
+{
+	ParticleData &pd = model.getParticles();
+	OrientationData &od = model.getOrientations();
+
+	const unsigned i1 = m_bodies[0];
+	const unsigned i2 = m_bodies[1];
+	const unsigned iq1 = m_bodies[2];
+
+	Vector3r &x1 = pd.getPosition(i1);
+	Vector3r &x2 = pd.getPosition(i2);
+	Quaternionr &q1 = od.getQuaternion(iq1);
+	const Real invMass1 = pd.getInvMass(i1);
+	const Real invMass2 = pd.getInvMass(i2);
+	const Real invMassq1 = od.getInvMass(iq1);
+	Vector3r stiffness(model.getRodShearingStiffness1(), 
+					   model.getRodShearingStiffness2(), 
+					   model.getRodStretchingStiffness());
+
+	Vector3r corr1, corr2;
+	Quaternionr corrq1;
+	const bool res = PositionBasedCosseratRods::solve_StretchShearConstraint(
+		x1, invMass1, x2, invMass2, q1, invMassq1, 
+		stiffness,
+		m_restLength, corr1, corr2, corrq1);
+
+	if (res)
+	{
+		if (invMass1 != 0.0)
+			x1 += corr1;
+		if (invMass2 != 0.0)
+			x2 += corr2;
+		if (invMassq1 != 0.0)
+		{
+			q1.coeffs() += corrq1.coeffs();
+			q1.normalize();
+		}
+	}
+	return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BendTwistConstraint
+//////////////////////////////////////////////////////////////////////////
+bool BendTwistConstraint::initConstraint(SimulationModel &model, const unsigned int quaternion1, const unsigned int quaternion2)
+{
+	m_bodies[0] = quaternion1;
+	m_bodies[1] = quaternion2;
+	OrientationData &od = model.getOrientations();
+
+	const Quaternionr &q1_0 = od.getQuaternion(quaternion1);
+	const Quaternionr &q2_0 = od.getQuaternion(quaternion2);
+
+	m_restDarbouxVector = q1_0.conjugate() * q2_0;
+	Quaternionr omega_plus, omega_minus;
+	omega_plus.coeffs() = m_restDarbouxVector.coeffs() + Quaternionr(1, 0, 0, 0).coeffs();
+	omega_minus.coeffs() = m_restDarbouxVector.coeffs() - Quaternionr(1, 0, 0, 0).coeffs();
+	if (omega_minus.squaredNorm() > omega_plus.squaredNorm())
+		m_restDarbouxVector.coeffs() *= -1.0;
+
+	return true;
+}
+
+bool BendTwistConstraint::solvePositionConstraint(SimulationModel &model)
+{
+	OrientationData &od = model.getOrientations();
+
+	const unsigned i1 = m_bodies[0];
+	const unsigned i2 = m_bodies[1];
+
+	Quaternionr &q1 = od.getQuaternion(i1);
+	Quaternionr &q2 = od.getQuaternion(i2);
+	const Real invMass1 = od.getInvMass(i1);
+	const Real invMass2 = od.getInvMass(i2);
+	Vector3r stiffness(model.getRodBendingStiffness1(), 
+					   model.getRodBendingStiffness2(), 
+					   model.getRodTwistingStiffness());
+
+	Quaternionr corr1, corr2;
+	const bool res = PositionBasedCosseratRods::solve_BendTwistConstraint(
+		q1, invMass1, q2, invMass2, 
+		stiffness,
+		m_restDarbouxVector, corr1, corr2);
+
+	if (res)
+	{
+		if (invMass1 != 0.0)
+		{
+			q1.coeffs() += corr1.coeffs();
+			q1.normalize();
+		}
+			
+		if (invMass2 != 0.0)
+		{
+			q2.coeffs() += corr2.coeffs();
+			q2.normalize();
+		}
+	}
+	return res;
+}

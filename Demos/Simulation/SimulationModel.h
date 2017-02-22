@@ -7,6 +7,7 @@
 #include "Demos/Simulation/ParticleData.h"
 #include "TriangleModel.h"
 #include "TetModel.h"
+#include "LineModel.h"
 #include "Demos/Utils/ObjectArray.h"
 
 namespace PBD 
@@ -25,6 +26,7 @@ namespace PBD
 			typedef std::vector<RigidBody*> RigidBodyVector;
 			typedef std::vector<TriangleModel*> TriangleModelVector;
 			typedef std::vector<TetModel*> TetModelVector;
+			typedef std::vector<LineModel*> LineModelVector;
 			typedef std::vector<unsigned int> ConstraintGroup;
 			typedef std::vector<ConstraintGroup> ConstraintGroupVector;
 
@@ -33,7 +35,9 @@ namespace PBD
 			RigidBodyVector m_rigidBodies;
 			TriangleModelVector m_triangleModels;
 			TetModelVector m_tetModels;
+			LineModelVector m_lineModels;
 			ParticleData m_particles;
+			OrientationData m_orientations;
 			ConstraintVector m_constraints;
 			RigidBodyContactConstraintVector m_rigidBodyContactConstraints;
 			ParticleRigidBodyContactConstraintVector m_particleRigidBodyContactConstraints;
@@ -57,14 +61,23 @@ namespace PBD
 			Real m_contactStiffnessRigidBody;
 			Real m_contactStiffnessParticleRigidBody;
 
+			Real m_rod_stretchingStiffness;
+			Real m_rod_shearingStiffness1;
+			Real m_rod_shearingStiffness2;
+			Real m_rod_bendingStiffness1;
+			Real m_rod_bendingStiffness2;
+			Real m_rod_twistingStiffness;
+
 	public:
 			void reset();			
 			void cleanup();
 
 			RigidBodyVector &getRigidBodies();
 			ParticleData &getParticles();
+			OrientationData &getOrientations();
 			TriangleModelVector &getTriangleModels();
 			TetModelVector &getTetModels();
+			LineModelVector &getLineModels();
 			ConstraintVector &getConstraints();
 			RigidBodyContactConstraintVector &getRigidBodyContactConstraints();
 			ParticleRigidBodyContactConstraintVector &getParticleRigidBodyContactConstraints();
@@ -86,6 +99,14 @@ namespace PBD
 				const unsigned int nTets, 
 				Vector3r *points,
 				unsigned int* indices);
+
+			void addLineModel(
+				const unsigned int nPoints,
+				const unsigned int nQuaternions,
+				Vector3r *points,
+				Quaternionr *quaternions,
+				unsigned int *indices,
+				unsigned int *indicesQuaternions);
 
 			void updateConstraints();
 			void initConstraintGroups();
@@ -123,7 +144,8 @@ namespace PBD
 			bool addStrainTetConstraint(const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);
 			bool addShapeMatchingConstraint(const unsigned int numberOfParticles, const unsigned int particleIndices[], const unsigned int numClusters[]);
-
+			bool addStretchShearConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1);
+			bool addBendTwistConstraint(const unsigned int quaternion1, const unsigned int quaternion2);
 
 			Real getClothStiffness() const { return m_cloth_stiffness; }
 			void setClothStiffness(Real val) { m_cloth_stiffness = val; }
@@ -157,6 +179,19 @@ namespace PBD
 			void setContactStiffnessRigidBody(Real val) { m_contactStiffnessRigidBody = val; }
 			Real getContactStiffnessParticleRigidBody() const { return m_contactStiffnessParticleRigidBody; }
 			void setContactStiffnessParticleRigidBody(Real val) { m_contactStiffnessParticleRigidBody = val; }
+		
+		    Real getRodStretchingStiffness() const { return m_rod_stretchingStiffness;  }
+			void setRodStretchingStiffness(Real val) { m_rod_stretchingStiffness = val; }
+			Real getRodShearingStiffness1() const { return m_rod_shearingStiffness1; }
+			void setRodShearingStiffness1(Real val) { m_rod_shearingStiffness1 = val; }
+			Real getRodShearingStiffness2() const { return m_rod_shearingStiffness2; }
+			void setRodShearingStiffness2(Real val) { m_rod_shearingStiffness2 = val; }
+			Real getRodBendingStiffness1() const { return m_rod_bendingStiffness1; }
+			void setRodBendingStiffness1(Real val) { m_rod_bendingStiffness1 = val; }
+			Real getRodBendingStiffness2() const { return m_rod_bendingStiffness2; }
+			void setRodBendingStiffness2(Real val) { m_rod_bendingStiffness2 = val; }
+			Real getRodTwistingStiffness() const { return m_rod_twistingStiffness; }
+			void setRodTwistingStiffness(Real val) { m_rod_twistingStiffness = val; }
 	};
 }
 
