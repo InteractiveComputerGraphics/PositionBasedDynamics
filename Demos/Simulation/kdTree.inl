@@ -1,5 +1,6 @@
 
 #include "BoundingSphere.h"
+#include <cstring>
 #include "omp.h"
 
 template<typename HullType> void
@@ -127,8 +128,10 @@ KDTree<HullType>::traverse_breadth_first_parallel(TraversalPredicate pred,
 #endif
 
 	// compute ceiling of Log2
-	Real d = maxThreads - 1;
-	const unsigned int targetDepth = (*reinterpret_cast<long long*>(&d) >> 52) - 1022;
+	// assuming double and long long have the same size.
+	double d = maxThreads - 1;
+	long long ll;  memcpy( &ll, &d, sizeof(d));
+	const unsigned int targetDepth = (ll >> 52) - 1022ll;
 	
 	traverse_breadth_first(
 		[&start_nodes, &maxThreads, &targetDepth](unsigned int node_index, unsigned int depth)
