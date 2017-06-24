@@ -29,7 +29,7 @@ add_executable(GenericParticleConstraintsDemo
 	  CMakeLists.txt
 )
 
-add_definitions(-DTW_NO_LIB_PRAGMA -DTW_STATIC)
+add_definitions(-DTW_NO_LIB_PRAGMA -DTW_STATIC -DFREEGLUT_LIB_PRAGMAS=0)
 
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
