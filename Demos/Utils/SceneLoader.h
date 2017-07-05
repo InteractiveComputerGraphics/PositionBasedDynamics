@@ -137,6 +137,8 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+			std::vector<Real> m_targetSequence;
+			bool m_repeat;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			PDB_MAKE_ALIGNED_OPERATOR_NEW
@@ -148,6 +150,8 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+			std::vector<Real> m_targetSequence;
+			bool m_repeat;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -159,6 +163,8 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+			std::vector<Real> m_targetSequence;
+			bool m_repeat;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -170,6 +176,8 @@ namespace PBD
 			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
+			std::vector<Real> m_targetSequence;
+			bool m_repeat;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW

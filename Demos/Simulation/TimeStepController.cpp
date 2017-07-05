@@ -127,6 +127,46 @@ void TimeStepController::step(SimulationModel &model)
 	}
 
 	velocityConstraintProjection(model);
+
+	//////////////////////////////////////////////////////////////////////////
+	// update motor joint targets
+	//////////////////////////////////////////////////////////////////////////
+	SimulationModel::ConstraintVector &constraints = model.getConstraints();
+	for (unsigned int i = 0; i < constraints.size(); i++)
+	{
+		if ((constraints[i]->getTypeId() == TargetAngleMotorHingeJoint::TYPE_ID) ||
+			(constraints[i]->getTypeId() == TargetVelocityMotorHingeJoint::TYPE_ID) ||
+			(constraints[i]->getTypeId() == TargetPositionMotorSliderJoint::TYPE_ID) ||
+			(constraints[i]->getTypeId() == TargetVelocityMotorSliderJoint::TYPE_ID))
+		{
+			MotorJoint *motor = (MotorJoint*)constraints[i];
+			const std::vector<Real> sequence = motor->getTargetSequence();
+			if (sequence.size() > 0)
+			{
+				Real time = tm->getTime();
+				const Real sequenceDuration = sequence[sequence.size() - 2] - sequence[0];
+				if (motor->getRepeatSequence())
+				{
+					while (time > sequenceDuration)
+						time -= sequenceDuration;
+				}
+				unsigned int index = 0;
+				while ((2*index < sequence.size()) && (sequence[2 * index] <= time))
+					index++;
+
+				// linear interpolation
+				Real target = 0.0;
+				if (2 * index < sequence.size())
+				{
+					const Real alpha = (time - sequence[2 * (index - 1)]) / (sequence[2 * index] - sequence[2 * (index - 1)]);
+					target = (1.0 - alpha) * sequence[2 * index - 1] + alpha * sequence[2 * index + 1];
+				}
+				else
+					target = sequence[sequence.size() - 1];
+				motor->setTarget(target);
+			}
+		}
+	}
 	
 	// compute new time	
 	tm->setTime (tm->getTime () + h);

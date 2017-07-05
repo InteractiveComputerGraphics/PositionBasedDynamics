@@ -75,3 +75,41 @@ EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(operator/,quotient)
 template<typename T>
 const CwiseBinaryOp<internal::scalar_quotient_op<Scalar,T>,Derived,Constant<T> > operator/(const T& scalar) const;
 #endif
+
+/** \returns an expression of the coefficient-wise boolean \b and operator of \c *this and \a other
+  *
+  * \warning this operator is for expression of bool only.
+  *
+  * Example: \include Cwise_boolean_and.cpp
+  * Output: \verbinclude Cwise_boolean_and.out
+  *
+  * \sa operator||(), select()
+  */
+template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
+inline const CwiseBinaryOp<internal::scalar_boolean_and_op, const Derived, const OtherDerived>
+operator&&(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value && internal::is_same<bool,typename OtherDerived::Scalar>::value),
+                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
+  return CwiseBinaryOp<internal::scalar_boolean_and_op, const Derived, const OtherDerived>(derived(),other.derived());
+}
+
+/** \returns an expression of the coefficient-wise boolean \b or operator of \c *this and \a other
+  *
+  * \warning this operator is for expression of bool only.
+  *
+  * Example: \include Cwise_boolean_or.cpp
+  * Output: \verbinclude Cwise_boolean_or.out
+  *
+  * \sa operator&&(), select()
+  */
+template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
+inline const CwiseBinaryOp<internal::scalar_boolean_or_op, const Derived, const OtherDerived>
+operator||(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value && internal::is_same<bool,typename OtherDerived::Scalar>::value),
+                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
+  return CwiseBinaryOp<internal::scalar_boolean_or_op, const Derived, const OtherDerived>(derived(),other.derived());
+}

@@ -56,7 +56,6 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
   : public evaluator_base<Transpose<ArgType> >
 {
     typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
-    typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
   public:
     typedef Transpose<ArgType> XprType;
     
@@ -73,17 +72,6 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
       
       Index row() const { return EvalIterator::col(); }
       Index col() const { return EvalIterator::row(); }
-    };
-    
-    class ReverseInnerIterator : public EvalReverseIterator
-    {
-    public:
-      EIGEN_STRONG_INLINE ReverseInnerIterator(const unary_evaluator& unaryOp, Index outer)
-        : EvalReverseIterator(unaryOp.m_argImpl,outer)
-      {}
-      
-      Index row() const { return EvalReverseIterator::col(); }
-      Index col() const { return EvalReverseIterator::row(); }
     };
     
     enum {

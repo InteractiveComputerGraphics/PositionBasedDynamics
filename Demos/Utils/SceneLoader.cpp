@@ -535,9 +535,26 @@ void SceneLoader::readTargetAngleMotorHingeJoints(const nlohmann::json &j, const
 		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
 			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
 			readVector(joint, "position", jd.m_position) &&
-			readVector(joint, "axis", jd.m_axis) &&
-			readValue(joint, "target", jd.m_target))
+			readVector(joint, "axis", jd.m_axis))
 		{
+			if (!readValue(joint, "target", jd.m_target))
+			{
+				jd.m_target = 0.0;
+
+				// target sequence
+				unsigned int index = 0;
+				if (joint.find("targetSequence") != joint.end())
+				{
+					jd.m_targetSequence.reserve((unsigned int)joint["targetSequence"].size());
+					for (auto& item : joint["targetSequence"])
+						jd.m_targetSequence.push_back(item.get<Real>());
+
+					// be sure that we have an even number of values
+					if (jd.m_targetSequence.size() % 2 == 1)
+						jd.m_targetSequence.pop_back();
+					readValue(joint, "repeatSequence", jd.m_repeat);
+				}
+			}
 			sceneData.m_targetAngleMotorHingeJointData.push_back(jd);
 		}
 	}
@@ -553,9 +570,26 @@ void SceneLoader::readTargetVelocityMotorHingeJoints(const nlohmann::json &j, co
 		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
 			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
 			readVector(joint, "position", jd.m_position) &&
-			readVector(joint, "axis", jd.m_axis) &&
-			readValue(joint, "target", jd.m_target))
+			readVector(joint, "axis", jd.m_axis))
 		{
+			if (!readValue(joint, "target", jd.m_target))
+			{
+				jd.m_target = 0.0;
+
+				// target sequence
+				unsigned int index = 0;
+				if (joint.find("targetSequence") != joint.end())
+				{
+					jd.m_targetSequence.reserve((unsigned int)joint["targetSequence"].size());
+					for (auto& item : joint["targetSequence"])
+						jd.m_targetSequence.push_back(item.get<Real>());
+
+					// be sure that we have an even number of values
+					if (jd.m_targetSequence.size() % 2 == 1)
+						jd.m_targetSequence.pop_back();
+					readValue(joint, "repeatSequence", jd.m_repeat);
+				}
+			}
 			sceneData.m_targetVelocityMotorHingeJointData.push_back(jd);
 		}
 	}
@@ -571,9 +605,26 @@ void SceneLoader::readTargetPositionMotorSliderJoints(const nlohmann::json &j, c
 		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
 			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
 			readVector(joint, "position", jd.m_position) &&
-			readVector(joint, "axis", jd.m_axis) &&
-			readValue(joint, "target", jd.m_target))
+			readVector(joint, "axis", jd.m_axis))
 		{
+			if (!readValue(joint, "target", jd.m_target))
+			{
+				jd.m_target = 0.0;
+
+				// target sequence
+				unsigned int index = 0;
+				if (joint.find("targetSequence") != joint.end())
+				{
+					jd.m_targetSequence.reserve((unsigned int)joint["targetSequence"].size());
+					for (auto& item : joint["targetSequence"])
+						jd.m_targetSequence.push_back(item.get<Real>());
+
+					// be sure that we have an even number of values
+					if (jd.m_targetSequence.size() % 2 == 1)
+						jd.m_targetSequence.pop_back();
+					readValue(joint, "repeatSequence", jd.m_repeat);
+				}
+			}
 			sceneData.m_targetPositionMotorSliderJointData.push_back(jd);
 		}
 	}
@@ -589,9 +640,26 @@ void SceneLoader::readTargetVelocityMotorSliderJoints(const nlohmann::json &j, c
 		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
 			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
 			readVector(joint, "position", jd.m_position) &&
-			readVector(joint, "axis", jd.m_axis) &&
-			readValue(joint, "target", jd.m_target))
+			readVector(joint, "axis", jd.m_axis))
 		{
+			if (!readValue(joint, "target", jd.m_target))
+			{
+				jd.m_target = 0.0;
+
+				// target sequence
+				unsigned int index = 0;
+				if (joint.find("targetSequence") != joint.end())
+				{
+					jd.m_targetSequence.reserve((unsigned int)joint["targetSequence"].size());
+					for (auto& item : joint["targetSequence"])
+						jd.m_targetSequence.push_back(item.get<Real>());
+
+					// be sure that we have an even number of values
+					if (jd.m_targetSequence.size() % 2 == 1)
+						jd.m_targetSequence.pop_back();
+					readValue(joint, "repeatSequence", jd.m_repeat);
+				}
+			}
 			sceneData.m_targetVelocityMotorSliderJointData.push_back(jd);
 		}
 	}

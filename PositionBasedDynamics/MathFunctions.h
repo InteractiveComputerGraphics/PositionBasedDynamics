@@ -43,6 +43,13 @@ namespace PBD
 		 * @param  v_hat	resulting cross product matrix
 		 */	
 		static void crossProductMatrix(const Vector3r &v, Matrix3r &v_hat);
+
+		/** Implementation of the paper: \n
+		 * Matthias Müller, Jan Bender, Nuttapong Chentanez and Miles Macklin, 
+		 * "A Robust Method to Extract the Rotational Part of Deformations", 
+		 * ACM SIGGRAPH Motion in Games, 2016
+		 */
+		static void extractRotation(const Matrix3r &A, Quaternionr &q, const unsigned int maxIter);
 	};
 }
 

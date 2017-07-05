@@ -224,11 +224,11 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
       }
       else
       {
-        m_start.value() = mat.outerIndexPtr()[outer];
+        m_start = mat.outerIndexPtr()[outer];
         if(mat.isCompressed())
           m_id = mat.outerIndexPtr()[outer+1];
         else
-          m_id = m_start.value() + mat.innerNonZeroPtr()[outer];
+          m_id = m_start + mat.innerNonZeroPtr()[outer];
       }
     }
 
@@ -254,14 +254,15 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
     inline Index row() const { return IsRowMajor ? m_outer.value() : index(); }
     inline Index col() const { return IsRowMajor ? index() : m_outer.value(); }
 
-    inline operator bool() const { return (m_id > m_start.value()); }
+    inline operator bool() const { return (m_id > m_start); }
 
   protected:
     const Scalar* m_values;
     const StorageIndex* m_indices;
-    const internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> m_outer;
+    typedef internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> OuterType;
+    const OuterType m_outer;
+    Index m_start;
     Index m_id;
-    const internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> m_start;
 };
 
 namespace internal {
@@ -272,18 +273,17 @@ struct evaluator<SparseCompressedBase<Derived> >
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::InnerIterator InnerIterator;
-  typedef typename Derived::ReverseInnerIterator ReverseInnerIterator;
   
   enum {
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     Flags = Derived::Flags
   };
   
-  evaluator() : m_matrix(0)
+  evaluator() : m_matrix(0), m_zero(0)
   {
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
-  explicit evaluator(const Derived &mat) : m_matrix(&mat)
+  explicit evaluator(const Derived &mat) : m_matrix(&mat), m_zero(0)
   {
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
@@ -296,26 +296,42 @@ struct evaluator<SparseCompressedBase<Derived> >
   operator const Derived&() const { return *m_matrix; }
   
   typedef typename DenseCoeffsBase<Derived,ReadOnlyAccessors>::CoeffReturnType CoeffReturnType;
-  Scalar coeff(Index row, Index col) const
-  { return m_matrix->coeff(row,col); }
-  
+  const Scalar& coeff(Index row, Index col) const
+  {
+    Index p = find(row,col);
+
+    if(p==Dynamic)
+      return m_zero;
+    else
+      return m_matrix->const_cast_derived().valuePtr()[p];
+  }
+
   Scalar& coeffRef(Index row, Index col)
   {
+    Index p = find(row,col);
+    eigen_assert(p!=Dynamic && "written coefficient does not exist");
+    return m_matrix->const_cast_derived().valuePtr()[p];
+  }
+
+protected:
+
+  Index find(Index row, Index col) const
+  {
     eigen_internal_assert(row>=0 && row<m_matrix->rows() && col>=0 && col<m_matrix->cols());
-      
+
     const Index outer = Derived::IsRowMajor ? row : col;
     const Index inner = Derived::IsRowMajor ? col : row;
 
     Index start = m_matrix->outerIndexPtr()[outer];
     Index end = m_matrix->isCompressed() ? m_matrix->outerIndexPtr()[outer+1] : m_matrix->outerIndexPtr()[outer] + m_matrix->innerNonZeroPtr()[outer];
-    eigen_assert(end>start && "you are using a non finalized sparse matrix or written coefficient does not exist");
-    const Index p =   std::lower_bound(m_matrix->innerIndexPtr()+start, m_matrix->innerIndexPtr()+end,inner)
-                    - m_matrix->innerIndexPtr();
-    eigen_assert((p<end) && (m_matrix->innerIndexPtr()[p]==inner) && "written coefficient does not exist");
-    return m_matrix->const_cast_derived().valuePtr()[p];
+    eigen_assert(end>=start && "you are using a non finalized sparse matrix or written coefficient does not exist");
+    const Index p = std::lower_bound(m_matrix->innerIndexPtr()+start, m_matrix->innerIndexPtr()+end,inner) - m_matrix->innerIndexPtr();
+
+    return ((p<end) && (m_matrix->innerIndexPtr()[p]==inner)) ? p : Dynamic;
   }
 
   const Derived *m_matrix;
+  const Scalar m_zero;
 };
 
 }

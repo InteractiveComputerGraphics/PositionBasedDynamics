@@ -445,15 +445,11 @@ template<typename T, int n, typename PlainObject = typename plain_object_eval<T>
                                                   //      Another solution could be to count the number of temps?
     NAsInteger = n == Dynamic ? HugeCost : n,
     CostEval   = (NAsInteger+1) * ScalarReadCost + CoeffReadCost,
-    CostNoEval = NAsInteger * CoeffReadCost
+    CostNoEval = NAsInteger * CoeffReadCost,
+    Evaluate = (int(evaluator<T>::Flags) & EvalBeforeNestingBit) || (int(CostEval) < int(CostNoEval))
   };
 
-  typedef typename conditional<
-        ( (int(evaluator<T>::Flags) & EvalBeforeNestingBit) ||
-          (int(CostEval) < int(CostNoEval)) ),
-        PlainObject,
-        typename ref_selector<T>::type
-  >::type type;
+  typedef typename conditional<Evaluate, PlainObject, typename ref_selector<T>::type>::type type;
 };
 
 template<typename T>
@@ -535,6 +531,15 @@ template <typename A, typename Functor>                   struct cwise_promote_s
 template <typename B, typename Functor>                   struct cwise_promote_storage_type<Dense,B,Functor>                                  { typedef Dense  ret; };
 template <typename Functor>                               struct cwise_promote_storage_type<Sparse,Dense,Functor>                             { typedef Sparse ret; };
 template <typename Functor>                               struct cwise_promote_storage_type<Dense,Sparse,Functor>                             { typedef Sparse ret; };
+
+template <typename LhsKind, typename RhsKind, int LhsOrder, int RhsOrder> struct cwise_promote_storage_order {
+  enum { value = LhsOrder };
+};
+
+template <typename LhsKind, int LhsOrder, int RhsOrder>   struct cwise_promote_storage_order<LhsKind,Sparse,LhsOrder,RhsOrder>                { enum { value = RhsOrder }; };
+template <typename RhsKind, int LhsOrder, int RhsOrder>   struct cwise_promote_storage_order<Sparse,RhsKind,LhsOrder,RhsOrder>                { enum { value = LhsOrder }; };
+template <int Order>                                      struct cwise_promote_storage_order<Sparse,Sparse,Order,Order>                       { enum { value = Order }; };
+
 
 /** \internal Specify the "storage kind" of multiplying an expression of kind A with kind B.
   * The template parameter ProductTag permits to specialize the resulting storage kind wrt to
@@ -633,7 +638,7 @@ struct plain_constant_type
 template<typename ExpressionType>
 struct is_lvalue
 {
-  enum { value = !bool(is_const<ExpressionType>::value) &&
+  enum { value = (!bool(is_const<ExpressionType>::value)) &&
                  bool(traits<ExpressionType>::Flags & LvalueBit) };
 };
 

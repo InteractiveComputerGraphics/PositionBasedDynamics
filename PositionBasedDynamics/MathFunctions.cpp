@@ -403,3 +403,18 @@ void MathFunctions::crossProductMatrix(const Vector3r &v, Matrix3r &v_hat)
 		-v(1), v(0), 0;
 }
 
+// ----------------------------------------------------------------------------------------------
+void MathFunctions::extractRotation(const Matrix3r &A, Quaternionr &q,	const unsigned int maxIter)
+{
+	for (unsigned int iter = 0; iter < maxIter; iter++)
+	{
+		Matrix3r R = q.matrix();
+		Vector3r omega = (R.col(0).cross(A.col(0)) + R.col(1).cross(A.col(1)) + R.col(2).cross(A.col(2))) * 
+			(1.0 / fabs(R.col(0).dot(A.col(0)) + R.col(1).dot(A.col(1)) + R.col(2).dot(A.col(2)) + 1.0e-9));
+		Real w = omega.norm();
+		if (w < 1.0e-9)
+			break;
+		q = Quaternionr(AngleAxisr(w, (1.0 / w) * omega)) *	q;
+		q.normalize();
+	}
+}

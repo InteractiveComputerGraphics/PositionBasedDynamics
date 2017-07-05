@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2007 Julien Pommier
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2016 Konstantinos Margaritis <markos@freevec.org>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -19,31 +20,31 @@ namespace Eigen {
 
 namespace internal {
 
+static _EIGEN_DECLARE_CONST_Packet2d(1 , 1.0);
+static _EIGEN_DECLARE_CONST_Packet2d(2 , 2.0);
+static _EIGEN_DECLARE_CONST_Packet2d(half, 0.5);
+
+static _EIGEN_DECLARE_CONST_Packet2d(exp_hi,  709.437);
+static _EIGEN_DECLARE_CONST_Packet2d(exp_lo, -709.436139303);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_LOG2EF, 1.4426950408889634073599);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p0, 1.26177193074810590878e-4);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p1, 3.02994407707441961300e-2);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p2, 9.99999999999999999910e-1);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q0, 3.00198505138664455042e-6);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q1, 2.52448340349684104192e-3);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q2, 2.27265548208155028766e-1);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q3, 2.00000000000000000009e0);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C1, 0.693145751953125);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C2, 1.42860682030941723212e-6);
+
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d pexp<Packet2d>(const Packet2d& _x)
 {
   Packet2d x = _x;
-
-  _EIGEN_DECLARE_CONST_Packet2d(1 , 1.0);
-  _EIGEN_DECLARE_CONST_Packet2d(2 , 2.0);
-  _EIGEN_DECLARE_CONST_Packet2d(half, 0.5);
-
-  _EIGEN_DECLARE_CONST_Packet2d(exp_hi,  709.437);
-  _EIGEN_DECLARE_CONST_Packet2d(exp_lo, -709.436139303);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_LOG2EF, 1.4426950408889634073599);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p0, 1.26177193074810590878e-4);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p1, 3.02994407707441961300e-2);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p2, 9.99999999999999999910e-1);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q0, 3.00198505138664455042e-6);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q1, 2.52448340349684104192e-3);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q2, 2.27265548208155028766e-1);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q3, 2.00000000000000000009e0);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C1, 0.693145751953125);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C2, 1.42860682030941723212e-6);
 
   Packet2d tmp, fx;
   Packet2l emm0;
@@ -92,15 +93,41 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f pexp<Packet4f>(const Packet4f& x)
+{
+  Packet4f res;
+  res.v4f[0] = pexp<Packet2d>(x.v4f[0]);
+  res.v4f[1] = pexp<Packet2d>(x.v4f[1]);
+  return res;
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d psqrt<Packet2d>(const Packet2d& x)
 {
   return  __builtin_s390_vfsqdb(x);
 }
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f psqrt<Packet4f>(const Packet4f& x)
+{
+  Packet4f res;
+  res.v4f[0] = psqrt<Packet2d>(x.v4f[0]);
+  res.v4f[1] = psqrt<Packet2d>(x.v4f[1]);
+  return res;
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d prsqrt<Packet2d>(const Packet2d& x) {
   // Unfortunately we can't use the much faster mm_rqsrt_pd since it only provides an approximation.
   return pset1<Packet2d>(1.0) / psqrt<Packet2d>(x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f prsqrt<Packet4f>(const Packet4f& x) {
+  Packet4f res;
+  res.v4f[0] = prsqrt<Packet2d>(x.v4f[0]);
+  res.v4f[1] = prsqrt<Packet2d>(x.v4f[1]);
+  return res;
 }
 
 }  // end namespace internal

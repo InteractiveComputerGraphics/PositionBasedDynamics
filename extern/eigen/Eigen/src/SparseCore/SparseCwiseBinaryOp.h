@@ -45,7 +45,7 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
       EIGEN_STATIC_ASSERT((
                 (!internal::is_same<typename internal::traits<Lhs>::StorageKind,
                                     typename internal::traits<Rhs>::StorageKind>::value)
-            ||  ((Lhs::Flags&RowMajorBit) == (Rhs::Flags&RowMajorBit))),
+            ||  ((internal::evaluator<Lhs>::Flags&RowMajorBit) == (internal::evaluator<Rhs>::Flags&RowMajorBit))),
             THE_STORAGE_ORDER_OF_BOTH_SIDES_MUST_MATCH);
     }
 };
@@ -68,7 +68,6 @@ protected:
   typedef typename XprType::StorageIndex StorageIndex;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
   public:
@@ -111,6 +110,7 @@ public:
     EIGEN_STRONG_INLINE Scalar value() const { return m_value; }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_id; }
+    EIGEN_STRONG_INLINE Index outer() const { return m_lhsIter.outer(); }
     EIGEN_STRONG_INLINE Index row() const { return Lhs::IsRowMajor ? m_lhsIter.row() : index(); }
     EIGEN_STRONG_INLINE Index col() const { return Lhs::IsRowMajor ? index() : m_lhsIter.col(); }
 
@@ -161,7 +161,6 @@ protected:
   typedef typename XprType::StorageIndex StorageIndex;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
     enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
@@ -195,6 +194,7 @@ public:
     EIGEN_STRONG_INLINE Scalar value() const { eigen_internal_assert(m_id<m_innerSize); return m_value; }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_id; }
+    EIGEN_STRONG_INLINE Index outer() const { return m_rhsIter.outer(); }
     EIGEN_STRONG_INLINE Index row() const { return IsRowMajor ? m_rhsIter.outer() : m_id; }
     EIGEN_STRONG_INLINE Index col() const { return IsRowMajor ? m_id : m_rhsIter.outer(); }
 
@@ -249,7 +249,6 @@ protected:
   typedef typename XprType::StorageIndex StorageIndex;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
     enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
@@ -283,6 +282,7 @@ public:
     EIGEN_STRONG_INLINE Scalar value() const { eigen_internal_assert(m_id<m_innerSize); return m_value; }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_id; }
+    EIGEN_STRONG_INLINE Index outer() const { return m_lhsIter.outer(); }
     EIGEN_STRONG_INLINE Index row() const { return IsRowMajor ? m_lhsIter.outer() : m_id; }
     EIGEN_STRONG_INLINE Index col() const { return IsRowMajor ? m_id : m_lhsIter.outer(); }
 
@@ -325,26 +325,98 @@ protected:
   const XprType &m_expr;
 };
 
+template<typename T,
+         typename LhsKind   = typename evaluator_traits<typename T::Lhs>::Kind,
+         typename RhsKind   = typename evaluator_traits<typename T::Rhs>::Kind,
+         typename LhsScalar = typename traits<typename T::Lhs>::Scalar,
+         typename RhsScalar = typename traits<typename T::Rhs>::Scalar> struct sparse_conjunction_evaluator;
+
 // "sparse .* sparse"
 template<typename T1, typename T2, typename Lhs, typename Rhs>
 struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IteratorBased, IteratorBased>
-  : evaluator_base<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+// "dense .* sparse"
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IndexBased, IteratorBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+// "sparse .* dense"
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IteratorBased, IndexBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+
+// "sparse ./ dense"
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs>, IteratorBased, IndexBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_quotient_op<T1,T2>, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+
+// "sparse && sparse"
+template<typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs>, IteratorBased, IteratorBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+// "dense && sparse"
+template<typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs>, IndexBased, IteratorBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+// "sparse && dense"
+template<typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs>, IteratorBased, IndexBased>
+  : sparse_conjunction_evaluator<CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<scalar_boolean_and_op, Lhs, Rhs> XprType;
+  typedef sparse_conjunction_evaluator<XprType> Base;
+  explicit binary_evaluator(const XprType& xpr) : Base(xpr) {}
+};
+
+// "sparse ^ sparse"
+template<typename XprType>
+struct sparse_conjunction_evaluator<XprType, IteratorBased, IteratorBased>
+  : evaluator_base<XprType>
 {
 protected:
-  typedef scalar_product_op<T1,T2> BinaryOp;
-  typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
-  typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
-  typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef typename XprType::Functor BinaryOp;
+  typedef typename XprType::Lhs LhsArg;
+  typedef typename XprType::Rhs RhsArg;
+  typedef typename evaluator<LhsArg>::InnerIterator  LhsIterator;
+  typedef typename evaluator<RhsArg>::InnerIterator  RhsIterator;
   typedef typename XprType::StorageIndex StorageIndex;
   typedef typename traits<XprType>::Scalar Scalar;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
   public:
     
-    EIGEN_STRONG_INLINE InnerIterator(const binary_evaluator& aEval, Index outer)
+    EIGEN_STRONG_INLINE InnerIterator(const sparse_conjunction_evaluator& aEval, Index outer)
       : m_lhsIter(aEval.m_lhsImpl,outer), m_rhsIter(aEval.m_rhsImpl,outer), m_functor(aEval.m_functor)
     {
       while (m_lhsIter && m_rhsIter && (m_lhsIter.index() != m_rhsIter.index()))
@@ -373,6 +445,7 @@ public:
     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_lhsIter.value(), m_rhsIter.value()); }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_lhsIter.index(); }
+    EIGEN_STRONG_INLINE Index outer() const { return m_lhsIter.outer(); }
     EIGEN_STRONG_INLINE Index row() const { return m_lhsIter.row(); }
     EIGEN_STRONG_INLINE Index col() const { return m_lhsIter.col(); }
 
@@ -386,11 +459,11 @@ public:
   
   
   enum {
-    CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
+    CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
     Flags = XprType::Flags
   };
   
-  explicit binary_evaluator(const XprType& xpr)
+  explicit sparse_conjunction_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -405,32 +478,32 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  evaluator<Lhs> m_lhsImpl;
-  evaluator<Rhs> m_rhsImpl;
+  evaluator<LhsArg> m_lhsImpl;
+  evaluator<RhsArg> m_rhsImpl;
 };
 
-// "dense .* sparse"
-template<typename T1, typename T2, typename Lhs, typename Rhs>
-struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IndexBased, IteratorBased>
-  : evaluator_base<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
+// "dense ^ sparse"
+template<typename XprType>
+struct sparse_conjunction_evaluator<XprType, IndexBased, IteratorBased>
+  : evaluator_base<XprType>
 {
 protected:
-  typedef scalar_product_op<T1,T2> BinaryOp;
-  typedef evaluator<Lhs>  LhsEvaluator;
-  typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
-  typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef typename XprType::Functor BinaryOp;
+  typedef typename XprType::Lhs LhsArg;
+  typedef typename XprType::Rhs RhsArg;
+  typedef evaluator<LhsArg> LhsEvaluator;
+  typedef typename evaluator<RhsArg>::InnerIterator  RhsIterator;
   typedef typename XprType::StorageIndex StorageIndex;
   typedef typename traits<XprType>::Scalar Scalar;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
-    enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
+    enum { IsRowMajor = (int(RhsArg::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
     
-    EIGEN_STRONG_INLINE InnerIterator(const binary_evaluator& aEval, Index outer)
+    EIGEN_STRONG_INLINE InnerIterator(const sparse_conjunction_evaluator& aEval, Index outer)
       : m_lhsEval(aEval.m_lhsImpl), m_rhsIter(aEval.m_rhsImpl,outer), m_functor(aEval.m_functor), m_outer(outer)
     {}
 
@@ -444,6 +517,7 @@ public:
     { return m_functor(m_lhsEval.coeff(IsRowMajor?m_outer:m_rhsIter.index(),IsRowMajor?m_rhsIter.index():m_outer), m_rhsIter.value()); }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_rhsIter.index(); }
+    EIGEN_STRONG_INLINE Index outer() const { return m_rhsIter.outer(); }
     EIGEN_STRONG_INLINE Index row() const { return m_rhsIter.row(); }
     EIGEN_STRONG_INLINE Index col() const { return m_rhsIter.col(); }
 
@@ -458,12 +532,12 @@ public:
   
   
   enum {
-    CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
+    CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
     // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(Rhs::Flags)&RowMajorBit)
+    Flags = (XprType::Flags & ~RowMajorBit) | (int(RhsArg::Flags)&RowMajorBit)
   };
   
-  explicit binary_evaluator(const XprType& xpr)
+  explicit sparse_conjunction_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -478,32 +552,32 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  evaluator<Lhs> m_lhsImpl;
-  evaluator<Rhs> m_rhsImpl;
+  evaluator<LhsArg> m_lhsImpl;
+  evaluator<RhsArg> m_rhsImpl;
 };
 
-// "sparse .* dense"
-template<typename T1, typename T2, typename Lhs, typename Rhs>
-struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IteratorBased, IndexBased>
-  : evaluator_base<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
+// "sparse ^ dense"
+template<typename XprType>
+struct sparse_conjunction_evaluator<XprType, IteratorBased, IndexBased>
+  : evaluator_base<XprType>
 {
 protected:
-  typedef scalar_product_op<T1,T2> BinaryOp;
-  typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
-  typedef evaluator<Rhs>  RhsEvaluator;
-  typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef typename XprType::Functor BinaryOp;
+  typedef typename XprType::Lhs LhsArg;
+  typedef typename XprType::Rhs RhsArg;
+  typedef typename evaluator<LhsArg>::InnerIterator LhsIterator;
+  typedef evaluator<RhsArg> RhsEvaluator;
   typedef typename XprType::StorageIndex StorageIndex;
   typedef typename traits<XprType>::Scalar Scalar;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
-    enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
+    enum { IsRowMajor = (int(LhsArg::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
     
-    EIGEN_STRONG_INLINE InnerIterator(const binary_evaluator& aEval, Index outer)
+    EIGEN_STRONG_INLINE InnerIterator(const sparse_conjunction_evaluator& aEval, Index outer)
       : m_lhsIter(aEval.m_lhsImpl,outer), m_rhsEval(aEval.m_rhsImpl), m_functor(aEval.m_functor), m_outer(outer)
     {}
 
@@ -518,6 +592,7 @@ public:
                        m_rhsEval.coeff(IsRowMajor?m_outer:m_lhsIter.index(),IsRowMajor?m_lhsIter.index():m_outer)); }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_lhsIter.index(); }
+    EIGEN_STRONG_INLINE Index outer() const { return m_lhsIter.outer(); }
     EIGEN_STRONG_INLINE Index row() const { return m_lhsIter.row(); }
     EIGEN_STRONG_INLINE Index col() const { return m_lhsIter.col(); }
 
@@ -525,19 +600,19 @@ public:
     
   protected:
     LhsIterator m_lhsIter;
-    const evaluator<Rhs> &m_rhsEval;
+    const evaluator<RhsArg> &m_rhsEval;
     const BinaryOp& m_functor;
     const Index m_outer;
   };
   
   
   enum {
-    CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
+    CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
     // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(Lhs::Flags)&RowMajorBit)
+    Flags = (XprType::Flags & ~RowMajorBit) | (int(LhsArg::Flags)&RowMajorBit)
   };
   
-  explicit binary_evaluator(const XprType& xpr)
+  explicit sparse_conjunction_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -552,8 +627,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  evaluator<Lhs> m_lhsImpl;
-  evaluator<Rhs> m_rhsImpl;
+  evaluator<LhsArg> m_lhsImpl;
+  evaluator<RhsArg> m_rhsImpl;
 };
 
 }
@@ -561,6 +636,22 @@ protected:
 /***************************************************************************
 * Implementation of SparseMatrixBase and SparseCwise functions/operators
 ***************************************************************************/
+
+template<typename Derived>
+template<typename OtherDerived>
+Derived& SparseMatrixBase<Derived>::operator+=(const EigenBase<OtherDerived> &other)
+{
+  call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar,typename OtherDerived::Scalar>());
+  return derived();
+}
+
+template<typename Derived>
+template<typename OtherDerived>
+Derived& SparseMatrixBase<Derived>::operator-=(const EigenBase<OtherDerived> &other)
+{
+  call_assignment(derived(), other.derived(), internal::assign_op<Scalar,typename OtherDerived::Scalar>());
+  return derived();
+}
 
 template<typename Derived>
 template<typename OtherDerived>

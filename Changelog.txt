@@ -1,5 +1,6 @@
+	- added possibility to define motor target sequences in scene files
 	- added implementation of the paper Kugelstadt, Schoemer, "Position and Orientation Based Cosserat Rods", SCA 2016 and a corresponding demo
-	- update to Eigen 3.3
+	- update to Eigen 3.3.4
 	
 1.5.1
 	- added Timing class

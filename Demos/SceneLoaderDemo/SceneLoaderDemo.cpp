@@ -1159,28 +1159,36 @@ void readScene()
 	{
 		const SceneLoader::TargetAngleMotorHingeJointData &jd = data.m_targetAngleMotorHingeJointData[i];
 		model.addTargetAngleMotorHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
-		((TargetAngleMotorHingeJoint*)constraints[constraints.size() - 1])->setTargetAngle(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
+		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
 	}
 
 	for (unsigned int i = 0; i < data.m_targetVelocityMotorHingeJointData.size(); i++)
 	{
 		const SceneLoader::TargetVelocityMotorHingeJointData &jd = data.m_targetVelocityMotorHingeJointData[i];
 		model.addTargetVelocityMotorHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
-		((TargetVelocityMotorHingeJoint*)constraints[constraints.size() - 1])->setTargetAngularVelocity(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
+		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
 	}
 
 	for (unsigned int i = 0; i < data.m_targetPositionMotorSliderJointData.size(); i++)
 	{
 		const SceneLoader::TargetPositionMotorSliderJointData &jd = data.m_targetPositionMotorSliderJointData[i];
 		model.addTargetPositionMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
-		((TargetPositionMotorSliderJoint*)constraints[constraints.size() - 1])->setTargetPosition(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
+		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
 	}
 
 	for (unsigned int i = 0; i < data.m_targetVelocityMotorSliderJointData.size(); i++)
 	{
 		const SceneLoader::TargetVelocityMotorSliderJointData &jd = data.m_targetVelocityMotorSliderJointData[i];
 		model.addTargetVelocityMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
-		((TargetVelocityMotorSliderJoint*)constraints[constraints.size() - 1])->setTargetVelocity(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
+		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
+		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
 	}
 }
 

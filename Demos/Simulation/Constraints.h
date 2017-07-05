@@ -4,6 +4,7 @@
 #include "Common/Common.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
+#include <vector>
 
 namespace PBD
 {
@@ -103,36 +104,48 @@ namespace PBD
 		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
-	class TargetPositionMotorSliderJoint : public Constraint
+	class MotorJoint: public Constraint
+	{
+	public:
+		Real m_target;
+		std::vector<Real> m_targetSequence;
+		MotorJoint() : Constraint(2) { m_target = 0.0; }
+
+		virtual Real getTarget() const { return m_target; }
+		virtual void setTarget(const Real val) { m_target = val; }
+
+		virtual std::vector<Real> &getTargetSequence() { return m_targetSequence; }
+		virtual void setTargetSequence(const std::vector<Real> &val) { m_targetSequence = val; }
+
+		bool getRepeatSequence() const { return m_repeatSequence; }
+		void setRepeatSequence(bool val) { m_repeatSequence = val; }
+
+	private:
+		bool m_repeatSequence;
+	};
+
+	class TargetPositionMotorSliderJoint : public MotorJoint
 	{
 	public:
 		static int TYPE_ID;
 		Eigen::Matrix<Real, 3, 14> m_jointInfo;
-		Real m_targetPosition;
 
-		TargetPositionMotorSliderJoint() : Constraint(2) { m_targetPosition = 0.0; }
+		TargetPositionMotorSliderJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
-
-		Real getTargetPosition() const { return m_targetPosition; }
-		void setTargetPosition(const Real val) { m_targetPosition = val; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
 
-	class TargetVelocityMotorSliderJoint : public Constraint
+	class TargetVelocityMotorSliderJoint : public MotorJoint
 	{
 	public:
 		static int TYPE_ID;
 		Eigen::Matrix<Real, 3, 14> m_jointInfo;
-		Real m_targetVelocity;
 
-		TargetVelocityMotorSliderJoint() : Constraint(2) { m_targetVelocity = 0.0; }
+		TargetVelocityMotorSliderJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
-
-		Real getTargetVelocity() const { return m_targetVelocity; }
-		void setTargetVelocity(const Real val) { m_targetVelocity = val; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);
@@ -140,39 +153,35 @@ namespace PBD
 		virtual bool solveVelocityConstraint(SimulationModel &model);
 	};
 
-	class TargetAngleMotorHingeJoint : public Constraint
+	class TargetAngleMotorHingeJoint : public MotorJoint
 	{
 	public:
 		static int TYPE_ID;
 		Eigen::Matrix<Real, 3, 14> m_jointInfo;
-		Real m_targetAngle;
-		TargetAngleMotorHingeJoint() : Constraint(2) { m_targetAngle = 0.0; }
+		TargetAngleMotorHingeJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		Real getTargetAngle() const { return m_targetAngle; }
-		void setTargetAngle(const Real val) 
+		virtual void setTarget(const Real val) 
 		{ 
 			const Real pi = (Real)M_PI;
-			m_targetAngle = std::max(val, -pi);
-			m_targetAngle = std::min(m_targetAngle, pi);
+			m_target = std::max(val, -pi);
+			m_target = std::min(m_target, pi);
 		}
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model);
+	private:
+		std::vector<Real> m_targetSequence;
 	};
 
-	class TargetVelocityMotorHingeJoint : public Constraint
+	class TargetVelocityMotorHingeJoint : public MotorJoint
 	{
 	public:
 		static int TYPE_ID;
 		Eigen::Matrix<Real, 3, 14> m_jointInfo;
-		Real m_targetAngularVelocity;
-		TargetVelocityMotorHingeJoint() : Constraint(2) { m_targetAngularVelocity = 0.0; }
+		TargetVelocityMotorHingeJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
-
-		Real getTargetAngularVelocity() const { return m_targetAngularVelocity; }
-		void setTargetAngularVelocity(const Real val)	{ m_targetAngularVelocity = val; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);

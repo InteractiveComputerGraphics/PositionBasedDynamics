@@ -381,12 +381,12 @@ struct has_ReturnType
   enum { value = sizeof(testFunctor<T>(0)) == sizeof(meta_yes) };
 };
 
-template<typename T> const T& return_ref();
+template<typename T> const T* return_ptr();
 
 template <typename T, typename IndexType=Index>
 struct has_nullary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ref<C>().operator()())>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()())>0)>::type * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
@@ -395,7 +395,7 @@ struct has_nullary_operator
 template <typename T, typename IndexType=Index>
 struct has_unary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ref<C>().operator()(IndexType(0)))>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()(IndexType(0)))>0)>::type * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
@@ -404,7 +404,7 @@ struct has_unary_operator
 template <typename T, typename IndexType=Index>
 struct has_binary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ref<C>().operator()(IndexType(0),IndexType(0)))>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()(IndexType(0),IndexType(0)))>0)>::type * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };

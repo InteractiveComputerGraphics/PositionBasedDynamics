@@ -185,18 +185,25 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     EIGEN_SPARSE_PUBLIC_INTERFACE(Ref)
 
     template<typename Derived>
-    inline Ref(const SparseMatrixBase<Derived>& expr)
+    inline Ref(const SparseMatrixBase<Derived>& expr) : m_hasCopy(false)
     {
       construct(expr.derived(), typename Traits::template match<Derived>::type());
     }
 
-    inline Ref(const Ref& other) : Base(other) {
+    inline Ref(const Ref& other) : Base(other), m_hasCopy(false) {
       // copy constructor shall not copy the m_object, to avoid unnecessary malloc and copy
     }
 
     template<typename OtherRef>
-    inline Ref(const RefBase<OtherRef>& other) {
+    inline Ref(const RefBase<OtherRef>& other) : m_hasCopy(false) {
       construct(other.derived(), typename Traits::template match<OtherRef>::type());
+    }
+
+    ~Ref() {
+      if(m_hasCopy) {
+        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
+        obj->~TPlainObjectType();
+      }
     }
 
   protected:
@@ -208,6 +215,7 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
       {
         TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
         ::new (obj) TPlainObjectType(expr);
+        m_hasCopy = true;
         Base::construct(*obj);
       }
       else
@@ -221,11 +229,13 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     {
       TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
       ::new (obj) TPlainObjectType(expr);
+      m_hasCopy = true;
       Base::construct(*obj);
     }
 
   protected:
     char m_object_bytes[sizeof(TPlainObjectType)];
+    bool m_hasCopy;
 };
 
 
@@ -293,18 +303,25 @@ class Ref<const SparseVector<MatScalar,MatOptions,MatIndex>, Options, StrideType
     EIGEN_SPARSE_PUBLIC_INTERFACE(Ref)
 
     template<typename Derived>
-    inline Ref(const SparseMatrixBase<Derived>& expr)
+    inline Ref(const SparseMatrixBase<Derived>& expr) : m_hasCopy(false)
     {
       construct(expr.derived(), typename Traits::template match<Derived>::type());
     }
 
-    inline Ref(const Ref& other) : Base(other) {
+    inline Ref(const Ref& other) : Base(other), m_hasCopy(false) {
       // copy constructor shall not copy the m_object, to avoid unnecessary malloc and copy
     }
 
     template<typename OtherRef>
-    inline Ref(const RefBase<OtherRef>& other) {
+    inline Ref(const RefBase<OtherRef>& other) : m_hasCopy(false) {
       construct(other.derived(), typename Traits::template match<OtherRef>::type());
+    }
+
+    ~Ref() {
+      if(m_hasCopy) {
+        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
+        obj->~TPlainObjectType();
+      }
     }
 
   protected:
@@ -320,11 +337,13 @@ class Ref<const SparseVector<MatScalar,MatOptions,MatIndex>, Options, StrideType
     {
       TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
       ::new (obj) TPlainObjectType(expr);
+      m_hasCopy = true;
       Base::construct(*obj);
     }
 
   protected:
     char m_object_bytes[sizeof(TPlainObjectType)];
+    bool m_hasCopy;
 };
 
 namespace internal {

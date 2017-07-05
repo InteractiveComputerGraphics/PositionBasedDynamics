@@ -181,18 +181,18 @@ void timeStep ()
 		SimulationModel::ConstraintVector &constraints = model.getConstraints();
 		TargetAngleMotorHingeJoint &joint1 = (*(TargetAngleMotorHingeJoint*)constraints[8]);
 		TargetVelocityMotorHingeJoint &joint2 = (*(TargetVelocityMotorHingeJoint*)constraints[9]);
-		joint1.setTargetAngle(currentTargetAngle);
-		joint2.setTargetAngularVelocity(3.5);
+		joint1.setTarget(currentTargetAngle);
+		joint2.setTarget(3.5);
 
 		const Real currentTargetPos = 1.5*sin(2.0*TimeManager::getCurrent()->getTime());
 		TargetPositionMotorSliderJoint &joint3 = (*(TargetPositionMotorSliderJoint*)constraints[12]);
-		joint3.setTargetPosition(currentTargetPos);
+		joint3.setTarget(currentTargetPos);
 
 		Real currentTargetVel = 0.25;
 		if (((int) (0.25*TimeManager::getCurrent()->getTime())) % 2 == 1)
 			currentTargetVel = -currentTargetVel;
 		TargetVelocityMotorSliderJoint &joint4 = (*(TargetVelocityMotorSliderJoint*)constraints[14]);
-		joint4.setTargetVelocity(currentTargetVel);
+		joint4.setTarget(currentTargetVel);
 	}
 }
 
