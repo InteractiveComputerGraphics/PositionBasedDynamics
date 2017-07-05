@@ -20,7 +20,7 @@ This project is based on [CMake](https://cmake.org/). Simply generate project, M
 - Windows 10 64-bit, CMake 3.5.2, Visual Studio 2015
 - Ubuntu 16.10 64-bit, CMake 3.5.2, GCC 6.2.0.
 
-Note: Please use a 64-bit target on a 64-bit operating system.
+Note: Please use a 64-bit target on a 64-bit operating system. 32-bit builds on a 64-bit OS are not supported.
 
 ## Documentation
 
