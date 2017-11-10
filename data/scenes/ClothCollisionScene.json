@@ -46,6 +46,7 @@
 			"scale": [100, 1, 100],
 			"restitution" : 0.6,
 			"friction" : 0.0,
+			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
 			"collisionObjectType": 2,
 			"collisionObjectScale": [100, 1, 100]	
 		}, 
@@ -61,6 +62,7 @@
 			"velocity": [0,0,0],
 			"restitution" : 0.6,
 			"friction" : 0.2,
+			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
 			"collisionObjectType": 1,
 			"collisionObjectScale": [1.5, 1.5, 1.5]
 		}, 
@@ -76,6 +78,7 @@
 			"angularVelocity": [1,0,0],
 			"restitution" : 0.6,
 			"friction" : 0.2,
+			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
 			"collisionObjectType": 3,
 			"collisionObjectScale": [0.25, 3, 0.25]
 		},
@@ -90,6 +93,7 @@
 			"scale": [1.5, 1.5, 1.5],
 			"restitution" : 0.6,
 			"friction" : 0.2,
+			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
 			"collisionObjectType": 4,
 			"collisionObjectScale": [1.5, 0.75, 1.5]	
 		}

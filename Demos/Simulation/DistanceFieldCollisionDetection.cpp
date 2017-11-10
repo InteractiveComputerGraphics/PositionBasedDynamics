@@ -216,6 +216,7 @@ void DistanceFieldCollisionDetection::collisionDetectionRigidBodies(RigidBody *r
 #else
 				int tid = omp_get_thread_num();
 #endif			
+
 				contacts_mt[tid].push_back({ 0, co1->m_bodyIndex, co2->m_bodyIndex, x_w, cp_w, n_w, dist, restitutionCoeff, frictionCoeff });
 			}
 		}

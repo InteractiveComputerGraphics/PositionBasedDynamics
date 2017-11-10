@@ -8,8 +8,9 @@
 #include "FluidModel.h"
 #include "TimeStepFluidModel.h"
 #include <iostream>
-#include "Demos/Utils/Utilities.h"
+#include "Demos/Utils/Logger.h"
 #include "Demos/Utils/Timing.h"
+#include "Demos/Utils/FileSystem.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
 
@@ -17,6 +18,9 @@
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
 	#define new DEBUG_NEW 
 #endif
+
+INIT_TIMING
+INIT_LOGGING
 
 using namespace PBD;
 using namespace Eigen;
@@ -30,7 +34,6 @@ void initBoundaryData(std::vector<Vector3r> &boundaryParticles);
 void render ();
 void cleanup();
 void reset();
-void hsvToRgb(float h, float s, float v, float *rgb);
 void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
 void createSphereBuffers(Real radius, int resolution);
 void renderSphere(const Vector3r &x, const float color[]);
@@ -72,7 +75,12 @@ int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-	exePath = Utilities::getFilePath(argv[0]);
+	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
+	FileSystem::makeDirs(logPath);
+	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
+	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
+
+	exePath = FileSystem::getProgramPath();
 	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	// OpenGL
@@ -172,25 +180,6 @@ void buildModel ()
 	createBreakingDam();
 }
 
-void hsvToRgb(float h, float s, float v, float *rgb)
-{
-	int i = (int)floor(h * 6);
-	float f = h * 6 - i;
-	float p = v * (1 - s);
-	float q = v * (1 - f * s);
-	float t = v * (1 - (1 - f) * s);
-
-	switch (i % 6)
-	{
-	case 0: rgb[0] = v, rgb[1] = t, rgb[2] = p; break;
-	case 1: rgb[0] = q, rgb[1] = v, rgb[2] = p; break;
-	case 2: rgb[0] = p, rgb[1] = v, rgb[2] = t; break;
-	case 3: rgb[0] = p, rgb[1] = q, rgb[2] = v; break;
-	case 4: rgb[0] = t, rgb[1] = p, rgb[2] = v; break;
-	case 5: rgb[0] = v, rgb[1] = p, rgb[2] = q; break;
-	}
-}
-
 void render ()
 {
 	MiniGL::coordinateSystem();
@@ -222,7 +211,7 @@ void render ()
 			v = 0.5*((v - vmin) / (vmax - vmin));
 			v = min(128.0*v*v, 0.5);
 			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
-			hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
+			MiniGL::hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
 			renderSphere(pd.getPosition(i), fluidColor);
 		}
 
@@ -239,7 +228,7 @@ void render ()
 			v = 0.5*((v - vmin) / (vmax - vmin));
 			v = min(128.0*v*v, 0.5);
 			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
-			hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
+			MiniGL::hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
 
 			glColor3fv(fluidColor);
 			glVertex3v(&pd.getPosition(i)[0]);
@@ -273,7 +262,7 @@ void render ()
 */
 void createBreakingDam()
 {
-	std::cout << "Initialize fluid particles\n";
+	LOG_INFO << "Initialize fluid particles";
 	const Real diam = 2.0*particleRadius;
 	const Real startX = -0.5*containerWidth + diam;
 	const Real startY = diam;
@@ -305,7 +294,7 @@ void createBreakingDam()
 
 	model.initModel((unsigned int)fluidParticles.size(), fluidParticles.data(), (unsigned int)boundaryParticles.size(), boundaryParticles.data());
 
-	std::cout << "Number of particles: " << width*height*depth << "\n";
+	LOG_INFO << "Number of particles: " << width*height*depth;
 }
 
 

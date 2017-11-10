@@ -9,15 +9,19 @@
 #include "Demos/Simulation/TimeStepController.h"
 #include <iostream>
 #include "Demos/Visualization/Visualization.h"
-#include "Demos/Utils/Utilities.h"
 #include "Demos/Simulation/DistanceFieldCollisionDetection.h"
 #include "Demos/Utils/OBJLoader.h"
+#include "Demos/Utils/Logger.h"
 #include "Demos/Utils/Timing.h"
+#include "Demos/Utils/FileSystem.h"
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
 	#define new DEBUG_NEW 
 #endif
+
+INIT_TIMING
+INIT_LOGGING
 
 using namespace PBD;
 using namespace Eigen;
@@ -94,7 +98,12 @@ int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-	exePath = Utilities::getFilePath(argv[0]);
+	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
+	FileSystem::makeDirs(logPath);
+	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
+	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
+
+	exePath = FileSystem::getProgramPath();
 	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	// OpenGL
@@ -252,12 +261,12 @@ void buildModel ()
 	createMesh();
 
 	// create static rigid body
-	string fileName = Utilities::normalizePath(dataPath + "/models/cube.obj");
+	string fileName = FileSystem::normalizePath(dataPath + "/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	OBJLoader::loadObj(fileName, vd, mesh);
 
-	string fileNameTorus = Utilities::normalizePath(dataPath + "/models/torus.obj");
+	string fileNameTorus = FileSystem::normalizePath(dataPath + "/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	OBJLoader::loadObj(fileNameTorus, vdTorus, meshTorus);
@@ -563,8 +572,8 @@ void createMesh()
 		}
 	}
 
-	std::cout << "Number of triangles: " << nIndices / 3 << "\n";
-	std::cout << "Number of vertices: " << nRows*nCols << "\n";
+	LOG_INFO << "Number of triangles: " << nIndices / 3;
+	LOG_INFO << "Number of vertices: " << nRows*nCols;
 
 }
 

@@ -9,15 +9,19 @@
 #include <iostream>
 #include "Demos/Utils/OBJLoader.h"
 #include "Demos/Visualization/Visualization.h"
-#include "Demos/Utils/Utilities.h"
 #include "Demos/Simulation/DistanceFieldCollisionDetection.h"
 #include "Demos/Utils/SceneLoader.h"
 #include "Demos/Utils/TetGenLoader.h"
+#include "Demos/Simulation/CubicSDFCollisionDetection.h"
+#include "Demos/Utils/Logger.h"
 #include "Demos/Utils/Timing.h"
+#include "Demos/Utils/FileSystem.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
 
+INIT_TIMING
+INIT_LOGGING
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
@@ -77,7 +81,7 @@ void TW_CALL getSolidSimulationMethod(void *value, void *clientData);
 
 
 SimulationModel model;
-DistanceFieldCollisionDetection cd;
+CubicSDFCollisionDetection cd;
 TimeStepController sim;
 
 short clothSimulationMethod = 2;
@@ -93,6 +97,7 @@ bool renderContacts = false;
 string exePath;
 string dataPath;
 bool drawAABB = false;
+bool drawSDF = false;
 int drawBVHDepth = -1;
 float jointColor[4] = { 0.0f, 0.6f, 0.2f, 1 };
 string sceneFileName = "/scenes/DeformableSolidCollisionScene.json";
@@ -106,13 +111,18 @@ int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-	exePath = Utilities::getFilePath(argv[0]);
+	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
+	FileSystem::makeDirs(logPath);
+	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
+	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
+
+	exePath = FileSystem::getProgramPath();
 	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	if (argc > 1)
 		sceneFileName = string(argv[1]);
 	else
-		sceneFileName = Utilities::normalizePath(dataPath + sceneFileName);
+		sceneFileName = FileSystem::normalizePath(dataPath + sceneFileName);
 
 	buildModel();
 
@@ -131,6 +141,7 @@ int main( int argc, char **argv )
 	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
 	TwAddVarRW(MiniGL::getTweakBar(), "RenderContacts", TW_TYPE_BOOLCPP, &renderContacts, " label='Render contacts' group=Simulation ");
 	TwAddVarRW(MiniGL::getTweakBar(), "RenderAABBs", TW_TYPE_BOOLCPP, &drawAABB, " label='Render AABBs' group=Simulation ");
+	TwAddVarRW(MiniGL::getTweakBar(), "RenderSDFs", TW_TYPE_BOOLCPP, &drawSDF, " label='Render SDFs' group=Simulation ");
 	TwAddVarRW(MiniGL::getTweakBar(), "RenderBVH", TW_TYPE_INT32, &drawBVHDepth, " label='Render BVH depth' group=Simulation ");
 	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
 	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
@@ -389,6 +400,45 @@ void renderAABB(AABB &aabb)
 	glEnd();
 }
 
+void renderSDF(CollisionDetection::CollisionObject* co)
+{
+	if (!cd.isDistanceFieldCollisionObject(co))
+		return;
+
+	const SimulationModel::RigidBodyVector &rigidBodies = model.getRigidBodies();
+	RigidBody *rb = rigidBodies[co->m_bodyIndex];
+
+	const Vector3r &com = rb->getPosition();
+	const Matrix3r &R = rb->getTransformationR();
+	const Vector3r &v1 = rb->getTransformationV1();
+	const Vector3r &v2 = rb->getTransformationV2();
+
+	DistanceFieldCollisionDetection::DistanceFieldCollisionObject *dfco = (DistanceFieldCollisionDetection::DistanceFieldCollisionObject *)co;
+	const Vector3r &startX = co->m_aabb.m_p[0];
+	const Vector3r &endX = co->m_aabb.m_p[1];
+	Vector3r diff = endX - startX;
+	const unsigned int steps = 20;
+	Vector3r stepSize = (1.0 / steps) * diff;
+	for (Real x = startX[0]; x < endX[0]; x += stepSize[0])
+	{
+		for (Real y = startX[1]; y < endX[1]; y += stepSize[1])
+		{
+			for (Real z = startX[2]; z < endX[2]; z += stepSize[2])
+			{
+				Vector3r pos_w(x, y, z);
+				const Vector3r pos = R * (pos_w - com) + v1;
+				const Real dist = dfco->distance(pos, 0.0);
+
+				if (dist < 0.0)
+				{
+					float col[4] = { (float) -dist, 0.0f, 0.0f, 1.0f };
+					MiniGL::drawPoint(pos_w, 3.0f, col);
+				}
+			}
+		}
+	}
+}
+
 void renderBallJoint(BallJoint &bj)
 {	
 	MiniGL::drawSphere(bj.m_jointInfo.col(2), 0.15f, jointColor);
@@ -598,13 +648,16 @@ void render ()
 
 
 
-	if (drawAABB || (drawBVHDepth >= 0))
+	if (drawSDF || drawAABB || (drawBVHDepth >= 0))
 	{
 		ObjectArray<CollisionDetection::CollisionObject*> &collisionObjects = cd.getCollisionObjects();
 		for (unsigned int k = 0; k < collisionObjects.size(); k++)
 		{
 			if (drawAABB)
 				renderAABB(collisionObjects[k]->m_aabb);
+
+			if (drawSDF)
+				renderSDF(collisionObjects[k]);
 
 			if (drawBVHDepth >= 0)
 			{
@@ -830,7 +883,7 @@ void readScene()
 	SceneLoader::SceneData data;
 	SceneLoader loader;
 	loader.readScene(sceneFileName, data);
-	std::cout << "Scene: " << sceneFileName << "\n";
+	LOG_INFO << "Scene: " << sceneFileName;
 
 	camPos = data.m_camPosition;
 	camLookat = data.m_camLookat;
@@ -869,17 +922,98 @@ void readScene()
 
 	// map file names to loaded geometry to prevent multiple imports of same files
 	std::map<std::string, pair<VertexData, IndexedFaceMesh>> objFiles;
+	std::map<std::string, CubicSDFCollisionDetection::GridPtr> distanceFields;
 	for (unsigned int i = 0; i < data.m_rigidBodyData.size(); i++)
 	{
-		const SceneLoader::RigidBodyData &rbd = data.m_rigidBodyData[i];
+		SceneLoader::RigidBodyData &rbd = data.m_rigidBodyData[i];
 
 		// Check if already loaded
+		rbd.m_modelFile = FileSystem::normalizePath(rbd.m_modelFile);
 		if (objFiles.find(rbd.m_modelFile) == objFiles.end())
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			OBJLoader::loadObj(Utilities::normalizePath(rbd.m_modelFile), vd, mesh);
+			OBJLoader::loadObj(rbd.m_modelFile, vd, mesh);
 			objFiles[rbd.m_modelFile] = { vd, mesh };
+		}
+
+		const std::string basePath = FileSystem::getFilePath(sceneFileName);
+		const string cachePath = basePath + "/Cache";
+		const string resStr = to_string(rbd.m_resolutionSDF[0]) + "_" + to_string(rbd.m_resolutionSDF[1]) + "_" + to_string(rbd.m_resolutionSDF[2]);
+		const std::string modelFileName = FileSystem::getFileNameWithExt(rbd.m_modelFile);
+		const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
+
+		std::string sdfKey = rbd.m_collisionObjectFileName;
+		if (sdfKey == "")
+		{
+			sdfKey = sdfFileName;
+		}
+		if (distanceFields.find(sdfKey) == distanceFields.end())
+		{
+			// Generate SDF
+			if (rbd.m_collisionObjectType == SceneLoader::RigidBodyData::SDF)
+			{
+				if (rbd.m_collisionObjectFileName == "")
+				{
+					std::string md5FileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + ".md5");
+					string md5Str = FileSystem::getFileMD5(rbd.m_modelFile);
+					bool md5 = false;
+					if (FileSystem::fileExists(md5FileName))
+						md5 = FileSystem::checkMD5(md5Str, md5FileName);
+
+					// check MD5 if cache file is available
+					const string resStr = to_string(rbd.m_resolutionSDF[0]) + "_" + to_string(rbd.m_resolutionSDF[1]) + "_" + to_string(rbd.m_resolutionSDF[2]);
+					const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
+					bool foundCacheFile = FileSystem::fileExists(sdfFileName);
+
+					if (foundCacheFile && md5)
+					{
+						LOG_INFO << "Load cached SDF: " << sdfFileName;
+						distanceFields[sdfFileName] = std::make_shared<CubicSDFCollisionDetection::Grid>(sdfFileName);
+					}
+					else
+					{
+						VertexData &vd = objFiles[rbd.m_modelFile].first;
+						IndexedFaceMesh &mesh = objFiles[rbd.m_modelFile].second;
+
+						std::vector<unsigned int> &faces = mesh.getFaces();
+						const unsigned int nFaces = mesh.numFaces();
+
+						Discregrid::TriangleMesh sdfMesh(&vd.getPosition(0)[0], faces.data(), vd.size(), nFaces);
+						Discregrid::MeshDistance md(sdfMesh);
+						Eigen::AlignedBox3d domain;
+						for (auto const& x : sdfMesh.vertices())
+						{
+							domain.extend(x);
+						}
+						domain.max() += 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
+						domain.min() -= 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
+
+						LOG_INFO << "Set SDF resolution: " << rbd.m_resolutionSDF[0] << ", " << rbd.m_resolutionSDF[1] << ", " << rbd.m_resolutionSDF[2];
+						distanceFields[sdfFileName] = std::make_shared<CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ rbd.m_resolutionSDF[0], rbd.m_resolutionSDF[1], rbd.m_resolutionSDF[2] }));
+						auto func = Discregrid::DiscreteGrid::ContinuousFunction{};
+						func = [&md](Eigen::Vector3d const& xi) {return md.signedDistanceCached(xi); };
+						LOG_INFO << "Generate SDF for " << rbd.m_modelFile;
+						distanceFields[sdfFileName]->addFunction(func, true);
+						if (FileSystem::makeDir(cachePath) == 0)
+						{
+							LOG_INFO << "Save SDF: " << sdfFileName;
+							distanceFields[sdfFileName]->save(sdfFileName);
+							FileSystem::writeMD5File(rbd.m_modelFile, md5FileName);
+						}
+					}
+				}
+				else
+				{
+					std::string fileName = rbd.m_collisionObjectFileName;
+					if (FileSystem::isRelativePath(fileName))
+					{
+						fileName = FileSystem::normalizePath(basePath + "/" + fileName);
+					}
+					LOG_INFO << "Load SDF: " << fileName;
+					distanceFields[rbd.m_collisionObjectFileName] = std::make_shared<CubicSDFCollisionDetection::Grid>(fileName);
+				}
+			}
 		}
 	}
 
@@ -893,7 +1027,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			OBJLoader::loadObj(Utilities::normalizePath(tmd.m_modelFileVis), vd, mesh);
+			OBJLoader::loadObj(FileSystem::normalizePath(tmd.m_modelFileVis), vd, mesh);
 			objFiles[tmd.m_modelFileVis] = { vd, mesh };
 		}
 	}
@@ -954,6 +1088,21 @@ void readScene()
 			case SceneLoader::RigidBodyData::HollowBox:
 				cd.addCollisionHollowBox(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale, rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
 				break;
+			case SceneLoader::RigidBodyData::SDF:
+			{	
+				if (rbd.m_collisionObjectFileName == "")
+				{
+					const std::string basePath = FileSystem::getFilePath(sceneFileName);
+					const string cachePath = basePath + "/Cache";
+					const string resStr = to_string(rbd.m_resolutionSDF[0]) + "_" + to_string(rbd.m_resolutionSDF[1]) + "_" + to_string(rbd.m_resolutionSDF[2]);
+					const std::string modelFileName = FileSystem::getFileNameWithExt(rbd.m_modelFile);
+					const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
+					cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[sdfFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+				}
+				else
+					cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[rbd.m_collisionObjectFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+				break;
+			}
 		}
 	}
 
@@ -972,7 +1121,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			OBJLoader::loadObj(Utilities::normalizePath(tmd.m_modelFile), vd, mesh);
+			OBJLoader::loadObj(FileSystem::normalizePath(tmd.m_modelFile), vd, mesh);
 			triFiles[tmd.m_modelFile] = { vd, mesh };
 		}
 	}
@@ -1031,7 +1180,7 @@ void readScene()
 		{
 			vector<Vector3r> vertices;
 			vector<unsigned int> tets;
-			TetGenLoader::loadTetgenModel(Utilities::normalizePath(tmd.m_modelFileNodes), Utilities::normalizePath(tmd.m_modelFileElements), vertices, tets);
+			TetGenLoader::loadTetgenModel(FileSystem::normalizePath(tmd.m_modelFileNodes), FileSystem::normalizePath(tmd.m_modelFileElements), vertices, tets);
 			tetFiles[fileNames] = { vertices, tets };
 		}
 	}

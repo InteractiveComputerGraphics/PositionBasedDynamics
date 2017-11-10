@@ -17,7 +17,7 @@ namespace PBD
 		struct RigidBodyData
 		{
 			enum CollisionObjectTypes {
-				No_Collision_Object = 0, Sphere, Box, Cylinder, Torus, HollowSphere, HollowBox
+				No_Collision_Object = 0, Sphere, Box, Cylinder, Torus, SDF, HollowSphere, HollowBox
 			};
 			unsigned int m_id;
 			std::string m_modelFile;
@@ -31,10 +31,12 @@ namespace PBD
 			Real m_restitutionCoeff;
 			Real m_frictionCoeff;
 			int m_collisionObjectType;
+			std::string m_collisionObjectFileName;
 			bool m_testMesh;
 			Vector3r m_collisionObjectScale;
 			bool m_invertSDF;
 			Real m_thicknessSDF;
+			Eigen::Matrix<unsigned int, 3, 1> m_resolutionSDF;
 
 			nlohmann::json m_json;
 

@@ -9,9 +9,10 @@
 #include <iostream>
 #include "Demos/Utils/OBJLoader.h"
 #include "Demos/Visualization/Visualization.h"
-#include "Demos/Utils/Utilities.h"
 #include "Demos/Simulation/DistanceFieldCollisionDetection.h"
+#include "Demos/Utils/Logger.h"
 #include "Demos/Utils/Timing.h"
+#include "Demos/Utils/FileSystem.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -20,6 +21,9 @@
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
 	#define new DEBUG_NEW 
 #endif
+
+INIT_TIMING
+INIT_LOGGING
 
 using namespace PBD;
 using namespace Eigen;
@@ -65,7 +69,12 @@ int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-	exePath = Utilities::getFilePath(argv[0]);
+	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
+	FileSystem::makeDirs(logPath);
+	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
+	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
+
+	exePath = FileSystem::getProgramPath();
 	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	// OpenGL
@@ -356,27 +365,27 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model.getConstraints();
 
-	string fileNameBox = Utilities::normalizePath(dataPath + "/models/cube.obj");
+	string fileNameBox = FileSystem::normalizePath(dataPath + "/models/cube.obj");
 	IndexedFaceMesh meshBox;
 	VertexData vdBox;
 	OBJLoader::loadObj(fileNameBox, vdBox, meshBox);
 
-	string fileNameCylinder = Utilities::normalizePath(dataPath + "/models/cylinder.obj");
+	string fileNameCylinder = FileSystem::normalizePath(dataPath + "/models/cylinder.obj");
 	IndexedFaceMesh meshCylinder;
 	VertexData vdCylinder;
 	OBJLoader::loadObj(fileNameCylinder, vdCylinder, meshCylinder);
 
-	string fileNameTorus = Utilities::normalizePath(dataPath + "/models/torus.obj");
+	string fileNameTorus = FileSystem::normalizePath(dataPath + "/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	OBJLoader::loadObj(fileNameTorus, vdTorus, meshTorus);
 
-	string fileNameCube = Utilities::normalizePath(dataPath + "/models/cube_5.obj");
+	string fileNameCube = FileSystem::normalizePath(dataPath + "/models/cube_5.obj");
 	IndexedFaceMesh meshCube;
 	VertexData vdCube;
 	OBJLoader::loadObj(fileNameCube, vdCube, meshCube);
 
-	string fileNameSphere = Utilities::normalizePath(dataPath + "/models/sphere.obj");
+	string fileNameSphere = FileSystem::normalizePath(dataPath + "/models/sphere.obj");
 	IndexedFaceMesh meshSphere;
 	VertexData vdSphere;
 	OBJLoader::loadObj(fileNameSphere, vdSphere, meshSphere);

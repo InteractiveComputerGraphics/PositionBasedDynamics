@@ -1,7 +1,8 @@
 #include "SceneLoader.h"
 #include <iostream>
 #include <fstream>
-#include "Utilities.h"
+#include "FileSystem.h"
+#include "Logger.h"
 
 using namespace PBD;
 
@@ -18,7 +19,7 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 		}
 		m_json << input_file;
 
-		std::string basePath = Utilities::getFilePath(fileName);
+		std::string basePath = FileSystem::getFilePath(fileName);
 
 		readValue(m_json, "Name", sceneData.m_sceneName);
 		
@@ -137,7 +138,7 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 	}
 	catch (std::exception& e)
 	{
-		std::cout << e.what() << "\n";
+		LOG_ERR << e.what();
 		exit(1);
 	}
 }
@@ -199,7 +200,7 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 		std::string geomFileName;
 		if (readValue<std::string>(rigidBody, "geometryFile", geomFileName))
 		{
-			if (Utilities::isRelativePath(geomFileName))
+			if (FileSystem::isRelativePath(geomFileName))
 			{
 				geomFileName = basePath + "/" + geomFileName;
 			}
@@ -260,6 +261,9 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 			rbd.m_collisionObjectType = RigidBodyData::CollisionObjectTypes::No_Collision_Object;
 			readValue(rigidBody, "collisionObjectType", rbd.m_collisionObjectType);
 
+			rbd.m_collisionObjectFileName = "";
+			readValue(rigidBody, "collisionObjectFileName", rbd.m_collisionObjectFileName);
+
 			// test mesh
 			rbd.m_testMesh = true;
 			readValue(rigidBody, "testMesh", rbd.m_testMesh);
@@ -272,7 +276,10 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 			readValue(rigidBody, "invertSDF", rbd.m_invertSDF);
 
 			rbd.m_thicknessSDF = 0.1;
-			readValue(rigidBody, "thickness", rbd.m_thicknessSDF);
+			readValue(rigidBody, "thicknessSDF", rbd.m_thicknessSDF);
+
+			rbd.m_resolutionSDF = Eigen::Matrix<unsigned int, 3, 1>(10, 10, 10);
+			readVector(rigidBody, "resolutionSDF", rbd.m_resolutionSDF);
 
 			rbd.m_json = rigidBody;
 		}
@@ -288,7 +295,7 @@ void SceneLoader::readTriangleModels(const nlohmann::json &j, const std::string 
 		std::string geomFileName;
 		if (readValue<std::string>(triModel, "geometryFile", geomFileName))
 		{
-			if (Utilities::isRelativePath(geomFileName))
+			if (FileSystem::isRelativePath(geomFileName))
 			{
 				geomFileName = basePath + "/" + geomFileName;
 			}
@@ -353,12 +360,12 @@ void SceneLoader::readTetModels(const nlohmann::json &j, const std::string &key,
 		if (readValue<std::string>(tetModel, "nodeFile", nodeFileName) &&
 			readValue<std::string>(tetModel, "eleFile", eleFileName))
 		{
-			if (Utilities::isRelativePath(nodeFileName))
+			if (FileSystem::isRelativePath(nodeFileName))
 			{
 				nodeFileName = basePath + "/" + nodeFileName;
 			}
 
-			if (Utilities::isRelativePath(eleFileName))
+			if (FileSystem::isRelativePath(eleFileName))
 			{
 				eleFileName = basePath + "/" + eleFileName;
 			}
@@ -366,7 +373,7 @@ void SceneLoader::readTetModels(const nlohmann::json &j, const std::string &key,
 			std::string visFileName = "";
 			if (readValue<std::string>(tetModel, "visFile", visFileName))
 			{
-				if (Utilities::isRelativePath(visFileName))
+				if (FileSystem::isRelativePath(visFileName))
 				{
 					visFileName = basePath + "/" + visFileName;
 				}

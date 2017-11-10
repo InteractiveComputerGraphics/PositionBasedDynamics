@@ -4,6 +4,8 @@ add_library(Simulation
 		CollisionDetection.h
 		Constraints.cpp
 		Constraints.h
+		CubicSDFCollisionDetection.cpp
+		CubicSDFCollisionDetection.h
 		DistanceFieldCollisionDetection.cpp
 		DistanceFieldCollisionDetection.h
 		IDFactory.cpp
@@ -35,6 +37,13 @@ add_library(Simulation
 
 		CMakeLists.txt
 )
+
+############################################################
+# Discregrid
+############################################################
+include_directories(${PROJECT_PATH}/extern/install/Discregrid/include)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_Discregrid)
+add_dependencies(Simulation ${SIMULATION_DEPENDENCIES})
 
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )

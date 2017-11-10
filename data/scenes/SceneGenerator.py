@@ -284,7 +284,7 @@ def rotation_matrix(axis, angle):
     z = axis[2]
     d = math.sqrt(x*x + y*y + z*z)
     if d < 1.0e-6:
-        print "Vector of rotation matrix is zero!"
+        print ("Vector of rotation matrix is zero!")
         return
     x = x/d;
     y = y/d;

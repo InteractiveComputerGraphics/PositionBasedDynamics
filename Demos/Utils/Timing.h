@@ -1,45 +1,55 @@
-#ifndef __TIMING_H__
-#define __TIMING_H__
+#ifndef __Timing_H__
+#define __Timing_H__
 
 #include <iostream>
 #include <stack>
 #include <unordered_map>
 #include "Common/Common.h"
-
+#include "Logger.h"
 #include <chrono>
-#include "Demos/Simulation/IDFactory.h"
 
 namespace PBD
 {
+	#define START_TIMING(timerName) \
+	Timing::startTiming(timerName);
 
-#define START_TIMING(timerName) \
-		Timing::startTiming(timerName);
+	#define STOP_TIMING \
+	Timing::stopTiming(false);
 
-#define STOP_TIMING \
-		Timing::stopTiming(false);
+	#define STOP_TIMING_PRINT \
+	Timing::stopTiming(true);
 
-#define STOP_TIMING_PRINT \
-		Timing::stopTiming(true);
+	#define STOP_TIMING_AVG \
+	{ \
+	static int timing_timerId = -1; \
+	Timing::stopTiming(false, timing_timerId); \
+	}
 
-#define STOP_TIMING_AVG \
-		{ \
-		static int timing_timerId = -1; \
-		Timing::stopTiming(false, timing_timerId); \
-		}
+	#define STOP_TIMING_AVG_PRINT \
+	{ \
+	static int timing_timerId = -1; \
+	Timing::stopTiming(true, timing_timerId); \
+	}
 
-#define STOP_TIMING_AVG_PRINT \
-		{ \
-		static int timing_timerId = -1; \
-		Timing::stopTiming(true, timing_timerId); \
-		}
+	#define INIT_TIMING \
+		int PBD::IDFactory::id = 0; \
+		std::unordered_map<int, PBD::AverageTime> PBD::Timing::m_averageTimes; \
+		std::stack<PBD::TimingHelper> PBD::Timing::m_timingStack; \
+		bool PBD::Timing::m_dontPrintTimes = false; \
+		unsigned int PBD::Timing::m_startCounter = 0; \
+		unsigned int PBD::Timing::m_stopCounter = 0;
 
 
+	/** \brief Struct to store a time measurement.
+	*/
 	struct TimingHelper
 	{
 		std::chrono::time_point<std::chrono::high_resolution_clock> start;
 		std::string name;
 	};
 
+	/** \brief Struct to store the total time and the number of steps in order to compute the average time. 
+	*/
 	struct AverageTime
 	{
 		double totalTime;
@@ -47,6 +57,20 @@ namespace PBD
 		std::string name;
 	};
 
+	/** \brief Factory for unique ids.
+	*/
+	class IDFactory
+	{
+	private:
+		/** Current id */
+		static int id;
+
+	public:
+		static int getId() { return id++; }
+	};
+
+	/** \brief Class for time measurements.
+	*/
 	class Timing
 	{
 	public:
@@ -86,11 +110,11 @@ namespace PBD
 				double t = elapsed_seconds.count() * 1000.0;
 
 				if (print)
-					std::cout << "time " << h.name.c_str() << ": " << t << " ms\n" << std::flush;
+					LOG_INFO << "time " << h.name.c_str() << ": " << t << " ms";
 				return t;
-		}
+			}
 			return 0;
-	}
+		}
 
 		FORCE_INLINE static double stopTiming(bool print, int &id)
 		{
@@ -107,7 +131,7 @@ namespace PBD
 				double t = elapsed_seconds.count() * 1000.0;
 
 				if (print && !Timing::m_dontPrintTimes)
-					std::cout << "time " << h.name.c_str() << ": " << t << " ms\n" << std::flush;
+					LOG_INFO << "time " << h.name.c_str() << ": " << t << " ms";
 
 				if (id >= 0)
 				{
@@ -139,11 +163,11 @@ namespace PBD
 			{
 				AverageTime &at = iter->second;
 				const double avgTime = at.totalTime / at.counter;
-				std::cout << "Average time " << at.name.c_str() << ": " << avgTime << " ms\n" << std::flush;
+				LOG_INFO << "Average time " << at.name.c_str() << ": " << avgTime << " ms";
 			}
 			if (Timing::m_startCounter != Timing::m_stopCounter)
-				std::cout << "Problem: " << Timing::m_startCounter << " calls of startTiming and " << Timing::m_stopCounter << " calls of stopTiming.\n " << std::flush;
-			std::cout << "---------------------------------------------------------------------------\n\n";
+				LOG_INFO << "Problem: " << Timing::m_startCounter << " calls of startTiming and " << Timing::m_stopCounter << " calls of stopTiming. ";
+			LOG_INFO << "---------------------------------------------------------------------------\n";
 		}
 
 		FORCE_INLINE static void printTimeSums()
@@ -153,14 +177,13 @@ namespace PBD
 			{
 				AverageTime &at = iter->second;
 				const double timeSum = at.totalTime;
-				std::cout << "Time sum " << at.name.c_str() << ": " << timeSum << " ms\n" << std::flush;
+				LOG_INFO << "Time sum " << at.name.c_str() << ": " << timeSum << " ms";
 			}
 			if (Timing::m_startCounter != Timing::m_stopCounter)
-				std::cout << "Problem: " << Timing::m_startCounter << " calls of startTiming and " << Timing::m_stopCounter << " calls of stopTiming.\n " << std::flush;
-			std::cout << "---------------------------------------------------------------------------\n\n";
+				LOG_INFO << "Problem: " << Timing::m_startCounter << " calls of startTiming and " << Timing::m_stopCounter << " calls of stopTiming. ";
+			LOG_INFO << "---------------------------------------------------------------------------\n";
 		}
 	};
-
 }
 
 #endif

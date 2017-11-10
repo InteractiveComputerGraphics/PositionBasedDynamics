@@ -4,14 +4,15 @@
 #include <fstream>
 #include <iostream>
 #include "ObjectArray.h"
-#include "Utilities.h"
+#include "StringTools.h"
+#include "Logger.h"
 
 using namespace PBD;
 using namespace std;
  
 void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, IndexedFaceMesh &mesh, const Vector3r &scale)
 {
-	std::cout << "Loading " << filename << std::endl;
+	LOG_INFO << "Loading " << filename;
 
 	vector<Vector3r, Alloc_Vector3r> positions;
 	vector<Vector2r, Alloc_Vector2r> texcoords;
@@ -44,7 +45,7 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			Vector3r pos;
 			pos_buffer.clear();
 			std::string parse_str = line_stream.substr(line_stream.find("v") + 1);
-			Utilities::tokenize(parse_str, pos_buffer);
+			StringTools::tokenize(parse_str, pos_buffer);
 			for (unsigned int i = 0; i < 3; i++)
 				pos[i] = stof(pos_buffer[i]) * scale[i];
 
@@ -55,7 +56,7 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			Vector2r tex;
 			pos_buffer.clear();
 			std::string parse_str = line_stream.substr(line_stream.find("vt") + 2);
-			Utilities::tokenize(parse_str, pos_buffer);
+			StringTools::tokenize(parse_str, pos_buffer);
 			for (unsigned int i = 0; i < 2; i++)
 				tex[i] = stof(pos_buffer[i]);
 
@@ -67,7 +68,7 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			Vector3r nor;
 			pos_buffer.clear();
 			std::string parse_str = line_stream.substr(line_stream.find("vn") + 2);
-			Utilities::tokenize(parse_str, pos_buffer);
+			StringTools::tokenize(parse_str, pos_buffer);
 			for (unsigned int i = 0; i < 3; i++)
 				nor[i] = stof(pos_buffer[i]);
 
@@ -81,11 +82,11 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				Utilities::tokenize(parse_str, f_buffer);
+				StringTools::tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
 					pos_buffer.clear();
-					Utilities::tokenize(f_buffer[i], pos_buffer, "/");
+					StringTools::tokenize(f_buffer[i], pos_buffer, "/");
 					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
 					faceIndex.texIndices[i] = stoi(pos_buffer[1]);
 					faceIndex.normalIndices[i] = stoi(pos_buffer[2]);
@@ -95,11 +96,11 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				Utilities::tokenize(parse_str, f_buffer);
+				StringTools::tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
 					pos_buffer.clear();
-					Utilities::tokenize(f_buffer[i], pos_buffer, "/");
+					StringTools::tokenize(f_buffer[i], pos_buffer, "/");
 					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
 					faceIndex.normalIndices[i] = stoi(pos_buffer[1]);
 				}
@@ -108,11 +109,11 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				Utilities::tokenize(parse_str, f_buffer);
+				StringTools::tokenize(parse_str, f_buffer);
 				for(int i = 0; i < 3; ++i)
 				{
 					pos_buffer.clear();
-					Utilities::tokenize(f_buffer[i], pos_buffer, "/");
+					StringTools::tokenize(f_buffer[i], pos_buffer, "/");
 					faceIndex.posIndices[i] = stoi(pos_buffer[0]);
 					faceIndex.texIndices[i] = stoi(pos_buffer[1]);
 				}
@@ -121,7 +122,7 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 			{
 				f_buffer.clear();
 				std::string parse_str = line_stream.substr(line_stream.find("f") + 1);
-				Utilities::tokenize(parse_str, f_buffer);
+				StringTools::tokenize(parse_str, f_buffer);
 				for (int i = 0; i < 3; ++i)
 				{
 					faceIndex.posIndices[i] = stoi(f_buffer[i]);
@@ -168,6 +169,6 @@ void OBJLoader::loadObj(const std::string &filename, VertexData &vertexData, Ind
 	mesh.updateNormals(vertexData, 0);
 	mesh.updateVertexNormals(vertexData);
 
-	std::cout << "Number of triangles: " << nFaces << "\n";
-	std::cout << "Number of vertices: " << nPoints << "\n";
+	LOG_INFO << "Number of triangles: " << nFaces;
+	LOG_INFO << "Number of vertices: " << nPoints;
 }

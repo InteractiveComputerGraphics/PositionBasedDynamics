@@ -1,0 +1,1480 @@
+{
+    "BallJoints": [],
+    "BallOnLineJoints": [],
+    "HingeJoints": [],
+    "Name": "PileScene",
+    "RigidBodies": [
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                500,
+                1,
+                500
+            ],
+            "collisionObjectType": 2,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cube.obj",
+            "id": 1,
+            "isDynamic": 0,
+            "restitution": 0.5,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                500,
+                1,
+                500
+            ],
+            "testMesh": 1,
+            "translation": [
+                0,
+                -0.5,
+                0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 2,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -10.0,
+                5.0,
+                -10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 3,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -5.0,
+                5.0,
+                -10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 4,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                0.0,
+                5.0,
+                -10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 5,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                5.0,
+                5.0,
+                -10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 6,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                10.0,
+                5.0,
+                -10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 7,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -10.0,
+                5.0,
+                -5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 8,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -5.0,
+                5.0,
+                -5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 9,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                0.0,
+                5.0,
+                -5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 10,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                5.0,
+                5.0,
+                -5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 11,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                10.0,
+                5.0,
+                -5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 12,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -10.0,
+                5.0,
+                0.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 13,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -5.0,
+                5.0,
+                0.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 14,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                0.0,
+                5.0,
+                0.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 15,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                5.0,
+                5.0,
+                0.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 16,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                10.0,
+                5.0,
+                0.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 17,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -10.0,
+                5.0,
+                5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 18,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -5.0,
+                5.0,
+                5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 19,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                0.0,
+                5.0,
+                5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 20,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                5.0,
+                5.0,
+                5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 21,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                10.0,
+                5.0,
+                5.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 22,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -10.0,
+                5.0,
+                10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 23,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                -5.0,
+                5.0,
+                10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 24,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                0.0,
+                5.0,
+                10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 25,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                5.0,
+                5.0,
+                10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "collisionObjectType": 3,
+            "density": 500,
+            "friction": 0.3,
+            "geometryFile": "../models/cylinder.obj",
+            "id": 26,
+            "isDynamic": 0,
+            "restitution": 0.6,
+            "rotationAngle": 0.0,
+            "rotationAxis": [
+                1,
+                0,
+                0
+            ],
+            "scale": [
+                0.25,
+                10,
+                0.25
+            ],
+            "testMesh": 1,
+            "translation": [
+                10.0,
+                5.0,
+                10.0
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "../sdf/bunny_10k.csdf",
+            "collisionObjectScale": [
+                4,
+                4,
+                4
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/bunny_10k.obj",
+            "id": 27,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 0.801322977421273,
+            "rotationAxis": [
+                0.13436424411240122,
+                0.8474337369372327,
+                0.763774618976614
+            ],
+            "scale": [
+                4,
+                4,
+                4
+            ],
+            "testMesh": 1,
+            "translation": [
+                -5.25,
+                20.0,
+                -3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/armadillo.obj",
+            "id": 28,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 0.29486858827891005,
+            "rotationAxis": [
+                0.4494910647887381,
+                0.651592972722763,
+                0.7887233511355132
+            ],
+            "scale": [
+                2,
+                2,
+                2
+            ],
+            "testMesh": 1,
+            "translation": [
+                1.75,
+                20.0,
+                -3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "../sdf/bunny_10k.csdf",
+            "collisionObjectScale": [
+                4,
+                4,
+                4
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/bunny_10k.obj",
+            "id": 29,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 0.006616361735917517,
+            "rotationAxis": [
+                0.8357651039198697,
+                0.43276706790505337,
+                0.762280082457942
+            ],
+            "scale": [
+                4,
+                4,
+                4
+            ],
+            "testMesh": 1,
+            "translation": [
+                -1.75,
+                20.0,
+                3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/armadillo.obj",
+            "id": 30,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 2.8319178785763612,
+            "rotationAxis": [
+                0.7215400323407826,
+                0.22876222127045265,
+                0.9452706955539223
+            ],
+            "scale": [
+                2,
+                2,
+                2
+            ],
+            "testMesh": 1,
+            "translation": [
+                5.25,
+                20.0,
+                3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/armadillo.obj",
+            "id": 31,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 1.1975884326385855,
+            "rotationAxis": [
+                0.0254458609934608,
+                0.5414124727934966,
+                0.9391491627785106
+            ],
+            "scale": [
+                2,
+                2,
+                2
+            ],
+            "testMesh": 1,
+            "translation": [
+                -5.25,
+                27.0,
+                -3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/armadillo.obj",
+            "id": 32,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 1.3756644473107498,
+            "rotationAxis": [
+                0.4221165755827173,
+                0.029040787574867943,
+                0.22169166627303505
+            ],
+            "scale": [
+                2,
+                2,
+                2
+            ],
+            "testMesh": 1,
+            "translation": [
+                1.75,
+                27.0,
+                -3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/armadillo.obj",
+            "id": 33,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 1.443886871526072,
+            "rotationAxis": [
+                0.23308445025757263,
+                0.2308665415409843,
+                0.2187810373376886
+            ],
+            "scale": [
+                2,
+                2,
+                2
+            ],
+            "testMesh": 1,
+            "translation": [
+                -1.75,
+                27.0,
+                3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "angularVelocity": [
+                0,
+                0,
+                0
+            ],
+            "collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+            "collisionObjectType": 5,
+            "density": 300,
+            "friction": 0.1,
+            "geometryFile": "../models/armadillo.obj",
+            "id": 34,
+            "isDynamic": 1,
+            "restitution": 0.6,
+            "rotationAngle": 2.0178272520307075,
+            "rotationAxis": [
+                0.021489705265908876,
+                0.8375779756625729,
+                0.5564543226524334
+            ],
+            "scale": [
+                2,
+                2,
+                2
+            ],
+            "testMesh": 1,
+            "translation": [
+                5.25,
+                27.0,
+                3.5
+            ],
+            "velocity": [
+                0,
+                0,
+                0
+            ]
+        }
+    ],
+    "RigidBodyParticleBallJoints": [],
+    "Simulation": {
+        "cloth_bendingStiffness": 0.005,
+        "cloth_normalizeShear": 0,
+        "cloth_normalizeStretch": 0,
+        "cloth_stiffness": 1.0,
+        "cloth_xxStiffness": 1.0,
+        "cloth_xyPoissonRatio": 0.3,
+        "cloth_xyStiffness": 1.0,
+        "cloth_yxPoissonRatio": 0.3,
+        "cloth_yyStiffness": 1.0,
+        "contactStiffnessParticleRigidBody": 100.0,
+        "contactStiffnessRigidBody": 1.0,
+        "contactTolerance": 0.01,
+        "gravity": [
+            0,
+            -9.81,
+            0
+        ],
+        "maxIter": 5,
+        "maxIterVel": 5,
+        "timeStepSize": 0.005,
+        "triangleModelBendingMethod": 2,
+        "triangleModelSimulationMethod": 2,
+        "velocityUpdateMethod": 0
+    },
+    "SliderJoints": [],
+    "TargetAngleMotorHingeJoints": [],
+    "TargetPositionMotorSliderJoints": [],
+    "TargetVelocityMotorHingeJoints": [],
+    "TargetVelocityMotorSliderJoints": [],
+    "TetModels": [],
+    "TriangleModels": [],
+    "UniversalJoints": [],
+    "cameraLookat": [
+        10,
+        0,
+        0
+    ],
+    "cameraPosition": [
+        10,
+        20,
+        60
+    ]
+}

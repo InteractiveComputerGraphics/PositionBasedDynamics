@@ -1,5 +1,5 @@
-set(SIMULATION_LINK_LIBRARIES AntTweakBar glew PositionBasedDynamics Simulation Utils)
-set(SIMULATION_DEPENDENCIES AntTweakBar glew PositionBasedDynamics Simulation Utils)
+set(SIMULATION_LINK_LIBRARIES AntTweakBar glew MD5 PositionBasedDynamics Simulation Utils)
+set(SIMULATION_DEPENDENCIES AntTweakBar glew MD5 PositionBasedDynamics Simulation Utils)
 
 if(WIN32)
   set(SIMULATION_LINK_LIBRARIES freeglut opengl32.lib glu32.lib ${SIMULATION_LINK_LIBRARIES})
@@ -14,6 +14,17 @@ else()
     ${OPENGL_LIBRARIES}
   )
 endif()
+
+############################################################
+# Discregrid
+############################################################
+include_directories(${PROJECT_PATH}/extern/install/Discregrid/include)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_Discregrid)
+set(SIMULATION_LINK_LIBRARIES ${SIMULATION_LINK_LIBRARIES} 
+	optimized Discregrid 
+	debug Discregrid_d)
+link_directories(${PROJECT_PATH}/extern/install/Discregrid/lib)
+
 
 add_executable(SceneLoaderDemo
 	  SceneLoaderDemo.cpp

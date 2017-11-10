@@ -8,7 +8,9 @@
 #include "PositionBasedElasticRodsConstraints.h"
 #include "PositionBasedElasticRodsTSC.h"
 #include <iostream>
+#include "Demos/Utils/Logger.h"
 #include "Demos/Utils/Timing.h"
+#include "Demos/Utils/FileSystem.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -17,6 +19,9 @@
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
 	#define new DEBUG_NEW 
 #endif
+
+INIT_TIMING
+INIT_LOGGING
 
 using namespace PBD;
 using namespace Eigen;
@@ -64,6 +69,11 @@ Vector3r oldMousePos;
 int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
+
+	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
+	FileSystem::makeDirs(logPath);
+	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
+	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
 
 	// OpenGL
 	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Elastic rod demo");

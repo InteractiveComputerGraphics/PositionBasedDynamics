@@ -1,20 +1,20 @@
 add_library(Utils
+		FileSystem.h
 		Hashmap.h
 		IndexedFaceMesh.cpp
 		IndexedFaceMesh.h
 		IndexedTetMesh.cpp
 		IndexedTetMesh.h
+		Logger.h
 		ObjectArray.h
 		OBJLoader.cpp
 		OBJLoader.h
 		SceneLoader.cpp
 		SceneLoader.h
+		StringTools.h
 		TetGenLoader.cpp
 		TetGenLoader.h
-		Timing.cpp
 		Timing.h
-		Utilities.cpp
-		Utilities.h
 		VolumeIntegration.cpp
 		VolumeIntegration.h
 

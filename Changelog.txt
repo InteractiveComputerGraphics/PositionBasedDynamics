@@ -1,3 +1,6 @@
+1.6.0
+	- added collision detection for arbitrary meshes based on cubic signed distance fields
+	- added DiscreGrid library as external project to generate cubic signed distance fields
 	- added possibility to define motor target sequences in scene files
 	- added implementation of the paper Kugelstadt, Schoemer, "Position and Orientation Based Cosserat Rods", SCA 2016 and a corresponding demo
 	- update to Eigen 3.3.4

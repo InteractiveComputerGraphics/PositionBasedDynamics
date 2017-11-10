@@ -116,6 +116,7 @@ namespace PBD
 	public:
 		static void getOpenGLVersion(int &major_version, int &minor_version);
 		static void coordinateSystem ();
+		static void hsvToRgb(float h, float s, float v, float *rgb);
 		static void drawVector(const Vector3r &a, const Vector3r &b, const float w, float *color);
 		static void drawCylinder(const Vector3r &a, const Vector3r &b, const float *color, const float radius = 0.02, const unsigned int subdivisions = 8);
 		static void drawSphere(const Vector3r &translation, float radius, float *color, const unsigned int subDivision = 16);
