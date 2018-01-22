@@ -21,6 +21,9 @@ add_library(PositionBasedDynamics
 )
 
 find_package( Eigen3 REQUIRED )
+if(APPLE)
+	target_link_libraries(PositionBasedDynamics omp)
+endif()
 include_directories( ${EIGEN3_INCLUDE_DIR} )
 
 install(TARGETS PositionBasedDynamics
