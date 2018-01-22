@@ -49,11 +49,7 @@ find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/Miniball)
 
-set(SIMULATION_LIBRARIES PositionBasedDynamics)
-if(APPLE)
-	set(SIMULATION_LIBRARIES ${SIMULATION_LIBRARIES} omp)
-endif()
-target_link_libraries(Simulation ${SIMULATION_LIBRARIES})
+target_link_libraries(Simulation PositionBasedDynamics)
 
 
 install(TARGETS Simulation
