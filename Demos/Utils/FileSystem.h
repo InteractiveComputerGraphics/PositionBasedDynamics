@@ -5,13 +5,22 @@
 #include "StringTools.h"
 #include "Logger.h"
 #include "extern/md5/md5.h"
+
 #if WIN32
+
 #include <direct.h>
 #define NOMINMAX
 #include "windows.h"
+
 #else
+
 #include <sys/stat.h>
 #include <unistd.h>
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif // __APPLE__
+
 #endif
 
 namespace PBD
@@ -205,8 +214,15 @@ namespace PBD
 		static std::string getProgramPath()
 		{
 			char buffer[1000];
-#ifdef WIN32	
+#ifdef WIN32
 			GetModuleFileName(NULL, buffer, 1000);
+#elif __APPLE__
+            char path[4192];
+			uint32_t size = sizeof(path);
+			if (_NSGetExecutablePath(path, &size) == 0)
+			{
+				strncpy(buffer, path, sizeof(buffer));
+			}
 #else
 			char szTmp[32];
 			sprintf(szTmp, "/proc/%d/exe", getpid());

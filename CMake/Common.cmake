@@ -26,7 +26,14 @@ if (UNIX)
 endif (UNIX)
 
 if(APPLE)
+    set(CMAKE_USE_RELATIVE_PATHS "1")
     set(CMAKE_MACOSX_RPATH 1)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+    # Set compiler flags for "release"
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Xpreprocessor -fopenmp")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-lomp")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-lomp")
+    set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "-lomp")
 endif()
 
 set (CMAKE_CXX_STANDARD 11)

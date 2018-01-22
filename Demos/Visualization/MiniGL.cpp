@@ -1062,7 +1062,11 @@ void MiniGL::breakPointMainLoop()
 		m_breakPointLoop = true;
 		while (m_breakPointLoop)
 		{
+#ifdef __APPLE__
+            // not available on OSX system GLUT
+#else
 			glutMainLoopEvent();
+#endif
 		}
 	}
 }
