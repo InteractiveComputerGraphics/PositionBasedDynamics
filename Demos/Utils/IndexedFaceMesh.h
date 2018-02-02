@@ -5,7 +5,7 @@
 #include "Common/Common.h"
 #include <iterator>
 
-namespace PBD
+namespace Utilities
 {
 	class IndexedFaceMesh
 	{
@@ -131,7 +131,6 @@ namespace PBD
 		void addFace(const int * const indices);
 		void addUV(const Real u, const Real v);
 		void addUVIndex(const unsigned int index);
-		void addVertex(const Vector3r &vertex);
 
 		const Faces& getFaces() const { return m_indices; }
 		Faces& getFaces(){ return m_indices; }

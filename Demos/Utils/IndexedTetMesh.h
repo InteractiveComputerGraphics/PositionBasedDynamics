@@ -4,7 +4,7 @@
 #include <vector>
 #include "Common/Common.h"
 
-namespace PBD 
+namespace Utilities
 {
 	class IndexedTetMesh
 	{

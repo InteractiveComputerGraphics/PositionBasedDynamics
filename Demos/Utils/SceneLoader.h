@@ -6,7 +6,7 @@
 #include "extern/json/json.hpp"
 #include "Common/Common.h"
 
-namespace PBD
+namespace Utilities
 {
 	class SceneLoader
 	{

@@ -10,13 +10,13 @@ namespace PBD
 	{	
 	public:
 		template<class PositionData>
-		static void drawMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color);
+		static void drawMesh(const PositionData &pd, const Utilities::IndexedFaceMesh &mesh, const unsigned int offset, const float * const color);
 		template<class PositionData>
-		static void drawTexturedMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color);
+		static void drawTexturedMesh(const PositionData &pd, const Utilities::IndexedFaceMesh &mesh, const unsigned int offset, const float * const color);
 	};
 
 	template<class PositionData>
-	void Visualization::drawMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color)
+	void Visualization::drawMesh(const PositionData &pd, const Utilities::IndexedFaceMesh &mesh, const unsigned int offset, const float * const color)
 	{
 		// draw mesh 
 		const unsigned int *faces = mesh.getFaces().data();
@@ -60,7 +60,7 @@ namespace PBD
 	}
 
 	template<class PositionData>
-	void Visualization::drawTexturedMesh(const PositionData &pd, const IndexedFaceMesh &mesh, const unsigned int offset, const float * const color)
+	void Visualization::drawTexturedMesh(const PositionData &pd, const Utilities::IndexedFaceMesh &mesh, const unsigned int offset, const float * const color)
 	{
 		// draw mesh 
 		const unsigned int *faces = mesh.getFaces().data();

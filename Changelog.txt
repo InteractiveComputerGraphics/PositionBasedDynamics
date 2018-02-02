@@ -1,3 +1,5 @@
+	- added new namespace for utilities
+
 1.6.0
 	- added collision detection for arbitrary meshes based on cubic signed distance fields
 	- added DiscreGrid library as external project to generate cubic signed distance fields

@@ -1,9 +1,7 @@
 #ifndef __FileSystem_h__
 #define __FileSystem_h__
 
-#include "Common/Common.h"
 #include "StringTools.h"
-#include "Logger.h"
 #include "extern/md5/md5.h"
 #if WIN32
 #include <direct.h>
@@ -14,7 +12,7 @@
 #include <unistd.h>
 #endif
 
-namespace PBD
+namespace Utilities
 {
 	/** \brief This class implements different file system functions.
 	*/
@@ -248,7 +246,7 @@ namespace PBD
 			std::ifstream file(filename);
 
 			if (!file)
-				LOG_ERR << "Cannot open file: " << filename;
+				std::cerr << "Cannot open file: " << filename << std::endl;
 			else
 			{
 				MD5 context(file);
@@ -265,7 +263,7 @@ namespace PBD
 			fstream.open(md5File.c_str(), std::ios::out);
 			if (fstream.fail())
 			{
-				LOG_ERR << "Failed to open file: " << md5File;
+				std::cerr << "Failed to open file: " << md5File << "\n";
 				return false;
 			}
 			std::string md5 = getFileMD5(fileName);
@@ -283,7 +281,7 @@ namespace PBD
 			fstream.open(md5File.c_str(), std::ios::in);
 			if (fstream.fail())
 			{
-				LOG_ERR << "Failed to open file: " << md5File;
+				std::cerr << "Failed to open file: " << md5File << "\n";
 				return false;
 			}
 			std::string str((std::istreambuf_iterator<char>(fstream)),

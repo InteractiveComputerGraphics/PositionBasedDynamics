@@ -41,7 +41,7 @@ add_library(Simulation
 ############################################################
 # Discregrid
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/Discregrid/include)
+include_directories(${ExternalInstallDir}/Discregrid/include)
 set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_Discregrid)
 add_dependencies(Simulation ${SIMULATION_DEPENDENCIES})
 

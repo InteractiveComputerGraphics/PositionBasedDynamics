@@ -5,7 +5,7 @@
 #include <map>
 #include <stdlib.h>
 
-namespace PBD 
+namespace Utilities
 {
 	template<class KeyType>
 	inline unsigned int hashFunction(const KeyType &key)

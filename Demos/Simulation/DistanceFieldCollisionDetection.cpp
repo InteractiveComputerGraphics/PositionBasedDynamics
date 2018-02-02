@@ -3,6 +3,7 @@
 #include "omp.h"
 
 using namespace PBD;
+using namespace Utilities;
 
 int DistanceFieldCollisionDetection::DistanceFieldCollisionBox::TYPE_ID = IDFactory::getId();
 int DistanceFieldCollisionDetection::DistanceFieldCollisionSphere::TYPE_ID = IDFactory::getId();

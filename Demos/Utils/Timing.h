@@ -4,40 +4,39 @@
 #include <iostream>
 #include <stack>
 #include <unordered_map>
-#include "Common/Common.h"
 #include "Logger.h"
 #include <chrono>
 
-namespace PBD
+namespace Utilities
 {
 	#define START_TIMING(timerName) \
-	Timing::startTiming(timerName);
+	Utilities::Timing::startTiming(timerName);
 
 	#define STOP_TIMING \
-	Timing::stopTiming(false);
+	Utilities::Timing::stopTiming(false);
 
 	#define STOP_TIMING_PRINT \
-	Timing::stopTiming(true);
+	Utilities::Timing::stopTiming(true);
 
 	#define STOP_TIMING_AVG \
 	{ \
 	static int timing_timerId = -1; \
-	Timing::stopTiming(false, timing_timerId); \
+	Utilities::Timing::stopTiming(false, timing_timerId); \
 	}
 
 	#define STOP_TIMING_AVG_PRINT \
 	{ \
 	static int timing_timerId = -1; \
-	Timing::stopTiming(true, timing_timerId); \
+	Utilities::Timing::stopTiming(true, timing_timerId); \
 	}
 
 	#define INIT_TIMING \
-		int PBD::IDFactory::id = 0; \
-		std::unordered_map<int, PBD::AverageTime> PBD::Timing::m_averageTimes; \
-		std::stack<PBD::TimingHelper> PBD::Timing::m_timingStack; \
-		bool PBD::Timing::m_dontPrintTimes = false; \
-		unsigned int PBD::Timing::m_startCounter = 0; \
-		unsigned int PBD::Timing::m_stopCounter = 0;
+		int Utilities::IDFactory::id = 0; \
+		std::unordered_map<int, Utilities::AverageTime> Utilities::Timing::m_averageTimes; \
+		std::stack<Utilities::TimingHelper> Utilities::Timing::m_timingStack; \
+		bool Utilities::Timing::m_dontPrintTimes = false; \
+		unsigned int Utilities::Timing::m_startCounter = 0; \
+		unsigned int Utilities::Timing::m_stopCounter = 0;
 
 
 	/** \brief Struct to store a time measurement.

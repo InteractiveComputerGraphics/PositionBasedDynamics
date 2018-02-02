@@ -4,7 +4,7 @@
 #include <iostream>
 #include "Logger.h"
 
-using namespace PBD;
+using namespace Utilities;
 using namespace std;
 
 // Call this function to load a model from a *.tet file

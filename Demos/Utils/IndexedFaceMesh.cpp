@@ -1,6 +1,6 @@
 #include "IndexedFaceMesh.h"
 
-using namespace PBD;
+using namespace Utilities;
 
 IndexedFaceMesh& IndexedFaceMesh::operator=(IndexedFaceMesh const& other)
 {

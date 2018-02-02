@@ -1,6 +1,7 @@
 #include "NeighborhoodSearchSpatialHashing.h"
 
 using namespace PBD;
+using namespace Utilities;
 
 NeighborhoodSearchSpatialHashing::NeighborhoodSearchSpatialHashing(const unsigned int numParticles, const Real radius, const unsigned int maxNeighbors, const unsigned int maxParticlesPerCell) :
 	m_gridMap(numParticles*2)

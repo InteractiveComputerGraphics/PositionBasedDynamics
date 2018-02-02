@@ -26,6 +26,7 @@ INIT_LOGGING
 using namespace PBD;
 using namespace Eigen;
 using namespace std;
+using namespace Utilities;
 
 void timeStep ();
 void buildModel ();

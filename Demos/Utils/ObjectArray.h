@@ -4,7 +4,7 @@
 #include <memory.h>
 #include "Common/Common.h"
 
-namespace PBD 
+namespace Utilities
 {
 	template <class T, int growBy = 100, bool linearGrow = true>
 	class ObjectArray

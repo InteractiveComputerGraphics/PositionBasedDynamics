@@ -4,29 +4,29 @@
 
 using namespace std;
 using namespace Eigen;
-using namespace PBD;
+using namespace Utilities;
 
 #define SQR(x) ((x)*(x))
 #define CUBE(x) ((x)*(x)*(x))
 
-VolumeIntegration::VolumeIntegration(IndexedFaceMesh const& mesh, VertexData const& vertices)
-		: m_mesh(mesh), m_vertices(vertices), m_face_normals(mesh.numFaces()), m_weights(mesh.numFaces())
+VolumeIntegration::VolumeIntegration(const unsigned int nVertices, const unsigned int nFaces, Vector3r * const vertices, const unsigned int* indices)
+		: m_nVertices(nVertices), m_nFaces(nFaces), m_indices(indices), m_face_normals(nFaces), m_weights(nFaces)
 {
 	// compute center of mass
 	m_x.setZero();
-	for (unsigned int i(0); i < m_vertices.size(); ++i)
-		m_x += m_vertices.getPosition(i);
-	m_x /= (Real)m_vertices.size();
+	for (unsigned int i(0); i < m_nVertices; ++i)
+		m_x += vertices[i];
+	m_x /= (Real)m_nVertices;
 
-	for (unsigned int i(0); i < m_vertices.size(); ++i)
-		m_vertices.getPosition(i) = m_vertices.getPosition(i) - m_x;
+	m_vertices.reserve(nVertices);
+	for (unsigned int i(0); i < m_nVertices; ++i)
+		m_vertices[i] = vertices[i] - m_x;
 
-	const unsigned int *faces = mesh.getFaces().data();
-	for (unsigned int i(0); i < mesh.numFaces(); ++i)
+	for (unsigned int i(0); i < m_nFaces; ++i)
     {
-		const Vector3r &a = m_vertices.getPosition(faces[3 * i]);
-		const Vector3r &b = m_vertices.getPosition(faces[3 * i + 1]);
-		const Vector3r &c = m_vertices.getPosition(faces[3 * i + 2]);
+		const Vector3r &a = m_vertices[m_indices[3 * i]];
+		const Vector3r &b = m_vertices[m_indices[3 * i + 1]];
+		const Vector3r &c = m_vertices[m_indices[3 * i + 2]];
 
 		const Vector3r d1 = b - a;
 		const Vector3r d2 = c - a;
@@ -84,13 +84,12 @@ void VolumeIntegration::projection_integrals(unsigned int f)
 
     P1 = Pa = Pb = Paa = Pab = Pbb = Paaa = Paab = Pabb = Pbbb = 0.0;
 
-	const unsigned int *faces = m_mesh.getFaces().data();
     for (int i = 0; i < 3; i++)
     {
-		a0 = m_vertices.getPosition(faces[3 * f + i])[A];
-		b0 = m_vertices.getPosition(faces[3 * f + i])[B];
-		a1 = m_vertices.getPosition(faces[3 * f + ((i + 1) % 3)])[A];
-		b1 = m_vertices.getPosition(faces[3 * f + ((i + 1) % 3)])[B];
+		a0 = m_vertices[m_indices[3 * f + i]][A];
+		b0 = m_vertices[m_indices[3 * f + i]][B];
+		a1 = m_vertices[m_indices[3 * f + ((i + 1) % 3)]][A];
+		b1 = m_vertices[m_indices[3 * f + ((i + 1) % 3)]][B];
 
         da = a1 - a0;
         db = b1 - b0;
@@ -173,7 +172,7 @@ void VolumeIntegration::volume_integrals()
         = T2[0] = T2[1] = T2[2] 
         = TP[0] = TP[1] = TP[2] = 0;
 
-	for (unsigned int i(0); i < m_mesh.numFaces(); ++i)
+	for (unsigned int i(0); i < m_nFaces; ++i)
     {
         Vector3r const& n = m_face_normals[i];
         nx = std::abs(n[0]);

@@ -1,11 +1,10 @@
 #ifndef __StringTools_h__
 #define __StringTools_h__
 
-#include "Common/Common.h"
 #include <vector>
 #include <iostream>
 
-namespace PBD
+namespace Utilities
 {
 	/** \brief Tools to handle std::string objects 
 	*/

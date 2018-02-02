@@ -4,6 +4,7 @@
 #include "Demos/Utils/Logger.h"
 
 using namespace PBD;
+using namespace Utilities;
 
 TetModel::TetModel() :
 	m_surfaceMesh(),

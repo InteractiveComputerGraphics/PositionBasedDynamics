@@ -7,7 +7,6 @@ add_library(Utils
 		IndexedTetMesh.h
 		Logger.h
 		ObjectArray.h
-		OBJLoader.cpp
 		OBJLoader.h
 		SceneLoader.cpp
 		SceneLoader.h

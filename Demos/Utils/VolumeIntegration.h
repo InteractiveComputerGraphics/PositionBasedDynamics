@@ -7,10 +7,8 @@
 #include <iostream>
 
 #include "Common/Common.h"
-#include "Demos/Utils/IndexedFaceMesh.h"
-#include "Demos/Simulation/ParticleData.h"
 
-namespace PBD
+namespace Utilities
 {
 	class VolumeIntegration
 	{
@@ -32,7 +30,7 @@ namespace PBD
 
 	public:
 
-		VolumeIntegration(IndexedFaceMesh const& mesh, VertexData const&vertices);
+		VolumeIntegration(const unsigned int nVertices, const unsigned int nFaces, Vector3r * const vertices, const unsigned int* indices);
 
 		/** Compute inertia tensor for given geometry and given density. 
 		*/
@@ -59,8 +57,10 @@ namespace PBD
 
 		std::vector<Vector3r> m_face_normals;
 		std::vector<Real> m_weights;
-		IndexedFaceMesh const& m_mesh;
-		VertexData m_vertices;
+		unsigned int m_nVertices;
+		unsigned int m_nFaces;
+		std::vector<Vector3r> m_vertices;
+		const unsigned int* m_indices;
 
 		Real m_mass, m_volume;
 		Vector3r m_r;

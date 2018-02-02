@@ -63,9 +63,9 @@ GLint MiniGL::m_context_minor_version = 0;
 GLint MiniGL::m_context_profile = 0;
 bool MiniGL::m_breakPointActive = true;
 bool MiniGL::m_breakPointLoop = false;
-ObjectArray<MiniGL::Triangle> MiniGL::m_drawTriangle;
-ObjectArray<MiniGL::Line> MiniGL::m_drawLines;
-ObjectArray<MiniGL::Point> MiniGL::m_drawPoints;
+std::vector<MiniGL::Triangle> MiniGL::m_drawTriangle;
+std::vector<MiniGL::Line> MiniGL::m_drawLines;
+std::vector<MiniGL::Point> MiniGL::m_drawPoints;
 
 
 
@@ -1017,31 +1017,34 @@ void MiniGL::clearElements()
 
 void MiniGL::addPoint(const Vector3r &a, const float pointSize, const float *color)
 {
-	Point &p = m_drawPoints.create();
+	Point p;
 	p.a = a;
 	p.pointSize = pointSize;
 	for (unsigned char i = 0; i < 4; i++)
 		p.color[i] = color[i];
+	m_drawPoints.push_back(p);
 }
 
 void MiniGL::addLine(const Vector3r &a, const Vector3r &b, const float lineWidth, const float *color)
 {
-	Line &l = m_drawLines.create();
+	Line l;
 	l.a = a;
 	l.b = b;
 	l.lineWidth = lineWidth;
 	for (unsigned char i = 0; i < 4; i++)
 		l.color[i] = color[i];
+	m_drawLines.push_back(l);
 }
 
 void MiniGL::addTriangle(const Vector3r &a, const Vector3r &b, const Vector3r &c, const float *color)
 {
-	Triangle &t = m_drawTriangle.create();
+	Triangle t;
 	t.a = a;
 	t.b = b;
 	t.c = c;
 	for (unsigned char i = 0; i < 4; i++)
 		t.color[i] = color[i];
+	m_drawTriangle.push_back(t);
 }
 
 void MiniGL::setBreakPointActive(const bool active)

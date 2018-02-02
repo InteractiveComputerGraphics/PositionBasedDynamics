@@ -1,6 +1,6 @@
 #include "IndexedTetMesh.h"
 
-using namespace PBD;
+using namespace Utilities;
 
 IndexedTetMesh::IndexedTetMesh()
 {

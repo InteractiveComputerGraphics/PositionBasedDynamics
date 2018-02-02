@@ -17,7 +17,11 @@ else()
 endif()
 
 include(ExternalProject)
-set(ExternalInstallDir "${CMAKE_SOURCE_DIR}/extern/install")
+if (DEFINED PBD_EXTERNALINSTALLDIR)
+	set(ExternalInstallDir "${PBD_EXTERNALINSTALLDIR}")	
+else()
+	set(ExternalInstallDir "${CMAKE_SOURCE_DIR}/extern/install")
+endif()	
 set(EigenDir "${CMAKE_SOURCE_DIR}/extern/eigen")
 
 ## Discregrid
@@ -25,7 +29,7 @@ ExternalProject_Add(
    ExternalProject_Discregrid
    PREFIX "${CMAKE_SOURCE_DIR}/extern/Discregrid"
    GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
-   GIT_TAG "573c2f51f433c74de832454272e47f590140e80b"
+   GIT_TAG "f16a29afebf7a7f43139d5832bbfc7124c5d98db"
    INSTALL_DIR ${ExternalInstallDir}/Discregrid
    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
 ) 

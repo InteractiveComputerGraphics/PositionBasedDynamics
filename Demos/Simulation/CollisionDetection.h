@@ -48,7 +48,7 @@ namespace PBD
 		Real m_tolerance;
 		ContactCallbackFunction m_contactCB;
 		void *m_contactCBUserData;
-		ObjectArray<CollisionObject*> m_collisionObjects;
+		Utilities::ObjectArray<CollisionObject*> m_collisionObjects;
 
 		void updateAABB(const Vector3r &p, AABB &aabb);
 
@@ -73,7 +73,7 @@ namespace PBD
 
 		virtual void addCollisionObject(const unsigned int bodyIndex, const unsigned int bodyType);
 
-		ObjectArray<CollisionObject*> &getCollisionObjects() { return m_collisionObjects; }
+		Utilities::ObjectArray<CollisionObject*> &getCollisionObjects() { return m_collisionObjects; }
 
 		virtual void collisionDetection(SimulationModel &model) = 0;
 

@@ -21,8 +21,8 @@ namespace PBD
 			virtual ~SimulationModel();
 
 			typedef std::vector<Constraint*> ConstraintVector;
-			typedef ObjectArray<RigidBodyContactConstraint> RigidBodyContactConstraintVector;
-			typedef ObjectArray<ParticleRigidBodyContactConstraint> ParticleRigidBodyContactConstraintVector;
+			typedef Utilities::ObjectArray<RigidBodyContactConstraint> RigidBodyContactConstraintVector;
+			typedef Utilities::ObjectArray<ParticleRigidBodyContactConstraint> ParticleRigidBodyContactConstraintVector;
 			typedef std::vector<RigidBody*> RigidBodyVector;
 			typedef std::vector<TriangleModel*> TriangleModelVector;
 			typedef std::vector<TetModel*> TetModelVector;

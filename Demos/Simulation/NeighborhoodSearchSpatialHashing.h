@@ -5,10 +5,10 @@
 #include <vector>
 #include "Common/Common.h"
 
-namespace PBD
-{
-	typedef Eigen::Vector3i NeighborhoodSearchCellPos;
+typedef Eigen::Vector3i NeighborhoodSearchCellPos;
 
+namespace Utilities
+{
 	template<>
 	inline unsigned int hashFunction<NeighborhoodSearchCellPos*>(NeighborhoodSearchCellPos* const &key)
 	{
@@ -17,7 +17,10 @@ namespace PBD
 		const int p3 = 83492791 * (*key)[2];
 		return p1 + p2 + p3;
 	}
+}
 
+namespace PBD
+{
 	class NeighborhoodSearchSpatialHashing
 	{
 	public: 
@@ -68,7 +71,7 @@ namespace PBD
 		Real m_cellGridSize;
 		Real m_radius2;
 		unsigned int m_currentTimestamp;
-		Hashmap<NeighborhoodSearchCellPos*, HashEntry*> m_gridMap;	
+		Utilities::Hashmap<NeighborhoodSearchCellPos*, HashEntry*> m_gridMap;
 	};
 }
 

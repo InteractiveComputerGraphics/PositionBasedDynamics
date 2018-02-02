@@ -16,7 +16,7 @@ namespace PBD
 			TriangleModel();
 			virtual ~TriangleModel();
 
-			typedef IndexedFaceMesh ParticleMesh;
+			typedef Utilities::IndexedFaceMesh ParticleMesh;
 
 		protected:
 			/** offset which must be added to get the correct index in the particles array */

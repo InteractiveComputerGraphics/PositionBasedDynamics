@@ -14,7 +14,7 @@ namespace PBD
 			RigidBodyGeometry();
 			virtual ~RigidBodyGeometry();
 
-			typedef IndexedFaceMesh Mesh;
+			typedef Utilities::IndexedFaceMesh Mesh;
 
 		protected:
 			Mesh m_mesh;

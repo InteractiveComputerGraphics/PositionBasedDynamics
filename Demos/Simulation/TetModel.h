@@ -16,8 +16,8 @@ namespace PBD
 			TetModel();
 			virtual ~TetModel();
 
-			typedef IndexedFaceMesh SurfaceMesh;
-			typedef IndexedTetMesh ParticleMesh;
+			typedef Utilities::IndexedFaceMesh SurfaceMesh;
+			typedef Utilities::IndexedTetMesh ParticleMesh;
 
 			struct Attachment
 			{
@@ -38,7 +38,7 @@ namespace PBD
 			SurfaceMesh m_visMesh;
 			Real m_restitutionCoeff;
 			Real m_frictionCoeff;
-			ObjectArray<Attachment> m_attachments;
+			Utilities::ObjectArray<Attachment> m_attachments;
 			
 			void createSurfaceMesh();
  			void solveQuadraticForZero(const Vector3r& F, const Vector3r& Fu, 

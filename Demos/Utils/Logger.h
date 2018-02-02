@@ -10,7 +10,7 @@
 #include <memory>
 
 
-namespace PBD
+namespace Utilities
 {
 	enum LogLevel { DEBUG=0, INFO, WARN, ERR };
 
@@ -147,13 +147,14 @@ namespace PBD
 		std::ostringstream m_buffer;
 	};
 
-	extern Logger logger;
+	extern Utilities::Logger logger;
 
-	#define LOG_DEBUG LogStream(&logger, LogLevel::DEBUG)
-	#define LOG_INFO LogStream(&logger, LogLevel::INFO)
-	#define LOG_WARN LogStream(&logger, LogLevel::WARN)
-	#define LOG_ERR LogStream(&logger, LogLevel::ERR)
-	#define INIT_LOGGING PBD::Logger PBD::logger;
+	#define LOG_DEBUG Utilities::LogStream(&Utilities::logger, Utilities::LogLevel::DEBUG)
+	#define LOG_INFO Utilities::LogStream(&Utilities::logger, Utilities::LogLevel::INFO)
+	#define LOG_WARN Utilities::LogStream(&Utilities::logger, Utilities::LogLevel::WARN)
+	#define LOG_ERR Utilities::LogStream(&Utilities::logger, Utilities::LogLevel::ERR)
+	#define INIT_LOGGING Utilities::Logger Utilities::logger;
 }
+
 
 #endif
