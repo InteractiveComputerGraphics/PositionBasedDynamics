@@ -18,7 +18,7 @@ VolumeIntegration::VolumeIntegration(const unsigned int nVertices, const unsigne
 		m_x += vertices[i];
 	m_x /= (Real)m_nVertices;
 
-	m_vertices.reserve(nVertices);
+	m_vertices.resize(nVertices);
 	for (unsigned int i(0); i < m_nVertices; ++i)
 		m_vertices[i] = vertices[i] - m_x;
 
