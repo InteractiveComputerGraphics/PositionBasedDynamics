@@ -13,6 +13,7 @@ The library was tested on Windows 10, Ubuntu 16.10 and Mac OS X 10.10.5.
 
 ## News
 
+* Our new [paper](https://animation.rwth-aachen.de/publication/0557/) about a Direct Position-Based Solver for Stiff Rods uses the PositionBasedDynamics library. You can watch the video  [here](https://www.youtube.com/watch?v=EFH9xt4omls).
 * PBD now has a collision detection based on cubic signed distance fields
 * SPlisHSPlasH is our new open-source fluid simulator which uses the PositionBasedDynamics library to handle rigid-fluid coupling. It can be downloaded here:
 [https://github.com/InteractiveComputerGraphics/SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
@@ -34,6 +35,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* Crispin Deul added the implementation of his paper Deul, Kugelstadt, Weiler, Bender, "Direct Position-Based Solver for Stiff Rods", Computer Graphics Forum 2018 and a corresponding demo
 * added collision detection for arbitrary meshes based on cubic signed distance fields
 * added implementation of the paper Kugelstadt, Schoemer, "Position and Orientation Based Cosserat Rods", SCA 2016
 * removed Boost dependency
@@ -45,14 +47,9 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 * added support for Mac OS X
 * added automatic computation of inertia tensor for arbitrary triangle meshes
 * added OBJ file loader
-* added target velocity motor slider joint
-* added target position motor slider joint
-* added slider joint
-* added target velocity motor hinge joint 
-* added target angle motor hinge joint
 * parallelized unified solver using graph coloring
 * implemented unified solver for rigid bodies and deformable solids 
-* added generic constraint
+
 
 
 ## Features
@@ -66,6 +63,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 	- Elastic rods:
 		- bend-twist constraint
 		- stretch-shear constraint
+		- Cosserat constraint
 	- Deformable solids:		
 		- point-point distance constraint
 		- point-edge distance constraint
@@ -95,9 +93,11 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Videos
 
-This video was generated with the PositionBasedDynamics library for our paper "Hierarchical hp-Adaptive Signed Distance Fields":
+The following videos were generated using the PositionBasedDynamics library:
 
-[![Video](https://img.youtube.com/vi/x_Iq2yM4FcA/0.jpg)](https://www.youtube.com/watch?v=x_Iq2yM4FcA)
+*Hierarchical hp-Adaptive Signed Distance Fields* | *Direct Position-Based Solver for Stiff Rods*
+:---:|:---:
+[![Video](https://img.youtube.com/vi/x_Iq2yM4FcA/0.jpg)](https://www.youtube.com/watch?v=x_Iq2yM4FcA) | [![Video](https://img.youtube.com/vi/EFH9xt4omls/0.jpg)](https://www.youtube.com/watch?v=EFH9xt4omls)
 
 
 ## Screenshots
@@ -109,6 +109,7 @@ This video was generated with the PositionBasedDynamics library for our paper "H
 * J. Bender, M. Müller and M. Macklin, "Position-Based Simulation Methods in Computer Graphics", In Tutorial Proceedings of Eurographics, 2015
 * J. Bender, D. Koschier, P. Charrier and D. Weber, ""Position-based simulation of continuous materials", Computers & Graphics 44, 2014
 * J. Bender, M. Müller, M. A. Otaduy, M. Teschner and M. Macklin, "A Survey on Position-Based Simulation Methods in Computer Graphics", Computer Graphics Forum 33, 6, 2014
+* C. Deul, T. Kugelstadt, M. Weiler, J. Bender, "Direct Position-Based Solver for Stiff Rods", Computer Graphics Forum, 2018
 * C. Deul, P. Charrier and J. Bender, "Position-Based Rigid Body Dynamics", Computer Animation and Virtual Worlds, 2014
 * D. Koschier, C. Deul, M. Brand and J. Bender, "An hp-Adaptive Discretization Algorithm for Signed Distance Field Generation", IEEE Transactions on Visualization and Computer Graphics 23, 2017
 * M. Macklin, M. Müller, N. Chentanez and T.Y. Kim, "Unified particle physics for real-time applications", ACM Trans. Graph. 33, 4, 2014

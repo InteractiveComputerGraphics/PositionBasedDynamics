@@ -5,6 +5,9 @@
 #define _USE_MATH_DEFINES
 #include "math.h"
 #include <vector>
+#include <list>
+#include <memory>
+#include "PositionBasedDynamics/DirectPositionBasedSolverForStiffRodsInterface.h"
 
 namespace PBD
 {
@@ -26,6 +29,7 @@ namespace PBD
 		virtual ~Constraint() { delete[] m_bodies; };
 		virtual int &getTypeId() const = 0;
 
+		virtual bool initConstraintBeforeProjection(SimulationModel &model) { return true; };
 		virtual bool updateConstraint(SimulationModel &model) { return true; };
 		virtual bool solvePositionConstraint(SimulationModel &model) { return true; };
 		virtual bool solveVelocityConstraint(SimulationModel &model) { return true; };
@@ -199,6 +203,22 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex, const unsigned int particleIndex);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
+	class RigidBodySpring : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Eigen::Matrix<Real, 3, 4> m_jointInfo;
+		Real m_restLength;
+		Real m_stiffness;
+
+		RigidBodySpring() : Constraint(2) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2, const Real stiffness);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model);
 	};
@@ -420,6 +440,134 @@ namespace PBD
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int quaternion1, const unsigned int quaternion2);
 		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
+	class StretchBendingTwistingConstraint : public Constraint
+	{
+		using Matrix6r = Eigen::Matrix<Real, 6, 6>;
+		using Vector6r = Eigen::Matrix<Real, 6, 1>;
+	public:
+		static int TYPE_ID;
+		Eigen::Matrix<Real, 3, 4> m_constraintInfo;
+
+		Real m_averageRadius;
+		Real m_averageSegmentLength;
+		Vector3r m_restDarbouxVector;
+		Vector3r m_stiffnessCoefficientK;
+		Vector3r m_stretchCompliance;
+		Vector3r m_bendingAndTorsionCompliance;
+		Vector6r m_lambdaSum;		
+
+		StretchBendingTwistingConstraint() : Constraint(2){}
+
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		bool initConstraint(SimulationModel &model, const unsigned int segmentIndex1, const unsigned int segmentIndex2, const Vector3r &pos,
+			const Real averageRadius, const Real averageSegmentLength, Real youngsModulus, Real torsionModulus);
+		virtual bool initConstraintBeforeProjection(SimulationModel &model);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+	};
+
+	struct Node;
+	struct Interval;
+	class SimulationModel;
+	using Vector6r = Eigen::Matrix<Real, 6, 1>;
+
+	class DirectPositionBasedSolverForStiffRodsConstraint : public Constraint
+	{
+		class RodSegmentImpl : public RodSegment
+		{			
+		public:
+			RodSegmentImpl(SimulationModel &model, unsigned int idx) :
+				m_model(model), m_segmentIdx(idx) {};
+
+			virtual bool isDynamic();
+			virtual Real Mass();
+			virtual const Vector3r & InertiaTensor();
+			virtual const Vector3r & Position();
+			virtual const Quaternionr & Rotation();
+
+			SimulationModel &m_model;
+			unsigned int m_segmentIdx;
+		};
+
+		class RodConstraintImpl : public RodConstraint
+		{
+		public:
+			std::vector<unsigned int> m_segments;
+			Eigen::Matrix<Real, 3, 4> m_constraintInfo;
+
+			Real m_averageRadius;
+			Real m_averageSegmentLength;
+			Vector3r m_restDarbouxVector;
+			Vector3r m_stiffnessCoefficientK;
+			Vector3r m_stretchCompliance;
+			Vector3r m_bendingAndTorsionCompliance;
+			
+			virtual unsigned int segmentIndex(unsigned int i){
+				if (i < static_cast<unsigned int>(m_segments.size()))
+					return m_segments[i];
+				return 0u;
+			};
+
+			virtual Eigen::Matrix<Real, 3, 4> & getConstraintInfo(){ return m_constraintInfo; }
+			virtual Real getAverageSegmentLength(){ return m_averageSegmentLength; }
+			virtual Vector3r &getRestDarbouxVector(){ return m_restDarbouxVector; }
+			virtual Vector3r &getStiffnessCoefficientK() { return m_stiffnessCoefficientK; };
+			virtual Vector3r & getStretchCompliance(){ return m_stretchCompliance; }
+			virtual Vector3r & getBendingAndTorsionCompliance(){ return m_bendingAndTorsionCompliance; }
+		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
+		};
+
+	public:
+		static int TYPE_ID;
+
+		DirectPositionBasedSolverForStiffRodsConstraint() :  Constraint(2),
+			root(NULL), numberOfIntervals(0), intervals(NULL), forward(NULL), backward(NULL){}
+		~DirectPositionBasedSolverForStiffRodsConstraint();
+
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		bool initConstraint(SimulationModel &model,
+			const std::vector<std::pair<unsigned int, unsigned int>> & constraintSegmentIndices,
+			const std::vector<Vector3r> &constraintPositions,
+			const std::vector<Real> &averageRadii,
+			const std::vector<Real> &averageSegmentLengths,
+			const std::vector<Real> &youngsModuli,
+			const std::vector<Real> &torsionModuli);
+
+		virtual bool initConstraintBeforeProjection(SimulationModel &model);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model);
+
+	protected:
+		
+		/** root node */
+		Node *root;
+		/** intervals of constraints */
+		Interval *intervals;
+		/** number of intervals */
+		int numberOfIntervals;		
+		/** list to process nodes with increasing row index in the system matrix H (from the leaves to the root) */
+		std::list <Node*> *forward;
+		/** list to process nodes starting with the highest row index to row index zero in the matrix H (from the root to the leaves) */
+		std::list <Node*> *backward;
+
+		std::vector<RodConstraintImpl> m_Constraints;
+		std::vector<RodConstraint*> m_rodConstraints;
+
+		std::vector<RodSegmentImpl> m_Segments;
+		std::vector<RodSegment*> m_rodSegments;
+
+		std::vector<Vector6r> m_rightHandSide;
+		std::vector<Vector6r> m_lambdaSums;
+		std::vector<std::vector<Matrix3r>> m_bendingAndTorsionJacobians;
+		std::vector<Vector3r> m_corr_x;
+		std::vector<Quaternionr> m_corr_q;
+
+		void deleteNodes();
 	};
 }
 

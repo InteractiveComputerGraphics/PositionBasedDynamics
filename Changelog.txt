@@ -1,4 +1,4 @@
-	- added new namespace for utilities
+	- Crispin Deul added the implementation of his paper Deul, Kugelstadt, Weiler, Bender, "Direct Position-Based Solver for Stiff Rods", Computer Graphics Forum 2018 and a corresponding demo
 
 1.6.0
 	- added collision detection for arbitrary meshes based on cubic signed distance fields

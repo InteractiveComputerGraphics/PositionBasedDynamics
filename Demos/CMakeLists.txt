@@ -13,6 +13,7 @@ set(PBD_DEMOS
 	PositionBasedElasticRodsDemo
 	RigidBodyDemos
 	SceneLoaderDemo
+	StiffRodsDemos
 )
 
 add_subdirectory(Simulation)

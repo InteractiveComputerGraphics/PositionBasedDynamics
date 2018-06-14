@@ -121,6 +121,7 @@ namespace PBD
 			bool addTargetPositionMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 			bool addTargetVelocityMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 			bool addRigidBodyParticleBallJoint(const unsigned int rbIndex, const unsigned int particleIndex);
+			bool addRigidBodySpring(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2, const Real stiffness);
 			bool addRigidBodyContactConstraint(const unsigned int rbIndex1, const unsigned int rbIndex2, 
 					const Vector3r &cp1, const Vector3r &cp2,	
 					const Vector3r &normal, const Real dist, 
@@ -146,6 +147,8 @@ namespace PBD
 			bool addShapeMatchingConstraint(const unsigned int numberOfParticles, const unsigned int particleIndices[], const unsigned int numClusters[]);
 			bool addStretchShearConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1);
 			bool addBendTwistConstraint(const unsigned int quaternion1, const unsigned int quaternion2);
+			bool addStretchBendingTwistingConstraint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Real averageRadius, const Real averageSegmentLength, const Real youngsModulus, const Real torsionModulus);
+			bool addDirectPositionBasedSolverForStiffRodsConstraint(const std::vector<std::pair<unsigned int, unsigned int>> & jointSegmentIndices, const std::vector<Vector3r> &jointPositions, const std::vector<Real> &averageRadii, const std::vector<Real> &averageSegmentLengths, const std::vector<Real> &youngsModuli, const std::vector<Real> &torsionModuli);
 
 			Real getClothStiffness() const { return m_cloth_stiffness; }
 			void setClothStiffness(Real val) { m_cloth_stiffness = val; }

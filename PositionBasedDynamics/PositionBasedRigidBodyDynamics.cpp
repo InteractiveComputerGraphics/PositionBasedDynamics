@@ -194,6 +194,118 @@ bool PositionBasedRigidBodyDynamics::solve_BallJoint(
 	return true;
 }
 
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::init_Spring(
+	const Vector3r &x0,
+	const Quaternionr &q0,
+	const Vector3r &x1,
+	const Quaternionr &q1,
+	const Vector3r &pos0,
+	const Vector3r &pos1,
+	Eigen::Matrix<Real, 3, 4> &jointInfo
+)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2:	connector in body 0 (global)
+	// 3:	connector in body 1 (global)
+
+	// transform in local coordinates
+	const Matrix3r rot0T = q0.matrix().transpose();
+	const Matrix3r rot1T = q1.matrix().transpose();
+
+	jointInfo.col(0) = rot0T * (pos0 - x0);
+	jointInfo.col(1) = rot1T * (pos1 - x1);
+	jointInfo.col(2) = pos0;
+	jointInfo.col(3) = pos1;
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::update_Spring(
+	const Vector3r &x0,
+	const Quaternionr &q0,
+	const Vector3r &x1,
+	const Quaternionr &q1,
+	Eigen::Matrix<Real, 3, 4> &jointInfo
+)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2:	connector in body 0 (global)
+	// 3:	connector in body 1 (global)
+
+	// compute world space positions of connectors
+	const Matrix3r rot0 = q0.matrix();
+	const Matrix3r rot1 = q1.matrix();
+	jointInfo.col(2) = rot0 * jointInfo.col(0) + x0;
+	jointInfo.col(3) = rot1 * jointInfo.col(1) + x1;
+
+	return true;
+}
+
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedRigidBodyDynamics::solve_Spring(
+	const Real invMass0,
+	const Vector3r &x0,
+	const Matrix3r &inertiaInverseW0,
+	const Quaternionr &q0,
+	const Real invMass1,
+	const Vector3r &x1,
+	const Matrix3r &inertiaInverseW1,
+	const Quaternionr &q1,
+	const Real stiffness,
+	const Real restLength,
+	const Eigen::Matrix<Real, 3, 4> &jointInfo,
+	Vector3r &corr_x0, Quaternionr &corr_q0,
+	Vector3r &corr_x1, Quaternionr &corr_q1)
+{
+	// jointInfo contains
+	// 0:	connector in body 0 (local)
+	// 1:	connector in body 1 (local)
+	// 2:	connector in body 0 (global)
+	// 3:	connector in body 1 (global)
+
+	const Vector3r &connector0 = jointInfo.col(2);
+	const Vector3r &connector1 = jointInfo.col(3);
+
+	Vector3r dir = connector1 - connector0;
+	Real length = dir.norm();
+	dir = (1.0 / length) * dir;
+
+	const Vector3r pt = stiffness * (length- restLength) * dir;
+
+	corr_x0.setZero();
+	corr_q0.coeffs().setZero();
+	corr_x1.setZero();
+	corr_q1.coeffs().setZero();
+
+	if (invMass0 != 0.0)
+	{
+		const Vector3r r0 = connector0 - x0;
+		corr_x0 = invMass0*pt;
+
+		const Vector3r ot = (inertiaInverseW0 * (r0.cross(pt)));
+		const Quaternionr otQ(0.0, ot[0], ot[1], ot[2]);
+		corr_q0.coeffs() = 0.5 *(otQ*q0).coeffs();
+	}
+
+	if (invMass1 != 0.0)
+	{
+		const Vector3r r1 = connector1 - x1;
+		corr_x1 = -invMass1*pt;
+
+		const Vector3r ot = (inertiaInverseW1 * (r1.cross(-pt)));
+		const Quaternionr otQ(0.0, ot[0], ot[1], ot[2]);
+		corr_q1.coeffs() = 0.5 *(otQ*q1).coeffs();
+	}
+	return true;
+}
+
 
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedRigidBodyDynamics::init_BallOnLineJoint(
@@ -462,9 +574,7 @@ bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 
 	const Vector3r &c0 = jointInfo.col(6);
 	const Vector3r &c1 = jointInfo.col(7);
-	const Vector3r &axis0 = jointInfo.col(8);
 	const Vector3r &axis1 = jointInfo.col(11);
-	const Vector3r u = axis0.cross(axis1);
 	const Vector3r &t1 = jointInfo.col(9);
 	const Vector3r &t2 = jointInfo.col(10);
 	const Vector3r r0 = c0 - x0;
@@ -473,11 +583,13 @@ bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 	MathFunctions::crossProductMatrix(r0, r0_star);
 	MathFunctions::crossProductMatrix(r1, r1_star);
 
+	const Vector3r u1 = t1.cross(axis1);
+	const Vector3r u2 = t2.cross(axis1);
 
 	Eigen::Matrix<Real, 5, 1> b;
 	b.block<3, 1>(0, 0) = c1 - c0;
-	b(3, 0) = t1.dot(u);
-	b(4, 0) = t2.dot(u);
+	b(3, 0) = -t1.dot(axis1);
+	b(4, 0) = -t2.dot(axis1);
 
 	Eigen::Matrix<Real, 5, 5> K;
 	K.setZero();
@@ -486,59 +598,59 @@ bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 		// Jacobian for body 0 is
 		//
 		// (I_3   -r0*)
-		// (0     t1^T)
-		// (0     t2^T)
+		// (0     u1^T)
+		// (0     u2^T)
 		//
 		// where I_3 is the identity matrix and r0* is the cross product matrix of r0
 		//
 		// J M^-1 J^T =
-		// ( 1/m I_3-r0 * J0^-1 * r0*    -r0 * J0^-1 * t1    -r0 * J0^-1 * t2 )
-		// ( (-r0* J0^-1 * t1)^T         t1^T * J0^-1 t1     t1^T * J0^-1 t2  )
-		// ( (-r0* J0^-1 * t2)^T         t2^T * J0^-1 t1     t2^T * J0^-1 t2  )
+		// ( 1/m I_3-r0 * J0^-1 * r0*    -r0 * J0^-1 * u1      -r0 * J0^-1 * u2   )
+		// ( (-r0 * J0^-1 * u1)^T         u1^T * J0^-1 * u1    u1^T * J0^-1 u2    )
+		// ( (-r0 * J0^-1 * u2)^T         u2^T * J0^-1 u1      u2^T * J0^-1 * u2  )
 
 		Matrix3r K00;
 		computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K00);
 
 		K.block<3, 3>(0, 0) = K00;
-		K.block<3, 1>(0, 3) = -r0_star * inertiaInverseW0 * t1;
-		K.block<3, 1>(0, 4) = -r0_star * inertiaInverseW0 * t2;
+		K.block<3, 1>(0, 3) = -r0_star * inertiaInverseW0 * u1;
+		K.block<3, 1>(0, 4) = -r0_star * inertiaInverseW0 * u2;
 		K.block<1, 3>(3, 0) = K.block<3, 1>(0, 3).transpose();
 		K.block<1, 3>(4, 0) = K.block<3, 1>(0, 4).transpose();
-		K(3, 3) = t1.transpose() * inertiaInverseW0 * t1;
-		K(3, 4) = t1.transpose() * inertiaInverseW0 * t2;
+		K(3, 3) = u1.transpose() * inertiaInverseW0 * u1;
+		K(3, 4) = u1.transpose() * inertiaInverseW0 * u2;
 		K(4, 3) = K(3, 4);
-		K(4, 4) = t2.transpose() * inertiaInverseW0 * t2;
+		K(4, 4) = u2.transpose() * inertiaInverseW0 * u2;
 	}
 	if (invMass1 != 0.0)
 	{
 		// Jacobian for body 1 is
 		//
 		// ( -I_3   r1*  )
-		// ( 0     -t1^T )
-		// ( 0     -t2^T )
+		// ( 0     -u1^T )
+		// ( 0     -u2^T )
 		//
 		// where I_3 is the identity matrix and r1* is the cross product matrix of r1
 		//
 		// J M^-1 J^T =
-		// ( 1/m I_3-r1 * J1^-1 * r1*    -r1 * J1^-1 * t1    -r1 * J1^-1 * t2 )
-		// ( (-r1* J1^-1 * t1)^T         t1^T * J1^-1 t1     t1^T * J1^-1 t2  )
-		// ( (-r1* J1^-1 * t2)^T         t2^T * J1^-1 t1     t2^T * J1^-1 t2  )
+		// ( 1/m I_3-r1 * J1^-1 * r1*    -r1 * J1^-1 * u1    -r1 * J1^-1 * u2 )
+		// ( (-r1* J1^-1 * u1)^T         u1^T * J1^-1 u1     u1^T * J1^-1 u2  )
+		// ( (-r1* J1^-1 * u2)^T         u2^T * J1^-1 u1     u2^T * J1^-1 u2  )
 
 		Matrix3r K11;
 		computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K11);
 
 		K.block<3, 3>(0, 0) += K11;
-		const Vector3r K_03 = -r1_star * inertiaInverseW1 * t1;
-		const Vector3r K_04 = -r1_star * inertiaInverseW1 * t2;
+		const Vector3r K_03 = -r1_star * inertiaInverseW1 * u1;
+		const Vector3r K_04 = -r1_star * inertiaInverseW1 * u2;
 		K.block<3, 1>(0, 3) += K_03;
 		K.block<3, 1>(0, 4) += K_04;
 		K.block<1, 3>(3, 0) += K_03.transpose();
 		K.block<1, 3>(4, 0) += K_04.transpose();
-		K(3, 3) += t1.transpose() * inertiaInverseW1 * t1;
-		const Real K_34 = t1.transpose() * inertiaInverseW1 * t2;
+		K(3, 3) += u1.transpose() * inertiaInverseW1 * u1;
+		const Real K_34 = u1.transpose() * inertiaInverseW1 * u2;
 		K(3, 4) += K_34;
 		K(4, 3) += K_34;
-		K(4, 4) += t2.transpose() * inertiaInverseW1 * t2;
+		K(4, 4) += u2.transpose() * inertiaInverseW1 * u2;
 	}
 
 	const Eigen::Matrix<Real, 5, 5> Kinv = K.inverse();
@@ -549,7 +661,7 @@ bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 	if (invMass0 != 0.0)
 	{
 		corr_x0 = invMass0*pt;
-		const Vector3r ot = (inertiaInverseW0 * (r0.cross(pt) + t1*lambda(3, 0) + t2*lambda(4, 0)));
+		const Vector3r ot = (inertiaInverseW0 * (r0.cross(pt) + u1*lambda(3, 0) + u2*lambda(4, 0)));
 		const Quaternionr otQ(0.0, ot[0], ot[1], ot[2]);
 		corr_q0.coeffs() = 0.5 *(otQ*q0).coeffs();
 	}
@@ -557,7 +669,7 @@ bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 	if (invMass1 != 0.0)
 	{
 		corr_x1 = -invMass1*pt;
-		const Vector3r ot = (inertiaInverseW1 * (r1.cross(-pt) - t1*lambda(3, 0) - t2*lambda(4, 0)));
+		const Vector3r ot = (inertiaInverseW1 * (r1.cross(-pt) - u1*lambda(3, 0) - u2*lambda(4, 0)));
 		const Quaternionr otQ(0.0, ot[0], ot[1], ot[2]);
 		corr_q1.coeffs() = 0.5 *(otQ*q1).coeffs();
 	}
@@ -921,6 +1033,9 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 	MathFunctions::crossProductMatrix(r0, r0_star);
 	MathFunctions::crossProductMatrix(r1, r1_star);
 
+	const Vector3r u1 = t1.cross(axis1);
+	const Vector3r u2 = t2.cross(axis1);
+
 	// projection 
 	const Eigen::Matrix<Real, 3, 2> PT = jointInfo.block<3, 2>(0, 9);
 	const Eigen::Matrix<Real, 2, 3> P = PT.transpose();
@@ -928,26 +1043,28 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 
 	Eigen::Matrix<Real, 5, 1> b;
 	b.block<2, 1>(0, 0) = P * (c1 - c0);
-	b(2, 0) = t1.dot(u);
-	b(3, 0) = t2.dot(u);
+	b(2, 0) = -t1.dot(axis1);
+	b(3, 0) = -t2.dot(axis1);
 
-	// determine correction angle (slider axis)
-	Real delta = 0.0;
-	Real c = t1.dot(t3);
-	c = std::min<Real>(1.0, c);
-	c = std::max<Real>(-1.0, c);
-	if ((t1.cross(t3)).dot(axis) > 0.0)
-		delta -= acos(c);
-	else
-		delta += acos(c);
+// 	// determine correction angle (slider axis)
+// 	Real delta = 0.0;
+// 	Real c = t1.dot(t3);
+// 	c = std::min<Real>(1.0, c);
+// 	c = std::max<Real>(-1.0, c);
+// 	if ((t1.cross(t3)).dot(axis) > 0.0)
+// 		delta -= acos(c);
+// 	else
+// 		delta += acos(c);
+// 
+// 	const Real pi = (Real)M_PI;
+// 	if (delta < -pi)
+// 		delta += 2.0 * pi;
+// 	if (delta > pi)
+// 		delta -= 2.0 * pi;
 
-	const Real pi = (Real)M_PI;
-	if (delta < -pi)
-		delta += 2.0 * pi;
-	if (delta > pi)
-		delta -= 2.0 * pi;
-
-	b(4, 0) = -delta;
+	//b(4, 0) = -delta;
+	b(4, 0) = t2.dot(t3);
+//	std::cout << -delta << ", " << t2.dot(t3) << "\n";
 
 
 	Eigen::Matrix<Real, 5, 5> K;
@@ -973,23 +1090,23 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 		computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K00);
 		const Eigen::Matrix<Real, 2, 3> neg_P_r0_star_Jinv = -P * r0_star * inertiaInverseW0;
 		const Vector3r Jinv_axis = inertiaInverseW0 * axis;
-		const Vector3r Jinv_t1 = inertiaInverseW0 * t1;
-		const Vector3r Jinv_t2 = inertiaInverseW0 * t2;
+		const Vector3r Jinv_u1 = inertiaInverseW0 * u1;
+		const Vector3r Jinv_u2 = inertiaInverseW0 * u2;
 
 		K.block<2, 2>(0, 0) = P * K00 * PT;
-		K.block<2, 1>(0, 2) = neg_P_r0_star_Jinv * t1;
-		K.block<2, 1>(0, 3) = neg_P_r0_star_Jinv * t2;
+		K.block<2, 1>(0, 2) = neg_P_r0_star_Jinv * u1;
+		K.block<2, 1>(0, 3) = neg_P_r0_star_Jinv * u2;
 		K.block<2, 1>(0, 4) = neg_P_r0_star_Jinv * axis;
 		K.block<1, 2>(2, 0) = K.block<2, 1>(0, 2).transpose();
 		K.block<1, 2>(3, 0) = K.block<2, 1>(0, 3).transpose();
 		K.block<1, 2>(4, 0) = K.block<2, 1>(0, 4).transpose();
-		K(2, 2) = t1.transpose() * Jinv_t1;
-		K(2, 3) = t1.transpose() * Jinv_t2;
-		K(2, 4) = t1.transpose() * Jinv_axis;
+		K(2, 2) = u1.transpose() * Jinv_u1;
+		K(2, 3) = u1.transpose() * Jinv_u2;
+		K(2, 4) = u1.transpose() * Jinv_axis;
 		K(3, 2) = K(2, 3);
 		K(4, 2) = K(2, 4);
-		K(3, 3) = t2.transpose() * Jinv_t2;
-		K(3, 4) = t2.transpose() * Jinv_axis;
+		K(3, 3) = u2.transpose() * Jinv_u2;
+		K(3, 4) = u2.transpose() * Jinv_axis;
 		K(4, 3) = K(3, 4);
 		K(4, 4) = axis.transpose() * Jinv_axis;
 	}
@@ -1014,12 +1131,12 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 		computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K11);
 		const Eigen::Matrix<Real, 2, 3> neg_P_r1_star_Jinv = -P * r1_star * inertiaInverseW1;
 		const Vector3r Jinv_axis = inertiaInverseW1 * axis;
-		const Vector3r Jinv_t1 = inertiaInverseW1 * t1;
-		const Vector3r Jinv_t2 = inertiaInverseW1 * t2;
+		const Vector3r Jinv_u1 = inertiaInverseW1 * u1;
+		const Vector3r Jinv_u2 = inertiaInverseW1 * u2;
 
 		K.block<2, 2>(0, 0) += P * K11 * PT;
-		const Vector2r K_02 = neg_P_r1_star_Jinv * t1;
-		const Vector2r K_03 = neg_P_r1_star_Jinv * t2;
+		const Vector2r K_02 = neg_P_r1_star_Jinv * u1;
+		const Vector2r K_03 = neg_P_r1_star_Jinv * u2;
 		const Vector2r K_04 = neg_P_r1_star_Jinv * axis;
 		K.block<2, 1>(0, 2) += K_02;
 		K.block<2, 1>(0, 3) += K_03;
@@ -1027,14 +1144,14 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 		K.block<1, 2>(2, 0) += K_02.transpose();
 		K.block<1, 2>(3, 0) += K_03.transpose();
 		K.block<1, 2>(4, 0) += K_04.transpose();
-		K(2, 2) += t1.transpose() * Jinv_t1;
-		const Real K_23 = t1.transpose() * Jinv_t2;
+		K(2, 2) += u1.transpose() * Jinv_u1;
+		const Real K_23 = u1.transpose() * Jinv_u2;
 		K(2, 3) += K_23;
-		const Real K_24 = t1.transpose() * Jinv_axis;
+		const Real K_24 = u1.transpose() * Jinv_axis;
 		K(2, 4) += K_24;
 		K(3, 2) += K_23;
-		K(3, 3) += t2.transpose() * Jinv_t2;
-		const Real K_34 = t2.transpose() * Jinv_axis;
+		K(3, 3) += u2.transpose() * Jinv_u2;
+		const Real K_34 = u2.transpose() * Jinv_axis;
 		K(3, 4) += K_34;
 		K(4, 2) += K_24;
 		K(4, 3) += K_34;
@@ -1045,7 +1162,7 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 	const Eigen::Matrix<Real, 5, 1> lambda = Kinv * b;
 	const Vector3r pt = PT * lambda.block<2, 1>(0, 0);
 
-	const Vector3r angMomentum = t1*lambda(2, 0) + t2*lambda(3, 0) + axis*lambda(4, 0);
+	const Vector3r angMomentum = u1*lambda(2, 0) + u2*lambda(3, 0) + axis*lambda(4, 0);
 
 	if (invMass0 != 0.0)
 	{

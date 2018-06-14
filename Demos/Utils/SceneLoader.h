@@ -133,6 +133,17 @@ namespace Utilities
 			unsigned int m_bodyID[2];
 		};
 
+		struct RigidBodySpringData
+		{
+			unsigned int m_bodyID[2];
+			Vector3r m_position1;
+			Vector3r m_position2;
+			Real m_stiffness;
+
+		public:	
+			PDB_MAKE_ALIGNED_OPERATOR_NEW
+		};
+
 		struct TargetAngleMotorHingeJointData
 		{
 			unsigned int m_bodyID[2];
@@ -236,6 +247,7 @@ namespace Utilities
 			ObjectArray<TargetVelocityMotorHingeJointData> m_targetVelocityMotorHingeJointData;
 			ObjectArray<TargetPositionMotorSliderJointData> m_targetPositionMotorSliderJointData;
 			ObjectArray<TargetVelocityMotorSliderJointData> m_targetVelocityMotorSliderJointData;
+			ObjectArray<RigidBodySpringData> m_rigidBodySpringData;
 
 		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -256,6 +268,7 @@ namespace Utilities
 		void readTargetVelocityMotorHingeJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
 		void readTargetPositionMotorSliderJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
 		void readTargetVelocityMotorSliderJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
+		void readRigidBodySprings(const nlohmann::json &j, const std::string &key, SceneData &sceneData);
 
 		template <typename T>
 		static bool readValue(const nlohmann::json &j, const std::string &key, T &v)

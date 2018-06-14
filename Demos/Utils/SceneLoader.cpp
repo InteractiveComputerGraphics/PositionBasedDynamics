@@ -113,6 +113,12 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 			readRigidBodyParticleBallJoints(m_json, "RigidBodyParticleBallJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
+		// read RigidBodySprings
+		//////////////////////////////////////////////////////////////////////////
+		if (m_json.find("RigidBodySprings") != m_json.end())
+			readRigidBodySprings(m_json, "RigidBodySprings", sceneData);
+
+		//////////////////////////////////////////////////////////////////////////
 		// read TargetAngleMotorHingeJoint
 		//////////////////////////////////////////////////////////////////////////
 		if (m_json.find("TargetAngleMotorHingeJoints") != m_json.end())
@@ -671,6 +677,25 @@ void SceneLoader::readTargetVelocityMotorSliderJoints(const nlohmann::json &j, c
 		}
 	}
 }
+
+void SceneLoader::readRigidBodySprings(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
+{
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
+	{
+		RigidBodySpringData jd;
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position1", jd.m_position1) &&
+			readVector(joint, "position2", jd.m_position2) &&
+			readValue(joint, "stiffness", jd.m_stiffness))
+		{
+			sceneData.m_rigidBodySpringData.push_back(jd);
+		}
+	}
+}
+
 
 template <>
 bool SceneLoader::readValue<bool>(const nlohmann::json &j, const std::string &key, bool &v)

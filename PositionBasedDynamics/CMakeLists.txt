@@ -1,6 +1,7 @@
 add_library(PositionBasedDynamics
 		 ${PROJECT_PATH}/Common/Common.h
 		
+		DirectPositionBasedSolverForStiffRodsInterface.h
 		MathFunctions.cpp
 		MathFunctions.h
 		PositionBasedDynamics.cpp

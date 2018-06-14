@@ -241,6 +241,21 @@ def addTargetVelocityMotorSliderJoint(scene, rbId1, rbId2, position, axis, targe
 		}
     scene['TargetVelocityMotorSliderJoints'].append(joint)
     return
+	
+######################################################
+# add spring
+######################################################
+def addRigidBodySpring(scene, rbId1, rbId2, position1, position2, stiffness):
+    joint = {
+		    'bodyID1': rbId1,
+			'bodyID2': rbId2,
+			'position1': position1,
+			'position2': position2,
+			'stiffness': stiffness
+		}
+    scene['RigidBodySprings'].append(joint)
+    return
+	
 
 ######################################################
 # generate scene
@@ -260,6 +275,7 @@ def generateScene(name, camPosition=[0, 10, 30], camLookat=[0,0,0]):
     scene['TargetVelocityMotorHingeJoints'] = []
     scene['TargetPositionMotorSliderJoints'] = []
     scene['TargetVelocityMotorSliderJoints'] = []
+    scene['RigidBodySprings'] = []
     scene['TriangleModels'] = []
     scene['TetModels'] = []
 
@@ -336,5 +352,15 @@ def scale_vector(v, s):
     res[1] = s*v[1];
     res[2] = s*v[2];
     return res
+	
+######################################################
+# add vector
+######################################################
+def add_vector(v1, v2):
+    res = [0,0,0]
+    res[0] = v1[0] + v2[0];
+    res[1] = v1[1] + v2[1];
+    res[2] = v1[2] + v2[2];
+    return res	
 
 current_id=1

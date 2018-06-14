@@ -6,6 +6,10 @@
 #include "Demos/Simulation/IDFactory.h"
 #include "PositionBasedDynamics/PositionBasedElasticRods.h"
 
+
+#include <set>
+#include <map>
+
 using namespace PBD;
 
 
@@ -14,6 +18,7 @@ int BallOnLineJoint::TYPE_ID = IDFactory::getId();
 int HingeJoint::TYPE_ID = IDFactory::getId();
 int UniversalJoint::TYPE_ID = IDFactory::getId();
 int RigidBodyParticleBallJoint::TYPE_ID = IDFactory::getId();
+int RigidBodySpring::TYPE_ID = IDFactory::getId();
 int DistanceConstraint::TYPE_ID = IDFactory::getId();
 int DihedralConstraint::TYPE_ID = IDFactory::getId();
 int IsometricBendingConstraint::TYPE_ID = IDFactory::getId();
@@ -32,6 +37,8 @@ int RigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
 int ParticleRigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
 int StretchShearConstraint::TYPE_ID = IDFactory::getId();
 int BendTwistConstraint::TYPE_ID = IDFactory::getId();
+int StretchBendingTwistingConstraint::TYPE_ID = IDFactory::getId();
+int DirectPositionBasedSolverForStiffRodsConstraint::TYPE_ID = IDFactory::getId();
 
 //////////////////////////////////////////////////////////////////////////
 // BallJoint
@@ -883,6 +890,88 @@ bool RigidBodyParticleBallJoint::solvePositionConstraint(SimulationModel &model)
 }
 
 //////////////////////////////////////////////////////////////////////////
+// RigidBodySpring
+//////////////////////////////////////////////////////////////////////////
+bool RigidBodySpring::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2, const Real stiffness)
+{
+	m_stiffness = stiffness;
+	m_restLength = (pos1 - pos2).norm();
+	m_bodies[0] = rbIndex1;
+	m_bodies[1] = rbIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::init_Spring(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		pos1,
+		pos2, 
+		m_jointInfo);
+}
+
+bool RigidBodySpring::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::update_Spring(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		m_jointInfo);
+}
+
+bool RigidBodySpring::solvePositionConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Vector3r corr_x1, corr_x2;
+	Quaternionr corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solve_Spring(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		m_stiffness, 
+		m_restLength,
+		m_jointInfo,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
+		}
+	}
+	return res;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // DistanceConstraint
 //////////////////////////////////////////////////////////////////////////
 bool DistanceConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2)
@@ -1727,4 +1816,298 @@ bool BendTwistConstraint::solvePositionConstraint(SimulationModel &model)
 		}
 	}
 	return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// StretchBendingTwistingConstraint
+//////////////////////////////////////////////////////////////////////////
+
+bool PBD::StretchBendingTwistingConstraint::initConstraint(
+	SimulationModel &model,
+	const unsigned int segmentIndex1,
+	const unsigned int segmentIndex2,
+	const Vector3r &pos,
+	const Real averageRadius,
+	const Real averageSegmentLength,
+	Real youngsModulus,
+	Real torsionModulus)
+{
+	m_bodies[0] = segmentIndex1;
+	m_bodies[1] = segmentIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	const RigidBody &segment1 = *rb[m_bodies[0]];
+	const RigidBody &segment2 = *rb[m_bodies[1]];
+
+	m_lambdaSum.setZero();
+	m_averageRadius = averageRadius;
+	m_averageSegmentLength = averageSegmentLength;
+
+	return DirectPositionBasedSolverForStiffRods::init_StretchBendingTwistingConstraint(
+		segment1.getPosition(),
+		segment1.getRotation(),
+		segment2.getPosition(),
+		segment2.getRotation(),
+		pos,
+		m_averageRadius,
+		m_averageSegmentLength,
+		youngsModulus,
+		torsionModulus,
+		m_constraintInfo,
+		m_stiffnessCoefficientK,
+		m_restDarbouxVector);
+}
+
+
+bool StretchBendingTwistingConstraint::initConstraintBeforeProjection(SimulationModel &model)
+{
+	DirectPositionBasedSolverForStiffRods::initBeforeProjection_StretchBendingTwistingConstraint(
+		m_stiffnessCoefficientK,
+		1. / TimeManager::getCurrent()->getTimeStepSize(),
+		m_averageSegmentLength,
+		m_stretchCompliance,
+		m_bendingAndTorsionCompliance,
+		m_lambdaSum);
+	return true;
+};
+
+bool StretchBendingTwistingConstraint::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	const RigidBody &segment1 = *rb[m_bodies[0]];
+	const RigidBody &segment2 = *rb[m_bodies[1]];
+	return DirectPositionBasedSolverForStiffRods::update_StretchBendingTwistingConstraint(
+		segment1.getPosition(),
+		segment1.getRotation(),
+		segment2.getPosition(),
+		segment2.getRotation(),		
+		m_constraintInfo);
+}
+
+bool StretchBendingTwistingConstraint::solvePositionConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &segment1 = *rb[m_bodies[0]];
+	RigidBody &segment2 = *rb[m_bodies[1]];
+
+	Vector3r corr_x1, corr_x2;
+	Quaternionr corr_q1, corr_q2;
+	const bool res = DirectPositionBasedSolverForStiffRods::solve_StretchBendingTwistingConstraint(
+		segment1.getInvMass(),
+		segment1.getPosition(),
+		segment1.getInertiaTensorInverseW(),
+		segment1.getRotation(),
+		segment2.getInvMass(),
+		segment2.getPosition(),
+		segment2.getInertiaTensorInverseW(),
+		segment2.getRotation(),
+		m_restDarbouxVector,
+		m_averageSegmentLength,
+		m_stretchCompliance,
+		m_bendingAndTorsionCompliance,
+		m_constraintInfo,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2,
+		m_lambdaSum);
+
+	if (res)
+	{
+		if (segment1.getMass() != 0.0)
+		{
+			segment1.getPosition() += corr_x1;
+			segment1.getRotation().coeffs() += corr_q1.coeffs();
+			segment1.getRotation().normalize();
+			segment1.rotationUpdated();
+		}
+		if (segment2.getMass() != 0.0)
+		{
+			segment2.getPosition() += corr_x2;
+			segment2.getRotation().coeffs() += corr_q2.coeffs();
+			segment2.getRotation().normalize();
+			segment2.rotationUpdated();
+		}
+	}
+	return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// DirectPositionBasedSolverForStiffRodsConstraint
+//////////////////////////////////////////////////////////////////////////
+
+PBD::DirectPositionBasedSolverForStiffRodsConstraint::~DirectPositionBasedSolverForStiffRodsConstraint()
+{
+	deleteNodes();
+	if (intervals != NULL)
+		delete[] intervals;
+	if (forward != NULL)
+		delete[] forward;
+	if (backward != NULL)
+		delete[] backward;
+	if (root != NULL)
+		delete[] root;
+	root = NULL;
+	forward = NULL;
+	backward = NULL;
+	intervals = NULL;
+	numberOfIntervals = 0;
+}
+
+void DirectPositionBasedSolverForStiffRodsConstraint::deleteNodes()
+{
+	std::list<Node*>::iterator nodeIter;
+	for (int i = 0; i < numberOfIntervals; i++)
+	{
+		for (nodeIter = forward[i].begin(); nodeIter != forward[i].end(); nodeIter++)
+		{
+			Node *node = *nodeIter;
+
+			// Root node does not have to be deleted
+			if (node->parent != NULL)
+				delete node;
+		}
+	}
+}
+
+bool PBD::DirectPositionBasedSolverForStiffRodsConstraint::initConstraint(
+	SimulationModel &model, 
+	const std::vector<std::pair<unsigned int, unsigned int>> & constraintSegmentIndices, 
+	const std::vector<Vector3r> &constraintPositions,
+	const std::vector<Real> &averageRadii,
+	const std::vector<Real> &averageSegmentLengths,
+	const std::vector<Real> &youngsModuli,
+	const std::vector<Real> &torsionModuli
+	)
+{
+	// create unique segment indices from joints
+
+	std::set<unsigned int> uniqueSegmentIndices;
+	for (auto &idxPair :  constraintSegmentIndices)
+	{
+		uniqueSegmentIndices.insert(idxPair.first);
+		uniqueSegmentIndices.insert(idxPair.second);
+	}
+
+	delete[] m_bodies;
+	m_numberOfBodies = (unsigned int)uniqueSegmentIndices.size();
+	m_bodies = new unsigned int[m_numberOfBodies];
+
+	// initialize m_bodies for constraint colouring algorithm of multi threading implementation
+
+	size_t segmentIdx(0);
+
+	for (auto idx : uniqueSegmentIndices)
+	{
+		m_bodies[segmentIdx] = idx;
+		++segmentIdx;
+	}
+
+	// create RodSegment instances and map simulation model body indices to RodSegment indices
+
+	std::map<unsigned int, unsigned int> idxMap;
+	unsigned int idx(0);
+
+	m_Segments.reserve(uniqueSegmentIndices.size());
+	m_rodSegments.reserve(uniqueSegmentIndices.size());
+	for (auto bodyIdx : uniqueSegmentIndices)
+	{
+		idx = (unsigned int)m_Segments.size();
+		idxMap[bodyIdx] = idx;
+		m_Segments.push_back(RodSegmentImpl(model, bodyIdx));
+		m_rodSegments.push_back(&m_Segments.back());
+	}
+
+	// create rod constraints
+
+	m_Constraints.resize(constraintPositions.size());
+	m_rodConstraints.resize(constraintPositions.size());
+
+	for (size_t idx(0); idx < constraintPositions.size(); ++idx)
+	{
+		const std::pair<unsigned int, unsigned int> &bodyIndices( constraintSegmentIndices[idx]);
+		unsigned int firstSegmentIndex(idxMap.find(bodyIndices.first)->second);
+		unsigned int secondSegmentIndex(idxMap.find(bodyIndices.second)->second);
+
+		m_Constraints[idx].m_segments.push_back(firstSegmentIndex);
+		m_Constraints[idx].m_segments.push_back(secondSegmentIndex);
+		m_Constraints[idx].m_averageSegmentLength = averageSegmentLengths[idx];
+		m_rodConstraints[idx] = &m_Constraints[idx];
+	}
+
+	// initialize data of the sparse direct solver
+	deleteNodes();
+	DirectPositionBasedSolverForStiffRods::init_DirectPositionBasedSolverForStiffRodsConstraint(
+		m_rodConstraints, m_rodSegments, intervals, numberOfIntervals, forward, backward, root,
+		constraintPositions, averageRadii, youngsModuli, torsionModuli,
+		m_rightHandSide, m_lambdaSums, m_bendingAndTorsionJacobians, m_corr_x, m_corr_q);
+
+	return true;
+}
+
+bool PBD::DirectPositionBasedSolverForStiffRodsConstraint::initConstraintBeforeProjection(SimulationModel &model)
+{
+	DirectPositionBasedSolverForStiffRods::initBeforeProjection_DirectPositionBasedSolverForStiffRodsConstraint(
+		m_rodConstraints, 1. / TimeManager::getCurrent()->getTimeStepSize(), m_lambdaSums);
+	return true;
+}
+
+
+bool PBD::DirectPositionBasedSolverForStiffRodsConstraint::updateConstraint(SimulationModel &model)
+{
+	DirectPositionBasedSolverForStiffRods::update_DirectPositionBasedSolverForStiffRodsConstraint(
+		m_rodConstraints, m_rodSegments);
+	return true;
+}
+
+
+bool PBD::DirectPositionBasedSolverForStiffRodsConstraint::solvePositionConstraint(SimulationModel &model)
+{
+	const bool res = DirectPositionBasedSolverForStiffRods::solve_DirectPositionBasedSolverForStiffRodsConstraint(
+		m_rodConstraints, m_rodSegments, intervals, numberOfIntervals, forward, backward,
+		m_rightHandSide, m_lambdaSums, m_bendingAndTorsionJacobians, m_corr_x, m_corr_q
+		);
+	
+	// apply corrections to bodies
+	SimulationModel::RigidBodyVector &rbs = model.getRigidBodies();
+
+	for (size_t i(0); i < m_rodSegments.size(); ++i)
+	{
+		RodSegmentImpl & segment = m_Segments[i];
+		RigidBody &rb1 = *rbs[segment.m_segmentIdx];
+		if (rb1.getMass() != 0.0)
+		{
+			rb1.getPosition() += m_corr_x[i];
+			rb1.getRotation().coeffs() += m_corr_q[i].coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+	}
+
+	return res;
+}
+
+bool PBD::DirectPositionBasedSolverForStiffRodsConstraint::RodSegmentImpl::isDynamic()
+{
+	return 0 != (m_model.getRigidBodies())[m_segmentIdx]->getMass();
+}
+
+Real PBD::DirectPositionBasedSolverForStiffRodsConstraint::RodSegmentImpl::Mass()
+{
+	return (m_model.getRigidBodies())[m_segmentIdx]->getMass();
+}
+
+const Vector3r & PBD::DirectPositionBasedSolverForStiffRodsConstraint::RodSegmentImpl::InertiaTensor()
+{
+	return (m_model.getRigidBodies())[m_segmentIdx]->getInertiaTensor();
+}
+
+const Vector3r & PBD::DirectPositionBasedSolverForStiffRodsConstraint::RodSegmentImpl::Position()
+{
+	return (m_model.getRigidBodies())[m_segmentIdx]->getPosition();
+}
+
+const Quaternionr & PBD::DirectPositionBasedSolverForStiffRodsConstraint::RodSegmentImpl::Rotation()
+{
+	return (m_model.getRigidBodies())[m_segmentIdx]->getRotation();
 }

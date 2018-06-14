@@ -279,6 +279,18 @@ bool SimulationModel::addRigidBodyParticleBallJoint(const unsigned int rbIndex, 
 	return res;
 }
 
+bool SimulationModel::addRigidBodySpring(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2, const Real stiffness)
+{
+	RigidBodySpring *s = new RigidBodySpring();
+	const bool res = s->initConstraint(*this, rbIndex1, rbIndex2, pos1, pos2, stiffness);
+	if (res)
+	{
+		m_constraints.push_back(s);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
 bool SimulationModel::addRigidBodyContactConstraint(const unsigned int rbIndex1, const unsigned int rbIndex2, 
 	const Vector3r &cp1, const Vector3r &cp2, 
 	const Vector3r &normal, const Real dist,
@@ -434,6 +446,46 @@ bool SimulationModel::addBendTwistConstraint(const unsigned int quaternion1, con
 {
 	BendTwistConstraint *c = new BendTwistConstraint();
 	const bool res = c->initConstraint(*this, quaternion1, quaternion2);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
+bool PBD::SimulationModel::addStretchBendingTwistingConstraint(
+	const unsigned int rbIndex1,
+	const unsigned int rbIndex2,
+	const Vector3r &pos,
+	const Real averageRadius,
+	const Real averageSegmentLength,
+	const Real youngsModulus,
+	const Real torsionModulus)
+{
+	StretchBendingTwistingConstraint *c = new StretchBendingTwistingConstraint();
+	const bool res = c->initConstraint(*this, rbIndex1, rbIndex2, pos,
+		averageRadius, averageSegmentLength, youngsModulus, torsionModulus);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
+bool PBD::SimulationModel::addDirectPositionBasedSolverForStiffRodsConstraint(
+	const std::vector<std::pair<unsigned int, unsigned int>> & jointSegmentIndices,
+	const std::vector<Vector3r> &jointPositions,
+	const std::vector<Real> &averageRadii,
+	const std::vector<Real> &averageSegmentLengths,
+	const std::vector<Real> &youngsModuli,
+	const std::vector<Real> &torsionModuli
+	)
+{
+	DirectPositionBasedSolverForStiffRodsConstraint *c = new DirectPositionBasedSolverForStiffRodsConstraint();
+	const bool res = c->initConstraint(*this, jointSegmentIndices, jointPositions,
+		averageRadii, averageSegmentLengths, youngsModuli, torsionModuli);
 	if (res)
 	{
 		m_constraints.push_back(c);

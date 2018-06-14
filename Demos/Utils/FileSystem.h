@@ -2,6 +2,7 @@
 #define __FileSystem_h__
 
 #include "StringTools.h"
+#include "Logger.h"
 #include "extern/md5/md5.h"
 #if WIN32
 #include <direct.h>
@@ -246,11 +247,14 @@ namespace Utilities
 			std::ifstream file(filename);
 
 			if (!file)
-				std::cerr << "Cannot open file: " << filename << std::endl;
+				LOG_ERR << "Cannot open file: " << filename;
 			else
 			{
 				MD5 context(file);
-				return context.hex_digest();
+				char * hexDigestPtr(context.hex_digest());
+				std::string digest(hexDigestPtr);
+				delete hexDigestPtr;
+				return digest;
 			}
 			return "";
 		}
@@ -263,7 +267,7 @@ namespace Utilities
 			fstream.open(md5File.c_str(), std::ios::out);
 			if (fstream.fail())
 			{
-				std::cerr << "Failed to open file: " << md5File << "\n";
+				LOG_ERR << "Failed to open file: " << md5File;
 				return false;
 			}
 			std::string md5 = getFileMD5(fileName);
@@ -281,7 +285,7 @@ namespace Utilities
 			fstream.open(md5File.c_str(), std::ios::in);
 			if (fstream.fail())
 			{
-				std::cerr << "Failed to open file: " << md5File << "\n";
+				LOG_ERR << "Failed to open file: " << md5File;
 				return false;
 			}
 			std::string str((std::istreambuf_iterator<char>(fstream)),
