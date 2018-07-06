@@ -26,7 +26,7 @@ set(EigenDir "${CMAKE_SOURCE_DIR}/extern/eigen")
 
 ## Discregrid
 ExternalProject_Add(
-   ExternalProject_Discregrid
+   Ext_Discregrid
    PREFIX "${CMAKE_SOURCE_DIR}/extern/Discregrid"
    GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
    GIT_TAG "573c2f51f433c74de832454272e47f590140e80b"
@@ -36,7 +36,7 @@ ExternalProject_Add(
 
 ## GenericParameters
 ExternalProject_Add(
-   ExternalProject_GenericParameters
+   Ext_GenericParameters
    PREFIX "${CMAKE_SOURCE_DIR}/extern/GenericParameters"
    GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/GenericParameters.git
    GIT_TAG "1ec904bf8555e78ae0d8ba2f9f9a395371c5d4eb"

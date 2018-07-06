@@ -19,6 +19,7 @@ endif()
 # GenericParameters
 ############################################################
 include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
 
 add_executable(ChainDemo
 	  ChainDemo.cpp

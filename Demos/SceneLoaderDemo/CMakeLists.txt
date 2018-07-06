@@ -19,7 +19,7 @@ endif()
 # Discregrid
 ############################################################
 include_directories(${PROJECT_PATH}/extern/install/Discregrid/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_Discregrid)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_Discregrid)
 set(SIMULATION_LINK_LIBRARIES ${SIMULATION_LINK_LIBRARIES} 
 	optimized Discregrid 
 	debug Discregrid_d)
@@ -29,7 +29,7 @@ link_directories(${PROJECT_PATH}/extern/install/Discregrid/lib)
 # GenericParameters
 ############################################################
 include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_GenericParameters)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
 
 add_executable(SceneLoaderDemo
 	  SceneLoaderDemo.cpp

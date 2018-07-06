@@ -46,13 +46,13 @@ add_library(Simulation
 # Discregrid
 ############################################################
 include_directories(${ExternalInstallDir}/Discregrid/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_Discregrid)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_Discregrid)
 
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_GenericParameters)
+include_directories(${ExternalInstallDir}/GenericParameters/include)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
 
 add_dependencies(Simulation ${SIMULATION_DEPENDENCIES})
 

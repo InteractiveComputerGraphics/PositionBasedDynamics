@@ -45,7 +45,7 @@ target_link_libraries(StretchBendingTwistingDemo ${SIMULATION_LINK_LIBRARIES})
 # Discregrid
 ############################################################
 include_directories(${PROJECT_PATH}/extern/install/Discregrid/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_Discregrid)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_Discregrid)
 set(SIMULATION_LINK_LIBRARIES ${SIMULATION_LINK_LIBRARIES} 
 	optimized Discregrid 
 	debug Discregrid_d)

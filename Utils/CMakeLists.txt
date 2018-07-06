@@ -32,8 +32,8 @@ add_library(Utils
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
-add_dependencies(Utils ExternalProject_GenericParameters)
+include_directories(${ExternalInstallDir}/GenericParameters/include)
+add_dependencies(Utils Ext_GenericParameters)
 
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
