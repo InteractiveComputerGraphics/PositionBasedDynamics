@@ -4,7 +4,7 @@
 
 using namespace PBD;
 
-const Real eps = 1e-6;
+const Real eps = static_cast<Real>(1e-6);
 
 //////////////////////////////////////////////////////////////////////////
 // PositionBasedDynamics
@@ -58,7 +58,7 @@ bool PositionBasedDynamics::solve_DihedralConstraint(
 	if (elen < eps)
 		return false;
 
-	Real invElen = 1.0 / elen;
+	Real invElen = static_cast<Real>(1.0) / elen;
 
 	Vector3r n1 = (p2-p0).cross(p3-p0); n1 /= n1.squaredNorm();
 	Vector3r n2 = (p3 - p1).cross(p2 - p1); n2 /= n2.squaredNorm();
@@ -115,10 +115,7 @@ bool PositionBasedDynamics::solve_VolumeConstraint(
 	const Real posVolumeStiffness,
 	Vector3r &corr0, Vector3r &corr1, Vector3r &corr2, Vector3r &corr3)
 {
-	Vector3r d1 = p1 - p0;
-	Vector3r d2 = p2 - p0;
-	Vector3r d3 = p3 - p0;
-	Real volume = 1.0 / 6.0 * (p1 - p0).cross(p2 - p0).dot(p3 - p0);
+	Real volume = static_cast<Real>(1.0 / 6.0) * (p1 - p0).cross(p2 - p0).dot(p3 - p0);
 
 	corr0.setZero(); corr1.setZero(); corr2.setZero(); corr3.setZero();
 
@@ -178,8 +175,8 @@ bool PositionBasedDynamics::init_IsometricBendingConstraint(
 	const Real c03 = MathFunctions::cotTheta(-e0, e3);
 	const Real c04 = MathFunctions::cotTheta(-e0, e4);
 
-	const Real A0 = 0.5 * (e0.cross(e1)).norm();
-	const Real A1 = 0.5 * (e0.cross(e2)).norm();
+	const Real A0 = static_cast<Real>(0.5) * (e0.cross(e1)).norm();
+	const Real A1 = static_cast<Real>(0.5) * (e0.cross(e2)).norm();
 
 	const Real coef = -3.f / (2.f*(A0 + A1));
 	const Real K[4] = { c03 + c04, c01 + c02, -c01 - c03, -c02 - c04 };
@@ -277,7 +274,7 @@ bool PositionBasedDynamics::solve_EdgePointDistanceConstraint(
 	Real dist = n.norm();
 	n.normalize();
 	Real C = dist - restDist;
-	Real b0 = 1.0 - t;
+	Real b0 = static_cast<Real>(1.0) - t;
 	Real b1 = t;
 	Vector3r grad = n;
 	Vector3r grad0 = -n * b0;
@@ -315,7 +312,7 @@ bool PositionBasedDynamics::solve_TrianglePointDistanceConstraint(
 {
 	// find barycentric coordinates of closest point on triangle
 
-	Real b0 = 1.0 / 3.0;		// for singular case
+	Real b0 = static_cast<Real>(1.0 / 3.0);		// for singular case
 	Real b1 = b0;
 	Real b2 = b0;
 
@@ -333,37 +330,37 @@ bool PositionBasedDynamics::solve_TrianglePointDistanceConstraint(
 	if (det != 0.0) {
 		Real s = (c*e - b*f) / det;
 		Real t = (a*f - c*d) / det;
-		b0 = 1.0 - s - t;		// inside triangle
+		b0 = static_cast<Real>(1.0) - s - t;		// inside triangle
 		b1 = s;
 		b2 = t;
 		if (b0 < 0.0) {		// on edge 1-2
 			Vector3r d = p2 - p1;
 			Real d2 = d.dot(d);
-			Real t = (d2 == 0.0) ? 0.5 : d.dot(p - p1) / d2;
+			Real t = (d2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : d.dot(p - p1) / d2;
 			if (t < 0.0) t = 0.0;	// on point 1
 			if (t > 1.0) t = 1.0;	// on point 2
 			b0 = 0.0;
-			b1 = (1.0 - t);
+			b1 = (static_cast<Real>(1.0) - t);
 			b2 = t;
 		}
 		else if (b1 < 0.0) {	// on edge 2-0
 			Vector3r d = p0 - p2;
 			Real d2 = d.dot(d);
-			Real t = (d2 == 0.0) ? 0.5 : d.dot(p - p2) / d2;
+			Real t = (d2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : d.dot(p - p2) / d2;
 			if (t < 0.0) t = 0.0;	// on point 2
 			if (t > 1.0) t = 1.0; // on point 0
 			b1 = 0.0;
-			b2 = (1.0 - t);
+			b2 = (static_cast<Real>(1.0) - t);
 			b0 = t;
 		}
 		else if (b2 < 0.0) {	// on edge 0-1
 			Vector3r d = p1 - p0;
 			Real d2 = d.dot(d);
-			Real t = (d2 == 0.0) ? 0.5 : d.dot(p - p0) / d2;
+			Real t = (d2 == static_cast<Real>(0.0)) ? static_cast<Real>(0.5) : d.dot(p - p0) / d2;
 			if (t < 0.0) t = 0.0;	// on point 0
 			if (t > 1.0) t = 1.0;	// on point 1
 			b2 = 0.0;
-			b0 = (1.0 - t);
+			b0 = (static_cast<Real>(1.0) - t);
 			b1 = t;
 		}
 	}
@@ -420,7 +417,7 @@ bool PositionBasedDynamics::solve_EdgeEdgeDistanceConstraint(
 	Real det = a*d - b*c;
 	Real s, t;
 	if (det != 0.0) {
-		det = 1.0 / det;
+		det = static_cast<Real>(1.0) / det;
 		s = (e*d - b*f) * det;
 		t = (a*f - e*c) * det;
 	}
@@ -436,17 +433,17 @@ bool PositionBasedDynamics::solve_EdgeEdgeDistanceConstraint(
 		if (t0 > t1) { Real f = t0; t0 = t1; t1 = f; flip1 = true; }
 
 		if (s0 >= t1) {
-			s = !flip0 ? 0.0 : 1.0;
-			t = !flip1 ? 1.0 : 0.0;
+			s = !flip0 ? static_cast<Real>(0.0) : static_cast<Real>(1.0);
+			t = !flip1 ? static_cast<Real>(1.0) : static_cast<Real>(0.0);
 		}
 		else if (t0 >= s1) {
-			s = !flip0 ? 1.0 : 0.0;
-			t = !flip1 ? 0.0 : 1.0;
+			s = !flip0 ? static_cast<Real>(1.0) : static_cast<Real>(0.0);
+			t = !flip1 ? static_cast<Real>(0.0) : static_cast<Real>(1.0);
 		}
 		else {		// overlap
-			Real mid = (s0 > t0) ? (s0 + t1) * 0.5 : (t0 + s1) * 0.5;
-			s = (s0 == s1) ? 0.5 : (mid - s0) / (s1 - s0);
-			t = (t0 == t1) ? 0.5 : (mid - t0) / (t1 - t0);
+			Real mid = (s0 > t0) ? (s0 + t1) * static_cast<Real>(0.5) : (t0 + s1) * static_cast<Real>(0.5);
+			s = (s0 == s1) ? static_cast<Real>(0.5) : (mid - s0) / (s1 - s0);
+			t = (t0 == t1) ? static_cast<Real>(0.5) : (mid - t0) / (t1 - t0);
 		}
 	}
 	if (s < 0.0) s = 0.0;
@@ -454,9 +451,9 @@ bool PositionBasedDynamics::solve_EdgeEdgeDistanceConstraint(
 	if (t < 0.0) t = 0.0;
 	if (t > 1.0) t = 1.0;
 
-	Real b0 = 1.0 - s;
+	Real b0 = static_cast<Real>(1.0) - s;
 	Real b1 = s;
-	Real b2 = 1.0 - t;
+	Real b2 = static_cast<Real>(1.0) - t;
 	Real b3 = t;
 
 	Vector3r q0 = p0 * b0 + p1 * b1;
@@ -501,7 +498,7 @@ bool PositionBasedDynamics::init_ShapeMatchingConstraint(
 	restCm.setZero();
 	Real wsum = 0.0;
 	for (int i = 0; i < numPoints; i++) {
-		Real wi = 1.0 / (invMasses[i] + eps);
+		Real wi = static_cast<Real>(1.0) / (invMasses[i] + eps);
 		restCm += x0[i] * wi;
 		wsum += wi;
 	}
@@ -514,7 +511,7 @@ bool PositionBasedDynamics::init_ShapeMatchingConstraint(
 	A.setZero();
 	for (int i = 0; i < numPoints; i++) {
 		const Vector3r qi = x0[i] - restCm;
-		Real wi = 1.0 / (invMasses[i] + eps);
+		Real wi = static_cast<Real>(1.0) / (invMasses[i] + eps);
 		Real x2 = wi * qi[0] * qi[0];
 		Real y2 = wi * qi[1] * qi[1];
 		Real z2 = wi * qi[2] * qi[2];
@@ -551,7 +548,7 @@ bool PositionBasedDynamics::solve_ShapeMatchingConstraint(
 	Real wsum = 0.0;
 	for (int i = 0; i < numPoints; i++) 
 	{
-		Real wi = 1.0 / (invMasses[i] + eps);
+		Real wi = static_cast<Real>(1.0) / (invMasses[i] + eps);
 		cm += x[i] * wi;
 		wsum += wi;
 	}
@@ -566,7 +563,7 @@ bool PositionBasedDynamics::solve_ShapeMatchingConstraint(
 		Vector3r q = x0[i] - restCm;
 		Vector3r p = x[i] - cm;
 
-		Real w = 1.0 / (invMasses[i] + eps);
+		Real w = static_cast<Real>(1.0) / (invMasses[i] + eps);
 		p *= w;
 
 		mat(0, 0) += p[0] * q[0]; mat(0, 1) += p[0] * q[1]; mat(0, 2) += p[0] * q[2];
@@ -611,7 +608,7 @@ bool PositionBasedDynamics::init_StrainTriangleConstraint(
 	if (fabs(det) < eps)
 		return false;
 
-	Real s = 1.0 / det;
+	Real s = static_cast<Real>(1.0) / det;
 	invRestMat(0,0) =  d*s;  invRestMat(0,1) = -b*s;
 	invRestMat(1,0) = -c*s;  invRestMat(1,1) =  a*s;
 
@@ -698,19 +695,19 @@ bool PositionBasedDynamics::solve_StrainTriangleConstraint(
 			if (i == 0 && j == 0) {
 				if (normalizeStretch) {
 					Real s = sqrt(Sij);
-					lambda = 2.0 * s * (s - 1.0) / lambda * xxStiffness;
+					lambda = static_cast<Real>(2.0) * s * (s - static_cast<Real>(1.0)) / lambda * xxStiffness;
 				}
 				else {
-					lambda = (Sij - 1.0) / lambda * xxStiffness;
+					lambda = (Sij - static_cast<Real>(1.0)) / lambda * xxStiffness;
 				}
 			}
 			else if (i == 1 && j == 1) {
 				if (normalizeStretch) {
 					Real s = sqrt(Sij);
-					lambda = 2.0 * s * (s - 1.0) / lambda * yyStiffness;
+					lambda = static_cast<Real>(2.0) * s * (s - static_cast<Real>(1.0)) / lambda * yyStiffness;
 				}
 				else {
-					lambda = (Sij - 1.0) / lambda * yyStiffness;
+					lambda = (Sij - static_cast<Real>(1.0)) / lambda * yyStiffness;
 				}
 			}
 			else {
@@ -791,7 +788,7 @@ bool PositionBasedDynamics::solve_StrainTetraConstraint(
 			if (normalizeShear && i != j) {
 				wi = fi.norm();
 				wj = fj.norm();
-				s1 = 1.0 / (wi*wj);
+				s1 = static_cast<Real>(1.0) / (wi*wj);
 				s3 = s1 * s1 * s1;
 			}
 
@@ -823,10 +820,10 @@ bool PositionBasedDynamics::solve_StrainTetraConstraint(
 			if (i == j) {	// diagonal, stretch
 				if (normalizeStretch)  {
 					Real s = sqrt(Sij);
-					lambda = 2.0 * s * (s - 1.0) / lambda * stretchStiffness[i];
+					lambda = static_cast<Real>(2.0) * s * (s - static_cast<Real>(1.0)) / lambda * stretchStiffness[i];
 				}
 				else {
-					lambda = (Sij - 1.0) / lambda * stretchStiffness[i];
+					lambda = (Sij - static_cast<Real>(1.0)) / lambda * stretchStiffness[i];
 				}
 			}
 			else {		// off diagonal, shear
@@ -851,7 +848,7 @@ bool PositionBasedDynamics::init_FEMTriangleConstraint(
 	Matrix2r &invRestMat)
 {
 	Vector3r normal0 = (p1 - p0).cross(p2 - p0);
-	area = normal0.norm() * 0.5;
+	area = normal0.norm() * static_cast<Real>(0.5);
 
 	Vector3r axis0_1 = p1 - p0;
 	axis0_1.normalize();
@@ -895,10 +892,10 @@ bool PositionBasedDynamics::solve_FEMTriangleConstraint(
 	// Orthotropic elasticity tensor
 	Matrix3r C;
 	C.setZero();
-	C(0, 0) = youngsModulusX / (1.0 - poissonRatioXY*poissonRatioYX);
-	C(0, 1) = youngsModulusX*poissonRatioYX / (1.0 - poissonRatioXY*poissonRatioYX);
-	C(1, 1) = youngsModulusY / (1.0 - poissonRatioXY*poissonRatioYX);
-	C(1, 0) = youngsModulusY*poissonRatioXY / (1.0 - poissonRatioXY*poissonRatioYX);
+	C(0, 0) = youngsModulusX / (static_cast<Real>(1.0) - poissonRatioXY*poissonRatioYX);
+	C(0, 1) = youngsModulusX*poissonRatioYX / (static_cast<Real>(1.0) - poissonRatioXY*poissonRatioYX);
+	C(1, 1) = youngsModulusY / (static_cast<Real>(1.0) - poissonRatioXY*poissonRatioYX);
+	C(1, 0) = youngsModulusY*poissonRatioXY / (static_cast<Real>(1.0) - poissonRatioXY*poissonRatioYX);
 	C(2, 2) = youngsModulusShear;
 
 	// Determine \partial x/\partial m_i
@@ -914,9 +911,9 @@ bool PositionBasedDynamics::solve_FEMTriangleConstraint(
 
 	// epsilon = 0.5(F^T * F - I)
 	Matrix2r epsilon;
-	epsilon(0,0) = 0.5*(F(0,0) * F(0,0) + F(1,0) * F(1,0) + F(2,0) * F(2,0) - 1.0);		// xx
-	epsilon(1,1) = 0.5*(F(0,1) * F(0,1) + F(1,1) * F(1,1) + F(2,1) * F(2,1) - 1.0);		// yy
-	epsilon(0,1) = 0.5*(F(0,0) * F(0,1) + F(1,0) * F(1,1) + F(2,0) * F(2,1));			// xy
+	epsilon(0,0) = static_cast<Real>(0.5)*(F(0,0) * F(0,0) + F(1,0) * F(1,0) + F(2,0) * F(2,0) - static_cast<Real>(1.0));		// xx
+	epsilon(1,1) = static_cast<Real>(0.5)*(F(0,1) * F(0,1) + F(1,1) * F(1,1) + F(2,1) * F(2,1) - static_cast<Real>(1.0));		// yy
+	epsilon(0,1) = static_cast<Real>(0.5)*(F(0,0) * F(0,1) + F(1,0) * F(1,1) + F(2,0) * F(2,1));			// xy
 	epsilon(1,0) = epsilon(0,1);
 
 	// P(F) = det(F) * C*E * F^-T => E = green strain
@@ -932,7 +929,7 @@ bool PositionBasedDynamics::solve_FEMTriangleConstraint(
 	for (unsigned char j = 0; j < 2; j++)
 		for (unsigned char k = 0; k < 2; k++)
 			psi += epsilon(j,k) * stress(j,k);
-	psi = 0.5*psi;
+	psi = static_cast<Real>(0.5)*psi;
 	Real energy = area*psi;
 
 	// compute gradient
@@ -976,7 +973,7 @@ bool PositionBasedDynamics::init_FEMTetraConstraint(			// compute only when rest
 		Real &volume,
 		Matrix3r &invRestMat)
 {
-	volume = fabs((1.0 / 6.0) * (p3 - p0).dot((p2 - p0).cross(p1 - p0)));
+	volume = fabs(static_cast<Real>(1.0 / 6.0) * (p3 - p0).dot((p2 - p0).cross(p1 - p0)));
 
 	Matrix3r m;
 	m.col(0) = p0 - p3;
@@ -1018,12 +1015,12 @@ void PositionBasedDynamics::computeGreenStrainAndPiolaStress(
 
 	// epsilon = 1/2 F^T F - I
 
-	epsilon(0, 0) = 0.5*(F(0, 0) * F(0, 0) + F(1, 0) * F(1, 0) + F(2, 0) * F(2, 0) - 1.0);		// xx
-	epsilon(1, 1) = 0.5*(F(0, 1) * F(0, 1) + F(1, 1) * F(1, 1) + F(2, 1) * F(2, 1) - 1.0);		// yy
-	epsilon(2, 2) = 0.5*(F(0, 2) * F(0, 2) + F(1, 2) * F(1, 2) + F(2, 2) * F(2, 2) - 1.0);		// zz
-	epsilon(0, 1) = 0.5*(F(0, 0) * F(0, 1) + F(1, 0) * F(1, 1) + F(2, 0) * F(2, 1));			// xy
-	epsilon(0, 2) = 0.5*(F(0, 0) * F(0, 2) + F(1, 0) * F(1, 2) + F(2, 0) * F(2, 2));			// xz
-	epsilon(1, 2) = 0.5*(F(0, 1) * F(0, 2) + F(1, 1) * F(1, 2) + F(2, 1) * F(2, 2));			// yz
+	epsilon(0, 0) = static_cast<Real>(0.5)*(F(0, 0) * F(0, 0) + F(1, 0) * F(1, 0) + F(2, 0) * F(2, 0) - static_cast<Real>(1.0));		// xx
+	epsilon(1, 1) = static_cast<Real>(0.5)*(F(0, 1) * F(0, 1) + F(1, 1) * F(1, 1) + F(2, 1) * F(2, 1) - static_cast<Real>(1.0));		// yy
+	epsilon(2, 2) = static_cast<Real>(0.5)*(F(0, 2) * F(0, 2) + F(1, 2) * F(1, 2) + F(2, 2) * F(2, 2) - static_cast<Real>(1.0));		// zz
+	epsilon(0, 1) = static_cast<Real>(0.5)*(F(0, 0) * F(0, 1) + F(1, 0) * F(1, 1) + F(2, 0) * F(2, 1));			// xy
+	epsilon(0, 2) = static_cast<Real>(0.5)*(F(0, 0) * F(0, 2) + F(1, 0) * F(1, 2) + F(2, 0) * F(2, 2));			// xz
+	epsilon(1, 2) = static_cast<Real>(0.5)*(F(0, 1) * F(0, 2) + F(1, 1) * F(1, 2) + F(2, 1) * F(2, 2));			// yz
 	epsilon(1, 0) = epsilon(0, 1);
 	epsilon(2, 0) = epsilon(0, 2);
 	epsilon(2, 1) = epsilon(1, 2);
@@ -1041,7 +1038,7 @@ void PositionBasedDynamics::computeGreenStrainAndPiolaStress(
 	for (unsigned char j = 0; j < 3; j++)
 		for (unsigned char k = 0; k < 3; k++)
 			psi += epsilon(j, k) * epsilon(j, k);
-	psi = mu*psi + 0.5*lambda * trace*trace;
+	psi = mu*psi + static_cast<Real>(0.5)*lambda * trace*trace;
 	energy = restVolume * psi;
 }
 
@@ -1097,7 +1094,7 @@ void PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(
 	MathFunctions::svdWithInversionHandling(F, hatF, U, VT);
 
 	// Clamp small singular values
-	const Real minXVal = 0.577;
+	const Real minXVal = static_cast<Real>(0.577);
 
 	for (unsigned char j = 0; j < 3; j++)
 	{
@@ -1106,7 +1103,9 @@ void PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(
 	}
 
 	// epsilon for hatF
-	Vector3r epsilonHatF(0.5*(hatF[0]*hatF[0] - 1.0), 0.5*(hatF[1]*hatF[1] - 1.0), 0.5*(hatF[2]*hatF[2] - 1.0));
+	Vector3r epsilonHatF(	static_cast<Real>(0.5)*(hatF[0]*hatF[0] - static_cast<Real>(1.0)), 
+							static_cast<Real>(0.5)*(hatF[1]*hatF[1] - static_cast<Real>(1.0)), 
+							static_cast<Real>(0.5)*(hatF[2]*hatF[2] - static_cast<Real>(1.0)));
 
 	const Real trace = epsilonHatF[0] + epsilonHatF[1] + epsilonHatF[2];
 	const Real ltrace = lambda*trace;
@@ -1135,7 +1134,7 @@ void PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(
 	for (unsigned char j = 0; j < 3; j++)
 		for (unsigned char k = 0; k < 3; k++)
 			psi += epsilon(j, k) * epsilon(j, k);
-	psi = mu*psi + 0.5*lambda * trace*trace;
+	psi = mu*psi + static_cast<Real>(0.5)*lambda * trace*trace;
 	energy = restVolume*psi;
 }
 
@@ -1168,10 +1167,10 @@ bool PositionBasedDynamics::solve_FEMTetraConstraint(
 	Real C = 0.0;
 	Vector3r gradC[4];
 	Matrix3r epsilon, sigma;
-	Real volume = (p1 - p0).cross(p2 - p0).dot(p3 - p0) / 6.0;
+	Real volume = (p1 - p0).cross(p2 - p0).dot(p3 - p0) / static_cast<Real>(6.0);
 
-	Real mu = youngsModulus / 2.0 / (1.0 + poissonRatio);
-	Real lambda = youngsModulus * poissonRatio / (1.0 + poissonRatio) / (1.0 - 2.0 * poissonRatio);
+	Real mu = youngsModulus / static_cast<Real>(2.0) / (static_cast<Real>(1.0) + poissonRatio);
+	Real lambda = youngsModulus * poissonRatio / (static_cast<Real>(1.0) + poissonRatio) / (static_cast<Real>(1.0) - static_cast<Real>(2.0) * poissonRatio);
 
 	if (!handleInversion || volume > 0.0)
 	{
@@ -1200,6 +1199,164 @@ bool PositionBasedDynamics::solve_FEMTetraConstraint(
 	corr1 = -s * invMass1 * gradC[1];
 	corr2 = -s * invMass2 * gradC[2];
 	corr3 = -s * invMass3 * gradC[3];
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------------------------
+bool PositionBasedDynamics::init_ParticleTetContactConstraint(
+	const Real invMass0,							// inverse mass is zero if particle is static
+	const Vector3r &x0,								// particle which collides with tet
+	const Vector3r &v0,								// velocity of particle
+	const Real invMass[],							// inverse masses of tet particles
+	const Vector3r x[],								// positions of tet particles
+	const Vector3r v[],								// velocities of tet particles
+	const Vector3r &bary,							// barycentric coordinates of contact point in tet
+	const Vector3r &normal,							// contact normal in body 1
+	Eigen::Matrix<Real, 3, 3> &constraintInfo)
+{
+	// constraintInfo contains
+	// 0:	contact normal in body 1 (global)
+	// 1:	contact tangent (global)
+	// 0,1:  1.0 / normal^T * K * normal
+	// 1,2: maximal impulse in tangent direction
+
+	const Real bary0 = static_cast<Real>(1.0) - bary[0] - bary[1] - bary[2];
+
+	// compute world space contact point in body 2	
+	const Vector3r v1 = bary0*v[0] + bary[0] * v[1] + bary[1] * v[2] + bary[2] * v[3];
+
+	// compute goal velocity in normal direction after collision
+	const Vector3r u_rel = v0 - v1;
+	const Real u_rel_n = normal.dot(u_rel);
+
+	constraintInfo.col(0) = normal;
+
+	// tangent direction
+	Vector3r t = u_rel - u_rel_n*normal;
+	Real tl2 = t.squaredNorm();
+	if (tl2 > 1.0e-6)
+		t *= static_cast<Real>(1.0) / sqrt(tl2);
+
+	constraintInfo.col(1) = t;
+
+	// determine 1/(J M^-1 J^T)	
+	const Real JMinvJT = invMass0 + bary0*bary0*invMass[0] + bary[0]*bary[0]*invMass[1] + bary[1]*bary[1]*invMass[2] + bary[2]*bary[2]*invMass[3];
+	constraintInfo(0, 2) = static_cast<Real>(1.0) / JMinvJT;
+
+	// maximal impulse in tangent direction
+	constraintInfo(1, 2) = static_cast<Real>(1.0) / JMinvJT * u_rel.dot(t);
+
+	return true;
+}
+
+//--------------------------------------------------------------------------------------------
+bool PositionBasedDynamics::solve_ParticleTetContactConstraint(
+	const Real invMass0,							// inverse mass is zero if particle is static
+	const Vector3r &x0,								// particle which collides with tet
+	const Real invMass[],							// inverse masses of tet particles
+	const Vector3r x[],								// positions of tet particles
+	const Vector3r &bary,							// barycentric coordinates of contact point in tet
+	Eigen::Matrix<Real, 3, 3> &constraintInfo,		// precomputed contact info
+	Real &lambda,
+	Vector3r &corr0,
+	Vector3r corr[])
+{
+	// constraintInfo contains
+	// 0:	contact normal in body 1 (global)
+	// 1:	contact tangent (global)
+	// 0,2:  1.0 / normal^T * K * normal
+	// 1,2: maximal impulse in tangent direction
+
+	if ((invMass0 == 0.0) && (invMass[0] == 0.0) && (invMass[1] == 0.0) && (invMass[2] == 0.0))
+		return false;
+
+	const Real bary0 = static_cast<Real>(1.0) - bary[0] - bary[1] - bary[2];
+
+	// compute world space contact point in body 2	
+	const Vector3r cp1 = bary0*x[0] + bary[0] * x[1] + bary[1] * x[2] + bary[2] * x[3];
+
+	const Vector3r &normal = constraintInfo.col(0);
+
+	// 1.0 / normal^T * K * normal
+	const Real nKn_inv = constraintInfo(0, 2);
+
+	// penetration depth 
+	const Real C = normal.dot(x0 - cp1);
+
+	lambda = -nKn_inv * C;
+
+
+	Vector3r p(lambda * normal);
+	if (invMass0 != 0.0)
+	{
+		corr0 = invMass0*p;
+	}
+
+	if (invMass[0] != 0.0)
+		corr[0] = -invMass[0] * bary0*p;
+	if (invMass[1] != 0.0)
+		corr[1] = -invMass[1] * bary[0] * p;
+	if (invMass[2] != 0.0)
+		corr[2] = -invMass[2] * bary[1] * p;
+	if (invMass[3] != 0.0)
+		corr[3] = -invMass[3] * bary[2] * p;
+
+	return true;
+}
+
+//--------------------------------------------------------------------------------------------
+bool PositionBasedDynamics::velocitySolve_ParticleTetContactConstraint(
+	const Real invMass0,							// inverse mass is zero if particle is static
+	const Vector3r &x0,								// particle which collides with tet
+	const Vector3r &v0,								// velocity of particle
+	const Real invMass[],							// inverse masses of tet particles
+	const Vector3r x[],								// positions of tet particles
+	const Vector3r v[],								// velocities of tet particles
+	const Vector3r &bary,							// barycentric coordinates of contact point in tet
+	const Real lambda, 
+	const Real frictionCoeff,						// friction coefficient
+	Eigen::Matrix<Real, 3, 3> &constraintInfo,		// precomputed contact info
+	Vector3r &corr_v0,
+	Vector3r corr_v[])
+{
+	// constraintInfo contains
+	// 0:	contact normal in body 1 (global)
+	// 1:	contact tangent (global)
+	// 0,2:  1.0 / normal^T * K * normal
+	// 1,2: maximal impulse in tangent direction
+
+	if ((invMass0 == 0.0) && (invMass[0] == 0.0) && (invMass[1] == 0.0) && (invMass[2] == 0.0))
+		return false;
+
+ 	const Real bary0 = static_cast<Real>(1.0) - bary[0] - bary[1] - bary[2];
+ 
+ 	// Friction
+ 	// maximal impulse in tangent direction
+ 	const Real pMax = constraintInfo(1, 2);
+ 	const Vector3r &tangent = constraintInfo.col(1);
+ 	Vector3r pv;
+ 	if (frictionCoeff * lambda > pMax)
+ 		pv = -pMax * tangent;
+ 	else if (frictionCoeff * lambda < -pMax)
+ 		pv = pMax * tangent;
+ 	else
+ 		pv = -frictionCoeff * lambda * tangent;
+ 
+ 	if (invMass0 != 0.0)
+ 	{
+ 		corr_v0 = invMass0*pv;
+ 	}
+ 
+ 	if (invMass[0] != 0.0)
+ 		corr_v[0] = -invMass[0] * bary0*pv;
+ 	if (invMass[1] != 0.0)
+ 		corr_v[1] = -invMass[1] * bary[0] * pv;
+ 	if (invMass[2] != 0.0)
+ 		corr_v[2] = -invMass[2] * bary[1] * pv;
+ 	if (invMass[3] != 0.0)
+ 		corr_v[3] = -invMass[3] * bary[2] * pv;
+
 
 	return true;
 }

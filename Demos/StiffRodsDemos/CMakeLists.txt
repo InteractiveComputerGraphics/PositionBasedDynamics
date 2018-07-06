@@ -15,8 +15,18 @@ else()
   )
 endif()
 
+############################################################
+# GenericParameters
+############################################################
+include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+
 add_executable(StretchBendingTwistingDemo
 	  StretchBendingTwistingDemo.cpp
+
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h
@@ -46,6 +56,11 @@ add_executable(DirectPositionBasedSolverForStiffRodsDemo
 	  
 	  StiffRodsSceneLoader.h
 	  StiffRodsSceneLoader.cpp
+
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h

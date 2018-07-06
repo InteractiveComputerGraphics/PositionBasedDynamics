@@ -7,9 +7,9 @@ using namespace PBD;
 FluidModel::FluidModel() :
 	m_particles()
 {	
-	m_density0 = 1000.0;
-	m_particleRadius = 0.025;
-	viscosity = 0.02;
+	m_density0 = static_cast<Real>(1000.0);
+	m_particleRadius = static_cast<Real>(0.025);
+	viscosity = static_cast<Real>(0.02);
 	m_neighborhoodSearch = NULL;
 }
 
@@ -53,14 +53,14 @@ ParticleData & PBD::FluidModel::getParticles()
 void FluidModel::initMasses()
 {
 	const int nParticles = (int) m_particles.size();
-	const Real diam = 2.0*m_particleRadius;
+	const Real diam = static_cast<Real>(2.0)*m_particleRadius;
 
 	#pragma omp parallel default(shared)
 	{
 		#pragma omp for schedule(static)  
 		for (int i = 0; i < nParticles; i++)
 		{
-			m_particles.setMass(i, 0.8 * diam*diam*diam * m_density0);		// each particle represents a cube with a side length of r		
+			m_particles.setMass(i, static_cast<Real>(0.8) * diam*diam*diam * m_density0);		// each particle represents a cube with a side length of r		
 																			// mass is slightly reduced to prevent pressure at the beginning of the simulation
 		}
 	}
@@ -145,7 +145,7 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 				const unsigned int neighborIndex = neighbors[i][j];
 				delta += CubicKernel::W(m_boundaryX[i] - m_boundaryX[neighborIndex]);
 			}
-			const Real volume = 1.0 / delta;
+			const Real volume = static_cast<Real>(1.0) / delta;
 			m_boundaryPsi[i] = m_density0 * volume;
 		}
 	}

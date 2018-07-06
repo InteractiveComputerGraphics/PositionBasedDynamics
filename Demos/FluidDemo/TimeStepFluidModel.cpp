@@ -1,9 +1,9 @@
 #include "TimeStepFluidModel.h"
-#include "Demos/Simulation/TimeManager.h"
+#include "Simulation/TimeManager.h"
 #include "PositionBasedDynamics/PositionBasedFluids.h"
 #include "PositionBasedDynamics/TimeIntegration.h"
 #include "PositionBasedDynamics/SPHKernels.h"
-#include "Demos/Utils/Timing.h"
+#include "Utils/Timing.h"
 
 using namespace PBD;
 using namespace std;
@@ -26,7 +26,7 @@ void TimeStepFluidModel::step(FluidModel &model)
 	clearAccelerations(model);
 
 	// Update time step size by CFL condition
-	updateTimeStepSizeCFL(model, 0.0001, 0.005);
+	updateTimeStepSizeCFL(model, static_cast<Real>(0.0001), static_cast<Real>(0.005));
 
 	// Time integration
 	for (unsigned int i = 0; i < pd.size(); i++)
@@ -72,7 +72,7 @@ void TimeStepFluidModel::clearAccelerations(FluidModel &model)
 {
 	ParticleData &pd = model.getParticles();
 	const unsigned int count = pd.size();
-	const Vector3r grav(0.0, -9.81, 0.0);
+	const Vector3r grav(0.0, -static_cast<Real>(9.81), 0.0);
 	for (unsigned int i=0; i < count; i++)
 	{
 		// Clear accelerations of dynamic particles
@@ -114,10 +114,10 @@ void TimeStepFluidModel::updateTimeStepSizeCFL(FluidModel &model, const Real min
 	Real h = TimeManager::getCurrent()->getTimeStepSize();
 
 	// Approximate max. position change due to current velocities
-	Real maxVel = 0.1;
+	Real maxVel = static_cast<Real>(0.1);
 	ParticleData &pd = model.getParticles();
 	const unsigned int numParticles = pd.size();
-	const Real diameter = 2.0*radius;
+	const Real diameter = static_cast<Real>(2.0)*radius;
 	for (unsigned int i = 0; i < numParticles; i++)
 	{
 		const Vector3r &vel = pd.getVelocity(i);
@@ -128,7 +128,7 @@ void TimeStepFluidModel::updateTimeStepSizeCFL(FluidModel &model, const Real min
 	}
 
 	// Approximate max. time step size 		
-	h = cflFactor * .4 * (diameter / (sqrt(maxVel)));
+	h = cflFactor * static_cast<Real>(0.4) * (diameter / (sqrt(maxVel)));
 
 	h = min(h, maxTimeStepSize);
 	h = max(h, minTimeStepSize);

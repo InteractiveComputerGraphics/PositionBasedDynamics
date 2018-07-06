@@ -15,8 +15,20 @@ else()
   )
 endif()
 
+############################################################
+# GenericParameters
+############################################################
+include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_GenericParameters)
+
+
 add_executable(ClothCollisionDemo
 	  ClothCollisionDemo.cpp
+
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h
@@ -34,6 +46,11 @@ target_link_libraries(ClothCollisionDemo ${SIMULATION_LINK_LIBRARIES})
 
 add_executable(DeformableCollisionDemo
 	  DeformableCollisionDemo.cpp
+
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h
@@ -51,6 +68,11 @@ target_link_libraries(DeformableCollisionDemo ${SIMULATION_LINK_LIBRARIES})
 
 add_executable(RigidBodyCollisionDemo
 	  RigidBodyCollisionDemo.cpp
+
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h

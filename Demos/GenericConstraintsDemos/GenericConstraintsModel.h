@@ -1,9 +1,9 @@
 #ifndef __GENERICCONSTRAINTSMODEL_H__
 #define __GENERICCONSTRAINTSMODEL_H__
 
-#include "Demos/Utils/IndexedFaceMesh.h"
-#include "Demos/Simulation/ParticleData.h"
-#include "Demos/Simulation/SimulationModel.h"
+#include "Utils/IndexedFaceMesh.h"
+#include "Simulation/ParticleData.h"
+#include "Simulation/SimulationModel.h"
 #include <vector>
 
 namespace PBD 
@@ -17,6 +17,9 @@ namespace PBD
 			bool addGenericDistanceConstraint(const unsigned int particle1, const unsigned int particle2);
 			bool addGenericIsometricBendingConstraint(const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);
+			bool addGenericHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
+			bool addGenericSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
+			bool addGenericBallJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos);
 	};
 }
 

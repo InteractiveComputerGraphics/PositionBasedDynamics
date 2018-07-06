@@ -11,9 +11,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(${PROJECT_PATH}/CMake/Common.cmake)
 
 if (WIN32)
-  subdirs(extern/freeglut extern/AntTweakBar extern/glew extern/md5 Demos PositionBasedDynamics)
+  subdirs(extern/freeglut extern/AntTweakBar extern/glew extern/md5 Demos PositionBasedDynamics Simulation Utils)
 else()
-  subdirs(extern/AntTweakBar extern/glew extern/md5 Demos PositionBasedDynamics)
+  subdirs(extern/AntTweakBar extern/glew extern/md5 Demos PositionBasedDynamics Simulation Utils)
 endif()
 
 include(ExternalProject)
@@ -29,9 +29,19 @@ ExternalProject_Add(
    ExternalProject_Discregrid
    PREFIX "${CMAKE_SOURCE_DIR}/extern/Discregrid"
    GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
-   GIT_TAG "f16a29afebf7a7f43139d5832bbfc7124c5d98db"
+   GIT_TAG "573c2f51f433c74de832454272e47f590140e80b"
    INSTALL_DIR ${ExternalInstallDir}/Discregrid
    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
+) 
+
+## GenericParameters
+ExternalProject_Add(
+   ExternalProject_GenericParameters
+   PREFIX "${CMAKE_SOURCE_DIR}/extern/GenericParameters"
+   GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/GenericParameters.git
+   GIT_TAG "1ec904bf8555e78ae0d8ba2f9f9a395371c5d4eb"
+   INSTALL_DIR ${ExternalInstallDir}/GenericParameters
+   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/GenericParameters -DGENERICPARAMETERS_NO_TESTS:BOOL=1		
 ) 
 
 install(DIRECTORY ./Common

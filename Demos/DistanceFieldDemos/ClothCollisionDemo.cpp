@@ -1,27 +1,27 @@
-
 #include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Simulation/TimeManager.h"
+#include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
-#include "Demos/Simulation/SimulationModel.h"
-#include "Demos/Simulation/TimeStepController.h"
+#include "Simulation/SimulationModel.h"
+#include "Simulation/TimeStepController.h"
 #include <iostream>
 #include "Demos/Visualization/Visualization.h"
-#include "Demos/Simulation/DistanceFieldCollisionDetection.h"
-#include "Demos/Utils/OBJLoader.h"
-#include "Demos/Utils/Logger.h"
-#include "Demos/Utils/Timing.h"
-#include "Demos/Utils/FileSystem.h"
+#include "Simulation/DistanceFieldCollisionDetection.h"
+#include "Utils/OBJLoader.h"
+#include "Utils/Logger.h"
+#include "Utils/Timing.h"
+#include "Utils/FileSystem.h"
+#include "Demos/Common/DemoBase.h"
+#include "Demos/Common/TweakBarParameters.h"
+#include "Simulation/Simulation.h"
+
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
 	#define new DEBUG_NEW 
 #endif
-
-INIT_TIMING
-INIT_LOGGING
 
 using namespace PBD;
 using namespace Eigen;
@@ -32,52 +32,13 @@ void timeStep ();
 void buildModel ();
 void createMesh();
 void render ();
-void cleanup();
 void reset();
-void initShader();
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
-void TW_CALL setTimeStep(const void *value, void *clientData);
-void TW_CALL getTimeStep(void *value, void *clientData);
-void TW_CALL setStiffness(const void *value, void *clientData);
-void TW_CALL getStiffness(void *value, void *clientData);
-void TW_CALL setXXStiffness(const void *value, void *clientData);
-void TW_CALL getXXStiffness(void *value, void *clientData);
-void TW_CALL setYYStiffness(const void *value, void *clientData);
-void TW_CALL getYYStiffness(void *value, void *clientData);
-void TW_CALL setXYStiffness(const void *value, void *clientData);
-void TW_CALL getXYStiffness(void *value, void *clientData);
-void TW_CALL setXYPoissonRatio(const void *value, void *clientData);
-void TW_CALL getXYPoissonRatio(void *value, void *clientData);
-void TW_CALL setYXPoissonRatio(const void *value, void *clientData);
-void TW_CALL getYXPoissonRatio(void *value, void *clientData);
-void TW_CALL setNormalizeStretch(const void *value, void *clientData);
-void TW_CALL getNormalizeStretch(void *value, void *clientData);
-void TW_CALL setNormalizeShear(const void *value, void *clientData);
-void TW_CALL getNormalizeShear(void *value, void *clientData);
-void TW_CALL setBendingStiffness(const void *value, void *clientData);
-void TW_CALL getBendingStiffness(void *value, void *clientData);
+void initParameters();
 void TW_CALL setBendingMethod(const void *value, void *clientData);
 void TW_CALL getBendingMethod(void *value, void *clientData);
 void TW_CALL setSimulationMethod(const void *value, void *clientData);
 void TW_CALL getSimulationMethod(void *value, void *clientData);
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
-void TW_CALL setMaxIterations(const void *value, void *clientData);
-void TW_CALL getMaxIterations(void *value, void *clientData);
-void TW_CALL setMaxIterationsV(const void *value, void *clientData);
-void TW_CALL getMaxIterationsV(void *value, void *clientData);
-void TW_CALL setContactTolerance(const void *value, void *clientData);
-void TW_CALL getContactTolerance(void *value, void *clientData);
-void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData);
-void TW_CALL getContactStiffnessRigidBody(void *value, void *clientData);
-void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clientData);
-void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData);
 
-
-
-SimulationModel model;
-DistanceFieldCollisionDetection cd;
-TimeStepController sim;
 
 const int nRows = 50;
 const int nCols = 50;
@@ -86,173 +47,100 @@ const Real height = 10.0;
 short simulationMethod = 2;
 short bendingMethod = 2;
 bool doPause = true;
-bool renderContacts = false;
-std::vector<unsigned int> selectedParticles;
-Vector3r oldMousePos;
-Shader *shader;
-Shader *shaderTex;
-string exePath;
-string dataPath;
+DemoBase *base;
+DistanceFieldCollisionDetection cd;
 
 // main 
 int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
-	FileSystem::makeDirs(logPath);
-	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
-	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
+	base = new DemoBase();
+	base->init(argc, argv, "Cloth demo");
 
-	exePath = FileSystem::getProgramPath();
-	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
+	SimulationModel *model = new SimulationModel();
+	model->init();
+	Simulation::getCurrent()->setModel(model);
+
+	buildModel();
+
+	initParameters();
+
+	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
 
 	// OpenGL
-	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Cloth collision demo");
-	MiniGL::initLights ();
-	MiniGL::initTexture();
 	MiniGL::setClientIdleFunc (50, timeStep);		
 	MiniGL::setKeyFunc(0, 'r', reset);
-	MiniGL::setSelectionFunc(selection);
-	initShader();
-
-	buildModel ();
-
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
 
-	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarRW(MiniGL::getTweakBar(), "RenderContacts", TW_TYPE_BOOLCPP, &renderContacts, " label='Render contacts' group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
-	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_REAL, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Distance constraints' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffness", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Stiffness XX'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffness", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Stiffness YY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffness", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Stiffness XY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XXStiffnessFEM", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Youngs modulus XX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YYStiffnessFEM", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Youngs modulus YY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYStiffnessFEM", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Youngs modulus XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "XYPoissonRatioFEM", TW_TYPE_REAL, setXYPoissonRatio, getXYPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "YXPoissonRatioFEM", TW_TYPE_REAL, setYXPoissonRatio, getYXPoissonRatio, &model, " label='Poisson ratio YX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, &model, " label='Normalize stretch' group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, &model, " label='Normalize shear' group='Strain based dynamics' ");
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, &model, " label='Bending stiffness'  min=0.0 step=0.01 precision=4 group=Bending ");
-	TwAddVarCB(MiniGL::getTweakBar(), "MaxIter", TW_TYPE_UINT32, setMaxIterations, getMaxIterations, &sim, " label='Max. iterations'  min=1 step=1 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "MaxIterV", TW_TYPE_UINT32, setMaxIterationsV, getMaxIterationsV, &sim, " label='Max. iterations Vel.'  min=1 step=1 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactTolerance", TW_TYPE_REAL, setContactTolerance, getContactTolerance, &cd, " label='Contact tolerance'  min=0.0 step=0.001 precision=3 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessRigidBody", TW_TYPE_REAL, setContactStiffnessRigidBody, getContactStiffnessRigidBody, &model, " label='Contact stiffness RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessParticleRigidBody", TW_TYPE_REAL, setContactStiffnessParticleRigidBody, getContactStiffnessParticleRigidBody, &model, " label='Contact stiffness Particle-RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
-
 
 	glutMainLoop ();	
 
-	cleanup ();
+	base->cleanup ();
 
-	Timing::printAverageTimes();
-	
+	Utilities::Timing::printAverageTimes();
+	Utilities::Timing::printTimeSums();
+
+	delete Simulation::getCurrent();
+	delete base;
+	delete model;
+
 	return 0;
 }
 
-void initShader()
+void initParameters()
 {
-	std::string vertFile = dataPath + "/shaders/vs_smooth.glsl";
-	std::string fragFile = dataPath + "/shaders/fs_smooth.glsl";
-	shader = MiniGL::createShader(vertFile, "", fragFile);
+	TwRemoveAllVars(MiniGL::getTweakBar());
+	TweakBarParameters::cleanup();
 
-	if (shader == NULL)
-		return;
+	MiniGL::initTweakBarParameters();
 
-	shader->begin();
-	shader->addUniform("modelview_matrix");
-	shader->addUniform("projection_matrix");
-	shader->addUniform("surface_color");
-	shader->addUniform("shininess");
-	shader->addUniform("specular_factor");
-	shader->end();
-
-	vertFile = dataPath + "/shaders/vs_smoothTex.glsl";
-	fragFile = dataPath + "/shaders/fs_smoothTex.glsl";
-	shaderTex = MiniGL::createShader(vertFile, "", fragFile);
-
-	if (shaderTex == NULL)
-		return;
-
-	shaderTex->begin();
-	shaderTex->addUniform("modelview_matrix");
-	shaderTex->addUniform("projection_matrix");
-	shaderTex->addUniform("surface_color");
-	shaderTex->addUniform("shininess");
-	shaderTex->addUniform("specular_factor");
-	shaderTex->end();
-}
-
-void cleanup()
-{
-	delete TimeManager::getCurrent();
-	delete shader;
-	delete shaderTex;
+	TweakBarParameters::createParameterGUI();
+	TweakBarParameters::createParameterObjectGUI(base);
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
 {
-	Timing::printAverageTimes();
-	Timing::reset();
+	Utilities::Timing::printAverageTimes();
+	Utilities::Timing::reset();
 
-	model.reset();
-	sim.reset();
-	TimeManager::getCurrent()->setTime(0.0);
+	Simulation::getCurrent()->reset();
+	base->getSelectedParticles().clear();
 
-	model.cleanup();
+	Simulation::getCurrent()->getModel()->cleanup();
+
 	buildModel();
-}
-
-void mouseMove(int x, int y)
-{
-	Vector3r mousePos;
-	MiniGL::unproject(x, y, mousePos);
-	const Vector3r diff = mousePos - oldMousePos;
-
-	TimeManager *tm = TimeManager::getCurrent();
-	const Real h = tm->getTimeStepSize();
-
-	ParticleData &pd = model.getParticles();
-	for (unsigned int j = 0; j < selectedParticles.size(); j++)
-	{
-		pd.getVelocity(selectedParticles[j]) += 5.0*diff/h;
-	}
-	oldMousePos = mousePos;
-}
-
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
-{
-	std::vector<unsigned int> hits;
-	selectedParticles.clear();
-	ParticleData &pd = model.getParticles();
-	Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
-	if (selectedParticles.size() > 0)
-		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
-	else
-		MiniGL::setMouseMoveFunc(-1, NULL);
-
-	MiniGL::unproject(end[0], end[1], oldMousePos);
 }
 
 void timeStep ()
 {
-	if (doPause)
+	const Real pauseAt = base->getValue<Real>(DemoBase::PAUSE_AT);
+	if ((pauseAt > 0.0) && (pauseAt < TimeManager::getCurrent()->getTime()))
+		base->setValue(DemoBase::PAUSE, true);
+
+	if (base->getValue<bool>(DemoBase::PAUSE))
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 8; i++)
-		sim.step(model);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const unsigned int numSteps = base->getValue<unsigned int>(DemoBase::NUM_STEPS_PER_RENDER);
+	for (unsigned int i = 0; i < numSteps; i++)
+	{
+		START_TIMING("SimStep");
+		Simulation::getCurrent()->getTimeStep()->step(*model);
+		STOP_TIMING_AVG;
+	}
 
-	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
-		model.getTriangleModels()[i]->updateMeshNormals(model.getParticles());
+	for (unsigned int i = 0; i < model->getTriangleModels().size(); i++)
+		model->getTriangleModels()[i]->updateMeshNormals(model->getParticles());
 }
 
 void loadObj(const std::string &filename, VertexData &vd, IndexedFaceMesh &mesh, const Vector3r &scale)
@@ -306,22 +194,23 @@ void loadObj(const std::string &filename, VertexData &vd, IndexedFaceMesh &mesh,
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (0.005);
+	TimeManager::getCurrent ()->setTimeStepSize (static_cast<Real>(0.005));
 
 	createMesh();
 
 	// create static rigid body
-	string fileName = FileSystem::normalizePath(dataPath + "/models/cube.obj");
+	string fileName = FileSystem::normalizePath(base->getDataPath() + "/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	loadObj(fileName, vd, mesh, Vector3r::Ones());
 
-	string fileNameTorus = FileSystem::normalizePath(dataPath + "/models/torus.obj");
+	string fileNameTorus = FileSystem::normalizePath(base->getDataPath() + "/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	loadObj(fileNameTorus, vdTorus, meshTorus, Vector3r::Ones());
 
-	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
 	rb.resize(2);
 
 	// floor
@@ -341,10 +230,10 @@ void buildModel ()
 		vdTorus, meshTorus,
 		Vector3r(2.0, 2.0, 2.0));
 	rb[1]->setMass(0.0);
-	rb[1]->setFrictionCoeff(0.1);
+	rb[1]->setFrictionCoeff(static_cast<Real>(0.1));
 
-	sim.setCollisionDetection(model, &cd);
-	cd.setTolerance(0.05);
+	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, &cd);
+	cd.setTolerance(static_cast<Real>(0.05));
 
 	const std::vector<Vector3r> *vertices1 = rb[0]->getGeometry().getVertexDataLocal().getVertices();
 	const unsigned int nVert1 = static_cast<unsigned int>(vertices1->size());
@@ -354,111 +243,21 @@ void buildModel ()
 	const unsigned int nVert2 = static_cast<unsigned int>(vertices2->size());
 	cd.addCollisionTorus(1, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices2)[0], nVert2, Vector2r(2.0, 1.0));
 	
-	SimulationModel::TriangleModelVector &tm = model.getTriangleModels();
-	ParticleData &pd = model.getParticles();	
+	SimulationModel::TriangleModelVector &tm = model->getTriangleModels();
+	ParticleData &pd = model->getParticles();
 	for (unsigned int i = 0; i < tm.size(); i++)
 	{
 		const unsigned int nVert = tm[i]->getParticleMesh().numVertices();
 		unsigned int offset = tm[i]->getIndexOffset();
-		tm[i]->setFrictionCoeff(0.1);
-		cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert);
+		tm[i]->setFrictionCoeff(static_cast<Real>(0.1));
+		cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
 	}
 }
 
-void renderModels()
-{
-	// Draw simulation model
-
-	const ParticleData &pd = model.getParticles();
-	float surfaceColor[4] = { 0.2f, 0.5f, 1.0f, 1 };
-
-	if (shaderTex)
-	{
-		shaderTex->begin();
-		glUniform3fv(shaderTex->getUniform("surface_color"), 1, surfaceColor);
-		glUniform1f(shaderTex->getUniform("shininess"), 5.0f);
-		glUniform1f(shaderTex->getUniform("specular_factor"), 0.2f);
-
-		GLfloat matrix[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-		glUniformMatrix4fv(shaderTex->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-		GLfloat pmatrix[16];
-		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-		glUniformMatrix4fv(shaderTex->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
-	}
-
-	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
-	{
-		// mesh 
-		TriangleModel *triModel = model.getTriangleModels()[i];
-		const IndexedFaceMesh &mesh = triModel->getParticleMesh();
-		Visualization::drawTexturedMesh(pd, mesh, triModel->getIndexOffset(), surfaceColor);
-	}
-
-	if (shaderTex)
-		shaderTex->end();
-
-	if (shader)
-	{
-		shader->begin();
-		glUniform1f(shader->getUniform("shininess"), 5.0);
-		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
-
-		GLfloat matrix[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-		glUniformMatrix4fv(shader->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-		GLfloat pmatrix[16];
-		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-		glUniformMatrix4fv(shader->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
-	}
-
-	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	float rbColor[4] = { 0.6f, 0.6f, 0.6f, 1 };
-	for (size_t i = 0; i < rb.size(); i++)
-	{
-		const VertexData &vd = rb[i]->getGeometry().getVertexData();
-		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
-		if (shader)
-			glUniform3fv(shader->getUniform("surface_color"), 1, rbColor);
-		Visualization::drawMesh(vd, mesh, 0, rbColor);
-	}
-
-	if (shader)
-		shader->end();
-}
-
-void renderContact(ParticleRigidBodyContactConstraint &cc)
-{
-	float col1[4] = { 0.0f, 0.6f, 0.2f, 1 };
-	float col2[4] = { 0.6f, 0.0f, 0.2f, 1 };
-	MiniGL::drawPoint(cc.m_constraintInfo.col(0), 5.0f, col1);
-	MiniGL::drawPoint(cc.m_constraintInfo.col(1), 5.0f, col2);
-	MiniGL::drawVector(cc.m_constraintInfo.col(1), cc.m_constraintInfo.col(1) + cc.m_constraintInfo.col(2), 1.0f, col2);
-}
 
 void render ()
 {
-	MiniGL::coordinateSystem();
-
-	SimulationModel::ParticleRigidBodyContactConstraintVector &contacts = model.getParticleRigidBodyContactConstraints();	
-
-	renderModels();	
-
-
-	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
-	const ParticleData &pd = model.getParticles();
-	for (unsigned int j = 0; j < selectedParticles.size(); j++)
-	{
-		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
-	}
-
-	if (renderContacts)
-	{
-		for (unsigned int i = 0; i < contacts.size(); i++)
-			renderContact(contacts[i]);
-	}
-
-	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
+	base->render();
 }
 
 
@@ -520,34 +319,35 @@ void createMesh()
 		}
 	}
 
-	model.addTriangleModel(nRows*nCols, nIndices / 3, &points[0], &indices[0], uvIndices, uvs);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	model->addTriangleModel(nRows*nCols, nIndices / 3, &points[0], &indices[0], uvIndices, uvs);
 	
-	ParticleData &pd = model.getParticles();
+	ParticleData &pd = model->getParticles();
 	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
 	{
 		pd.setMass(i, 1.0);
 	}
 
 	// init constraints
-	for (unsigned int cm = 0; cm < model.getTriangleModels().size(); cm++)
+	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
 	{
 		if (simulationMethod == 1)
 		{
-			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model.getTriangleModels()[cm]->getParticleMesh().numEdges();
-			const IndexedFaceMesh::Edge *edges = model.getTriangleModels()[cm]->getParticleMesh().getEdges().data();
+			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
+			const IndexedFaceMesh::Edge *edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
 			for (unsigned int i = 0; i < nEdges; i++)
 			{
 				const unsigned int v1 = edges[i].m_vert[0] + offset;
 				const unsigned int v2 = edges[i].m_vert[1] + offset;
 
-				model.addDistanceConstraint(v1, v2);
+				model->addDistanceConstraint(v1, v2);
 			}
 		}
 		else if (simulationMethod == 2)
 		{
-			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
-			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
 			const unsigned int *tris = mesh.getFaces().data();
 			const unsigned int nFaces = mesh.numFaces();
 			for (unsigned int i = 0; i < nFaces; i++)
@@ -555,13 +355,13 @@ void createMesh()
 				const unsigned int v1 = tris[3 * i] + offset;
 				const unsigned int v2 = tris[3 * i + 1] + offset;
 				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model.addFEMTriangleConstraint(v1, v2, v3);
+				model->addFEMTriangleConstraint(v1, v2, v3);
 			}
 		}
 		else if (simulationMethod == 3)
 		{
-			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
-			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
 			const unsigned int *tris = mesh.getFaces().data();
 			const unsigned int nFaces = mesh.numFaces();
 			for (unsigned int i = 0; i < nFaces; i++)
@@ -569,13 +369,13 @@ void createMesh()
 				const unsigned int v1 = tris[3 * i] + offset;
 				const unsigned int v2 = tris[3 * i + 1] + offset;
 				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model.addStrainTriangleConstraint(v1, v2, v3);
+				model->addStrainTriangleConstraint(v1, v2, v3);
 			}
 		}
 		if (bendingMethod != 0)
 		{
-			const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
-			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
+			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
 			unsigned int nEdges = mesh.numEdges();
 			const TriangleModel::ParticleMesh::Edge *edges = mesh.getEdges().data();
 			const unsigned int *tris = mesh.getFaces().data();
@@ -613,9 +413,9 @@ void createMesh()
 						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
 						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
 						if (bendingMethod == 1)
-							model.addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
+							model->addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
 						else if (bendingMethod == 2)
-							model.addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
+							model->addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
 					}
 				}
 			}
@@ -625,116 +425,6 @@ void createMesh()
 	LOG_INFO << "Number of triangles: " << nIndices / 3;
 	LOG_INFO << "Number of vertices: " << nRows*nCols;
 
-}
-
-void TW_CALL setTimeStep(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	TimeManager::getCurrent()->setTimeStepSize(val);
-}
-
-void TW_CALL getTimeStep(void *value, void *clientData)
-{
-	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
-}
-
-void TW_CALL setStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*) clientData)->setClothStiffness(val);
-}
-
-void TW_CALL getStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
-}
-
-void TW_CALL setXXStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothXXStiffness(val);
-}
-
-void TW_CALL getXXStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
-}
-
-void TW_CALL setYYStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothYYStiffness(val);
-}
-
-void TW_CALL getYYStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
-}
-
-void TW_CALL setXYStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothXYStiffness(val);
-}
-
-void TW_CALL getXYStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
-}
-
-void TW_CALL setYXPoissonRatio(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothYXPoissonRatio(val);
-}
-
-void TW_CALL getYXPoissonRatio(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
-}
-
-void TW_CALL setXYPoissonRatio(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothXYPoissonRatio(val);
-}
-
-void TW_CALL getXYPoissonRatio(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
-}
-
-void TW_CALL setNormalizeStretch(const void *value, void *clientData)
-{
-	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setClothNormalizeStretch(val);
-}
-
-void TW_CALL getNormalizeStretch(void *value, void *clientData)
-{
-	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeStretch();
-}
-
-void TW_CALL setNormalizeShear(const void *value, void *clientData)
-{
-	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setClothNormalizeShear(val);
-}
-
-void TW_CALL getNormalizeShear(void *value, void *clientData)
-{
-	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeShear();
-}
-
-void TW_CALL setBendingStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothBendingStiffness(val);
-}
-
-void TW_CALL getBendingStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
 }
 
 void TW_CALL setBendingMethod(const void *value, void *clientData)
@@ -759,70 +449,4 @@ void TW_CALL setSimulationMethod(const void *value, void *clientData)
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
 	*(short *)(value) = *((short*)clientData);
-}
-
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
-{
-	const short val = *(const short *)(value);
-	((TimeStepController*)clientData)->setVelocityUpdateMethod((unsigned int)val);
-}
-
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
-{
-	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
-}
-
-void TW_CALL setMaxIterations(const void *value, void *clientData)
-{
-	const unsigned int val = *(const unsigned int *)(value);
-	((TimeStepController*)clientData)->setMaxIterations(val);
-}
-
-void TW_CALL getMaxIterations(void *value, void *clientData)
-{
-	*(unsigned int *)(value) = ((TimeStepController*)clientData)->getMaxIterations();
-}
-
-void TW_CALL setMaxIterationsV(const void *value, void *clientData)
-{
-	const unsigned int val = *(const unsigned int *)(value);
-	((TimeStepController*)clientData)->setMaxIterationsV(val);
-}
-
-void TW_CALL getMaxIterationsV(void *value, void *clientData)
-{
-	*(unsigned int *)(value) = ((TimeStepController*)clientData)->getMaxIterationsV();
-}
-
-void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setContactStiffnessRigidBody(val);
-}
-
-void TW_CALL getContactStiffnessRigidBody(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getContactStiffnessRigidBody();
-}
-
-void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setContactStiffnessParticleRigidBody(val);
-}
-
-void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getContactStiffnessParticleRigidBody();
-}
-
-void TW_CALL setContactTolerance(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((DistanceFieldCollisionDetection*)clientData)->setTolerance(val);
-}
-
-void TW_CALL getContactTolerance(void *value, void *clientData)
-{
-	*(Real *)(value) = ((DistanceFieldCollisionDetection*)clientData)->getTolerance();
 }

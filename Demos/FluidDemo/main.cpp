@@ -3,14 +3,14 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Simulation/TimeManager.h"
+#include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "FluidModel.h"
 #include "TimeStepFluidModel.h"
 #include <iostream>
-#include "Demos/Utils/Logger.h"
-#include "Demos/Utils/Timing.h"
-#include "Demos/Utils/FileSystem.h"
+#include "Utils/Logger.h"
+#include "Utils/Timing.h"
+#include "Utils/FileSystem.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
 
@@ -35,7 +35,7 @@ void initBoundaryData(std::vector<Vector3r> &boundaryParticles);
 void render ();
 void cleanup();
 void reset();
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
+void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end, void *clientData);
 void createSphereBuffers(Real radius, int resolution);
 void renderSphere(const Vector3r &x, const float color[]);
 void releaseSphereBuffers();
@@ -51,12 +51,12 @@ void TW_CALL getViscosity(void *value, void *clientData);
 FluidModel model;
 TimeStepFluidModel simulation;
 
-const Real particleRadius = 0.025;
+const Real particleRadius = static_cast<Real>(0.025);
 const unsigned int width = 15;
 const unsigned int depth = 15;
 const unsigned int height = 20;
-const Real containerWidth = (width + 1)*particleRadius*2.0 * 5.0;
-const Real containerDepth = (depth + 1)*particleRadius*2.0;
+const Real containerWidth = (width + 1)*particleRadius*static_cast<Real>(2.0 * 5.0);
+const Real containerDepth = (depth + 1)*particleRadius*static_cast<Real>(2.0);
 const Real containerHeight = 4.0;
 bool doPause = true;
 std::vector<unsigned int> selectedParticles;
@@ -89,7 +89,7 @@ int main( int argc, char **argv )
 	MiniGL::initLights ();
 	MiniGL::setClientIdleFunc (50, timeStep);		
 	MiniGL::setKeyFunc(0, 'r', reset);
-	MiniGL::setSelectionFunc(selection);
+	MiniGL::setSelectionFunc(selection, nullptr);
 
 	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
 
@@ -133,7 +133,7 @@ void reset()
 	TimeManager::getCurrent()->setTime(0.0);
 }
 
-void mouseMove(int x, int y)
+void mouseMove(int x, int y, void *clientData)
 {
 	Vector3r mousePos;
 	MiniGL::unproject(x, y, mousePos);
@@ -150,7 +150,7 @@ void mouseMove(int x, int y)
 	oldMousePos = mousePos;
 }
 
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
+void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end, void *clientData)
 {
 	std::vector<unsigned int> hits;
 	selectedParticles.clear();
@@ -176,15 +176,18 @@ void timeStep ()
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (0.0025);
+	TimeManager::getCurrent ()->setTimeStepSize (static_cast<Real>(0.0025));
 
 	createBreakingDam();
 }
 
 void render ()
 {
+	float gridColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	MiniGL::drawGrid(gridColor);
+
 	MiniGL::coordinateSystem();
-	
+
 	// Draw simulation model
 	
 	const ParticleData &pd = model.getParticles();
@@ -201,7 +204,7 @@ void render ()
 	glPointSize(4.0);
 
 	const Real supportRadius = model.getSupportRadius();
-	Real vmax = 0.4*2.0*supportRadius / TimeManager::getCurrent()->getTimeStepSize();
+	Real vmax = static_cast<Real>(0.4*2.0)*supportRadius / TimeManager::getCurrent()->getTimeStepSize();
 	Real vmin = 0.0;
 
 	if (context_major_version > 3)
@@ -209,8 +212,8 @@ void render ()
 		for (unsigned int i = 0; i < nParticles; i++)
 		{
 			Real v = pd.getVelocity(i).norm();
-			v = 0.5*((v - vmin) / (vmax - vmin));
-			v = min(128.0*v*v, 0.5);
+			v = static_cast<Real>(0.5)*((v - vmin) / (vmax - vmin));
+			v = min(static_cast<Real>(128.0)*v*v, static_cast<Real>(0.5));
 			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
 			MiniGL::hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
 			renderSphere(pd.getPosition(i), fluidColor);
@@ -226,8 +229,8 @@ void render ()
 		for (unsigned int i = 0; i < nParticles; i++)
 		{
 			Real v = pd.getVelocity(i).norm();
-			v = 0.5*((v - vmin) / (vmax - vmin));
-			v = min(128.0*v*v, 0.5);
+			v = static_cast<Real>(0.5)*((v - vmin) / (vmax - vmin));
+			v = min(static_cast<Real>(128.0)*v*v, static_cast<Real>(0.5));
 			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
 			MiniGL::hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
 
@@ -265,10 +268,10 @@ void createBreakingDam()
 {
 	LOG_INFO << "Initialize fluid particles";
 	const Real diam = 2.0*particleRadius;
-	const Real startX = -0.5*containerWidth + diam;
+	const Real startX = -static_cast<Real>(0.5)*containerWidth + diam;
 	const Real startY = diam;
-	const Real startZ = -0.5*containerDepth + diam;
-	const Real yshift = sqrt(3.0) * particleRadius;
+	const Real startZ = -static_cast<Real>(0.5)*containerDepth + diam;
+	const Real yshift = sqrt(static_cast<Real>(3.0)) * particleRadius;
 
 	std::vector<Vector3r> fluidParticles;
 	fluidParticles.resize(width*height*depth);
@@ -301,7 +304,7 @@ void createBreakingDam()
 
 void addWall(const Vector3r &minX, const Vector3r &maxX, std::vector<Vector3r> &boundaryParticles)
 {
-	const Real particleDistance = 2.0*model.getParticleRadius();
+	const Real particleDistance = static_cast<Real>(2.0)*model.getParticleRadius();
 
 	const Vector3r diff = maxX - minX;
 	const unsigned int stepsX = (unsigned int)(diff[0] / particleDistance) + 1u;

@@ -15,6 +15,12 @@ else()
   )
 endif()
 
+############################################################
+# GenericParameters
+############################################################
+include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} ExternalProject_GenericParameters)
+
 add_executable(GenericParticleConstraintsDemo
 	  GenericParticleConstraintsDemo.cpp
 	  
@@ -22,6 +28,30 @@ add_executable(GenericParticleConstraintsDemo
 	  GenericConstraintsModel.h	  
 	  GenericConstraints.cpp
 	  GenericConstraints.h
+
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
+	  
+	  ${VIS_FILES}          
+	  ${PROJECT_PATH}/Common/Common.h
+	  
+	  CMakeLists.txt
+)
+
+add_executable(GenericRigidBodyConstraintsDemo
+	  GenericRigidBodyConstraintsDemo.cpp
+	  
+	  GenericConstraintsModel.cpp
+	  GenericConstraintsModel.h	  
+	  GenericConstraints.cpp
+	  GenericConstraints.h
+
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h
@@ -42,4 +72,12 @@ set_target_properties(GenericParticleConstraintsDemo PROPERTIES RELWITHDEBINFO_P
 set_target_properties(GenericParticleConstraintsDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(GenericParticleConstraintsDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(GenericParticleConstraintsDemo ${SIMULATION_LINK_LIBRARIES})
+
+set_target_properties(GenericRigidBodyConstraintsDemo PROPERTIES FOLDER "Demos")
+set_target_properties(GenericRigidBodyConstraintsDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(GenericRigidBodyConstraintsDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(GenericRigidBodyConstraintsDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+add_dependencies(GenericRigidBodyConstraintsDemo ${SIMULATION_DEPENDENCIES})
+target_link_libraries(GenericRigidBodyConstraintsDemo ${SIMULATION_LINK_LIBRARIES})
+
 VIS_SOURCE_GROUPS()

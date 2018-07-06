@@ -444,6 +444,93 @@ namespace PBD
 			const Real poissonRatio,
 			const bool  handleInversion,
 			Vector3r &corr0, Vector3r &corr1, Vector3r &corr2, Vector3r &corr3);
+
+		/** Initialize contact between a particle and a tetrahedron and return
+		* info which is required by the solver step.
+		*
+		* @param invMass0 inverse mass of particle which collides with tet
+		* @param x0 particle position
+		* @param v0 particle velocity 
+		* @param invMass inverse masses of tet particles
+		* @param x positions of tet particles
+		* @param v velocities of tet particles
+		* @param bary barycentric coordinates of contact point in tet
+		* @param normal contact normal in body 1
+		* @param constraintInfo Stores the local and global position of the contact points and
+		* the contact normal. \n
+		* The joint info contains the following columns:\n
+		* 0:	contact normal in body 1 (global)\n
+		* 1:	contact tangent (global)\n
+		* 0,2:   1.0 / normal^T * K * normal\n
+		* 1,2:  maximal impulse in tangent direction\n
+		*/
+		static bool init_ParticleTetContactConstraint(
+			const Real invMass0,							// inverse mass is zero if particle is static
+			const Vector3r &x0,								// particle which collides with tet
+			const Vector3r &v0,								// velocity of particle
+			const Real invMass[],							// inverse masses of tet particles
+			const Vector3r x[],								// positions of tet particles
+			const Vector3r v[],								// velocities of tet particles
+			const Vector3r &bary,							// barycentric coordinates of contact point in tet
+			const Vector3r &normal,							// contact normal in body 1
+			Eigen::Matrix<Real, 3, 3> &constraintInfo);
+
+
+		/** Perform a solver step for a contact constraint between a particle and a tetrahedron.
+		* A contact constraint handles collisions and resting contacts between the bodies.
+		* The contact info must be generated in each time step.
+		*
+		* @param invMass0 inverse mass of particle which collides with tet
+		* @param x0 particle position
+		* @param invMass inverse masses of tet particles
+		* @param x positions of tet particles
+		* @param bary barycentric coordinates of contact point in tet
+		* @param constraintInfo information which is required by the solver. This
+		* information must be generated in the beginning by calling init_RigidBodyContactConstraint().
+		* @param corr0 position correction of particle
+		* @param corr position corrections of tet particles
+		*/
+		static bool solve_ParticleTetContactConstraint(
+			const Real invMass0,							// inverse mass is zero if particle is static
+			const Vector3r &x0,								// particle which collides with tet
+			const Real invMass[],							// inverse masses of tet particles
+			const Vector3r x[],								// positions of tet particles
+			const Vector3r &bary,							// barycentric coordinates of contact point in tet
+			Eigen::Matrix<Real, 3, 3> &constraintInfo,		// precomputed contact info
+			Real &lambda,
+			Vector3r &corr0,
+			Vector3r corr[]);
+
+		/** Perform a solver step for a contact constraint between a particle and a tetrahedron.
+		* A contact constraint handles collisions and resting contacts between the bodies.
+		* The contact info must be generated in each time step.
+		*
+		* @param invMass0 inverse mass of particle which collides with tet
+		* @param x0 particle position
+		* @param v0 particle velocity
+		* @param invMass inverse masses of tet particles
+		* @param x positions of tet particles
+		* @param v velocities of tet particles
+		* @param bary barycentric coordinates of contact point in tet
+		* @param frictionCoeff friction coefficient
+		* @param constraintInfo information which is required by the solver. This
+		* information must be generated in the beginning by calling init_RigidBodyContactConstraint().
+		* @param corr_v0 velocity correction of particle
+		* @param corr_v velocity corrections of tet particles
+		*/
+		static bool velocitySolve_ParticleTetContactConstraint(
+			const Real invMass0,							// inverse mass is zero if particle is static
+			const Vector3r &x0,								// particle which collides with tet
+			const Vector3r &v0,								// velocity of particle
+			const Real invMass[],							// inverse masses of tet particles
+			const Vector3r x[],								// positions of tet particles
+			const Vector3r v[],								// velocities of tet particles
+			const Vector3r &bary,							// barycentric coordinates of contact point in tet
+			const Real lambda,
+			const Real frictionCoeff,						// friction coefficient
+			Eigen::Matrix<Real, 3, 3> &constraintInfo,		// precomputed contact info
+			Vector3r &corr_v0,
+			Vector3r corr_v[]);
 	};
 }
 

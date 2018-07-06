@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <float.h>
 
-#define USE_DOUBLE
+//#define USE_DOUBLE
 #define MIN_PARALLEL_SIZE 64
 
 #ifdef USE_DOUBLE
@@ -12,16 +12,24 @@ typedef double Real;
 
 #define REAL_MAX DBL_MAX
 #define REAL_MIN DBL_MIN
+#define RealParameter DoubleParameter
+#define RealParameterType ParameterBase::DOUBLE
+#define RealVectorParameterType ParameterBase::VEC_DOUBLE
 #else
 typedef float Real;
 
 #define REAL_MAX FLT_MAX
 #define REAL_MIN FLT_MIN
+#define RealParameter FloatParameter
+#define RealParameterType ParameterBase::FLOAT
+#define RealVectorParameterType ParameterBase::VEC_FLOAT
 #endif
 
 using Vector2r = Eigen::Matrix<Real, 2, 1>;
 using Vector3r = Eigen::Matrix<Real, 3, 1>;
 using Vector4r = Eigen::Matrix<Real, 4, 1>;
+using Vector5r = Eigen::Matrix<Real, 5, 1>;
+using Vector6r = Eigen::Matrix<Real, 6, 1>;
 using Matrix2r = Eigen::Matrix<Real, 2, 2>;
 using Matrix3r = Eigen::Matrix<Real, 3, 3>;
 using Matrix4r = Eigen::Matrix<Real, 4, 4>;

@@ -1,8 +1,8 @@
 #include "PositionBasedElasticRodsConstraints.h"
-#include "Demos/Simulation/SimulationModel.h"
+#include "Simulation/SimulationModel.h"
 #include "PositionBasedDynamics/PositionBasedDynamics.h"
 #include "PositionBasedDynamics/PositionBasedElasticRods.h"
-#include "Demos/Simulation/IDFactory.h"
+#include "Simulation/IDFactory.h"
 
 using namespace PBD;
 
@@ -24,7 +24,7 @@ bool PerpendiculaBisectorConstraint::initConstraint(SimulationModel &model,
 	return true;
 }
 
-bool PerpendiculaBisectorConstraint::solvePositionConstraint(SimulationModel &model)
+bool PerpendiculaBisectorConstraint::solvePositionConstraint(SimulationModel &model, const unsigned int iter)
 {
 	PositionBasedElasticRodsModel &simModel = static_cast<PositionBasedElasticRodsModel&>(model);
 
@@ -89,7 +89,7 @@ bool GhostPointEdgeDistanceConstraint::initConstraint(PositionBasedElasticRodsMo
 	return true;
 }
 
-bool GhostPointEdgeDistanceConstraint::solvePositionConstraint(SimulationModel &model)
+bool GhostPointEdgeDistanceConstraint::solvePositionConstraint(SimulationModel &model, const unsigned int iter)
 {
 	PositionBasedElasticRodsModel &simModel = static_cast<PositionBasedElasticRodsModel&>(model);
 
@@ -156,7 +156,7 @@ bool DarbouxVectorConstraint::initConstraint(PositionBasedElasticRodsModel &mode
 	return true;
 }
 
-bool DarbouxVectorConstraint::solvePositionConstraint(SimulationModel &model)
+bool DarbouxVectorConstraint::solvePositionConstraint(SimulationModel &model, const unsigned int iter)
 {
 	PositionBasedElasticRodsModel &simModel = static_cast<PositionBasedElasticRodsModel&>(model);
 

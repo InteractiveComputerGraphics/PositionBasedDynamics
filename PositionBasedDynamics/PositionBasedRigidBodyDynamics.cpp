@@ -2279,7 +2279,7 @@ bool PositionBasedRigidBodyDynamics::init_RigidBodyContactConstraint(
 	Vector3r t = u_rel - u_rel_n*normal;
 	Real tl2 = t.squaredNorm();
 	if (tl2 > 1.0e-6)
-		t *= 1.0 / sqrt(tl2);
+		t *= static_cast<Real>(1.0) / sqrt(tl2);
 
 	constraintInfo.col(3) = t;
 
@@ -2289,10 +2289,10 @@ bool PositionBasedRigidBodyDynamics::init_RigidBodyContactConstraint(
 	computeMatrixK(cp1, invMass1, x1, inertiaInverseW1, K2);
 	Matrix3r K = K1 + K2;
 
-	constraintInfo(0, 4) = 1.0 / (normal.dot(K*normal));
+	constraintInfo(0, 4) = static_cast<Real>(1.0) / (normal.dot(K*normal));
 
 	// maximal impulse in tangent direction
-	constraintInfo(1, 4) = 1.0 / (t.dot(K*t)) * u_rel.dot(t);
+	constraintInfo(1, 4) = static_cast<Real>(1.0) / (t.dot(K*t)) * u_rel.dot(t);
 
 	// goal velocity in normal direction after collision
 	constraintInfo(2, 4) = 0.0;
@@ -2439,7 +2439,7 @@ bool PositionBasedRigidBodyDynamics::init_ParticleRigidBodyContactConstraint(
 	Vector3r t = u_rel - u_rel_n*normal;
 	Real tl2 = t.squaredNorm();
 	if (tl2 > 1.0e-6)
-		t *= 1.0 / sqrt(tl2);
+		t *= static_cast<Real>(1.0) / sqrt(tl2);
 
 	constraintInfo.col(3) = t;
 
@@ -2453,10 +2453,10 @@ bool PositionBasedRigidBodyDynamics::init_ParticleRigidBodyContactConstraint(
 		K(2, 2) += invMass0;
 	}
 
-	constraintInfo(0, 4) = 1.0 / (normal.dot(K*normal));
+	constraintInfo(0, 4) = static_cast<Real>(1.0) / (normal.dot(K*normal));
 
 	// maximal impulse in tangent direction
-	constraintInfo(1, 4) = 1.0 / (t.dot(K*t)) * u_rel.dot(t);
+	constraintInfo(1, 4) = static_cast<Real>(1.0) / (t.dot(K*t)) * u_rel.dot(t);
 
 	// goal velocity in normal direction after collision
 	constraintInfo(2, 4) = 0.0;

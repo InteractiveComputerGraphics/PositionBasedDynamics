@@ -15,10 +15,10 @@ void MathFunctions::jacobiRotate(Matrix3r &A, Matrix3r &R, int p, int q)
 	if (A(p, q) == 0.0)
 		return;
 
-	Real d = (A(p, p) - A(q, q)) / (2.0*A(p, q));
-	Real t = 1.0 / (fabs(d) + sqrt(d*d + 1.0));
+	Real d = (A(p, p) - A(q, q)) / (static_cast<Real>(2.0)*A(p, q));
+	Real t = static_cast<Real>(1.0) / (fabs(d) + sqrt(d*d + static_cast<Real>(1.0)));
 	if (d < 0.0) t = -t;
-	Real c = 1.0 / sqrt(t*t + 1);
+	Real c = static_cast<Real>(1.0) / sqrt(t*t + 1);
 	Real s = t*c;
 	A(p, p) += t*A(p, q);
 	A(q, q) -= t*A(p, q);
@@ -46,7 +46,7 @@ void MathFunctions::jacobiRotate(Matrix3r &A, Matrix3r &R, int p, int q)
 void MathFunctions::eigenDecomposition(const Matrix3r &A, Matrix3r &eigenVecs, Vector3r &eigenVals)
 {
 	const int numJacobiIterations = 10;
-	const Real epsilon = 1e-15;
+	const Real epsilon = static_cast<Real>(1e-15);
 
 	Matrix3r D = A;
 
@@ -108,11 +108,11 @@ void MathFunctions::polarDecomposition(const Matrix3r &A, Matrix3r &R, Matrix3r 
 	D(1, 1) = d1;
 	D(2, 2) = d2;
 
-	const Real eps = 1e-15;
+	const Real eps = static_cast<Real>(1e-15);
 
-	Real l0 = eigenVals[0]; if (l0 <= eps) l0 = 0.0; else l0 = 1.0 / d0;
-	Real l1 = eigenVals[1]; if (l1 <= eps) l1 = 0.0; else l1 = 1.0 / d1;
-	Real l2 = eigenVals[2]; if (l2 <= eps) l2 = 0.0; else l2 = 1.0 / d2;
+	Real l0 = eigenVals[0]; if (l0 <= eps) l0 = 0.0; else l0 = static_cast<Real>(1.0) / d0;
+	Real l1 = eigenVals[1]; if (l1 <= eps) l1 = 0.0; else l1 = static_cast<Real>(1.0) / d1;
+	Real l2 = eigenVals[2]; if (l2 <= eps) l2 = 0.0; else l2 = static_cast<Real>(1.0) / d2;
 
 	Matrix3r S1;
 	S1(0, 0) = l0*U(0, 0)*U(0, 0) + l1*U(0, 1)*U(0, 1) + l2*U(0, 2)*U(0, 2);
@@ -230,8 +230,8 @@ void MathFunctions::polarDecompositionStable(const Matrix3r &M, const Real toler
 
 		const Real gamma = sqrt(sqrt((MadjTone*MadjTinf) / (Mone*Minf)) / fabs(det));
 
-		const Real g1 = gamma*0.5;
-		const Real g2 = 0.5 / (gamma*det);
+		const Real g1 = gamma* static_cast<Real>(0.5);
+		const Real g2 = static_cast<Real>(0.5) / (gamma*det);
 
 		for (unsigned char i = 0; i < 3; i++)
 		{
@@ -328,7 +328,7 @@ void MathFunctions::svdWithInversionHandling(const Matrix3r &A, Vector3r &sigma,
 				{
 					for (unsigned char m = 0; m < 3; m++)
 					{
-						U(m, l) *= 1.0 / sigma[l];
+						U(m, l) *= static_cast<Real>(1.0) / sigma[l];
 					}
 				}
 			}
@@ -351,7 +351,7 @@ void MathFunctions::svdWithInversionHandling(const Matrix3r &A, Vector3r &sigma,
 	}
 	else
 	{
-		Vector3r sigmaInv(1.0 / sigma[0], 1.0 / sigma[1], 1.0 / sigma[2]);
+		Vector3r sigmaInv(static_cast<Real>(1.0) / sigma[0], static_cast<Real>(1.0) / sigma[1], static_cast<Real>(1.0) / sigma[2]);
 		U = A * V;
 		for (unsigned char l = 0; l < 3; l++)
 		{

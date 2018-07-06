@@ -2,7 +2,7 @@
 #define _POSITIONBASEDELASTICRODSCONSTRAINTS_H
 
 #include <Eigen/Dense>
-#include "Demos/Simulation/Constraints.h"
+#include "Simulation/Constraints.h"
 #include "PositionBasedElasticRodsModel.h"
 
 namespace PBD
@@ -19,7 +19,7 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(PositionBasedElasticRodsModel &model, const unsigned int particle1, const unsigned int particle2, const unsigned int particle3);
-		virtual bool solvePositionConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
 	class PerpendiculaBisectorConstraint : public Constraint
@@ -31,7 +31,7 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const unsigned int particle3);
-		virtual bool solvePositionConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
 	class DarbouxVectorConstraint : public Constraint
@@ -47,7 +47,7 @@ namespace PBD
 		virtual bool initConstraint(PositionBasedElasticRodsModel &model, const unsigned int particle1, const unsigned int particle2,
 			const unsigned int particle3, const unsigned int particle4, const unsigned int particle5);
 
-		virtual bool solvePositionConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
 }

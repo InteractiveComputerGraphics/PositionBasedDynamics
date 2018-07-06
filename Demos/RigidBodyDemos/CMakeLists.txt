@@ -15,8 +15,18 @@ else()
   )
 endif()
 
+############################################################
+# GenericParameters
+############################################################
+include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+
 add_executable(ChainDemo
 	  ChainDemo.cpp
+	  
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	  
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h
@@ -31,8 +41,14 @@ set_target_properties(ChainDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL
 add_dependencies(ChainDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(ChainDemo ${SIMULATION_LINK_LIBRARIES})
 
+
 add_executable(JointDemo
 	  JointDemo.cpp
+	  
+	  ../Common/TweakBarParameters.cpp
+	  ../Common/TweakBarParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
 	    
 	  ${VIS_FILES}          
 	  ${PROJECT_PATH}/Common/Common.h

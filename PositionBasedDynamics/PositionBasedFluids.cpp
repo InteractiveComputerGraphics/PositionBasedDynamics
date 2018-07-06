@@ -54,10 +54,10 @@ bool PositionBasedFluids::computePBFLagrangeMultiplier(
 	const bool boundaryHandling,
 	Real &lambda)
 {
-	const Real eps = 1.0e-6;
+	const Real eps = static_cast<Real>(1.0e-6);
 
 	// Evaluate constraint function
-	const Real C = std::max(density / density0 - 1.0, 0.0);			// clamp to prevent particle clumping at surface
+	const Real C = std::max(density / density0 - static_cast<Real>(1.0), static_cast<Real>(0.0));			// clamp to prevent particle clumping at surface
 
 	if (C != 0.0)
 	{

@@ -32,3 +32,8 @@ endif()
 set (CMAKE_CXX_STANDARD 11)
 
 add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+
+OPTION(USE_DOUBLE_PRECISION "Use double precision"	ON)
+if (USE_DOUBLE_PRECISION)
+	add_definitions( -DUSE_DOUBLE)	
+endif (USE_DOUBLE_PRECISION)

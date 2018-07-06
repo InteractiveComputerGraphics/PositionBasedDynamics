@@ -1,14 +1,14 @@
 #include "PositionBasedElasticRods.h"
 #include "PositionBasedDynamics/MathFunctions.h"
 
-#include "Demos/Utils/Logger.h"
+#include "Utils/Logger.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
 
 using namespace PBD;
 
-const Real eps = 1e-6;
+const Real eps = static_cast<Real>(1e-6);
 
 const int permutation[3][3] = {
 	0, 2, 1,
@@ -26,12 +26,12 @@ bool PositionBasedCosseratRods::solve_StretchShearConstraint(
 	Vector3r& corr0, Vector3r& corr1, Quaternionr& corrq0)
 {
 	Vector3r d3;	//third director d3 = q0 * e_3 * q0_conjugate
-	d3[0] = 2.0 * (q0.x() * q0.z() + q0.w() * q0.y());
-	d3[1] = 2.0 * (q0.y() * q0.z() - q0.w() * q0.x());
+	d3[0] = static_cast<Real>(2.0) * (q0.x() * q0.z() + q0.w() * q0.y());
+	d3[1] = static_cast<Real>(2.0) * (q0.y() * q0.z() - q0.w() * q0.x());
 	d3[2] = q0.w() * q0.w() - q0.x() * q0.x() - q0.y() * q0.y() + q0.z() * q0.z();
 
 	Vector3r gamma = (p1 - p0) / restLength - d3;
-	gamma /= (invMass1 + invMass0) / restLength + invMassq0 * 4.0*restLength + 1.0e-6;
+	gamma /= (invMass1 + invMass0) / restLength + invMassq0 * static_cast<Real>(4.0)*restLength + static_cast<Real>(1.0e-6);
 	for (int i = 0; i<3; i++) gamma[i] *= stretchingAndShearingKs[i];
 
 	corr0 = invMass0 * gamma;
@@ -39,7 +39,7 @@ bool PositionBasedCosseratRods::solve_StretchShearConstraint(
 
 	Quaternionr q_e_3_bar(q0.z(), -q0.y(), q0.x(), -q0.w());	//compute q*e_3.conjugate (cheaper than quaternion product)
 	corrq0 = Quaternionr(0.0, gamma.x(), gamma.y(), gamma.z()) * q_e_3_bar;
-	corrq0.coeffs() *= 2.0 * invMassq0 * restLength;
+	corrq0.coeffs() *= static_cast<Real>(2.0) * invMassq0 * restLength;
 
 	return true;
 }
@@ -59,7 +59,7 @@ bool PositionBasedCosseratRods::solve_BendTwistConstraint(
 	omega.coeffs() = omega.coeffs() - restDarbouxVector.coeffs();                 //delta Omega with + omega_0
 	if (omega.squaredNorm() > omega_plus.squaredNorm()) omega = omega_plus;
 
-	for (int i = 0; i < 3; i++) omega.coeffs()[i] *= bendingAndTwistingKs[i] / (invMassq0 + invMassq1 + 1.0e-6);
+	for (int i = 0; i < 3; i++) omega.coeffs()[i] *= bendingAndTwistingKs[i] / (invMassq0 + invMassq1 + static_cast<Real>(1.0e-6));
 	omega.w() = 0.0;    //discrete Darboux vector does not have vanishing scalar part
 
 	corrq0 = q1 * omega;
@@ -108,13 +108,13 @@ bool PositionBasedElasticRods::solve_GhostPointEdgeDistanceConstraint(
 	// Ghost-Edge constraint
 	Vector3r pm = 0.5 * (p0 + p1);
 	Vector3r p2pm = p2 - pm;
-	Real wSum = 0.25 * invMass0 + 0.25 * invMass1 + 1.0 * invMass2;
+	Real wSum = static_cast<Real>(0.25) * invMass0 + static_cast<Real>(0.25) * invMass1 + static_cast<Real>(1.0) * invMass2;
 
 	if (wSum < eps)
 		return false;
 
 	Real p2pm_mag = p2pm.norm();
-	p2pm *= 1.0 / p2pm_mag;
+	p2pm *= static_cast<Real>(1.0) / p2pm_mag;
 
 	const Real lambda = stiffness * (p2pm_mag - ghostEdgeRestLength) / wSum;
 
@@ -232,9 +232,9 @@ bool PositionBasedElasticRods::computeMaterialFrame(
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedElasticRods::computeDarbouxVector(const Matrix3r& dA, const Matrix3r& dB, const Real mid_edge_length, Vector3r& darboux_vector)
 {
-	Real factor = 1.0 + dA.col(0).dot(dB.col(0)) + dA.col(1).dot(dB.col(1)) + dA.col(2).dot(dB.col(2));
+	Real factor = static_cast<Real>(1.0) + dA.col(0).dot(dB.col(0)) + dA.col(1).dot(dB.col(1)) + dA.col(2).dot(dB.col(2));
 
-	factor = 2.0 / (mid_edge_length * factor);
+	factor = static_cast<Real>(2.0) / (mid_edge_length * factor);
 
 	for (int c = 0; c < 3; ++c)
 	{
@@ -268,9 +268,9 @@ bool PositionBasedElasticRods::computeMaterialFrameDerivative(
 	d3p0.col(1)[1] -= 1.0;
 	d3p0.col(2)[2] -= 1.0;
 
-	d3p0.col(0) *= (1.0 / length_p01);
-	d3p0.col(1) *= (1.0 / length_p01);
-	d3p0.col(2) *= (1.0 / length_p01);
+	d3p0.col(0) *= (static_cast<Real>(1.0) / length_p01);
+	d3p0.col(1) *= (static_cast<Real>(1.0) / length_p01);
+	d3p0.col(2) *= (static_cast<Real>(1.0) / length_p01);
 
 	d3p1.col(0) = -d3p0.col(0);
 	d3p1.col(1) = -d3p0.col(1);
@@ -297,9 +297,9 @@ bool PositionBasedElasticRods::computeMaterialFrameDerivative(
 	mat.col(1)[1] -= 1.0;
 	mat.col(2)[2] -= 1.0;
 
-	mat.col(0) *= (-1.0 / length_cross);
-	mat.col(1) *= (-1.0 / length_cross);
-	mat.col(2) *= (-1.0 / length_cross);
+	mat.col(0) *= (-static_cast<Real>(1.0) / length_cross);
+	mat.col(1) *= (-static_cast<Real>(1.0) / length_cross);
+	mat.col(2) *= (-static_cast<Real>(1.0) / length_cross);
 
 	Matrix3r product_matrix;
 	MathFunctions::crossProductMatrix(p2 - p1, product_matrix);
@@ -334,8 +334,8 @@ bool PositionBasedElasticRods::computeDarbouxGradient(
 	Matrix3r& omega_pa, Matrix3r& omega_pb, Matrix3r& omega_pc, Matrix3r& omega_pd, Matrix3r& omega_pe
 	)
 {
-	Real X = 1.0 + da.col(0).dot(db.col(0)) + da.col(1).dot(db.col(1)) + da.col(2).dot(db.col(2));
-	X = 2.0 / (length * X);
+	Real X = static_cast<Real>(1.0) + da.col(0).dot(db.col(0)) + da.col(1).dot(db.col(1)) + da.col(2).dot(db.col(2));
+	X = static_cast<Real>(2.0) / (length * X);
 
 	for (int c = 0; c < 3; ++c) 
 	{
@@ -641,8 +641,8 @@ bool PBD::DirectPositionBasedSolverForStiffRods::computeBendingAndTorsionJacobia
 		q0.w(), q0.z(), -q0.y(), -q0.x(),
 		-q0.z(), q0.w(), q0.x(), -q0.y(),
 		q0.y(), -q0.x(), q0.w(), -q0.z();
-	jOmega0 *= 2. / averageSegmentLength;
-	jOmega1 *= 2. / averageSegmentLength;
+	jOmega0 *= static_cast<Real>(2.0) / averageSegmentLength;
+	jOmega1 *= static_cast<Real>(2.0) / averageSegmentLength;
 	return true;
 }
 
@@ -650,10 +650,10 @@ bool PBD::DirectPositionBasedSolverForStiffRods::computeMatrixG(const Quaternion
 {
 	// w component at index 3
 	G <<
-		0.5*q.w(), 0.5*q.z(), -0.5*q.y(),
-		-0.5*q.z(), 0.5*q.w(), 0.5*q.x(),
-		0.5*q.y(), -0.5*q.x(), 0.5*q.w(),
-		-0.5*q.x(), -0.5*q.y(), -0.5*q.z();
+		static_cast<Real>(0.5)*q.w(), static_cast<Real>(0.5)*q.z(), -static_cast<Real>(0.5)*q.y(),
+		-static_cast<Real>(0.5)*q.z(), static_cast<Real>(0.5)*q.w(), static_cast<Real>(0.5)*q.x(),
+		static_cast<Real>(0.5)*q.y(), -static_cast<Real>(0.5)*q.x(), static_cast<Real>(0.5)*q.w(),
+		-static_cast<Real>(0.5)*q.x(), -static_cast<Real>(0.5)*q.y(), -static_cast<Real>(0.5)*q.z();
 	return true;
 }
 
@@ -831,7 +831,7 @@ Real PBD::DirectPositionBasedSolverForStiffRods::factor(const int intervalIndex,
 				const Eigen::Matrix<Real, 3, 4> &constraintInfo(constraint->getConstraintInfo());
 				const Vector3r r = constraintInfo.col(2 + segmentIndex) - segment->Position();
 				Matrix3r r_cross;
-				Real crossSign(-1.*sign);
+				Real crossSign(-static_cast<Real>(1.0)*sign);
 				MathFunctions::crossProductMatrix(crossSign*r, r_cross);
 
 				Eigen::DiagonalMatrix<Real, 3> upperLeft(sign, sign, sign);
@@ -1153,9 +1153,9 @@ bool PBD::DirectPositionBasedSolverForStiffRods::init_StretchBendingTwistingCons
 	constraintInfo.col(3) = constraintPosition;
 
 	// compute bending and torsion stiffness of the K matrix diagonal; assumption: the rod axis follows the y-axis of the local frame as with Blender's armatures
-	Real secondMomentOfArea(M_PI_4 * std::pow(averageRadius, 4.));
+	Real secondMomentOfArea(static_cast<Real>(M_PI_4) * std::pow(averageRadius, static_cast<Real>(4.0)));
 	Real bendingStiffness(youngsModulus * secondMomentOfArea);
-	Real torsionStiffness(2. * torsionModulus * secondMomentOfArea);
+	Real torsionStiffness(static_cast<Real>(2.0) * torsionModulus * secondMomentOfArea);
 	stiffnessCoefficientK = Vector3r(bendingStiffness, torsionStiffness, bendingStiffness);
 
 	// compute rest Darboux vector
@@ -1177,7 +1177,7 @@ bool PBD::DirectPositionBasedSolverForStiffRods::initBeforeProjection_StretchBen
 	Real inverseTSQuadratic(inverseTimeStepSize*inverseTimeStepSize);
 
 	// compute compliance parameter of the stretch constraint part
-	const Real stretchRegularizationParameter(1.E-10);
+	const Real stretchRegularizationParameter(static_cast<Real>(1.E-10));
 	stretchCompliance <<
 		stretchRegularizationParameter * inverseTSQuadratic,
 		stretchRegularizationParameter * inverseTSQuadratic,
@@ -1188,7 +1188,7 @@ bool PBD::DirectPositionBasedSolverForStiffRods::initBeforeProjection_StretchBen
 		inverseTSQuadratic / stiffnessCoefficientK(0),
 		inverseTSQuadratic / stiffnessCoefficientK(1),
 		inverseTSQuadratic / stiffnessCoefficientK(2);
-	bendingAndTorsionCompliance *= 1. / averageSegmentLength;
+	bendingAndTorsionCompliance *= static_cast<Real>(1.0) / averageSegmentLength;
 
 	// set sum of delta lambda values to zero
 	lambdaSum.setZero();

@@ -1,6 +1,6 @@
 #include "StiffRodsSceneLoader.h"
-#include "Demos/Utils/FileSystem.h"
-#include "Demos/Utils/Logger.h"
+#include "Utils/FileSystem.h"
+#include "Utils/Logger.h"
 
 using namespace PBD;
 using namespace Utilities;
@@ -522,8 +522,8 @@ void PBD::StiffRodsSceneLoader::readStiffRodsScene(const std::string &fileName, 
 		//////////////////////////////////////////////////////////////////////////
 		// read general 
 		//////////////////////////////////////////////////////////////////////////
-		sceneData.m_timeStepSize = 0.005;
-		sceneData.m_gravity = Vector3r(0, -9.81, 0);
+		sceneData.m_timeStepSize = static_cast<Real>(0.005);
+		sceneData.m_gravity = Vector3r(0, -static_cast<Real>(9.81), 0);
 		sceneData.m_maxIter = 5;
 		sceneData.m_maxIterVel = 5;
 		sceneData.m_velocityUpdateMethod = 0;
@@ -534,16 +534,16 @@ void PBD::StiffRodsSceneLoader::readStiffRodsScene(const std::string &fileName, 
 		sceneData.m_contactStiffnessRigidBody = 1.0;
 		sceneData.m_contactStiffnessParticleRigidBody = 100.0;
 		sceneData.m_cloth_stiffness = 1.0;
-		sceneData.m_cloth_bendingStiffness = 0.01;
+		sceneData.m_cloth_bendingStiffness = static_cast<Real>(0.01);
 		sceneData.m_cloth_xxStiffness = 1.0;
 		sceneData.m_cloth_yyStiffness = 1.0;
 		sceneData.m_cloth_xyStiffness = 1.0;
-		sceneData.m_cloth_xyPoissonRatio = 0.3;
-		sceneData.m_cloth_yxPoissonRatio = 0.3;
+		sceneData.m_cloth_xyPoissonRatio = static_cast<Real>(0.3);
+		sceneData.m_cloth_yxPoissonRatio = static_cast<Real>(0.3);
 		sceneData.m_cloth_normalizeStretch = false;
 		sceneData.m_cloth_normalizeShear = false;
 		sceneData.m_cloth_stiffness = 1.0;
-		sceneData.m_cloth_stiffness = 0.3;
+		sceneData.m_cloth_stiffness = static_cast<Real>(0.3);
 		sceneData.m_solid_normalizeStretch = false;
 		sceneData.m_solid_normalizeShear = false;
 		if (m_json.find("Simulation") != m_json.end())

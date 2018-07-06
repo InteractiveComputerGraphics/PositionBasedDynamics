@@ -1,17 +1,20 @@
 #include "Common/Common.h"
-#include "Demos/Simulation/CubicSDFCollisionDetection.h"
-#include "Demos/Simulation/DistanceFieldCollisionDetection.h"
-#include "Demos/Simulation/TimeManager.h"
-#include "Demos/Simulation/SimulationModel.h"
-#include "Demos/Simulation/TimeStepController.h"
-#include "Demos/Utils/FileSystem.h"
-#include "Demos/Utils/Logger.h"
-#include "Demos/Utils/OBJLoader.h"
-#include "Demos/Utils/TetGenLoader.h"
-#include "Demos/Utils/Timing.h"
+#include "Simulation/CubicSDFCollisionDetection.h"
+#include "Simulation/DistanceFieldCollisionDetection.h"
+#include "Simulation/TimeManager.h"
+#include "Simulation/SimulationModel.h"
+#include "Simulation/TimeStepController.h"
+#include "Utils/FileSystem.h"
+#include "Utils/Logger.h"
+#include "Utils/OBJLoader.h"
+#include "Utils/TetGenLoader.h"
+#include "Utils/Timing.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "Demos/Visualization/Visualization.h"
+#include "Demos/Common/DemoBase.h"
+#include "Demos/Common/TweakBarParameters.h"
+#include "Simulation/Simulation.h"
 #include "GL/glut.h"
 #include <Eigen/Dense>
 #include <iostream>
@@ -21,9 +24,6 @@
 
 #define _USE_MATH_DEFINES
 #include "math.h"
-
-INIT_TIMING
-INIT_LOGGING
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
@@ -35,46 +35,19 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
+void initParameters();
 void timeStep();
 void buildModel();
 void readScene();
 void render();
 void reset();
-void cleanup();
-void initShader();
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
-void TW_CALL setTimeStep(const void *value, void *clientData);
-void TW_CALL getTimeStep(void *value, void *clientData);
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
-void TW_CALL setMaxIterations(const void *value, void *clientData);
-void TW_CALL getMaxIterations(void *value, void *clientData);
-void TW_CALL setMaxIterationsV(const void *value, void *clientData);
-void TW_CALL getMaxIterationsV(void *value, void *clientData);
+
 void TW_CALL setContactTolerance(const void *value, void *clientData);
 void TW_CALL getContactTolerance(void *value, void *clientData);
 void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData);
 void TW_CALL getContactStiffnessRigidBody(void *value, void *clientData);
 void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clientData);
 void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData);
-void TW_CALL setStiffness(const void *value, void *clientData);
-void TW_CALL getStiffness(void *value, void *clientData);
-void TW_CALL setXXStiffness(const void *value, void *clientData);
-void TW_CALL getXXStiffness(void *value, void *clientData);
-void TW_CALL setYYStiffness(const void *value, void *clientData);
-void TW_CALL getYYStiffness(void *value, void *clientData);
-void TW_CALL setXYStiffness(const void *value, void *clientData);
-void TW_CALL getXYStiffness(void *value, void *clientData);
-void TW_CALL setXYPoissonRatio(const void *value, void *clientData);
-void TW_CALL getXYPoissonRatio(void *value, void *clientData);
-void TW_CALL setYXPoissonRatio(const void *value, void *clientData);
-void TW_CALL getYXPoissonRatio(void *value, void *clientData);
-void TW_CALL setNormalizeStretch(const void *value, void *clientData);
-void TW_CALL getNormalizeStretch(void *value, void *clientData);
-void TW_CALL setNormalizeShear(const void *value, void *clientData);
-void TW_CALL getNormalizeShear(void *value, void *clientData);
-void TW_CALL setBendingStiffness(const void *value, void *clientData);
-void TW_CALL getBendingStiffness(void *value, void *clientData);
 void TW_CALL setBendingMethod(const void *value, void *clientData);
 void TW_CALL getBendingMethod(void *value, void *clientData);
 void TW_CALL setClothSimulationMethod(const void *value, void *clientData);
@@ -82,29 +55,16 @@ void TW_CALL getClothSimulationMethod(void *value, void *clientData);
 void TW_CALL setSolidSimulationMethod(const void *value, void *clientData);
 void TW_CALL getSolidSimulationMethod(void *value, void *clientData);
 
+
 void singleStep();
 
 
-SimulationModel model;
+DemoBase *base;
 CubicSDFCollisionDetection cd;
-TimeStepController sim;
 
 short clothSimulationMethod = 2;
 short solidSimulationMethod = 2;
 short bendingMethod = 2;
-bool doPause = true;
-std::vector<unsigned int> selectedBodies;
-std::vector<unsigned int> selectedParticles;
-Vector3r oldMousePos;
-Shader *shader;
-Shader *shaderTex;
-bool renderContacts = false;
-string exePath;
-string dataPath;
-bool drawAABB = false;
-bool drawSDF = false;
-int drawBVHDepth = -1;
-float jointColor[4] = { 0.0f, 0.6f, 0.2f, 1 };
 
 string sceneFileName = "/scenes/Wilberforce_scene.json";
 string sceneName;
@@ -117,47 +77,38 @@ int main(int argc, char **argv)
 {
 	REPORT_MEMORY_LEAKS;
 	
-	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
-	FileSystem::makeDirs(logPath);
-	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
-	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD_StiffRods.log")));
-	LOG_INFO << "Starting new log entries";
-
-	exePath = FileSystem::getProgramPath();
-	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
+	std::string exePath = FileSystem::getProgramPath();
+	std::string dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	if (argc > 1)
 		sceneFileName = string(argv[1]);
 	else
 		sceneFileName = FileSystem::normalizePath(dataPath + sceneFileName);
 
+	base = new DemoBase();
+	base->init(argc, argv, sceneFileName.c_str());
+	base->setSceneLoader(new StiffRodsSceneLoader());
+
+	SimulationModel *model = new SimulationModel();
+	model->init();
+	Simulation::getCurrent()->setModel(model);
+
 	buildModel();
 
+	initParameters();
+	base->readParameters();
+
+	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
+
 	// OpenGL
-	MiniGL::init(argc, argv, 1024, 768, 0, 0, sceneName.c_str());
-	MiniGL::initLights();
-	MiniGL::initTexture();
 	MiniGL::setClientIdleFunc(50, timeStep);
 	MiniGL::setKeyFunc(0, 'r', reset);
 	MiniGL::setKeyFunc(1, 's', singleStep);
-	MiniGL::setSelectionFunc(selection);
-	initShader();
-
 	MiniGL::setClientSceneFunc(render);
 	MiniGL::setViewport(40.0f, 0.1f, 500.0f, camPos, camLookat);
 
-	SimulationModel::TriangleModelVector &triModels = model.getTriangleModels();
-	SimulationModel::TetModelVector &tetModels = model.getTetModels();
-	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarRW(MiniGL::getTweakBar(), "RenderContacts", TW_TYPE_BOOLCPP, &renderContacts, " label='Render contacts' group=Simulation ");
-	TwAddVarRW(MiniGL::getTweakBar(), "RenderAABBs", TW_TYPE_BOOLCPP, &drawAABB, " label='Render AABBs' group=Simulation ");
-	TwAddVarRW(MiniGL::getTweakBar(), "RenderSDFs", TW_TYPE_BOOLCPP, &drawSDF, " label='Render SDFs' group=Simulation ");
-	TwAddVarRW(MiniGL::getTweakBar(), "RenderBVH", TW_TYPE_INT32, &drawBVHDepth, " label='Render BVH depth' group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
-	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "MaxIter", TW_TYPE_UINT32, setMaxIterations, getMaxIterations, &sim, " label='Max. iterations'  min=1 step=1 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "MaxIterV", TW_TYPE_UINT32, setMaxIterationsV, getMaxIterationsV, &sim, " label='Max. iterations Vel.'  min=1 step=1 group=Simulation ");
+	SimulationModel::TriangleModelVector &triModels = model->getTriangleModels();
+	SimulationModel::TetModelVector &tetModels = model->getTetModels();
 	TwAddVarCB(MiniGL::getTweakBar(), "ContactTolerance", TW_TYPE_REAL, setContactTolerance, getContactTolerance, &cd, " label='Contact tolerance'  min=0.0 step=0.001 precision=3 group=Simulation ");
 	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessRigidBody", TW_TYPE_REAL, setContactStiffnessRigidBody, getContactStiffnessRigidBody, &model, " label='Contact stiffness RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
 	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessParticleRigidBody", TW_TYPE_REAL, setContactStiffnessParticleRigidBody, getContactStiffnessParticleRigidBody, &model, " label='Contact stiffness Particle-RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
@@ -172,597 +123,143 @@ int main(int argc, char **argv)
 	TwAddVarCB(MiniGL::getTweakBar(), "SolidSimulationMethod", enumType3, setSolidSimulationMethod, getSolidSimulationMethod, &solidSimulationMethod,
 		" label='Solid sim. method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}' group=Simulation");
 	}
-	if ((triModels.size() > 0) || (tetModels.size() > 0))
-	{
-		TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_REAL, setStiffness, getStiffness, &model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Distance constraints' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "XXStiffness", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Stiffness XX'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "YYStiffness", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Stiffness YY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "XYStiffness", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Stiffness XY'  min=0.0 step=0.1 precision=4 group='Strain based dynamics' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "XXStiffnessFEM", TW_TYPE_REAL, setXXStiffness, getXXStiffness, &model, " label='Youngs modulus XX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "YYStiffnessFEM", TW_TYPE_REAL, setYYStiffness, getYYStiffness, &model, " label='Youngs modulus YY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "XYStiffnessFEM", TW_TYPE_REAL, setXYStiffness, getXYStiffness, &model, " label='Youngs modulus XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "XYPoissonRatioFEM", TW_TYPE_REAL, setXYPoissonRatio, getXYPoissonRatio, &model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "YXPoissonRatioFEM", TW_TYPE_REAL, setYXPoissonRatio, getYXPoissonRatio, &model, " label='Poisson ratio YX'  min=0.0 step=0.1 precision=4 group='FEM based PBD' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, &model, " label='Normalize stretch' group='Strain based dynamics' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "NormalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, &model, " label='Normalize shear' group='Strain based dynamics' ");
-	}
 	if (triModels.size() > 0)
 	{
 		TwType enumType4 = TwDefineEnum("BendingMethodType", NULL, 0);
 		TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType4, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
-		TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, &model, " label='Bending stiffness'  min=0.0 step=0.01 precision=4 group=Bending ");
 	}
 
 	glutMainLoop();
 
-	cleanup();
+	base->cleanup();
 
-	Timing::printAverageTimes();
+	Utilities::Timing::printAverageTimes();
+	Utilities::Timing::printTimeSums();
+
+	delete Simulation::getCurrent();
+	delete base;
+	delete model;
 
 	return 0;
 }
 
-void initShader()
+void initParameters()
 {
-	std::string vertFile = dataPath + "/shaders/vs_smooth.glsl";
-	std::string fragFile = dataPath + "/shaders/fs_smooth.glsl";
-	shader = MiniGL::createShader(vertFile, "", fragFile);
+	TwRemoveAllVars(MiniGL::getTweakBar());
+	TweakBarParameters::cleanup();
 
-	if (shader == NULL)
-		return;
+	MiniGL::initTweakBarParameters();
 
-	shader->begin();
-	shader->addUniform("modelview_matrix");
-	shader->addUniform("projection_matrix");
-	shader->addUniform("surface_color");
-	shader->addUniform("shininess");
-	shader->addUniform("specular_factor");
-	shader->end();
-
-	std::string vertFileTex = dataPath + "/shaders/vs_smoothTex.glsl";
-	std::string fragFileTex = dataPath + "/shaders/fs_smoothTex.glsl";
-	shaderTex = MiniGL::createShader(vertFileTex, "", fragFileTex);
-
-	if (shaderTex == NULL)
-		return;
-
-	shaderTex->begin();
-	shaderTex->addUniform("modelview_matrix");
-	shaderTex->addUniform("projection_matrix");
-	shaderTex->addUniform("surface_color");
-	shaderTex->addUniform("shininess");
-	shaderTex->addUniform("specular_factor");
-	shaderTex->end();
-}
-
-void cleanup()
-{
-	delete TimeManager::getCurrent();
-	delete shader;
-	delete shaderTex;
+	TweakBarParameters::createParameterGUI();
+	TweakBarParameters::createParameterObjectGUI(base);
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
 {
-	Timing::printAverageTimes();
-	Timing::reset();
-	sim.getCollisionDetection()->cleanup();
-	model.cleanup();
-	sim.reset();
-	TimeManager::getCurrent()->setTime(0.0);
+	Utilities::Timing::printAverageTimes();
+	Utilities::Timing::reset();
+
+	Simulation::getCurrent()->reset();
+	base->getSelectedParticles().clear();
+
+	Simulation::getCurrent()->getModel()->cleanup();
+	Simulation::getCurrent()->getTimeStep()->getCollisionDetection()->cleanup();
+
 	readScene();
-}
-
-void mouseMove(int x, int y)
-{
-	Vector3r mousePos;
-	MiniGL::unproject(x, y, mousePos);
-	const Vector3r diff = mousePos - oldMousePos;
-
-	TimeManager *tm = TimeManager::getCurrent();
-	const Real h = tm->getTimeStepSize();
-
-	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	for (size_t j = 0; j < selectedBodies.size(); j++)
-	{
-		if (rb[selectedBodies[j]]->getMass() != 0.0)
-			rb[selectedBodies[j]]->getVelocity() += 1.0 / h * diff;
-	}
-	ParticleData &pd = model.getParticles();
-	for (unsigned int j = 0; j < selectedParticles.size(); j++)
-	{
-		pd.getVelocity(selectedParticles[j]) += 5.0*diff / h;
-	}
-	oldMousePos = mousePos;
-}
-
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
-{
-	std::vector<unsigned int> hits;
-
-	selectedParticles.clear();
-	ParticleData &pd = model.getParticles();
-	if (pd.size() > 0)
-		Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
-
-	selectedBodies.clear();
-	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	std::vector<Vector3r, Eigen::aligned_allocator<Vector3r> > x;
-	x.resize(rb.size());
-	for (unsigned int i = 0; i < rb.size(); i++)
-	{
-		x[i] = rb[i]->getPosition();
-	}
-
-	if (rb.size() > 0)
-		Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], selectedBodies);
-	if ((selectedBodies.size() > 0) || (selectedParticles.size() > 0))
-		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
-	else
-		MiniGL::setMouseMoveFunc(-1, NULL);
-
-	MiniGL::unproject(end[0], end[1], oldMousePos);
 }
 
 void singleStep()
 {
 	// Simulation code
-	sim.step(model);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	Simulation::getCurrent()->getTimeStep()->step(*model);
 
 	// Update visualization models
-	const ParticleData &pd = model.getParticles();
-	for (unsigned int i = 0; i < model.getTetModels().size(); i++)
+	const ParticleData &pd = model->getParticles();
+	for (unsigned int i = 0; i < model->getTetModels().size(); i++)
 	{
-		model.getTetModels()[i]->updateMeshNormals(pd);
-		model.getTetModels()[i]->updateVisMesh(pd);
+		model->getTetModels()[i]->updateMeshNormals(pd);
+		model->getTetModels()[i]->updateVisMesh(pd);
 	}
-	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
+	for (unsigned int i = 0; i < model->getTriangleModels().size(); i++)
 	{
-		model.getTriangleModels()[i]->updateMeshNormals(pd);
+		model->getTriangleModels()[i]->updateMeshNormals(pd);
 	}
 }
 
 void timeStep()
 {
-	if (doPause)
+	const Real pauseAt = base->getValue<Real>(DemoBase::PAUSE_AT);
+	if ((pauseAt > 0.0) && (pauseAt < TimeManager::getCurrent()->getTime()))
+		base->setValue(DemoBase::PAUSE, true);
+
+	if (base->getValue<bool>(DemoBase::PAUSE))
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 8; i++)
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const unsigned int numSteps = base->getValue<unsigned int>(DemoBase::NUM_STEPS_PER_RENDER);
+	for (unsigned int i = 0; i < numSteps; i++)
 	{
-		sim.step(model);
+		START_TIMING("SimStep");
+		Simulation::getCurrent()->getTimeStep()->step(*model);
+		STOP_TIMING_AVG;
 	}
 
 	// Update visualization models
-	const ParticleData &pd = model.getParticles();
-	for (unsigned int i = 0; i < model.getTetModels().size(); i++)
+	const ParticleData &pd = model->getParticles();
+	for (unsigned int i = 0; i < model->getTetModels().size(); i++)
 	{
-		model.getTetModels()[i]->updateMeshNormals(pd);
-		model.getTetModels()[i]->updateVisMesh(pd);
+		model->getTetModels()[i]->updateMeshNormals(pd);
+		model->getTetModels()[i]->updateVisMesh(pd);
 	}
-	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
+	for (unsigned int i = 0; i < model->getTriangleModels().size(); i++)
 	{
-		model.getTriangleModels()[i]->updateMeshNormals(pd);
+		model->getTriangleModels()[i]->updateMeshNormals(pd);
 	}
-}
-
-void buildModel()
-{
-	TimeManager::getCurrent()->setTimeStepSize(0.005);
-
-	sim.setCollisionDetection(model, &cd);
-
-	readScene();
-}
-
-void renderTriangleModels()
-{
-	const ParticleData &pd = model.getParticles();
-	float surfaceColor[4] = { 0.8f, 0.9f, 0.2f, 1 };
-
-	if (shaderTex)
-	{
-		shaderTex->begin();
-		glUniform1f(shaderTex->getUniform("shininess"), 5.0f);
-		glUniform1f(shaderTex->getUniform("specular_factor"), 0.2f);
-
-		GLfloat matrix[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-		glUniformMatrix4fv(shaderTex->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-		GLfloat pmatrix[16];
-		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-		glUniformMatrix4fv(shaderTex->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
-
-		glUniform3fv(shaderTex->getUniform("surface_color"), 1, surfaceColor);
-	}
-
-	for (unsigned int i = 0; i < model.getTriangleModels().size(); i++)
-	{
-		// mesh 
-		const IndexedFaceMesh &mesh = model.getTriangleModels()[i]->getParticleMesh();
-		const unsigned int offset = model.getTriangleModels()[i]->getIndexOffset();
-		Visualization::drawTexturedMesh(pd, mesh, offset, surfaceColor);
-	}
-
-	if (shaderTex)
-		shaderTex->end();
-}
-
-void renderTetModels()
-{
-	const ParticleData &pd = model.getParticles();
-	float surfaceColor[4] = { 0.8f, 0.4f, 0.7f, 1 };
-
-	if (shader)
-	{
-		shader->begin();
-		glUniform1f(shader->getUniform("shininess"), 5.0f);
-		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
-
-		GLfloat matrix[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-		glUniformMatrix4fv(shader->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-		GLfloat pmatrix[16];
-		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-		glUniformMatrix4fv(shader->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
-
-		glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
-	}
-
-	for (unsigned int i = 0; i < model.getTetModels().size(); i++)
-	{
-		const VertexData &vdVis = model.getTetModels()[i]->getVisVertices();
-		if (vdVis.size() > 0)
-		{
-			const IndexedFaceMesh &visMesh = model.getTetModels()[i]->getVisMesh();
-			Visualization::drawMesh(vdVis, visMesh, 0, surfaceColor);
-		}
-		else
-		{
-			const IndexedFaceMesh &surfaceMesh = model.getTetModels()[i]->getSurfaceMesh();
-			const unsigned int offset = model.getTetModels()[i]->getIndexOffset();
-			Visualization::drawMesh(pd, surfaceMesh, offset, surfaceColor);
-		}
-	}
-
-	if (shader)
-		shader->end();
-}
-
-void renderAABB(AABB &aabb)
-{
-	Vector3r p1, p2;
-	glBegin(GL_LINES);
-	for (unsigned char i = 0; i < 12; i++)
-	{
-		AABB::getEdge(aabb, i, p1, p2);
-		glVertex3d(p1[0], p1[1], p1[2]);
-		glVertex3d(p2[0], p2[1], p2[2]);
-	}
-	glEnd();
-}
-
-void renderSDF(CollisionDetection::CollisionObject* co)
-{
-	if (!cd.isDistanceFieldCollisionObject(co))
-		return;
-
-	const SimulationModel::RigidBodyVector &rigidBodies = model.getRigidBodies();
-	RigidBody *rb = rigidBodies[co->m_bodyIndex];
-
-	const Vector3r &com = rb->getPosition();
-	const Matrix3r &R = rb->getTransformationR();
-	const Vector3r &v1 = rb->getTransformationV1();
-	const Vector3r &v2 = rb->getTransformationV2();
-
-	DistanceFieldCollisionDetection::DistanceFieldCollisionObject *dfco = (DistanceFieldCollisionDetection::DistanceFieldCollisionObject *)co;
-	const Vector3r &startX = co->m_aabb.m_p[0];
-	const Vector3r &endX = co->m_aabb.m_p[1];
-	Vector3r diff = endX - startX;
-	const unsigned int steps = 20;
-	Vector3r stepSize = (1.0 / steps) * diff;
-	for (Real x = startX[0]; x < endX[0]; x += stepSize[0])
-	{
-		for (Real y = startX[1]; y < endX[1]; y += stepSize[1])
-		{
-			for (Real z = startX[2]; z < endX[2]; z += stepSize[2])
-			{
-				Vector3r pos_w(x, y, z);
-				const Vector3r pos = R * (pos_w - com) + v1;
-				const Real dist = dfco->distance(pos, 0.0);
-
-				if (dist < 0.0)
-				{
-					float col[4] = { (float)-dist, 0.0f, 0.0f, 1.0f };
-					MiniGL::drawPoint(pos_w, 3.0f, col);
-				}
-			}
-		}
-	}
-}
-
-void renderBallJoint(BallJoint &bj)
-{
-	MiniGL::drawSphere(bj.m_jointInfo.col(2), 0.15f, jointColor);
-}
-
-void renderRigidBodyParticleBallJoint(RigidBodyParticleBallJoint &bj)
-{
-	MiniGL::drawSphere(bj.m_jointInfo.col(1), 0.1f, jointColor);
-}
-
-void renderBallOnLineJoint(BallOnLineJoint &bj)
-{
-	MiniGL::drawSphere(bj.m_jointInfo.col(5), 0.1f, jointColor);
-	MiniGL::drawCylinder(bj.m_jointInfo.col(5) - bj.m_jointInfo.col(7), bj.m_jointInfo.col(5) + bj.m_jointInfo.col(7), jointColor, 0.05f);
-}
-
-void renderHingeJoint(HingeJoint &hj)
-{
-	MiniGL::drawSphere(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
-	MiniGL::drawSphere(hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
-	MiniGL::drawCylinder(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), jointColor, 0.05f);
-}
-
-void renderUniversalJoint(UniversalJoint &uj)
-{
-	MiniGL::drawSphere(uj.m_jointInfo.col(4) - 0.5*uj.m_jointInfo.col(6), 0.1f, jointColor);
-	MiniGL::drawSphere(uj.m_jointInfo.col(4) + 0.5*uj.m_jointInfo.col(6), 0.1f, jointColor);
-	MiniGL::drawSphere(uj.m_jointInfo.col(5) - 0.5*uj.m_jointInfo.col(7), 0.1f, jointColor);
-	MiniGL::drawSphere(uj.m_jointInfo.col(5) + 0.5*uj.m_jointInfo.col(7), 0.1f, jointColor);
-	MiniGL::drawCylinder(uj.m_jointInfo.col(4) - 0.5*uj.m_jointInfo.col(6), uj.m_jointInfo.col(4) + 0.5*uj.m_jointInfo.col(6), jointColor, 0.05f);
-	MiniGL::drawCylinder(uj.m_jointInfo.col(5) - 0.5*uj.m_jointInfo.col(7), uj.m_jointInfo.col(5) + 0.5*uj.m_jointInfo.col(7), jointColor, 0.05f);
-}
-
-void renderSliderJoint(SliderJoint &joint)
-{
-	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
-}
-
-void renderTargetPositionMotorSliderJoint(TargetPositionMotorSliderJoint &joint)
-{
-	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
-}
-
-void renderTargetVelocityMotorSliderJoint(TargetVelocityMotorSliderJoint &joint)
-{
-	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), jointColor, 0.05f);
-}
-
-void renderTargetAngleMotorHingeJoint(TargetAngleMotorHingeJoint &hj)
-{
-	MiniGL::drawSphere(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
-	MiniGL::drawSphere(hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
-	MiniGL::drawCylinder(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), jointColor, 0.05f);
-}
-
-void renderTargetVelocityMotorHingeJoint(TargetVelocityMotorHingeJoint &hj)
-{
-	MiniGL::drawSphere(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
-	MiniGL::drawSphere(hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), 0.1f, jointColor);
-	MiniGL::drawCylinder(hj.m_jointInfo.col(6) - 0.5*hj.m_jointInfo.col(8), hj.m_jointInfo.col(6) + 0.5*hj.m_jointInfo.col(8), jointColor, 0.05f);
-}
-
-void renderRigidBodyContact(RigidBodyContactConstraint &cc)
-{
-	float col1[4] = { 0.0f, 0.6f, 0.2f, 1 };
-	float col2[4] = { 0.6f, 0.0f, 0.2f, 1 };
-	MiniGL::drawPoint(cc.m_constraintInfo.col(0), 5.0f, col1);
-	MiniGL::drawPoint(cc.m_constraintInfo.col(1), 5.0f, col2);
-	MiniGL::drawVector(cc.m_constraintInfo.col(1), cc.m_constraintInfo.col(1) + cc.m_constraintInfo.col(2), 1.0f, col2);
-}
-
-void renderParticleRigidBodyContact(ParticleRigidBodyContactConstraint &cc)
-{
-	float col1[4] = { 0.0f, 0.6f, 0.2f, 1 };
-	float col2[4] = { 0.6f, 0.0f, 0.2f, 1 };
-	MiniGL::drawPoint(cc.m_constraintInfo.col(0), 5.0f, col1);
-	MiniGL::drawPoint(cc.m_constraintInfo.col(1), 5.0f, col2);
-	MiniGL::drawVector(cc.m_constraintInfo.col(1), cc.m_constraintInfo.col(1) + cc.m_constraintInfo.col(2), 1.0f, col2);
 }
 
 void render()
 {
-	MiniGL::coordinateSystem();
+	base->render();
+}
 
-	// Draw sim model
+void buildModel()
+{
+	TimeManager::getCurrent()->setTimeStepSize(static_cast<Real>(0.005));
 
-	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	SimulationModel::ConstraintVector &constraints = model.getConstraints();
-	SimulationModel::RigidBodyContactConstraintVector &rigidBodyContacts = model.getRigidBodyContactConstraints();
-	SimulationModel::ParticleRigidBodyContactConstraintVector &particleRigidBodyContacts = model.getParticleRigidBodyContactConstraints();
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, &cd);
 
-	float selectionColor[4] = { 0.8f, 0.0f, 0.0f, 1 };
-	float surfaceColor[4] = { 0.3f, 0.5f, 0.8f, 1 };
-	float staticColor[4] = { 0.5f, 0.5f, 0.5f, 1 };
-
-	if (renderContacts)
-	{
-		for (unsigned int i = 0; i < rigidBodyContacts.size(); i++)
-			renderRigidBodyContact(rigidBodyContacts[i]);
-		for (unsigned int i = 0; i < particleRigidBodyContacts.size(); i++)
-			renderParticleRigidBodyContact(particleRigidBodyContacts[i]);
-	}
-
-
-	if (shader)
-	{
-		shader->begin();
-		glUniform1f(shader->getUniform("shininess"), 5.0f);
-		glUniform1f(shader->getUniform("specular_factor"), 0.2f);
-
-		GLfloat matrix[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-		glUniformMatrix4fv(shader->getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-		GLfloat pmatrix[16];
-		glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-		glUniformMatrix4fv(shader->getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
-	}
-
-	for (size_t i = 0; i < rb.size(); i++)
-	{
-		bool selected = false;
-		for (unsigned int j = 0; j < selectedBodies.size(); j++)
-		{
-			if (selectedBodies[j] == i)
-				selected = true;
-		}
-
-		const VertexData &vd = rb[i]->getGeometry().getVertexData();
-		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
-		if (!selected)
-		{
-			if (rb[i]->getMass() == 0.0)
-			{
-				if (shader)
-					glUniform3fv(shader->getUniform("surface_color"), 1, staticColor);
-				Visualization::drawMesh(vd, mesh, 0, staticColor);
-			}
-			else
-			{
-				if (shader)
-					glUniform3fv(shader->getUniform("surface_color"), 1, surfaceColor);
-				Visualization::drawMesh(vd, mesh, 0, surfaceColor);
-			}
-		}
-		else
-		{
-			if (shader)
-				glUniform3fv(shader->getUniform("surface_color"), 1, selectionColor);
-			Visualization::drawMesh(vd, mesh, 0, selectionColor);
-		}
-	}
-
-	if (shader)
-		shader->end();
-
-
-
-	renderTriangleModels();
-	renderTetModels();
-
-	for (size_t i = 0; i < constraints.size(); i++)
-	{
-		if (constraints[i]->getTypeId() == BallJoint::TYPE_ID)
-		{
-			renderBallJoint(*(BallJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == BallOnLineJoint::TYPE_ID)
-		{
-			renderBallOnLineJoint(*(BallOnLineJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == HingeJoint::TYPE_ID)
-		{
-			renderHingeJoint(*(HingeJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == UniversalJoint::TYPE_ID)
-		{
-			renderUniversalJoint(*(UniversalJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == SliderJoint::TYPE_ID)
-		{
-			renderSliderJoint(*(SliderJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == TargetAngleMotorHingeJoint::TYPE_ID)
-		{
-			renderTargetAngleMotorHingeJoint(*(TargetAngleMotorHingeJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == TargetVelocityMotorHingeJoint::TYPE_ID)
-		{
-			renderTargetVelocityMotorHingeJoint(*(TargetVelocityMotorHingeJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == TargetPositionMotorSliderJoint::TYPE_ID)
-		{
-			renderTargetPositionMotorSliderJoint(*(TargetPositionMotorSliderJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == TargetVelocityMotorSliderJoint::TYPE_ID)
-		{
-			renderTargetVelocityMotorSliderJoint(*(TargetVelocityMotorSliderJoint*)constraints[i]);
-		}
-		else if (constraints[i]->getTypeId() == RigidBodyParticleBallJoint::TYPE_ID)
-		{
-			renderRigidBodyParticleBallJoint(*(RigidBodyParticleBallJoint*)constraints[i]);
-		}
-	}
-
-
-
-	if (drawSDF || drawAABB || (drawBVHDepth >= 0))
-	{
-		ObjectArray<CollisionDetection::CollisionObject*> &collisionObjects = cd.getCollisionObjects();
-		for (unsigned int k = 0; k < collisionObjects.size(); k++)
-		{
-			if (drawAABB)
-				renderAABB(collisionObjects[k]->m_aabb);
-
-			if (drawSDF)
-				renderSDF(collisionObjects[k]);
-
-			if (drawBVHDepth >= 0)
-			{
-				if (cd.isDistanceFieldCollisionObject(collisionObjects[k]))
-				{
-					const PointCloudBSH &bvh = ((DistanceFieldCollisionDetection::DistanceFieldCollisionObject*) collisionObjects[k])->m_bvh;
-
-					std::function<bool(unsigned int, unsigned int)> predicate = [&](unsigned int node_index, unsigned int depth) { return (int)depth <= drawBVHDepth; };
-					std::function<void(unsigned int, unsigned int)> cb = [&](unsigned int node_index, unsigned int depth)
-					{
-						if (depth == drawBVHDepth)
-						{
-							const BoundingSphere &bs = bvh.hull(node_index);
-							if (collisionObjects[k]->m_bodyType == CollisionDetection::CollisionObject::RigidBodyCollisionObjectType)
-							{
-								RigidBody *body = rb[collisionObjects[k]->m_bodyIndex];
-								const Vector3r &sphere_x = bs.x();
-								const Vector3r sphere_x_w = body->getRotation() * sphere_x + body->getPosition();
-								MiniGL::drawSphere(sphere_x_w, std::max((float)bs.r(), 0.05f), staticColor);
-							}
-							else
-								MiniGL::drawSphere(bs.x(), std::max((float)bs.r(), 0.05f), staticColor);
-						}
-					};
-
-					bvh.traverse_depth_first(predicate, cb);
-				}
-			}
-		}
-	}
-
-	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
-	const ParticleData &pd = model.getParticles();
-	for (unsigned int j = 0; j < selectedParticles.size(); j++)
-	{
-		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
-	}
-
-	MiniGL::drawTime(TimeManager::getCurrent()->getTime());
+	readScene();
 }
 
 void initTriangleModelConstraints()
 {
 	// init constraints
-	for (unsigned int cm = 0; cm < model.getTriangleModels().size(); cm++)
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
 	{
-		const unsigned int offset = model.getTriangleModels()[cm]->getIndexOffset();
+		const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
 		if (clothSimulationMethod == 1)
 		{
-			const unsigned int nEdges = model.getTriangleModels()[cm]->getParticleMesh().numEdges();
-			const IndexedFaceMesh::Edge *edges = model.getTriangleModels()[cm]->getParticleMesh().getEdges().data();
+			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
+			const IndexedFaceMesh::Edge *edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
 			for (unsigned int i = 0; i < nEdges; i++)
 			{
 				const unsigned int v1 = edges[i].m_vert[0] + offset;
 				const unsigned int v2 = edges[i].m_vert[1] + offset;
 
-				model.addDistanceConstraint(v1, v2);
+				model->addDistanceConstraint(v1, v2);
 			}
 		}
 		else if (clothSimulationMethod == 2)
 		{
 
-			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
 			const unsigned int *tris = mesh.getFaces().data();
 			const unsigned int nFaces = mesh.numFaces();
 			for (unsigned int i = 0; i < nFaces; i++)
@@ -770,12 +267,12 @@ void initTriangleModelConstraints()
 				const unsigned int v1 = tris[3 * i] + offset;
 				const unsigned int v2 = tris[3 * i + 1] + offset;
 				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model.addFEMTriangleConstraint(v1, v2, v3);
+				model->addFEMTriangleConstraint(v1, v2, v3);
 			}
 		}
 		else if (clothSimulationMethod == 3)
 		{
-			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
 			const unsigned int *tris = mesh.getFaces().data();
 			const unsigned int nFaces = mesh.numFaces();
 			for (unsigned int i = 0; i < nFaces; i++)
@@ -783,12 +280,12 @@ void initTriangleModelConstraints()
 				const unsigned int v1 = tris[3 * i] + offset;
 				const unsigned int v2 = tris[3 * i + 1] + offset;
 				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model.addStrainTriangleConstraint(v1, v2, v3);
+				model->addStrainTriangleConstraint(v1, v2, v3);
 			}
 		}
 		if (bendingMethod != 0)
 		{
-			TriangleModel::ParticleMesh &mesh = model.getTriangleModels()[cm]->getParticleMesh();
+			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
 			unsigned int nEdges = mesh.numEdges();
 			const TriangleModel::ParticleMesh::Edge *edges = mesh.getEdges().data();
 			const unsigned int *tris = mesh.getFaces().data();
@@ -826,9 +323,9 @@ void initTriangleModelConstraints()
 						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
 						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
 						if (bendingMethod == 1)
-							model.addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
+							model->addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
 						else if (bendingMethod == 2)
-							model.addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
+							model->addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
 					}
 				}
 			}
@@ -839,23 +336,24 @@ void initTriangleModelConstraints()
 void initTetModelConstraints()
 {
 	// init constraints
-	for (unsigned int cm = 0; cm < model.getTetModels().size(); cm++)
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	for (unsigned int cm = 0; cm < model->getTetModels().size(); cm++)
 	{
-		const unsigned int offset = model.getTetModels()[cm]->getIndexOffset();
-		const unsigned int nTets = model.getTetModels()[cm]->getParticleMesh().numTets();
-		const unsigned int *tets = model.getTetModels()[cm]->getParticleMesh().getTets().data();
-		const IndexedTetMesh::VertexTets *vTets = model.getTetModels()[cm]->getParticleMesh().getVertexTets().data();
+		const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
+		const unsigned int nTets = model->getTetModels()[cm]->getParticleMesh().numTets();
+		const unsigned int *tets = model->getTetModels()[cm]->getParticleMesh().getTets().data();
+		const IndexedTetMesh::VertexTets *vTets = model->getTetModels()[cm]->getParticleMesh().getVertexTets().data();
 		if (solidSimulationMethod == 1)
 		{
-			const unsigned int offset = model.getTetModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model.getTetModels()[cm]->getParticleMesh().numEdges();
-			const IndexedTetMesh::Edge *edges = model.getTetModels()[cm]->getParticleMesh().getEdges().data();
+			const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model->getTetModels()[cm]->getParticleMesh().numEdges();
+			const IndexedTetMesh::Edge *edges = model->getTetModels()[cm]->getParticleMesh().getEdges().data();
 			for (unsigned int i = 0; i < nEdges; i++)
 			{
 				const unsigned int v1 = edges[i].m_vert[0] + offset;
 				const unsigned int v2 = edges[i].m_vert[1] + offset;
 
-				model.addDistanceConstraint(v1, v2);
+				model->addDistanceConstraint(v1, v2);
 			}
 
 			for (unsigned int i = 0; i < nTets; i++)
@@ -865,12 +363,12 @@ void initTetModelConstraints()
 				const unsigned int v3 = tets[4 * i + 2] + offset;
 				const unsigned int v4 = tets[4 * i + 3] + offset;
 
-				model.addVolumeConstraint(v1, v2, v3, v4);
+				model->addVolumeConstraint(v1, v2, v3, v4);
 			}
 		}
 		else if (solidSimulationMethod == 2)
 		{
-			TetModel::ParticleMesh &mesh = model.getTetModels()[cm]->getParticleMesh();
+			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
 			for (unsigned int i = 0; i < nTets; i++)
 			{
 				const unsigned int v1 = tets[4 * i] + offset;
@@ -878,12 +376,12 @@ void initTetModelConstraints()
 				const unsigned int v3 = tets[4 * i + 2] + offset;
 				const unsigned int v4 = tets[4 * i + 3] + offset;
 
-				model.addFEMTetConstraint(v1, v2, v3, v4);
+				model->addFEMTetConstraint(v1, v2, v3, v4);
 			}
 		}
 		else if (solidSimulationMethod == 3)
 		{
-			TetModel::ParticleMesh &mesh = model.getTetModels()[cm]->getParticleMesh();
+			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
 			for (unsigned int i = 0; i < nTets; i++)
 			{
 				const unsigned int v1 = tets[4 * i] + offset;
@@ -891,12 +389,12 @@ void initTetModelConstraints()
 				const unsigned int v3 = tets[4 * i + 2] + offset;
 				const unsigned int v4 = tets[4 * i + 3] + offset;
 
-				model.addStrainTetConstraint(v1, v2, v3, v4);
+				model->addStrainTetConstraint(v1, v2, v3, v4);
 			}
 		}
 		else if (solidSimulationMethod == 4)
 		{
-			TetModel::ParticleMesh &mesh = model.getTetModels()[cm]->getParticleMesh();
+			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
 			for (unsigned int i = 0; i < nTets; i++)
 			{
 				const unsigned int v[4] = { tets[4 * i] + offset,
@@ -906,7 +404,7 @@ void initTetModelConstraints()
 				// Important: Divide position correction by the number of clusters 
 				// which contain the vertex.
 				const unsigned int nc[4] = { vTets[v[0]].m_numTets, vTets[v[1]].m_numTets, vTets[v[2]].m_numTets, vTets[v[3]].m_numTets };
-				model.addShapeMatchingConstraint(4, v, nc);
+				model->addShapeMatchingConstraint(4, v, nc);
 			}
 		}
 	}
@@ -961,19 +459,97 @@ void loadObj(const std::string &filename, VertexData &vd, IndexedFaceMesh &mesh,
 	LOG_INFO << "Number of vertices: " << nPoints;
 }
 
+CubicSDFCollisionDetection::GridPtr generateSDF(const std::string &modelFile, const std::string &collisionObjectFileName, const Eigen::Matrix<unsigned int, 3, 1> &resolutionSDF,
+	VertexData &vd, IndexedFaceMesh &mesh)
+{
+	const std::string basePath = FileSystem::getFilePath(base->getSceneFile());
+	const string cachePath = basePath + "/Cache";
+	const std::string modelFileName = FileSystem::getFileNameWithExt(modelFile);
+	CubicSDFCollisionDetection::GridPtr distanceField;
+
+	if (collisionObjectFileName == "")
+	{
+		std::string md5FileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + ".md5");
+		string md5Str = FileSystem::getFileMD5(modelFile);
+		bool md5 = false;
+		if (FileSystem::fileExists(md5FileName))
+			md5 = FileSystem::checkMD5(md5Str, md5FileName);
+
+		// check MD5 if cache file is available
+		const string resStr = to_string(resolutionSDF[0]) + "_" + to_string(resolutionSDF[1]) + "_" + to_string(resolutionSDF[2]);
+		const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
+		bool foundCacheFile = FileSystem::fileExists(sdfFileName);
+
+		if (foundCacheFile && md5)
+		{
+			LOG_INFO << "Load cached SDF: " << sdfFileName;
+			distanceField = std::make_shared<CubicSDFCollisionDetection::Grid>(sdfFileName);
+		}
+		else
+		{
+			std::vector<unsigned int> &faces = mesh.getFaces();
+			const unsigned int nFaces = mesh.numFaces();
+#ifdef USE_DOUBLE
+			Discregrid::TriangleMesh sdfMesh(&vd.getPosition(0)[0], faces.data(), vd.size(), nFaces);
+#else
+			// if type is float, copy vector to double vector
+			std::vector<double> doubleVec;
+			doubleVec.resize(3 * vd.size());
+			for (unsigned int i = 0; i < vd.size(); i++)
+				for (unsigned int j = 0; j < 3; j++)
+					doubleVec[3 * i + j] = vd.getPosition(i)[j];
+			Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vd.size(), nFaces);
+#endif
+			Discregrid::MeshDistance md(sdfMesh);
+			Eigen::AlignedBox3d domain;
+			for (auto const& x : sdfMesh.vertices())
+			{
+				domain.extend(x);
+			}
+			domain.max() += 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
+			domain.min() -= 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
+
+			LOG_INFO << "Set SDF resolution: " << resolutionSDF[0] << ", " << resolutionSDF[1] << ", " << resolutionSDF[2];
+			distanceField = std::make_shared<CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ resolutionSDF[0], resolutionSDF[1], resolutionSDF[2] }));
+			auto func = Discregrid::DiscreteGrid::ContinuousFunction{};
+			func = [&md](Eigen::Vector3d const& xi) {return md.signedDistanceCached(xi); };
+			LOG_INFO << "Generate SDF for " << modelFile;
+			distanceField->addFunction(func, true);
+			if (FileSystem::makeDir(cachePath) == 0)
+			{
+				LOG_INFO << "Save SDF: " << sdfFileName;
+				distanceField->save(sdfFileName);
+				FileSystem::writeMD5File(modelFile, md5FileName);
+			}
+		}
+	}
+	else
+	{
+		std::string fileName = collisionObjectFileName;
+		if (FileSystem::isRelativePath(fileName))
+		{
+			fileName = FileSystem::normalizePath(basePath + "/" + fileName);
+		}
+		LOG_INFO << "Load SDF: " << fileName;
+		distanceField = std::make_shared<CubicSDFCollisionDetection::Grid>(fileName);
+	}
+	return distanceField;
+}
+
 
 /** Create the rigid body model
 */
 void readScene()
 {
-	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
-	SimulationModel::TriangleModelVector &triModels = model.getTriangleModels();
-	SimulationModel::TetModelVector &tetModels = model.getTetModels();
-	SimulationModel::ConstraintVector &constraints = model.getConstraints();
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
+	SimulationModel::TriangleModelVector &triModels = model->getTriangleModels();
+	SimulationModel::TetModelVector &tetModels = model->getTetModels();
+	SimulationModel::ConstraintVector &constraints = model->getConstraints();
 
 	StiffRodsSceneLoader::RodSceneData data;
-	StiffRodsSceneLoader loader;
-	loader.readStiffRodsScene(sceneFileName, data);
+	StiffRodsSceneLoader *loader = static_cast<StiffRodsSceneLoader*>(base->getSceneLoader());
+	loader->readStiffRodsScene(sceneFileName, data);
 	LOG_INFO << "Scene: " << sceneFileName;
 
 	camPos = data.m_camPosition;
@@ -983,10 +559,6 @@ void readScene()
 
 	sceneName = data.m_sceneName;
 
-	sim.setGravity(data.m_gravity);
-	sim.setMaxIterations(data.m_maxIter);
-	sim.setMaxIterationsV(data.m_maxIterVel);
-	sim.setVelocityUpdateMethod(data.m_velocityUpdateMethod);
 	if (data.m_triangleModelSimulationMethod != -1)
 		clothSimulationMethod = data.m_triangleModelSimulationMethod;
 	if (data.m_tetModelSimulationMethod != -1)
@@ -994,18 +566,24 @@ void readScene()
 	if (data.m_triangleModelBendingMethod != -1)
 		bendingMethod = data.m_triangleModelBendingMethod;
 	cd.setTolerance(data.m_contactTolerance);
-	model.setContactStiffnessRigidBody(data.m_contactStiffnessRigidBody);
-	model.setContactStiffnessParticleRigidBody(data.m_contactStiffnessParticleRigidBody);
+	model->setContactStiffnessRigidBody(data.m_contactStiffnessRigidBody);
+	model->setContactStiffnessParticleRigidBody(data.m_contactStiffnessParticleRigidBody);
 
-	model.setClothStiffness(data.m_cloth_stiffness);
-	model.setClothBendingStiffness(data.m_cloth_bendingStiffness);
-	model.setClothXXStiffness(data.m_cloth_xxStiffness);
-	model.setClothYYStiffness(data.m_cloth_yyStiffness);
-	model.setClothXYStiffness(data.m_cloth_xyStiffness);
-	model.setClothXYPoissonRatio(data.m_cloth_xyPoissonRatio);
-	model.setClothYXPoissonRatio(data.m_cloth_yxPoissonRatio);
-	model.setClothNormalizeStretch(data.m_cloth_normalizeStretch);
-	model.setClothNormalizeShear(data.m_cloth_normalizeShear);
+	model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, data.m_cloth_bendingStiffness);
+	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS_XX, data.m_cloth_xxStiffness);
+	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS_YY, data.m_cloth_yyStiffness);
+	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS_XY, data.m_cloth_xyStiffness);
+	model->setValue<Real>(SimulationModel::CLOTH_POISSON_RATIO_XY, data.m_cloth_xyPoissonRatio);
+	model->setValue<Real>(SimulationModel::CLOTH_POISSON_RATIO_YX, data.m_cloth_yxPoissonRatio);
+	model->setValue<bool>(SimulationModel::CLOTH_NORMALIZE_STRETCH, data.m_cloth_normalizeStretch);
+	model->setValue<bool>(SimulationModel::CLOTH_NORMALIZE_SHEAR, data.m_cloth_normalizeShear);
+
+	model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, data.m_solid_stiffness);
+	model->setValue<Real>(SimulationModel::SOLID_POISSON_RATIO, data.m_solid_poissonRatio);
+	model->setValue<bool>(SimulationModel::SOLID_NORMALIZE_STRETCH, data.m_solid_normalizeStretch);
+	model->setValue<bool>(SimulationModel::SOLID_NORMALIZE_SHEAR, data.m_solid_normalizeShear);
+
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// rigid bodies
@@ -1042,7 +620,7 @@ void readScene()
 		if (distanceFields.find(sdfKey) == distanceFields.end())
 		{
 			// Generate SDF
-			if (rbd.m_collisionObjectType == SceneLoader::RigidBodyData::SDF)
+			if (rbd.m_collisionObjectType == SceneLoader::SDF)
 			{
 				if (rbd.m_collisionObjectFileName == "")
 				{
@@ -1070,7 +648,17 @@ void readScene()
 						std::vector<unsigned int> &faces = mesh.getFaces();
 						const unsigned int nFaces = mesh.numFaces();
 
+#ifdef USE_DOUBLE
 						Discregrid::TriangleMesh sdfMesh(&vd.getPosition(0)[0], faces.data(), vd.size(), nFaces);
+#else
+						// if type is float, copy vector to double vector
+						std::vector<double> doubleVec;
+						doubleVec.resize(3 * vd.size());
+						for (unsigned int i = 0; i < vd.size(); i++)
+							for (unsigned int j = 0; j < 3; j++)
+								doubleVec[3 * i + j] = vd.getPosition(i)[j];
+						Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vd.size(), nFaces);
+#endif
 						Discregrid::MeshDistance md(sdfMesh);
 						Eigen::AlignedBox3d domain;
 						for (auto const& x : sdfMesh.vertices())
@@ -1131,6 +719,48 @@ void readScene()
 	}
 	// end stiff rods
 
+	for (unsigned int i = 0; i < data.m_tetModelData.size(); i++)
+	{
+		const SceneLoader::TetModelData &tmd = data.m_tetModelData[i];
+
+		// Check if already loaded
+		if ((tmd.m_modelFileVis != "") &&
+			(objFiles.find(tmd.m_modelFileVis) == objFiles.end()))
+		{
+			IndexedFaceMesh mesh;
+			VertexData vd;
+			loadObj(FileSystem::normalizePath(tmd.m_modelFileVis), vd, mesh, Vector3r::Ones());
+			objFiles[tmd.m_modelFileVis] = { vd, mesh };
+		}
+
+		const std::string basePath = FileSystem::getFilePath(base->getSceneFile());
+		const string cachePath = basePath + "/Cache";
+		const string resStr = to_string(tmd.m_resolutionSDF[0]) + "_" + to_string(tmd.m_resolutionSDF[1]) + "_" + to_string(tmd.m_resolutionSDF[2]);
+		const std::string modelFileName = FileSystem::getFileNameWithExt(tmd.m_modelFileVis);
+		const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
+
+		std::string sdfKey = tmd.m_collisionObjectFileName;
+		if (sdfKey == "")
+		{
+			sdfKey = sdfFileName;
+		}
+		if (distanceFields.find(sdfKey) == distanceFields.end())
+		{
+			// Generate SDF
+			if (tmd.m_collisionObjectType == SceneLoader::SDF)
+			{
+				VertexData &vd = objFiles[tmd.m_modelFileVis].first;
+				IndexedFaceMesh &mesh = objFiles[tmd.m_modelFileVis].second;
+
+				CubicSDFCollisionDetection::GridPtr distanceField = generateSDF(tmd.m_modelFileVis, tmd.m_collisionObjectFileName, tmd.m_resolutionSDF, vd, mesh);
+
+				if (tmd.m_collisionObjectFileName == "")
+					distanceFields[sdfFileName] = distanceField;
+				else
+					distanceFields[tmd.m_collisionObjectFileName] = distanceField;
+			}
+		}
+	}
 
 	rb.resize(data.m_rigidBodyData.size());
 	std::map<unsigned int, unsigned int> id_index;
@@ -1174,39 +804,39 @@ void readScene()
 
 		switch (rbd.m_collisionObjectType)
 		{
-		case SceneLoader::RigidBodyData::No_Collision_Object: break;
-		case SceneLoader::RigidBodyData::Sphere:
+		case SceneLoader::No_Collision_Object: break;
+		case SceneLoader::Sphere:
 			cd.addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale[0], rbd.m_testMesh, rbd.m_invertSDF);
 			break;
-		case SceneLoader::RigidBodyData::Box:
+		case SceneLoader::Box:
 			cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
 			break;
-		case SceneLoader::RigidBodyData::Cylinder:
+		case SceneLoader::Cylinder:
 			cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
 			break;
-		case SceneLoader::RigidBodyData::Torus:
+		case SceneLoader::Torus:
 			cd.addCollisionTorus(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
 			break;
-		case SceneLoader::RigidBodyData::HollowSphere:
+		case SceneLoader::HollowSphere:
 			cd.addCollisionHollowSphere(rbIndex, PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale[0], rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
 			break;
-		case SceneLoader::RigidBodyData::HollowBox:
+		case SceneLoader::HollowBox:
 			cd.addCollisionHollowBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale, rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
 			break;
-		case SceneLoader::RigidBodyData::SDF:
+		case SceneLoader::SDF:
 		{
-												if (rbd.m_collisionObjectFileName == "")
-												{
-													const std::string basePath = FileSystem::getFilePath(sceneFileName);
-													const string cachePath = basePath + "/Cache";
-													const string resStr = to_string(rbd.m_resolutionSDF[0]) + "_" + to_string(rbd.m_resolutionSDF[1]) + "_" + to_string(rbd.m_resolutionSDF[2]);
-													const std::string modelFileName = FileSystem::getFileNameWithExt(rbd.m_modelFile);
-													const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
-													cd.addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[sdfFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
-												}
-												else
-													cd.addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[rbd.m_collisionObjectFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
-												break;
+			if (rbd.m_collisionObjectFileName == "")
+			{
+				const std::string basePath = FileSystem::getFilePath(sceneFileName);
+				const string cachePath = basePath + "/Cache";
+				const string resStr = to_string(rbd.m_resolutionSDF[0]) + "_" + to_string(rbd.m_resolutionSDF[1]) + "_" + to_string(rbd.m_resolutionSDF[2]);
+				const std::string modelFileName = FileSystem::getFileNameWithExt(rbd.m_modelFile);
+				const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
+				cd.addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[sdfFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+			}
+			else
+				cd.addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[rbd.m_collisionObjectFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+			break;
 		}
 		}
 		// stiff rods
@@ -1267,11 +897,11 @@ void readScene()
 			Real density(segmentData.m_density);
 			segmentDensity[segmentData.m_id] = density;
 
-			Real mass(M_PI_4 * width * height * length * density);
+			Real mass(static_cast<Real>(M_PI_4) * width * height * length * density);
 
-			const Real Iy = 1. / 12. * mass*(3.*(0.25*height*height) + length*length);
-			const Real Iz = 1. / 12. * mass*(3.*(0.25*width*width) + length*length);
-			const Real Ix = 0.25 * mass*(0.25*(height*height + width*width));
+			const Real Iy = static_cast<Real>(1. / 12.) * mass*(static_cast<Real>(3.)*(static_cast<Real>(0.25)*height*height) + length*length);
+			const Real Iz = static_cast<Real>(1. / 12.) * mass*(static_cast<Real>(3.)*(static_cast<Real>(0.25)*width*width) + length*length);
+			const Real Ix = static_cast<Real>(0.25) * mass*(static_cast<Real>(0.25)*(height*height + width*width));
 
 			Vector3r inertiaTensor;
 			inertiaTensor(lengthIdx) = Ix;
@@ -1349,16 +979,16 @@ void readScene()
 			constraintPositions.push_back(x);
 
 			// compute average length
-			Real avgLength(0.5*(segmentScale[sbtConstraint.m_SegmentID[0]][lengthIdx] + segmentScale[sbtConstraint.m_SegmentID[1]][lengthIdx]));
+			Real avgLength(static_cast<Real>(0.5)*(segmentScale[sbtConstraint.m_SegmentID[0]][lengthIdx] + segmentScale[sbtConstraint.m_SegmentID[1]][lengthIdx]));
 			averageSegmentLengths.push_back(avgLength);
 			
 			// compute average radius
-			averageRadii.push_back(0.125*(segmentScale[sbtConstraint.m_SegmentID[0]][widthIdx]
+			averageRadii.push_back(static_cast<Real>(0.125)*(segmentScale[sbtConstraint.m_SegmentID[0]][widthIdx]
 				+ segmentScale[sbtConstraint.m_SegmentID[0]][heightIdx]
 				+ segmentScale[sbtConstraint.m_SegmentID[1]][widthIdx] + segmentScale[sbtConstraint.m_SegmentID[1]][heightIdx]));
 		}
 
-		model.addDirectPositionBasedSolverForStiffRodsConstraint(constraintSegmentIndices,
+		model->addDirectPositionBasedSolverForStiffRodsConstraint(constraintSegmentIndices,
 			constraintPositions, averageRadii, averageSegmentLengths, youngsModuli, torsionModuli);		
 
 		STOP_TIMING_PRINT;// load tree
@@ -1405,10 +1035,10 @@ void readScene()
 			vd.getPosition(j) = R * (vd.getPosition(j).cwiseProduct(tmd.m_scale)) + tmd.m_x;
 		}
 
-		model.addTriangleModel(vd.size(), mesh.numFaces(), &vd.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs());
+		model->addTriangleModel(vd.size(), mesh.numFaces(), &vd.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs());
 
 		TriangleModel *tm = triModels[triModels.size() - 1];
-		ParticleData &pd = model.getParticles();
+		ParticleData &pd = model->getParticles();
 		unsigned int offset = tm->getIndexOffset();
 
 		for (unsigned int j = 0; j < tmd.m_staticParticles.size(); j++)
@@ -1466,11 +1096,15 @@ void readScene()
 			vertices[j] = R * (vertices[j].cwiseProduct(tmd.m_scale)) + tmd.m_x;
 		}
 
-		model.addTetModel((unsigned int)vertices.size(), (unsigned int)tets.size() / 4, vertices.data(), tets.data());
+		model->addTetModel((unsigned int)vertices.size(), (unsigned int)tets.size() / 4, vertices.data(), tets.data());
 
 		TetModel *tm = tetModels[tetModels.size() - 1];
-		ParticleData &pd = model.getParticles();
+		ParticleData &pd = model->getParticles();
 		unsigned int offset = tm->getIndexOffset();
+
+		tm->setInitialX(tmd.m_x);
+		tm->setInitialR(R);
+		tm->setInitialScale(tmd.m_scale);
 
 		for (unsigned int j = 0; j < tmd.m_staticParticles.size(); j++)
 		{
@@ -1506,13 +1140,13 @@ void readScene()
 	initTetModelConstraints();
 
 	// init collision objects for deformable models
-	ParticleData &pd = model.getParticles();
+	ParticleData &pd = model->getParticles();
 	for (unsigned int i = 0; i < data.m_triangleModelData.size(); i++)
 	{
 		TriangleModel *tm = triModels[i];
 		unsigned int offset = tm->getIndexOffset();
 		const unsigned int nVert = tm->getParticleMesh().numVertices();
-		cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert);
+		cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
 
 	}
 	for (unsigned int i = 0; i < data.m_tetModelData.size(); i++)
@@ -1520,7 +1154,49 @@ void readScene()
 		TetModel *tm = tetModels[i];
 		unsigned int offset = tm->getIndexOffset();
 		const unsigned int nVert = tm->getParticleMesh().numVertices();
-		cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert);
+		const IndexedTetMesh &tetMesh = tm->getParticleMesh();
+
+		const SceneLoader::TetModelData &tmd = data.m_tetModelData[i];
+
+		switch (tmd.m_collisionObjectType)
+		{
+		case SceneLoader::No_Collision_Object:
+			cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
+			break;
+		case SceneLoader::Sphere:
+			cd.addCollisionSphere(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale[0], tmd.m_testMesh, tmd.m_invertSDF);
+			break;
+		case SceneLoader::Box:
+			cd.addCollisionBox(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
+			break;
+		case SceneLoader::Cylinder:
+			cd.addCollisionCylinder(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale.head<2>(), tmd.m_testMesh, tmd.m_invertSDF);
+			break;
+		case SceneLoader::Torus:
+			cd.addCollisionTorus(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale.head<2>(), tmd.m_testMesh, tmd.m_invertSDF);
+			break;
+		case SceneLoader::HollowSphere:
+			cd.addCollisionHollowSphere(i, PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale[0], tmd.m_thicknessSDF, tmd.m_testMesh, tmd.m_invertSDF);
+			break;
+		case SceneLoader::HollowBox:
+			cd.addCollisionHollowBox(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale, tmd.m_thicknessSDF, tmd.m_testMesh, tmd.m_invertSDF);
+			break;
+		case SceneLoader::SDF:
+		{
+			if (tmd.m_collisionObjectFileName == "")
+			{
+				const std::string basePath = FileSystem::getFilePath(base->getSceneFile());
+				const string cachePath = basePath + "/Cache";
+				const string resStr = to_string(tmd.m_resolutionSDF[0]) + "_" + to_string(tmd.m_resolutionSDF[1]) + "_" + to_string(tmd.m_resolutionSDF[2]);
+				const std::string modelFileName = FileSystem::getFileNameWithExt(tmd.m_modelFileVis);
+				const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
+				cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, distanceFields[sdfFileName], tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
+			}
+			else
+				cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, distanceFields[tmd.m_collisionObjectFileName], tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
+			break;
+		}
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -1530,43 +1206,43 @@ void readScene()
 	for (unsigned int i = 0; i < data.m_ballJointData.size(); i++)
 	{
 		const SceneLoader::BallJointData &jd = data.m_ballJointData[i];
-		model.addBallJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position);
+		model->addBallJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position);
 	}
 
 	for (unsigned int i = 0; i < data.m_ballOnLineJointData.size(); i++)
 	{
 		const SceneLoader::BallOnLineJointData &jd = data.m_ballOnLineJointData[i];
-		model.addBallOnLineJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addBallOnLineJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
 	}
 
 	for (unsigned int i = 0; i < data.m_hingeJointData.size(); i++)
 	{
 		const SceneLoader::HingeJointData &jd = data.m_hingeJointData[i];
-		model.addHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
 	}
 
 	for (unsigned int i = 0; i < data.m_universalJointData.size(); i++)
 	{
 		const SceneLoader::UniversalJointData &jd = data.m_universalJointData[i];
-		model.addUniversalJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis[0], jd.m_axis[1]);
+		model->addUniversalJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis[0], jd.m_axis[1]);
 	}
 
 	for (unsigned int i = 0; i < data.m_sliderJointData.size(); i++)
 	{
 		const SceneLoader::SliderJointData &jd = data.m_sliderJointData[i];
-		model.addSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
 	}
 
 	for (unsigned int i = 0; i < data.m_rigidBodyParticleBallJointData.size(); i++)
 	{
 		const SceneLoader::RigidBodyParticleBallJointData &jd = data.m_rigidBodyParticleBallJointData[i];
-		model.addRigidBodyParticleBallJoint(id_index[jd.m_bodyID[0]], jd.m_bodyID[1]);
+		model->addRigidBodyParticleBallJoint(id_index[jd.m_bodyID[0]], jd.m_bodyID[1]);
 	}
 
 	for (unsigned int i = 0; i < data.m_targetAngleMotorHingeJointData.size(); i++)
 	{
 		const SceneLoader::TargetAngleMotorHingeJointData &jd = data.m_targetAngleMotorHingeJointData[i];
-		model.addTargetAngleMotorHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addTargetAngleMotorHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
 		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
@@ -1575,7 +1251,7 @@ void readScene()
 	for (unsigned int i = 0; i < data.m_targetVelocityMotorHingeJointData.size(); i++)
 	{
 		const SceneLoader::TargetVelocityMotorHingeJointData &jd = data.m_targetVelocityMotorHingeJointData[i];
-		model.addTargetVelocityMotorHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addTargetVelocityMotorHingeJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
 		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
@@ -1584,7 +1260,7 @@ void readScene()
 	for (unsigned int i = 0; i < data.m_targetPositionMotorSliderJointData.size(); i++)
 	{
 		const SceneLoader::TargetPositionMotorSliderJointData &jd = data.m_targetPositionMotorSliderJointData[i];
-		model.addTargetPositionMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addTargetPositionMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
 		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
@@ -1593,55 +1269,11 @@ void readScene()
 	for (unsigned int i = 0; i < data.m_targetVelocityMotorSliderJointData.size(); i++)
 	{
 		const SceneLoader::TargetVelocityMotorSliderJointData &jd = data.m_targetVelocityMotorSliderJointData[i];
-		model.addTargetVelocityMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addTargetVelocityMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
 		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
 	}
-}
-
-void TW_CALL setTimeStep(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	TimeManager::getCurrent()->setTimeStepSize(val);
-}
-
-void TW_CALL getTimeStep(void *value, void *clientData)
-{
-	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
-}
-
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
-{
-	const short val = *(const short *)(value);
-	((TimeStepController*)clientData)->setVelocityUpdateMethod((unsigned int)val);
-}
-
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
-{
-	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
-}
-
-void TW_CALL setMaxIterations(const void *value, void *clientData)
-{
-	const unsigned int val = *(const unsigned int *)(value);
-	((TimeStepController*)clientData)->setMaxIterations(val);
-}
-
-void TW_CALL getMaxIterations(void *value, void *clientData)
-{
-	*(unsigned int *)(value) = ((TimeStepController*)clientData)->getMaxIterations();
-}
-
-void TW_CALL setMaxIterationsV(const void *value, void *clientData)
-{
-	const unsigned int val = *(const unsigned int *)(value);
-	((TimeStepController*)clientData)->setMaxIterationsV(val);
-}
-
-void TW_CALL getMaxIterationsV(void *value, void *clientData)
-{
-	*(unsigned int *)(value) = ((TimeStepController*)clientData)->getMaxIterationsV();
 }
 
 void TW_CALL setContactTolerance(const void *value, void *clientData)
@@ -1675,105 +1307,6 @@ void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clien
 void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData)
 {
 	*(Real *)(value) = ((SimulationModel*)clientData)->getContactStiffnessParticleRigidBody();
-}
-
-void TW_CALL setStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothStiffness(val);
-}
-
-void TW_CALL getStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothStiffness();
-}
-
-void TW_CALL setXXStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothXXStiffness(val);
-}
-
-void TW_CALL getXXStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXXStiffness();
-}
-
-void TW_CALL setYYStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothYYStiffness(val);
-}
-
-void TW_CALL getYYStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYYStiffness();
-}
-
-void TW_CALL setXYStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothXYStiffness(val);
-}
-
-void TW_CALL getXYStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYStiffness();
-}
-
-void TW_CALL setYXPoissonRatio(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothYXPoissonRatio(val);
-}
-
-void TW_CALL getYXPoissonRatio(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothYXPoissonRatio();
-}
-
-void TW_CALL setXYPoissonRatio(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothXYPoissonRatio(val);
-}
-
-void TW_CALL getXYPoissonRatio(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothXYPoissonRatio();
-}
-
-void TW_CALL setNormalizeStretch(const void *value, void *clientData)
-{
-	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setClothNormalizeStretch(val);
-}
-
-void TW_CALL getNormalizeStretch(void *value, void *clientData)
-{
-	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeStretch();
-}
-
-void TW_CALL setNormalizeShear(const void *value, void *clientData)
-{
-	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setClothNormalizeShear(val);
-}
-
-void TW_CALL getNormalizeShear(void *value, void *clientData)
-{
-	*(bool *)(value) = ((SimulationModel*)clientData)->getClothNormalizeShear();
-}
-
-void TW_CALL setBendingStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setClothBendingStiffness(val);
-}
-
-void TW_CALL getBendingStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getClothBendingStiffness();
 }
 
 void TW_CALL setBendingMethod(const void *value, void *clientData)

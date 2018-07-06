@@ -16,9 +16,6 @@ set(PBD_DEMOS
 	StiffRodsDemos
 )
 
-add_subdirectory(Simulation)
-add_subdirectory(Utils)
-
 if (NOT PBD_NO_DEMOS)
 	foreach (_demo_name ${PBD_DEMOS})
 		option(Build_${_demo_name} "Build ${_demo_name}"	ON)

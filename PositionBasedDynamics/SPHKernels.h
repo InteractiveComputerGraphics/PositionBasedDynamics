@@ -25,8 +25,8 @@ namespace PBD
 			static const Real pi = static_cast<Real>(M_PI);
 
 			const Real h3 = m_radius*m_radius*m_radius;
-			m_k = 8.0 / (pi*h3);
-			m_l = 48.0 / (pi*h3);
+			m_k = static_cast<Real>(8.0) / (pi*h3);
+			m_l = static_cast<Real>(48.0) / (pi*h3);
 			m_W_zero = W(Vector3r(0.0, 0.0, 0.0));
 		}
 
@@ -46,11 +46,11 @@ namespace PBD
 				{
 					const Real q2 = q*q;
 					const Real q3 = q2*q;
-					res = m_k * (6.0*q3-6.0*q2+1.0);
+					res = m_k * (static_cast<Real>(6.0)*q3- static_cast<Real>(6.0)*q2+ static_cast<Real>(1.0));
 				}
 				else
 				{
-					res = m_k * (2.0*pow(1.0-q,3));
+					res = m_k * (static_cast<Real>(2.0)*pow(static_cast<Real>(1.0)-q,3));
 				}
 			}
 			return res;
@@ -74,7 +74,7 @@ namespace PBD
 					}
 					else
 					{
-						const Real factor = 1.0 - q;
+						const Real factor = static_cast<Real>(1.0) - q;
 						res = m_l*(-factor*factor)*gradq;
 					}
 				}

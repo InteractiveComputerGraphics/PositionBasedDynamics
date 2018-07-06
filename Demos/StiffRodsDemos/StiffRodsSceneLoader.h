@@ -2,7 +2,7 @@
 #ifndef __STIFFRODSSCENELOADER_H__ 
 #define __STIFFRODSSCENELOADER_H__
 
-#include "Demos/Utils/SceneLoader.h"
+#include "Utils/SceneLoader.h"
 
 #include <set>
 #include <map>
@@ -12,6 +12,7 @@ namespace PBD
 	class StiffRodsSceneLoader : public Utilities::SceneLoader
 	{
 	public:
+		virtual ~StiffRodsSceneLoader() {}
 
 		struct AnimatorData{
 			unsigned int m_id;
@@ -21,8 +22,6 @@ namespace PBD
 			Real m_EndingTime;
 			unsigned int m_Type;
 			std::vector<Vector3r, Alloc_Vector3r> m_Data;
-		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
-			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct StretchBendingTwistingConstraintData
@@ -33,8 +32,6 @@ namespace PBD
 			Real m_TorsionModulus;
 			Vector3r m_Position;
 			Vector3r m_StiffnessModifier;
-		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
-			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct TreeModelData{
@@ -47,8 +44,6 @@ namespace PBD
 			std::set<unsigned int> m_StretchBendingTwistingConstraintIds;
 			std::set<unsigned int> m_StaticSegments;
 			unsigned int m_SolverType;
-		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
-			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 		
 		struct SkinningMeshData{
@@ -60,8 +55,6 @@ namespace PBD
 			std::vector<unsigned int> m_VertexIDs;
 			std::vector<std::vector<unsigned int>> m_BodyIDs;
 			std::vector<std::vector<Real>> m_SkinningWeights;
-		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
-			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct CompactTreeModelData{
@@ -84,8 +77,6 @@ namespace PBD
 			std::vector<Vector3r, Alloc_Vector3r> m_SBTConstraintPositions;
 			std::vector<std::vector<unsigned int>> m_SBTConstraintBodiesIndices;
 			std::vector<Vector3r, Alloc_Vector3r> m_SBTConstraintStiffnessModifier;
-		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
-			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		struct RodSceneData : public SceneLoader::SceneData{
@@ -94,9 +85,6 @@ namespace PBD
 			std::vector<TreeModelData> m_TreeModels;
 			std::vector<SkinningMeshData> m_SkinningMeshes;
 			std::vector<CompactTreeModelData> m_CompactTreeModels;
-			
-		public:	//BES: 23.8.2016 - make sure the class is aligned to 16 bytes even for x86 build
-			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
 
 		virtual void readStiffRodsScene(const std::string &fileName, SceneData &sceneData);

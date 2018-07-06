@@ -2,15 +2,18 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "GL/glut.h"
-#include "Demos/Simulation/TimeManager.h"
+#include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "PositionBasedElasticRodsModel.h"
 #include "PositionBasedElasticRodsConstraints.h"
 #include "PositionBasedElasticRodsTSC.h"
 #include <iostream>
-#include "Demos/Utils/Logger.h"
-#include "Demos/Utils/Timing.h"
-#include "Demos/Utils/FileSystem.h"
+#include "Utils/Logger.h"
+#include "Utils/Timing.h"
+#include "Utils/FileSystem.h"
+#include "Demos/Common/DemoBase.h"
+#include "Demos/Common/TweakBarParameters.h"
+#include "Simulation/Simulation.h"
 
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -20,21 +23,17 @@
 	#define new DEBUG_NEW 
 #endif
 
-INIT_TIMING
-INIT_LOGGING
-
 using namespace PBD;
 using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
+void initParameters();
 void timeStep ();
 void buildModel ();
 void createRod();
 void render ();
 void reset();
-void cleanup();
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end);
 
 void TW_CALL setRestDarbouxX(const void *value, void *clientData);
 void TW_CALL setRestDarbouxY(const void *value, void *clientData);
@@ -52,114 +51,88 @@ void TW_CALL setBendingAndTwistingStiffnessX(const void *value, void *clientData
 void TW_CALL setBendingAndTwistingStiffnessY(const void *value, void *clientData);
 void TW_CALL setBendingAndTwistingStiffnessZ(const void *value, void *clientData);
 
-void TW_CALL setTimeStep(const void *value, void *clientData);
-void TW_CALL getTimeStep(void *value, void *clientData);
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
 
-
-PositionBasedElasticRodsModel model;
+DemoBase *base;
 PositionBasedElasticRodsTSC sim;
 
 const int numberOfPoints = 32;
-bool doPause = false;
-std::vector<unsigned int> selectedParticles;
-Vector3r oldMousePos;
 
 // main 
 int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
-	FileSystem::makeDirs(logPath);
-	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
-	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
+	base = new DemoBase();
+	base->init(argc, argv, "Elastic rod demo");
+
+	PositionBasedElasticRodsModel *model = new PositionBasedElasticRodsModel();
+	model->init();
+	Simulation::getCurrent()->setModel(model);
+	PositionBasedElasticRodsTSC *tsc = new PositionBasedElasticRodsTSC();
+	tsc->init();
+	delete Simulation::getCurrent()->getTimeStep();
+	Simulation::getCurrent()->setTimeStep(tsc);
+
+	buildModel();
+
+	initParameters();
+
+	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
 
 	// OpenGL
-	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Elastic rod demo");
-	MiniGL::initLights ();
 	MiniGL::setClientIdleFunc (50, timeStep);		
 	MiniGL::setKeyFunc(0, 'r', reset);
-	MiniGL::setSelectionFunc(selection);
-
-	buildModel ();
-
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, -10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
+	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 5.0, 10.0), Vector3r (5.0, 0.0, 0.0));
 
-	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
-	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &sim, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation ");
+	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxX", TW_TYPE_REAL, setRestDarbouxX, getRestDarbouxX, model, " label='Rest Darboux X'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
+	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxY", TW_TYPE_REAL, setRestDarbouxY, getRestDarbouxY, model, " label='Rest Darboux Y'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
+	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxZ", TW_TYPE_REAL, setRestDarbouxZ, getRestDarbouxZ, model, " label='Rest Darboux Z'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
 
-	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxX", TW_TYPE_REAL, setRestDarbouxX, getRestDarbouxX, &model, " label='Rest Darboux X'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
-	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxY", TW_TYPE_REAL, setRestDarbouxY, getRestDarbouxY, &model, " label='Rest Darboux Y'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
-	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxZ", TW_TYPE_REAL, setRestDarbouxZ, getRestDarbouxZ, &model, " label='Rest Darboux Z'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
-
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingAndTwistingStiffnessX", TW_TYPE_REAL, setBendingAndTwistingStiffnessX, getBendingAndTwistingStiffnessX, &model, " label='Bending X stiffness'  min=0.01 max = 1.0 step=0.01 precision=2 group=BendTwist ");
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingAndTwistingStiffnessY", TW_TYPE_REAL, setBendingAndTwistingStiffnessY, getBendingAndTwistingStiffnessY, &model, " label='Bending Y stiffness'  min=0.01 max = 1.0 step=0.01 precision=2 group=BendTwist ");
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingAndTwistingStiffnessZ", TW_TYPE_REAL, setBendingAndTwistingStiffnessZ, getBendingAndTwistingStiffnessZ, &model, " label='Twisting stiffness'  min=0.01 max = 1.0 step=0.01 precision=2 group=BendTwist ");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingAndTwistingStiffnessX", TW_TYPE_REAL, setBendingAndTwistingStiffnessX, getBendingAndTwistingStiffnessX, model, " label='Bending X stiffness'  min=0.01 max = 1.0 step=0.01 precision=2 group=BendTwist ");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingAndTwistingStiffnessY", TW_TYPE_REAL, setBendingAndTwistingStiffnessY, getBendingAndTwistingStiffnessY, model, " label='Bending Y stiffness'  min=0.01 max = 1.0 step=0.01 precision=2 group=BendTwist ");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingAndTwistingStiffnessZ", TW_TYPE_REAL, setBendingAndTwistingStiffnessZ, getBendingAndTwistingStiffnessZ, model, " label='Twisting stiffness'  min=0.01 max = 1.0 step=0.01 precision=2 group=BendTwist ");
 
 	glutMainLoop ();	
 
-	cleanup ();
+	Utilities::Timing::printAverageTimes();
+	Utilities::Timing::printTimeSums();
 
-	Timing::printAverageTimes();
+	delete Simulation::getCurrent();
+	delete base;
+	delete model;
 	
 	return 0;
 }
 
-void cleanup()
+void initParameters()
 {
-	delete TimeManager::getCurrent();
+	TwRemoveAllVars(MiniGL::getTweakBar());
+	TweakBarParameters::cleanup();
+
+	MiniGL::initTweakBarParameters();
+
+	TweakBarParameters::createParameterGUI();
+	TweakBarParameters::createParameterObjectGUI(base);
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
 {
-	Timing::printAverageTimes();
-	Timing::reset();
+	Utilities::Timing::printAverageTimes();
+	Utilities::Timing::reset();
 
-	model.reset();
-	sim.reset();
-	TimeManager::getCurrent()->setTime(0.0);
-}
-
-void mouseMove(int x, int y)
-{
-	Vector3r mousePos;
-	MiniGL::unproject(x, y, mousePos);
-	const Vector3r diff = mousePos - oldMousePos;
-
-	TimeManager *tm = TimeManager::getCurrent();
-	const Real h = tm->getTimeStepSize();
-
-	ParticleData &pd = model.getParticles();
-	for (unsigned int j = 0; j < selectedParticles.size(); j++)
-	{
-		pd.getVelocity(selectedParticles[j]) += 5.0*diff / h;
-	}
-	oldMousePos = mousePos;
-}
-
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end)
-{
-	std::vector<unsigned int> hits;
-	selectedParticles.clear();
-	ParticleData &pd = model.getParticles();
-	Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
-	if (selectedParticles.size() > 0)
-		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
-	else
-		MiniGL::setMouseMoveFunc(-1, NULL);
-
-	MiniGL::unproject(end[0], end[1], oldMousePos);
+	Simulation::getCurrent()->reset();
+	base->getSelectedParticles().clear();
 }
 
 void buildModel()
 {
 	TimeManager::getCurrent()->setTimeStepSize(0.002f);
-	model.setBendingAndTwistingStiffness(Vector3r(0.5, 0.5, 0.5));
+	PositionBasedElasticRodsModel *model = (PositionBasedElasticRodsModel*)Simulation::getCurrent()->getModel();
+	model->setBendingAndTwistingStiffness(Vector3r(0.5, 0.5, 0.5));
 
 	sim.setDamping(0.001f);
 
@@ -168,46 +141,49 @@ void buildModel()
 
 void timeStep ()
 {
-	if (doPause)
+	const Real pauseAt = base->getValue<Real>(DemoBase::PAUSE_AT);
+	if ((pauseAt > 0.0) && (pauseAt < TimeManager::getCurrent()->getTime()))
+		base->setValue(DemoBase::PAUSE, true);
+
+	if (base->getValue<bool>(DemoBase::PAUSE))
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 8; i++)
-		sim.step(model);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const unsigned int numSteps = base->getValue<unsigned int>(DemoBase::NUM_STEPS_PER_RENDER);
+	for (unsigned int i = 0; i < numSteps; i++)
+	{
+		START_TIMING("SimStep");
+		Simulation::getCurrent()->getTimeStep()->step(*model);
+		STOP_TIMING_AVG;
+	}
 }
 
 
 void render()
 {
-	MiniGL::coordinateSystem();
+	base->render();
 
 	// Draw sim model
-
-	ParticleData &particles = model.getParticles();
-	ParticleData &ghostParticles = model.getGhostParticles();
-	SimulationModel::ConstraintVector &constraints = model.getConstraints();
+	PositionBasedElasticRodsModel *model = (PositionBasedElasticRodsModel*) Simulation::getCurrent()->getModel();
+	ParticleData &pd = model->getParticles();
+	ParticleData &ghostParticles = model->getGhostParticles();
+	SimulationModel::ConstraintVector &constraints = model->getConstraints();
 
 	float selectionColor[4] = { 0.8f, 0.0f, 0.0f, 1 };
 	float pointColor[4] = { 0.1f, 0.2f, 0.6f, 1 };
 	float ghostPointColor[4] = { 0.1f, 0.1f, 0.1f, 0.5f };
 	float edgeColor[4] = { 0.0f, 0.6f, 0.2f, 1 };
 
-	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
-	const ParticleData &pd = model.getParticles();
-	for (unsigned int j = 0; j < selectedParticles.size(); j++)
-	{
-		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.21f, red);
-	}
-
 	for (unsigned int i = 0; i < numberOfPoints; i++)
 	{
-		MiniGL::drawSphere(particles.getPosition(i), 0.2f, pointColor);
+		MiniGL::drawSphere(pd.getPosition(i), 0.07f, pointColor);
 	}
 	
 	for (unsigned int i = 0; i < numberOfPoints-1; i++)
 	{
-		MiniGL::drawSphere(ghostParticles.getPosition(i), 0.1f, ghostPointColor);
-		MiniGL::drawVector(particles.getPosition(i), particles.getPosition(i + 1), 0.2f, edgeColor);
+		MiniGL::drawSphere(ghostParticles.getPosition(i), 0.07f, ghostPointColor);
+		MiniGL::drawVector(pd.getPosition(i), pd.getPosition(i + 1), 0.2f, edgeColor);
 	}
 
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
@@ -218,20 +194,21 @@ void render()
 */
 void createRod()
 {
-	ParticleData &particles = model.getParticles();
-	ParticleData &ghostParticles = model.getGhostParticles();
-	SimulationModel::ConstraintVector &constraints = model.getConstraints();
+	PositionBasedElasticRodsModel *model = (PositionBasedElasticRodsModel*)Simulation::getCurrent()->getModel();
+	ParticleData &particles = model->getParticles();
+	ParticleData &ghostParticles = model->getGhostParticles();
+	SimulationModel::ConstraintVector &constraints = model->getConstraints();
 
 	//centreline points
 	for (unsigned int i = 0; i < numberOfPoints; i++)
 	{	
-		particles.addVertex(Vector3r((Real)i*1.0, 0.0, 0.0));
+		particles.addVertex(Vector3r(static_cast<Real>(0.25 * i), 0.0, 0.0));
 	}
 
 	//edge ghost points
 	for (unsigned int i = 0; i < numberOfPoints-1; i++)
 	{
-		ghostParticles.addVertex(Vector3r((Real)i*1.0 + 0.5, 1.0, 0.0));
+		ghostParticles.addVertex(Vector3r(static_cast<Real>(0.25 * i) + static_cast<Real>(0.125), static_cast<Real>(0.25), 0.0));
 	}
 
 	//lock two first particles and first ghost point
@@ -241,9 +218,9 @@ void createRod()
 
 	for (unsigned int i = 0; i < numberOfPoints - 1; i++)
 	{
-		model.addDistanceConstraint(i, i + 1);
-		model.addPerpendiculaBisectorConstraint(i, i + 1, i);
-		model.addGhostPointEdgeDistanceConstraint(i, i + 1, i);
+		model->addDistanceConstraint(i, i + 1);
+		model->addPerpendiculaBisectorConstraint(i, i + 1, i);
+		model->addGhostPointEdgeDistanceConstraint(i, i + 1, i);
 		
 		if (i < numberOfPoints - 2)
 		{	
@@ -256,7 +233,7 @@ void createRod()
 			int pC = i + 2;
 			int pD = i;
 			int pE = i + 1;
-			model.addDarbouxVectorConstraint(pA, pB, pC, pD, pE);
+			model->addDarbouxVectorConstraint(pA, pB, pC, pD, pE);
 		}
 	}
 }
@@ -321,27 +298,5 @@ void TW_CALL getBendingAndTwistingStiffnessY(void *value, void *clientData)
 void TW_CALL getBendingAndTwistingStiffnessZ(void *value, void *clientData)
 {
 	*(Real *)(value) = ((PositionBasedElasticRodsModel*)clientData)->getBendingAndTwistingStiffness()[2];
-}
-
-void TW_CALL setTimeStep(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	TimeManager::getCurrent()->setTimeStepSize(val);
-}
-
-void TW_CALL getTimeStep(void *value, void *clientData)
-{
-	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
-}
-
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
-{
-	const short val = *(const short *)(value);
-	((TimeStepController*)clientData)->setVelocityUpdateMethod((unsigned int)val);
-}
-
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
-{
-	*(short *)(value) = (short)((TimeStepController*)clientData)->getVelocityUpdateMethod();
 }
 

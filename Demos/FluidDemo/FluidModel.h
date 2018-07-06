@@ -1,9 +1,9 @@
 #ifndef __FluidModel_h__
 #define __FluidModel_h__
 
-#include "Demos/Simulation/ParticleData.h"
+#include "Simulation/ParticleData.h"
 #include <vector>
-#include "Demos/Simulation/NeighborhoodSearchSpatialHashing.h"
+#include "Simulation/NeighborhoodSearchSpatialHashing.h"
 
 namespace PBD 
 {	
@@ -44,7 +44,7 @@ namespace PBD
 			Real getDensity0() const { return m_density0; }
 			Real getSupportRadius() const { return m_supportRadius; }
 			Real getParticleRadius() const { return m_particleRadius; }
-			void setParticleRadius(Real val) { m_particleRadius = val; m_supportRadius = 4.0*m_particleRadius; }
+			void setParticleRadius(Real val) { m_particleRadius = val; m_supportRadius = static_cast<Real>(4.0)*m_particleRadius; }
 			NeighborhoodSearchSpatialHashing* getNeighborhoodSearch() { return m_neighborhoodSearch; }
 
 			Real getViscosity() const { return viscosity; }

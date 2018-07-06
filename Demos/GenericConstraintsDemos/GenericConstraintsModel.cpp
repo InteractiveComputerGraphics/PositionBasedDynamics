@@ -32,3 +32,30 @@ bool GenericConstraintsModel::addGenericIsometricBendingConstraint(const unsigne
 		m_constraints.push_back(c);
 	return res;
 }
+
+bool GenericConstraintsModel::addGenericHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+{
+	GenericHingeJoint *c = new GenericHingeJoint();
+	const bool res = c->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	if (res)
+		m_constraints.push_back(c);
+	return res;
+}
+
+bool GenericConstraintsModel::addGenericSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+{
+	GenericSliderJoint *c = new GenericSliderJoint();
+	const bool res = c->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	if (res)
+		m_constraints.push_back(c);
+	return res;
+}
+
+bool GenericConstraintsModel::addGenericBallJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos)
+{
+	GenericBallJoint *c = new GenericBallJoint();
+	const bool res = c->initConstraint(*this, rbIndex1, rbIndex2, pos);
+	if (res)
+		m_constraints.push_back(c);
+	return res;
+}

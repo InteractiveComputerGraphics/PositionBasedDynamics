@@ -1,3 +1,6 @@
+	- fixed single precision build
+	- cleanup code
+	- using GenericParameters
 	- Crispin Deul added the implementation of his paper Deul, Kugelstadt, Weiler, Bender, "Direct Position-Based Solver for Stiff Rods", Computer Graphics Forum 2018 and a corresponding demo
 
 1.6.0

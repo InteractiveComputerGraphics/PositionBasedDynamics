@@ -1,7 +1,8 @@
 #include "PositionBasedElasticRodsTSC.h"
 #include "PositionBasedElasticRodsModel.h"
-#include "Demos/Simulation/TimeManager.h"
+#include "Simulation/TimeManager.h"
 #include "PositionBasedDynamics/TimeIntegration.h"
+#include "Simulation/Simulation.h"
 
 
 using namespace PBD;
@@ -17,10 +18,11 @@ PositionBasedElasticRodsTSC::~PositionBasedElasticRodsTSC()
 {
 }
 
-void PositionBasedElasticRodsTSC::step(PositionBasedElasticRodsModel &model)
+void PositionBasedElasticRodsTSC::step(SimulationModel &model)
 {
  	TimeManager *tm = TimeManager::getCurrent ();
  	const Real h = tm->getTimeStepSize();
+	PositionBasedElasticRodsModel &ermodel = (PositionBasedElasticRodsModel&)model;
  
 	//////////////////////////////////////////////////////////////////////////
 	// rigid body model
@@ -28,7 +30,7 @@ void PositionBasedElasticRodsTSC::step(PositionBasedElasticRodsModel &model)
  	clearAccelerations(model);
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	ParticleData &pd = model.getParticles();
-	ParticleData &pg = model.getGhostParticles();
+	ParticleData &pg = ermodel.getGhostParticles();
 
 	const int numBodies = (int)rb.size();
 	#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
@@ -121,20 +123,23 @@ void PositionBasedElasticRodsTSC::step(PositionBasedElasticRodsModel &model)
 	tm->setTime (tm->getTime () + h);
 }
 
-void PositionBasedElasticRodsTSC::clearAccelerations(PositionBasedElasticRodsModel &model)
+void PositionBasedElasticRodsTSC::clearAccelerations(SimulationModel &model)
 {
 	//////////////////////////////////////////////////////////////////////////
 	// rigid body model
 	//////////////////////////////////////////////////////////////////////////
 
+	PositionBasedElasticRodsModel &ermodel = (PositionBasedElasticRodsModel&)model;
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	Simulation *sim = Simulation::getCurrent();
+	const Vector3r grav(sim->getVecValue<Real>(Simulation::GRAVITATION));
  	for (size_t i=0; i < rb.size(); i++)
  	{
  		// Clear accelerations of dynamic particles
  		if (rb[i]->getMass() != 0.0)
  		{
 			Vector3r &a = rb[i]->getAcceleration();
- 			a = m_gravity;
+ 			a = grav;
  		}
  	}
 
@@ -150,11 +155,11 @@ void PositionBasedElasticRodsTSC::clearAccelerations(PositionBasedElasticRodsMod
 		if (pd.getMass(i) != 0.0)
 		{
 			Vector3r &a = pd.getAcceleration(i);
-			a = m_gravity;
+			a = grav;
 		}
 	}
 
-	ParticleData &pg = model.getGhostParticles();
+	ParticleData &pg = ermodel.getGhostParticles();
 	for (unsigned int i = 0; i <  pg.size(); i++)
 	{
 		// Clear accelerations of dynamic particles
