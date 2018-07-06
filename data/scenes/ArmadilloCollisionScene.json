@@ -6,7 +6,7 @@
 		"maxIter" : 5,
 		"maxIterVel" : 5,
 		"velocityUpdateMethod" : 0,
-		"contactTolerance": 0.05,
+		"contactTolerance": 0.0,
 		"tetModelSimulationMethod": 2,
 		"triangleModelSimulationMethod": 2,
 		"triangleModelBendingMethod": 2,
@@ -42,26 +42,71 @@
 			"nodeFile": "../models/armadillo_4k.node",
 			"eleFile": "../models/armadillo_4k.ele",
 			"visFile": "../models/armadillo.obj",
-			"translation": [0,8,0],
-			"rotationAxis": [1, 0, 0],
+			"resolutionSDF": [20,20,20],
+			"translation": [0,10,0],
+			"rotationAxis": [0, 1, 0],
 			"rotationAngle": 1.57,
-			"scale": [2, 2, 2],
+			"scale": [2,2,2],
 			"staticParticles": [],
 			"restitution" : 0.1,
-			"friction" : 0.1,
+			"friction" : 0.3,
 			"collisionObjectType": 5,
 			"collisionObjectFileName": "",
             "collisionObjectScale": [
-                1,
-                1,
-                1
+                2,
+                2,
+                2
             ],
 			"testMesh": 1
-		}
+		},
+		{
+			"id": 1,
+			"nodeFile": "../models/armadillo_4k.node",
+			"eleFile": "../models/armadillo_4k.ele",
+			"visFile": "../models/armadillo.obj",
+			"resolutionSDF": [20,20,20],
+			"translation": [0,4,0],
+			"rotationAxis": [0, 0, 1],
+			"rotationAngle": 0.1,
+			"scale": [2,2,2],
+			"staticParticles": [],
+			"restitution" : 0.0,
+			"friction" : 0.3,
+			"collisionObjectType": 5,
+			"collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+			"testMesh": 1
+		},
+		{
+			"id": 1,
+			"nodeFile": "../models/armadillo_4k.node",
+			"eleFile": "../models/armadillo_4k.ele",
+			"visFile": "../models/armadillo.obj",
+			"resolutionSDF": [20,20,20],
+			"translation": [0,18,0],
+			"rotationAxis": [0, 0, 1],
+			"rotationAngle": 0.5,
+			"scale": [2,2,2],
+			"staticParticles": [],
+			"restitution" : 0.0,
+			"friction" : 0.3,
+			"collisionObjectType": 5,
+			"collisionObjectFileName": "",
+            "collisionObjectScale": [
+                2,
+                2,
+                2
+            ],
+			"testMesh": 1
+		}		
 	],
 	"RigidBodies": [
 		{
-			"id": 1,
+			"id": 2,
 			"geometryFile": "../models/cube.obj",
 			"isDynamic": 0, 
 			"density": 500, 
@@ -74,53 +119,6 @@
 			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
 			"collisionObjectType": 2,
 			"collisionObjectScale": [100, 1, 100]	
-		}, 
-		{
-			"id": 2,
-			"geometryFile": "../models/sphere.obj",
-			"isDynamic": 1, 
-			"density": 200, 
-			"translation": [0.5,12.8,0],
-			"rotationAxis": [1, 0, 0],
-			"rotationAngle": 0.0,
-			"scale": [1.5, 1.5, 1.5],
-			"velocity": [0,0,0],
-			"restitution" : 0.6,
-			"friction" : 0.2,
-			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
-			"collisionObjectType": 1,
-			"collisionObjectScale": [1.5, 1.5, 1.5]
-		}, 
-		{
-			"id": 3,
-			"geometryFile": "../models/cylinder.obj",
-			"isDynamic": 1, 
-			"density": 200, 
-			"translation": [-0.5, 15, 3],
-			"rotationAxis": [0, 0, 1],
-			"rotationAngle": 1.5,
-			"scale": [0.5, 3, 0.5],
-			"angularVelocity": [1,0,0],
-			"restitution" : 0.6,
-			"friction" : 0.2,
-			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
-			"collisionObjectType": 3,
-			"collisionObjectScale": [0.5, 3, 0.5]
-		},
-		{
-			"id": 4,
-			"geometryFile": "../models/torus.obj",
-			"isDynamic": 1, 
-			"density": 200, 
-			"translation": [0.0,4.5,1.0],
-			"rotationAxis": [0, 0, 1],
-			"rotationAngle": 0.0,
-			"scale": [2.5, 2.5, 2.5],
-			"restitution" : 0.6,
-			"friction" : 0.2,
-			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
-			"collisionObjectType": 4,
-			"collisionObjectScale": [2.5, 1.25, 2.5]	
 		}
 	]
 }
