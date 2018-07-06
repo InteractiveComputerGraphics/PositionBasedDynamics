@@ -623,10 +623,10 @@ namespace PBD
 		computeMatrixG(q[i], G);
 		// Bring in correct order
 		Eigen::Matrix<Real, dim, 4> jh;
-		jh.block<dim, 1>(0, 0) = jacobian4[3];
-		jh.block<dim, 1>(0, 1) = jacobian4[0];
-		jh.block<dim, 1>(0, 2) = jacobian4[1];
-		jh.block<dim, 1>(0, 3) = jacobian4[2];
+		jh.template block<dim, 1>(0, 0) = jacobian4[3];
+		jh.template block<dim, 1>(0, 1) = jacobian4[0];
+		jh.template block<dim, 1>(0, 2) = jacobian4[1];
+		jh.template block<dim, 1>(0, 3) = jacobian4[2];
 		jacobian.template block<dim, 3>(0, 3) = jh * G;
 	}
 

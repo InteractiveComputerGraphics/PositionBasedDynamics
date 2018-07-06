@@ -139,7 +139,7 @@ namespace PBD
 			, std::vector<std::vector<ContactData> > &contacts_mt
 		);
 
-		bool DistanceFieldCollisionDetection::findRefTetAt(const ParticleData &pd, TetModel *tm, const DistanceFieldCollisionDetection::DistanceFieldCollisionObject *co, const Vector3r &X, 
+		bool findRefTetAt(const ParticleData &pd, TetModel *tm, const DistanceFieldCollisionDetection::DistanceFieldCollisionObject *co, const Vector3r &X, 
 			unsigned int &tetIndex, Vector3r &barycentricCoordinates);
 
 
