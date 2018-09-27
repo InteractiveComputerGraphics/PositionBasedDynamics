@@ -31,7 +31,7 @@ ExternalProject_Add(
    GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
    GIT_TAG "573c2f51f433c74de832454272e47f590140e80b"
    INSTALL_DIR ${ExternalInstallDir}/Discregrid
-   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
+   CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
 ) 
 
 ## GenericParameters
@@ -41,7 +41,7 @@ ExternalProject_Add(
    GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/GenericParameters.git
    GIT_TAG "1ec904bf8555e78ae0d8ba2f9f9a395371c5d4eb"
    INSTALL_DIR ${ExternalInstallDir}/GenericParameters
-   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/GenericParameters -DGENERICPARAMETERS_NO_TESTS:BOOL=1		
+   CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/GenericParameters -DGENERICPARAMETERS_NO_TESTS:BOOL=1		
 ) 
 
 install(DIRECTORY ./Common
