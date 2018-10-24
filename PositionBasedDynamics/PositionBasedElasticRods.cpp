@@ -31,8 +31,17 @@ bool PositionBasedCosseratRods::solve_StretchShearConstraint(
 	d3[2] = q0.w() * q0.w() - q0.x() * q0.x() - q0.y() * q0.y() + q0.z() * q0.z();
 
 	Vector3r gamma = (p1 - p0) / restLength - d3;
-	gamma /= (invMass1 + invMass0) / restLength + invMassq0 * static_cast<Real>(4.0)*restLength + static_cast<Real>(1.0e-6);
-	for (int i = 0; i<3; i++) gamma[i] *= stretchingAndShearingKs[i];
+	gamma /= (invMass1 + invMass0) / restLength + invMassq0 * static_cast<Real>(4.0)*restLength + eps;
+
+	if (std::abs(stretchingAndShearingKs[0] - stretchingAndShearingKs[1]) < eps && std::abs(stretchingAndShearingKs[0] - stretchingAndShearingKs[2]) < eps)	//all Ks are approx. equal
+		for (int i = 0; i<3; i++) gamma[i] *= stretchingAndShearingKs[i];
+	else	//diffenent stretching and shearing Ks. Transform diag(Ks[0], Ks[1], Ks[2]) into world space using Ks_w = R(q0) * diag(Ks[0], Ks[1], Ks[2]) * R^T(q0) and multiply it with gamma
+	{
+		Matrix3r R = q0.toRotationMatrix();
+		gamma = (R.transpose() * gamma).eval();
+		for (int i = 0; i<3; i++) gamma[i] *= stretchingAndShearingKs[i];
+		gamma = (R * gamma).eval();
+	}
 
 	corr0 = invMass0 * gamma;
 	corr1 = -invMass1 * gamma;
