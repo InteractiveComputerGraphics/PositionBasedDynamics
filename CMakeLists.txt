@@ -29,7 +29,7 @@ ExternalProject_Add(
    Ext_Discregrid
    PREFIX "${CMAKE_SOURCE_DIR}/extern/Discregrid"
    GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
-   GIT_TAG "573c2f51f433c74de832454272e47f590140e80b"
+   GIT_TAG "c0fb5aeac4c8a83e9f37c720315f13a834409b81"
    INSTALL_DIR ${ExternalInstallDir}/Discregrid
    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
 ) 
