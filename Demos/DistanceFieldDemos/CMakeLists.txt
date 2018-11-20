@@ -18,7 +18,7 @@ endif()
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+include_directories(${PROJECT_BINARY_DIR}/GenericParameters/include)
 set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
 
 
@@ -37,9 +37,9 @@ add_executable(ClothCollisionDemo
 )
 
 set_target_properties(ClothCollisionDemo PROPERTIES FOLDER "Demos")
-set_target_properties(ClothCollisionDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-set_target_properties(ClothCollisionDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
-set_target_properties(ClothCollisionDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+set_target_properties(ClothCollisionDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
+set_target_properties(ClothCollisionDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
+set_target_properties(ClothCollisionDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
 add_dependencies(ClothCollisionDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(ClothCollisionDemo ${SIMULATION_LINK_LIBRARIES})
 
@@ -59,9 +59,9 @@ add_executable(DeformableCollisionDemo
 )
 
 set_target_properties(DeformableCollisionDemo PROPERTIES FOLDER "Demos")
-set_target_properties(DeformableCollisionDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-set_target_properties(DeformableCollisionDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
-set_target_properties(DeformableCollisionDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+set_target_properties(DeformableCollisionDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
+set_target_properties(DeformableCollisionDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
+set_target_properties(DeformableCollisionDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
 add_dependencies(DeformableCollisionDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(DeformableCollisionDemo ${SIMULATION_LINK_LIBRARIES})
 
@@ -81,9 +81,9 @@ add_executable(RigidBodyCollisionDemo
 )
 
 set_target_properties(RigidBodyCollisionDemo PROPERTIES FOLDER "Demos")
-set_target_properties(RigidBodyCollisionDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-set_target_properties(RigidBodyCollisionDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
-set_target_properties(RigidBodyCollisionDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+set_target_properties(RigidBodyCollisionDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
+set_target_properties(RigidBodyCollisionDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
+set_target_properties(RigidBodyCollisionDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
 add_dependencies(RigidBodyCollisionDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(RigidBodyCollisionDemo ${SIMULATION_LINK_LIBRARIES})
 

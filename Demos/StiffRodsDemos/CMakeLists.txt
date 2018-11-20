@@ -18,7 +18,7 @@ endif()
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+include_directories(${PROJECT_BINARY_DIR}/GenericParameters/include)
 
 add_executable(StretchBendingTwistingDemo
 	  StretchBendingTwistingDemo.cpp
@@ -35,21 +35,21 @@ add_executable(StretchBendingTwistingDemo
 )
 
 set_target_properties(StretchBendingTwistingDemo PROPERTIES FOLDER "Demos")
-set_target_properties(StretchBendingTwistingDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-set_target_properties(StretchBendingTwistingDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
-set_target_properties(StretchBendingTwistingDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+set_target_properties(StretchBendingTwistingDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
+set_target_properties(StretchBendingTwistingDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
+set_target_properties(StretchBendingTwistingDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
 add_dependencies(StretchBendingTwistingDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(StretchBendingTwistingDemo ${SIMULATION_LINK_LIBRARIES})
 
 ############################################################
 # Discregrid
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/Discregrid/include)
+include_directories(${PROJECT_BINARY_DIR}/Discregrid/include)
 set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_Discregrid)
 set(SIMULATION_LINK_LIBRARIES ${SIMULATION_LINK_LIBRARIES} 
 	optimized Discregrid 
 	debug Discregrid_d)
-link_directories(${PROJECT_PATH}/extern/install/Discregrid/lib)
+link_directories(${PROJECT_BINARY_DIR}/Discregrid/lib)
 
 add_executable(DirectPositionBasedSolverForStiffRodsDemo
 	  DirectPositionBasedSolverForStiffRodsDemo.cpp
@@ -69,9 +69,9 @@ add_executable(DirectPositionBasedSolverForStiffRodsDemo
 )
 
 set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES FOLDER "Demos")
-set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
-set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
+set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
+set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
 add_dependencies(DirectPositionBasedSolverForStiffRodsDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(DirectPositionBasedSolverForStiffRodsDemo ${SIMULATION_LINK_LIBRARIES})
 

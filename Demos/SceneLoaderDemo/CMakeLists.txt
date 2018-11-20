@@ -18,17 +18,17 @@ endif()
 ############################################################
 # Discregrid
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/Discregrid/include)
+include_directories(${PROJECT_BINARY_DIR}/Discregrid/include)
 set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_Discregrid)
 set(SIMULATION_LINK_LIBRARIES ${SIMULATION_LINK_LIBRARIES} 
 	optimized Discregrid 
 	debug Discregrid_d)
-link_directories(${PROJECT_PATH}/extern/install/Discregrid/lib)
+link_directories(${PROJECT_BINARY_DIR}/Discregrid/lib)
 
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+include_directories(${PROJECT_BINARY_DIR}/GenericParameters/include)
 set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
 
 add_executable(SceneLoaderDemo
@@ -46,9 +46,9 @@ add_executable(SceneLoaderDemo
 )
 
 set_target_properties(SceneLoaderDemo PROPERTIES FOLDER "Demos")
-set_target_properties(SceneLoaderDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-set_target_properties(SceneLoaderDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
-set_target_properties(SceneLoaderDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+set_target_properties(SceneLoaderDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
+set_target_properties(SceneLoaderDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
+set_target_properties(SceneLoaderDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
 add_dependencies(SceneLoaderDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(SceneLoaderDemo ${SIMULATION_LINK_LIBRARIES})
 

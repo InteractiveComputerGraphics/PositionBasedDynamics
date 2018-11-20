@@ -1,5 +1,4 @@
 include(Visualization/CMakeLists.txt)
-add_definitions(-DPBD_DATA_PATH="../data")
 
 # search all demos
 set(PBD_DEMOS 

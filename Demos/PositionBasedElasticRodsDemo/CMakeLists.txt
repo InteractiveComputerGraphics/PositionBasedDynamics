@@ -18,7 +18,7 @@ endif()
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${PROJECT_PATH}/extern/install/GenericParameters/include)
+include_directories(${PROJECT_BINARY_DIR}/GenericParameters/include)
 set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
 
 add_executable(ElasticRodDemo
@@ -49,9 +49,9 @@ include_directories(${PROJECT_PATH}/extern/freeglut/include)
 include_directories(${PROJECT_PATH}/extern/glew/include)
 
 set_target_properties(ElasticRodDemo PROPERTIES FOLDER "Demos")
-set_target_properties(ElasticRodDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-set_target_properties(ElasticRodDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
-set_target_properties(ElasticRodDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+set_target_properties(ElasticRodDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
+set_target_properties(ElasticRodDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
+set_target_properties(ElasticRodDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
 add_dependencies(ElasticRodDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(ElasticRodDemo ${SIMULATION_LINK_LIBRARIES})
 
