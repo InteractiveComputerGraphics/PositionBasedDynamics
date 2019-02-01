@@ -3,7 +3,7 @@
 
 #include "Common/Common.h"
 #include <Eigen/Geometry> 
-#include "Demos/Visualization/Shader.h"
+#include "Shader.h"
 #include "extern/AntTweakBar/include/AntTweakBar.h"
 #include <vector>
 
