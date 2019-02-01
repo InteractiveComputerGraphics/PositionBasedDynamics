@@ -28,6 +28,3 @@ install(DIRECTORY ./Common
 DESTINATION include/Demos
 FILES_MATCHING PATTERN "*.h")
 
-install(DIRECTORY ./Visualization
-DESTINATION include/Demos
-FILES_MATCHING PATTERN "*.h")

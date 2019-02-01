@@ -68,3 +68,7 @@ install(DIRECTORY ./data
 DESTINATION include
 FILES_MATCHING PATTERN "*.glsl")
 
+install(DIRECTORY ./Demos/Visualization
+DESTINATION include
+FILES_MATCHING PATTERN "*.h")
+
