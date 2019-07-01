@@ -1,3 +1,4 @@
+	- small optimizations
 	- fixed single precision build
 	- cleanup code
 	- using GenericParameters

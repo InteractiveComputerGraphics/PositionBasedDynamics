@@ -203,9 +203,7 @@ namespace PBD
 			{
 				// apply initial rotation
 				VertexData &vd = m_geometry.getVertexDataLocal();
-				for (unsigned int i = 0; i < vd.size(); i++)
-					vd.getPosition(i) = m_rot * vd.getPosition(i) + m_x0;
-
+				
 				Utilities::VolumeIntegration vi(m_geometry.getVertexDataLocal().size(), m_geometry.getMesh().numFaces(), &m_geometry.getVertexDataLocal().getPosition(0), m_geometry.getMesh().getFaces().data());
 				vi.compute_inertia_tensor(density);
 
@@ -220,16 +218,23 @@ namespace PBD
 				if (R.determinant() < 0.0)
 					R = -R;
 
+				for (unsigned int i = 0; i < vd.size(); i++)
+					vd.getPosition(i) = m_rot * vd.getPosition(i) + m_x0;
+
+				Vector3r x_MAT = vi.getCenterOfMass();
+				R = m_rot * R;
+				x_MAT = m_rot * x_MAT + m_x0;
+
 				// rotate vertices back				
 				for (unsigned int i = 0; i < vd.size(); i++)
-					vd.getPosition(i) = R.transpose() * (vd.getPosition(i) - vi.getCenterOfMass());
+					vd.getPosition(i) = R.transpose() * (vd.getPosition(i) - x_MAT);
 
 				// set rotation
 				Quaternionr qR = Quaternionr(R);
 				qR.normalize();
 				m_q_mat = qR;
 				m_q_initial = m_q0;
-				m_x0_mat = m_x0 - vi.getCenterOfMass();
+				m_x0_mat = m_x0 - x_MAT;
 
 				m_q0 = qR;
 				m_q = m_q0;
@@ -238,7 +243,7 @@ namespace PBD
 				rotationUpdated();
 
 				// set translation
-				m_x0 = vi.getCenterOfMass();
+				m_x0 = x_MAT;
 				m_x = m_x0;
 				m_lastX = m_x0;
 				m_oldX = m_x0;

@@ -120,7 +120,7 @@ void TimeStepController::step(SimulationModel &model)
 	START_TIMING("position constraints projection");
 	positionConstraintProjection(model);
 	STOP_TIMING_AVG;
- 
+
 	#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
 	{
 		// Update velocities	
@@ -138,7 +138,8 @@ void TimeStepController::step(SimulationModel &model)
 				TimeIntegration::angularVelocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getLastRotation(), rb[i]->getAngularVelocity());
 			}
 			// update geometry
-			rb[i]->getGeometry().updateMeshTransformation(rb[i]->getPosition(), rb[i]->getRotationMatrix());
+			if (rb[i]->getMass() != 0.0)
+				rb[i]->getGeometry().updateMeshTransformation(rb[i]->getPosition(), rb[i]->getRotationMatrix());
 		}
 
 		// Update velocities	
