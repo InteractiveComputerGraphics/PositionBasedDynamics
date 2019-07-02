@@ -140,7 +140,8 @@ void VolumeIntegration::face_integrals(unsigned int f)
 
   w = m_weights[f];
   n = m_face_normals[f];
-  k1 = 1 / n[C]; k2 = k1 * k1; k3 = k2 * k1; k4 = k3 * k1;
+  k1 = (n[C] == 0) ? 0 : 1 / n[C];
+  k2 = k1 * k1; k3 = k2 * k1; k4 = k3 * k1;
 
   Fa = k1 * Pa;
   Fb = k1 * Pb;

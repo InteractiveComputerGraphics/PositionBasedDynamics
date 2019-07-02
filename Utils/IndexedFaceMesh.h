@@ -187,6 +187,9 @@ namespace Utilities
 
 				m_normals[i] = v1.cross(v2);
 				m_normals[i].normalize();
+				// fix normals of degenerate triangles that can become zero vectors
+				if (m_normals[i].squaredNorm() < 1e-6f)
+					m_normals[i] = Vector3r::UnitX();
 			}
 		}
 	}
