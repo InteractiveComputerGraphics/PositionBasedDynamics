@@ -25,6 +25,7 @@ namespace PBD
 			Vector3r m_x0;
 			/** center of mass velocity */
 			Vector3r m_v;
+			Vector3r m_v0;
 			/** acceleration (by external forces) */
 			Vector3r m_a;
 
@@ -57,6 +58,7 @@ namespace PBD
 			Matrix3r m_rot;
 			/** Angular velocity, defines rotation axis and velocity (magnitude of the vector) */
 			Vector3r m_omega;
+			Vector3r m_omega0;
 			/** external torque */
 			Vector3r m_torque;
 
@@ -152,8 +154,8 @@ namespace PBD
 				getOldRotation() = getRotation0();
 				getLastRotation() = getRotation0();
 
-				getVelocity().setZero();
-				getAngularVelocity().setZero();
+				getVelocity() = getVelocity0();
+				getAngularVelocity() = getAngularVelocity0();
 
 				getAcceleration().setZero();
 				getTorque().setZero();
@@ -369,6 +371,21 @@ namespace PBD
 				m_v = value;
 			}			
 
+			FORCE_INLINE Vector3r &getVelocity0()
+			{
+				return m_v0;
+			}
+
+			FORCE_INLINE const Vector3r &getVelocity0() const
+			{
+				return m_v0;
+			}
+
+			FORCE_INLINE void setVelocity0(const Vector3r &value)
+			{
+				m_v0 = value;
+			}
+
 			FORCE_INLINE Vector3r &getAcceleration()
 			{
 				return m_a;
@@ -533,6 +550,21 @@ namespace PBD
 			FORCE_INLINE void setAngularVelocity(const Vector3r &value)
 			{
 				m_omega = value;
+			}
+
+			FORCE_INLINE Vector3r &getAngularVelocity0()
+			{
+				return m_omega0;
+			}
+
+			FORCE_INLINE const Vector3r &getAngularVelocity0() const
+			{
+				return m_omega0;
+			}
+
+			FORCE_INLINE void setAngularVelocity0(const Vector3r &value)
+			{
+				m_omega0 = value;
 			}
 
 			FORCE_INLINE Vector3r &getTorque()
