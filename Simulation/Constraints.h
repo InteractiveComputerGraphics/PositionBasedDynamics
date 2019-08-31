@@ -211,11 +211,27 @@ namespace PBD
 		Eigen::Matrix<Real, 3, 4> m_jointInfo;
 		Real m_restLength;
 		Real m_stiffness;
+		Real m_lambda;
 
 		RigidBodySpring() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2, const Real stiffness);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
+	};
+
+	class DistanceJoint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Eigen::Matrix<Real, 3, 4> m_jointInfo;
+		Real m_restLength;
+
+		DistanceJoint() : Constraint(2) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};

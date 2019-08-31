@@ -121,6 +121,12 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 			readRigidBodySprings(m_json, "RigidBodySprings", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
+		// read DistanceJoints
+		//////////////////////////////////////////////////////////////////////////
+		if (m_json.find("DistanceJoints") != m_json.end())
+			readDistanceJoints(m_json, "DistanceJoints", sceneData);
+
+		//////////////////////////////////////////////////////////////////////////
 		// read TargetAngleMotorHingeJoint
 		//////////////////////////////////////////////////////////////////////////
 		if (m_json.find("TargetAngleMotorHingeJoints") != m_json.end())
@@ -725,6 +731,22 @@ void SceneLoader::readRigidBodySprings(const nlohmann::json &j, const std::strin
 	}
 }
 
+void SceneLoader::readDistanceJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
+{
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
+	{
+		DistanceJointData jd;
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "position1", jd.m_position1) &&
+			readVector(joint, "position2", jd.m_position2))
+		{
+			sceneData.m_distanceJointData.push_back(jd);
+		}
+	}
+}
 
 template <>
 bool SceneLoader::readValue<bool>(const nlohmann::json &j, const std::string &key, bool &v)

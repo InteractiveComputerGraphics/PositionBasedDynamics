@@ -19,6 +19,7 @@ int HingeJoint::TYPE_ID = IDFactory::getId();
 int UniversalJoint::TYPE_ID = IDFactory::getId();
 int RigidBodyParticleBallJoint::TYPE_ID = IDFactory::getId();
 int RigidBodySpring::TYPE_ID = IDFactory::getId();
+int DistanceJoint::TYPE_ID = IDFactory::getId();
 int DistanceConstraint::TYPE_ID = IDFactory::getId();
 int DihedralConstraint::TYPE_ID = IDFactory::getId();
 int IsometricBendingConstraint::TYPE_ID = IDFactory::getId();
@@ -896,13 +897,14 @@ bool RigidBodyParticleBallJoint::solvePositionConstraint(SimulationModel &model,
 bool RigidBodySpring::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2, const Real stiffness)
 {
 	m_stiffness = stiffness;
+	m_lambda = 0.0;
 	m_restLength = (pos1 - pos2).norm();
 	m_bodies[0] = rbIndex1;
 	m_bodies[1] = rbIndex2;
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::init_Spring(
+	return PositionBasedRigidBodyDynamics::init_DistanceJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -917,7 +919,7 @@ bool RigidBodySpring::updateConstraint(SimulationModel &model)
 	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
-	return PositionBasedRigidBodyDynamics::update_Spring(
+	return PositionBasedRigidBodyDynamics::update_DistanceJoint(
 		rb1.getPosition(),
 		rb1.getRotation(),
 		rb2.getPosition(),
@@ -932,9 +934,14 @@ bool RigidBodySpring::solvePositionConstraint(SimulationModel &model, const unsi
 	RigidBody &rb1 = *rb[m_bodies[0]];
 	RigidBody &rb2 = *rb[m_bodies[1]];
 
+	const Real dt = TimeManager::getCurrent()->getTimeStepSize();
+
+	if (iter == 0)
+		m_lambda = 0.0;
+
 	Vector3r corr_x1, corr_x2;
 	Quaternionr corr_q1, corr_q2;
-	const bool res = PositionBasedRigidBodyDynamics::solve_Spring(
+	const bool res = PositionBasedRigidBodyDynamics::solve_DistanceJoint(
 		rb1.getInvMass(),
 		rb1.getPosition(),
 		rb1.getInertiaTensorInverseW(),
@@ -945,7 +952,9 @@ bool RigidBodySpring::solvePositionConstraint(SimulationModel &model, const unsi
 		rb2.getRotation(),
 		m_stiffness, 
 		m_restLength,
+		dt,
 		m_jointInfo,
+		m_lambda,
 		corr_x1,
 		corr_q1,
 		corr_x2,
@@ -971,6 +980,90 @@ bool RigidBodySpring::solvePositionConstraint(SimulationModel &model, const unsi
 	return res;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// DistanceJoint
+//////////////////////////////////////////////////////////////////////////
+bool DistanceJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2)
+{
+	m_restLength = (pos1 - pos2).norm();
+	m_bodies[0] = rbIndex1;
+	m_bodies[1] = rbIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::init_DistanceJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		pos1,
+		pos2,
+		m_jointInfo);
+}
+
+bool DistanceJoint::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::update_DistanceJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		m_jointInfo);
+}
+
+bool DistanceJoint::solvePositionConstraint(SimulationModel &model, const unsigned int iter)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	Real lambda = 0.0;
+
+	Vector3r corr_x1, corr_x2;
+	Quaternionr corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solve_DistanceJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		0.0,
+		m_restLength,
+		0.0,
+		m_jointInfo,
+		lambda,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
+		}
+	}
+	return res;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // DistanceConstraint

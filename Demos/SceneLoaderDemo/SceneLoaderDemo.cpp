@@ -1075,6 +1075,12 @@ void readScene(const bool readFile)
 		const SceneLoader::RigidBodySpringData &jd = data.m_rigidBodySpringData[i];
 		model->addRigidBodySpring(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position1, jd.m_position2, jd.m_stiffness);
 	}
+
+	for (unsigned int i = 0; i < data.m_distanceJointData.size(); i++)
+	{
+		const SceneLoader::DistanceJointData &jd = data.m_distanceJointData[i];
+		model->addDistanceJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position1, jd.m_position2);
+	}
 }
 
 void TW_CALL setContactTolerance(const void *value, void *clientData)

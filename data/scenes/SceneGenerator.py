@@ -7,11 +7,12 @@ import math
 def addParameters(scene, h=0.005, maxIter=5, maxIterVel=5, velocityUpdateMethod=0, contactTolerance=0.05, triangleModelSimulationMethod=2, triangleModelBendingMethod=2, 
                   contactStiffnessRigidBody=1.0, contactStiffnessParticleRigidBody=100.0, 
                   cloth_stiffness=1.0, cloth_bendingStiffness=0.005, cloth_xxStiffness=1.0, cloth_yyStiffness=1.0, cloth_xyStiffness=1.0,
-                  cloth_xyPoissonRatio=0.3, cloth_yxPoissonRatio=0.3, cloth_normalizeStretch=0, cloth_normalizeShear=0, gravity=[0,-9.81,0]):
+                  cloth_xyPoissonRatio=0.3, cloth_yxPoissonRatio=0.3, cloth_normalizeStretch=0, cloth_normalizeShear=0, gravity=[0,-9.81,0], numberOfStepsPerRenderUpdate=4):
     parameters = {  'timeStepSize': h,
                     'gravity': gravity,
                     'maxIter' : maxIter,
 				    'maxIterVel' : maxIterVel,
+					'numberOfStepsPerRenderUpdate': numberOfStepsPerRenderUpdate,
 				    'velocityUpdateMethod' : velocityUpdateMethod,
 				    'contactTolerance': contactTolerance,
 				    'triangleModelSimulationMethod': triangleModelSimulationMethod,
@@ -189,16 +190,21 @@ def addRigidBodyParticleBallJoint(scene, rbId, particleId):
 ######################################################
 # add TargetAngleMotorHingeJoint
 ######################################################
-def addTargetAngleMotorHingeJoint(scene, rbId1, rbId2, position, axis, target):
-    joint = {
-		    'bodyID1': rbId1,
+def addTargetAngleMotorHingeJoint(scene, rbId1, rbId2, position, axis, target, targetSequence=None, repeatSequence=0):
+	joint = {
+			'bodyID1': rbId1,
 			'bodyID2': rbId2,
 			'position': position,
-            'axis': axis,
-            'target': target
+			'axis': axis
 		}
-    scene['TargetAngleMotorHingeJoints'].append(joint)
-    return
+
+	if targetSequence != None:
+		joint['targetSequence'] = targetSequence
+		joint['repeatSequence'] = repeatSequence
+	else:
+		joint['target'] = target
+	scene['TargetAngleMotorHingeJoints'].append(joint)
+	return
 
 ######################################################
 # add TargetVelocityMotorHingeJoint
@@ -256,6 +262,18 @@ def addRigidBodySpring(scene, rbId1, rbId2, position1, position2, stiffness):
     scene['RigidBodySprings'].append(joint)
     return
 	
+######################################################
+# add distance joint
+######################################################
+def addDistanceJoint(scene, rbId1, rbId2, position1, position2):
+    joint = {
+		    'bodyID1': rbId1,
+			'bodyID2': rbId2,
+			'position1': position1,
+			'position2': position2
+		}
+    scene['DistanceJoint'].append(joint)
+    return
 
 ######################################################
 # generate scene
@@ -276,6 +294,7 @@ def generateScene(name, camPosition=[0, 10, 30], camLookat=[0,0,0]):
     scene['TargetPositionMotorSliderJoints'] = []
     scene['TargetVelocityMotorSliderJoints'] = []
     scene['RigidBodySprings'] = []
+    scene['DistanceJoints'] = []
     scene['TriangleModels'] = []
     scene['TetModels'] = []
 

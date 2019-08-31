@@ -1,3 +1,5 @@
+	- use XPBD to implement an implicit spring
+	- added distance joint for rigid bodies
 	- small optimizations
 	- fixed single precision build
 	- cleanup code

@@ -7,7 +7,6 @@ The PositionBasedDynamics library allows the position-based handling of many typ
 Furthermore we use our own library:
 - [Discregrid](https://github.com/InteractiveComputerGraphics/Discregrid/) to generate cubic signed distance fields for the collision detection
 
-The library was tested on Windows 10, Ubuntu 16.10 and Mac OS X 10.10.5. 
 
 **Author**: [Jan Bender](http://www.interactive-graphics.de), **License**: MIT
 
@@ -23,7 +22,7 @@ The library was tested on Windows 10, Ubuntu 16.10 and Mac OS X 10.10.5.
 
 This project is based on [CMake](https://cmake.org/). Simply generate project, Makefiles, etc. using [CMake](https://cmake.org/) and compile the project with the compiler of your choice. The code was tested with the following configurations:
 - Windows 10 64-bit, CMake 3.9.5, Visual Studio 2017
-- Ubuntu 16.10 64-bit, CMake 3.5.2, GCC 6.2.0.
+- Debian 9 64-bit, CMake 3.12.3, GCC 6.3.0.
 
 Note: Please use a 64-bit target on a 64-bit operating system. 32-bit builds on a 64-bit OS are not supported.
 
@@ -89,6 +88,8 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- target position motor slider joint
 		- target velocity motor slider joint
 		- ball joint between rigid body and particle
+		- distance joint
+		- implicit spring
 	- Generic constraints
 
 ## Videos

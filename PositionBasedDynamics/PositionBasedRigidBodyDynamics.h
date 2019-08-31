@@ -1191,24 +1191,24 @@ namespace PBD
 			Vector3r &corr_v1, Vector3r &corr_omega1);
 
 
-		/** Initialize ball joint and return info which is required by the solver step.
+		/** Initialize distance joint and return info which is required by the solver step.
 		* 
 		* @param x0 center of mass of first body
 		* @param q0 rotation of first body
 		* @param x1 center of mass of second body
 		* @param q1 rotation of second body
-		* @param jointPosition position of ball joint
+		* @param jointPosition position of distance joint
 		* @param jointInfo Stores the local and global positions of the connector points. 
 		* The first two columns store the local connectors in body 0 and 1, respectively, while
 		* the last two columns contain the global connector positions which have to be
-		* updated in each simulation step by calling update_BallJoint().\n
+		* updated in each simulation step by calling update_DistanceJoint().\n
 		* The joint info contains the following columns:\n
 		* 0:	connector in body 0 (local)\n
 		* 1:	connector in body 1 (local)\n
 		* 2:	connector in body 0 (global)\n
 		* 3:	connector in body 1 (global)		
 		*/
-		static bool init_Spring(			
+		static bool init_DistanceJoint(			
 			const Vector3r &x0, 						// center of mass of body 0
 			const Quaternionr &q0,					// rotation of body 0	
 			const Vector3r &x1, 						// center of mass of body 1
@@ -1218,18 +1218,18 @@ namespace PBD
 			Eigen::Matrix<Real, 3, 4> &jointInfo
 			);
 
-		/** Update ball joint info which is required by the solver step.
-		* The ball joint info must be generated in the initialization process of the model
-		* by calling the function init_BallJoint().
+		/** Update distance joint info which is required by the solver step.
+		* The distance joint info must be generated in the initialization process of the model
+		* by calling the function init_DistanceJoint().
 		* This method should be called once per simulation step before executing the solver.\n\n
 		*
 		* @param x0 center of mass of first body
 		* @param q0 rotation of first body
 		* @param x1 center of mass of second body
 		* @param q1 rotation of second body
-		* @param ballJointInfo ball joint information which should be updated
+		* @param jointInfo joint information which should be updated
 		*/
-		static bool update_Spring(
+		static bool update_DistanceJoint(
 			const Vector3r &x0, 						// center of mass of body 0
 			const Quaternionr &q0,					// rotation of body 0	
 			const Vector3r &x1, 						// center of mass of body 1
@@ -1237,15 +1237,13 @@ namespace PBD
 			Eigen::Matrix<Real, 3, 4> &jointInfo
 			);
 
-		/** Perform a solver step for a ball joint which links two rigid bodies.
-		* A ball joint removes three translational degrees of freedom between the bodies.
-		* The ball joint info must be generated in the initialization process of the model
-		* by calling the function init_BallJoint() and updated each time the bodies 
-		* change their state by update_BallJoint().\n\n
+		/** Perform a solver step for a distance joint which links two rigid bodies.
+		* A distance joint removes one translational degrees of freedom between the bodies.
+		* When setting a stiffness value which is not zero, we get an implicit spring.
+		* The distance joint info must be generated in the initialization process of the model
+		* by calling the function init_DistanceJoint() and updated each time the bodies 
+		* change their state by update_DistanceJoint().\n\n
 		* More information can be found in: \cite Deul2014
-		*
-		* \image html balljoint.jpg "ball joint"
-		* \image latex balljoint.jpg "ball joint" width=0.5\textwidth
 		*
 		* @param invMass0 inverse mass of first body
 		* @param x0 center of mass of first body
@@ -1255,15 +1253,19 @@ namespace PBD
 		* @param x1 center of mass of second body
 		* @param inertiaInverseW1 inverse inertia tensor in world coordinates of second body
 		* @param q1 rotation of second body
-		* @param ballJointInfo Ball joint information which is required by the solver. This 
-		* information must be generated in the beginning by calling init_BallJoint()
-		* and updated each time the bodies change their state by update_BallJoint().
+		* @param stiffness Stiffness of the constraint. 0 means it is totally stiff and we get a distance joint otherwise we get an implicit spring.
+		* @param restLength Rest length of the joint.
+		* @param dt Time step size (required for XPBD when simulating a spring)
+		* @param jointInfo Joint information which is required by the solver. This 
+		* information must be generated in the beginning by calling init_DistanceJoint()
+		* and updated each time the bodies change their state by update_DistanceJoint().
+		* @param lambda Lagrange multiplier (required for XPBD). Must be 0 in the first iteration.
 		* @param corr_x0 position correction of center of mass of first body
 		* @param corr_q0 rotation correction of first body
 		* @param corr_x1 position correction of center of mass of second body
 		* @param corr_q1 rotation correction of second body
 		*/
-		static bool solve_Spring(
+		static bool solve_DistanceJoint(
 			const Real invMass0,							// inverse mass is zero if body is static
 			const Vector3r &x0, 						// center of mass of body 0
 			const Matrix3r &inertiaInverseW0,		// inverse inertia tensor (world space) of body 0
@@ -1274,7 +1276,9 @@ namespace PBD
 			const Quaternionr &q1,					// rotation of body 1
 			const Real stiffness,
 			const Real restLength,
+			const Real dt,
 			const Eigen::Matrix<Real,3,4> &jointInfo,	// precomputed joint info
+			Real &lambda,
 			Vector3r &corr_x0, Quaternionr &corr_q0,
 			Vector3r &corr_x1, Quaternionr &corr_q1);
 	};

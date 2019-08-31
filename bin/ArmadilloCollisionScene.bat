@@ -1,0 +1,1 @@
+.\SceneLoaderDemo.exe ../data/scenes/ArmadilloCollisionScene.json

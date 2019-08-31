@@ -195,7 +195,7 @@ bool PositionBasedRigidBodyDynamics::solve_BallJoint(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::init_Spring(
+bool PositionBasedRigidBodyDynamics::init_DistanceJoint(
 	const Vector3r &x0,
 	const Quaternionr &q0,
 	const Vector3r &x1,
@@ -224,7 +224,7 @@ bool PositionBasedRigidBodyDynamics::init_Spring(
 }
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::update_Spring(
+bool PositionBasedRigidBodyDynamics::update_DistanceJoint(
 	const Vector3r &x0,
 	const Quaternionr &q0,
 	const Vector3r &x1,
@@ -249,7 +249,7 @@ bool PositionBasedRigidBodyDynamics::update_Spring(
 
 
 // ----------------------------------------------------------------------------------------------
-bool PositionBasedRigidBodyDynamics::solve_Spring(
+bool PositionBasedRigidBodyDynamics::solve_DistanceJoint(
 	const Real invMass0,
 	const Vector3r &x0,
 	const Matrix3r &inertiaInverseW0,
@@ -259,8 +259,10 @@ bool PositionBasedRigidBodyDynamics::solve_Spring(
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
 	const Real stiffness,
-	const Real restLength,
+	const Real restLength,	
+	const Real dt,
 	const Eigen::Matrix<Real, 3, 4> &jointInfo,
+	Real &lambda,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -270,14 +272,38 @@ bool PositionBasedRigidBodyDynamics::solve_Spring(
 	// 2:	connector in body 0 (global)
 	// 3:	connector in body 1 (global)
 
-	const Vector3r &connector0 = jointInfo.col(2);
-	const Vector3r &connector1 = jointInfo.col(3);
+	// evaluate constraint function
+	const Vector3r &c0 = jointInfo.col(2);
+	const Vector3r &c1 = jointInfo.col(3);
+	const Real length = (c0 - c1).norm();
 
-	Vector3r dir = connector1 - connector0;
-	Real length = dir.norm();
-	dir = (1.0 / length) * dir;
+	const Real C = (length - restLength);
 
-	const Vector3r pt = stiffness * (length- restLength) * dir;
+	// compute K = J M^-1 J^T
+	Matrix3r K1, K2;
+	computeMatrixK(c0, invMass0, x0, inertiaInverseW0, K1);
+	computeMatrixK(c1, invMass1, x1, inertiaInverseW1, K2);
+	Vector3r dir = c0 - c1;
+	if (length > static_cast<Real>(1e-6))
+		dir /= length;
+
+	Real K = (dir.transpose() * (K1 + K2)).dot(dir);
+
+	Real alpha = 0.0;
+	if (stiffness != 0)
+	{
+		alpha = 1.0 / (stiffness * dt * dt);
+		K += alpha;
+	}
+	
+	Real Kinv = 0.0;
+	if (fabs(K) > static_cast<Real>(1e-6))
+		Kinv = 1.0 / K;
+
+	const Real delta_lambda = -Kinv * (C + alpha * lambda);
+	lambda += delta_lambda;
+
+	const Vector3r pt = dir * delta_lambda;
 
 	corr_x0.setZero();
 	corr_q0.coeffs().setZero();
@@ -286,8 +312,8 @@ bool PositionBasedRigidBodyDynamics::solve_Spring(
 
 	if (invMass0 != 0.0)
 	{
-		const Vector3r r0 = connector0 - x0;
-		corr_x0 = invMass0*pt;
+		const Vector3r r0 = c0 - x0;
+		corr_x0 = invMass0 * pt;
 
 		const Vector3r ot = (inertiaInverseW0 * (r0.cross(pt)));
 		const Quaternionr otQ(0.0, ot[0], ot[1], ot[2]);
@@ -296,8 +322,8 @@ bool PositionBasedRigidBodyDynamics::solve_Spring(
 
 	if (invMass1 != 0.0)
 	{
-		const Vector3r r1 = connector1 - x1;
-		corr_x1 = -invMass1*pt;
+		const Vector3r r1 = c1 - x1;
+		corr_x1 = -invMass1 * pt;
 
 		const Vector3r ot = (inertiaInverseW1 * (r1.cross(-pt)));
 		const Quaternionr otQ(0.0, ot[0], ot[1], ot[2]);

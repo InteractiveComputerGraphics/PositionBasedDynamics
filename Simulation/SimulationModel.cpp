@@ -385,6 +385,18 @@ bool SimulationModel::addRigidBodySpring(const unsigned int rbIndex1, const unsi
 	return res;
 }
 
+bool SimulationModel::addDistanceJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2)
+{
+	DistanceJoint *j = new DistanceJoint();
+	const bool res = j->initConstraint(*this, rbIndex1, rbIndex2, pos1, pos2);
+	if (res)
+	{
+		m_constraints.push_back(j);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
 bool SimulationModel::addRigidBodyContactConstraint(const unsigned int rbIndex1, const unsigned int rbIndex2, 
 	const Vector3r &cp1, const Vector3r &cp2, 
 	const Vector3r &normal, const Real dist,

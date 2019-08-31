@@ -145,6 +145,7 @@ namespace PBD
 			bool addTargetVelocityMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 			bool addRigidBodyParticleBallJoint(const unsigned int rbIndex, const unsigned int particleIndex);
 			bool addRigidBodySpring(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2, const Real stiffness);
+			bool addDistanceJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos1, const Vector3r &pos2);
 			bool addRigidBodyContactConstraint(const unsigned int rbIndex1, const unsigned int rbIndex2, 
 					const Vector3r &cp1, const Vector3r &cp2,	
 					const Vector3r &normal, const Real dist, 

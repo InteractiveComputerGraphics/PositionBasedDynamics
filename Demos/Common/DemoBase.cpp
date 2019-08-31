@@ -127,6 +127,7 @@ void DemoBase::cleanup()
 	m_scene.m_targetPositionMotorSliderJointData.clear();
 	m_scene.m_targetVelocityMotorSliderJointData.clear();
 	m_scene.m_rigidBodySpringData.clear();
+	m_scene.m_distanceJointData.clear();
 }
 
 void DemoBase::init(int argc, char **argv, const char *demoName)
@@ -383,6 +384,10 @@ void DemoBase::render()
 		else if (constraints[i]->getTypeId() == RigidBodySpring::TYPE_ID)
 		{
 			renderSpring(*(RigidBodySpring*)constraints[i]);
+		}
+		else if (constraints[i]->getTypeId() == DistanceJoint::TYPE_ID)
+		{
+			renderDistanceJoint(*(DistanceJoint*)constraints[i]);
 		}
 	}
 
@@ -693,6 +698,13 @@ void DemoBase::renderSpring(RigidBodySpring &s)
 	MiniGL::drawSphere(s.m_jointInfo.col(2), 0.1f, m_jointColor);
 	MiniGL::drawSphere(s.m_jointInfo.col(3), 0.1f, m_jointColor);
 	MiniGL::drawCylinder(s.m_jointInfo.col(2), s.m_jointInfo.col(3), m_jointColor, 0.05f);
+}
+
+void DemoBase::renderDistanceJoint(DistanceJoint &j)
+{
+	MiniGL::drawSphere(j.m_jointInfo.col(2), 0.1f, m_jointColor);
+	MiniGL::drawSphere(j.m_jointInfo.col(3), 0.1f, m_jointColor);
+	MiniGL::drawCylinder(j.m_jointInfo.col(2), j.m_jointInfo.col(3), m_jointColor, 0.05f);
 }
 
 void DemoBase::mouseMove(int x, int y, void *clientData)

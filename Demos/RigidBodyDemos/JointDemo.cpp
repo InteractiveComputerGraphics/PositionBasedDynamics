@@ -162,6 +162,9 @@ void render ()
 	MiniGL::drawStrokeText(6.6f, -4.0, 1.0, 0.002f, "target position motor", 21, textColor);
 	MiniGL::drawStrokeText(10.6f, -4.0, 1.0, 0.002f, "target velocity motor", 21, textColor);
 
+	MiniGL::drawStrokeText(-0.25, -9.5, 1.0, 0.002f, "spring", 6, textColor);
+	MiniGL::drawStrokeText(3.3, -9.5, 1.0, 0.002f, "distance joint", 14, textColor);
+
 	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
 
@@ -239,12 +242,18 @@ void createBodyModel()
 	loadObj(fileName, vdStatic, meshStatic, Vector3r(0.5, 0.5, 0.5));
 
 	// static body
-	const unsigned int numberOfBodies = 24;
+	const unsigned int numberOfBodies = 30;
 	rb.resize(numberOfBodies);
 	Real startX = 0.0;
-	Real startY = 1.0;
-	for (unsigned int i = 0; i < 8; i++)
+	Real startY = 6.5;
+	for (unsigned int i = 0; i < 10; i++)
 	{
+		if (i % 4 == 0)
+		{
+			startY -= 5.5;
+			startX = 0.0;
+		}
+
 		rb[3*i] = new RigidBody();
 		rb[3*i]->initBody(0.0,
 			Vector3r(startX, startY, 1.0),
@@ -269,12 +278,6 @@ void createBodyModel()
 			vd, mesh);
 		
 		startX += 4.0;
-
-		if (i == 3)
-		{
-			startY -= 5.5;
-			startX = 0.0;
-		}
 	}
 
 	Real jointY = 0.75;
@@ -302,6 +305,13 @@ void createBodyModel()
 
 	model->addTargetVelocityMotorSliderJoint(21, 22, Vector3r(12.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
 	model->addBallJoint(22, 23, Vector3r(12.25, jointY, 3.0));
+
+	jointY -= 5.5;
+	model->addRigidBodySpring(24, 25, Vector3r(0.25, jointY, 1.0), Vector3r(0.25, jointY, 1.0), 50.0);
+	model->addBallJoint(25, 26, Vector3r(0.25, jointY, 3.0));
+
+	model->addDistanceJoint(27, 28, Vector3r(4.25, jointY, 1.0), Vector3r(4.25, jointY, 2.0));
+	model->addBallJoint(28, 29, Vector3r(4.25, jointY, 3.0));
 }
 
 
