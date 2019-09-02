@@ -39,7 +39,7 @@ DemoBase::DemoBase()
 	Utilities::logger.addSink(unique_ptr<Utilities::ConsoleSink>(new Utilities::ConsoleSink(Utilities::LogLevel::INFO)));
 
 	m_sceneLoader = nullptr;
-	m_numberOfStepsPerRenderUpdate = 4;
+	m_numberOfStepsPerRenderUpdate = 8;
 	m_renderContacts = false;
 	m_renderAABB = false;
 	m_renderSDF = false;
@@ -128,6 +128,7 @@ void DemoBase::cleanup()
 	m_scene.m_targetVelocityMotorSliderJointData.clear();
 	m_scene.m_rigidBodySpringData.clear();
 	m_scene.m_distanceJointData.clear();
+	m_scene.m_damperJointData.clear();
 }
 
 void DemoBase::init(int argc, char **argv, const char *demoName)
@@ -628,9 +629,17 @@ void DemoBase::renderBallOnLineJoint(BallOnLineJoint &bj)
 
 void DemoBase::renderHingeJoint(HingeJoint &joint)
 {
-	MiniGL::drawSphere(joint.m_jointInfo.col(6) - 0.5*joint.m_jointInfo.col(8), 0.1f, m_jointColor);
-	MiniGL::drawSphere(joint.m_jointInfo.col(6) + 0.5*joint.m_jointInfo.col(8), 0.1f, m_jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(6) - 0.5*joint.m_jointInfo.col(8), joint.m_jointInfo.col(6) + 0.5*joint.m_jointInfo.col(8), m_jointColor, 0.05f);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const SimulationModel::RigidBodyVector &rigidBodies = model->getRigidBodies();
+	RigidBody *rb = rigidBodies[joint.m_bodies[0]];
+
+	const Vector3r &c = joint.m_jointInfo.block<3, 1>(0, 4);
+	const Vector3r &axis_local = joint.m_jointInfo.block<3, 1>(0, 6);
+	const Vector3r axis = rb->getRotation().matrix() * axis_local;
+
+	MiniGL::drawSphere(c - 0.5*axis, 0.1f, m_jointColor);
+	MiniGL::drawSphere(c + 0.5*axis, 0.1f, m_jointColor);
+	MiniGL::drawCylinder(c - 0.5*axis, c + 0.5*axis, m_jointColor, 0.05f);
 }
 
 void DemoBase::renderUniversalJoint(UniversalJoint &uj)
@@ -645,34 +654,71 @@ void DemoBase::renderUniversalJoint(UniversalJoint &uj)
 
 void DemoBase::renderSliderJoint(SliderJoint &joint)
 {
-	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, m_jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), m_jointColor, 0.05f);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const SimulationModel::RigidBodyVector &rigidBodies = model->getRigidBodies();
+	RigidBody *rb = rigidBodies[joint.m_bodies[0]];
+
+	Quaternionr qR0;
+	qR0.coeffs() = joint.m_jointInfo.col(1);
+	const Vector3r &c = rb->getPosition();
+	Vector3r axis = qR0.matrix().col(0);
+	MiniGL::drawSphere(c, 0.1f, m_jointColor);
+	MiniGL::drawCylinder(c - axis, c + axis, m_jointColor, 0.05f);
 }
 
 void DemoBase::renderTargetPositionMotorSliderJoint(TargetPositionMotorSliderJoint &joint)
 {
-	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, m_jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), m_jointColor, 0.05f);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const SimulationModel::RigidBodyVector &rigidBodies = model->getRigidBodies();
+	RigidBody *rb = rigidBodies[joint.m_bodies[0]];
+
+	const Vector3r &c = rb->getPosition();
+	Vector3r axis = joint.m_jointInfo.block<3, 1>(0, 1);
+	MiniGL::drawSphere(c, 0.1f, m_jointColor);
+	MiniGL::drawCylinder(c - axis, c + axis, m_jointColor, 0.05f);
 }
 
 void DemoBase::renderTargetVelocityMotorSliderJoint(TargetVelocityMotorSliderJoint &joint)
 {
-	MiniGL::drawSphere(joint.m_jointInfo.col(6), 0.1f, m_jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(7) - joint.m_jointInfo.col(8), joint.m_jointInfo.col(7) + joint.m_jointInfo.col(8), m_jointColor, 0.05f);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const SimulationModel::RigidBodyVector &rigidBodies = model->getRigidBodies();
+	RigidBody *rb = rigidBodies[joint.m_bodies[0]];
+
+	Quaternionr qR0;
+	qR0.coeffs() = joint.m_jointInfo.col(1);
+	const Vector3r &c = rb->getPosition();
+	Vector3r axis = qR0.matrix().col(0);
+	MiniGL::drawSphere(c, 0.1f, m_jointColor);
+	MiniGL::drawCylinder(c - axis, c + axis, m_jointColor, 0.05f);
 }
 
 void DemoBase::renderTargetAngleMotorHingeJoint(TargetAngleMotorHingeJoint &joint)
 {
-	MiniGL::drawSphere(joint.m_jointInfo.col(6) - 0.5*joint.m_jointInfo.col(8), 0.1f, m_jointColor);
-	MiniGL::drawSphere(joint.m_jointInfo.col(6) + 0.5*joint.m_jointInfo.col(8), 0.1f, m_jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(6) - 0.5*joint.m_jointInfo.col(8), joint.m_jointInfo.col(6) + 0.5*joint.m_jointInfo.col(8), m_jointColor, 0.05f);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const SimulationModel::RigidBodyVector &rigidBodies = model->getRigidBodies();
+	RigidBody *rb = rigidBodies[joint.m_bodies[0]];
+
+	const Vector3r &c = joint.m_jointInfo.block<3, 1>(0, 5);
+	const Vector3r &axis_local = joint.m_jointInfo.block<3, 1>(0, 7);
+	const Vector3r axis = rb->getRotation().matrix() * axis_local;
+
+	MiniGL::drawSphere(c - 0.5*axis, 0.1f, m_jointColor);
+	MiniGL::drawSphere(c + 0.5*axis, 0.1f, m_jointColor);
+	MiniGL::drawCylinder(c - 0.5*axis, c + 0.5*axis, m_jointColor, 0.05f);
 }
 
 void DemoBase::renderTargetVelocityMotorHingeJoint(TargetVelocityMotorHingeJoint &joint)
 {
-	MiniGL::drawSphere(joint.m_jointInfo.col(6) - 0.5*joint.m_jointInfo.col(8), 0.1f, m_jointColor);
-	MiniGL::drawSphere(joint.m_jointInfo.col(6) + 0.5*joint.m_jointInfo.col(8), 0.1f, m_jointColor);
-	MiniGL::drawCylinder(joint.m_jointInfo.col(6) - 0.5*joint.m_jointInfo.col(8), joint.m_jointInfo.col(6) + 0.5*joint.m_jointInfo.col(8), m_jointColor, 0.05f);
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const SimulationModel::RigidBodyVector &rigidBodies = model->getRigidBodies();
+	RigidBody *rb = rigidBodies[joint.m_bodies[0]];
+
+	const Vector3r &c = joint.m_jointInfo.block<3, 1>(0, 5);
+	const Vector3r axis = joint.m_jointInfo.block<3, 1>(0, 7);
+
+	MiniGL::drawSphere(c - 0.5*axis, 0.1f, m_jointColor);
+	MiniGL::drawSphere(c + 0.5*axis, 0.1f, m_jointColor);
+	MiniGL::drawCylinder(c - 0.5*axis, c + 0.5*axis, m_jointColor, 0.05f);
 }
 
 void DemoBase::renderRigidBodyContact(RigidBodyContactConstraint &cc)
@@ -722,13 +768,16 @@ void DemoBase::mouseMove(int x, int y, void *clientData)
 	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
 	for (size_t j = 0; j < base->m_selectedBodies.size(); j++)
 	{
-		if (rb[base->m_selectedBodies[j]]->getMass() != 0.0)
-			rb[base->m_selectedBodies[j]]->getVelocity() += 1.0 / h * diff;
+		const Real mass = rb[base->m_selectedBodies[j]]->getMass();
+		if (mass != 0.0)
+			rb[base->m_selectedBodies[j]]->getVelocity() += 3.0 / h * diff;
 	}
 	ParticleData &pd = model->getParticles();
 	for (unsigned int j = 0; j < base->m_selectedParticles.size(); j++)
 	{
-		pd.getVelocity(base->m_selectedParticles[j]) += 5.0*diff / h;
+		const Real mass = pd.getMass(base->m_selectedParticles[j]);
+		if (mass != 0.0)
+			pd.getVelocity(base->m_selectedParticles[j]) += 5.0*diff / h;
 	}
 	base->m_oldMousePos = mousePos;
 }

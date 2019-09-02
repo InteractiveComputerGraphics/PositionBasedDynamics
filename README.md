@@ -34,6 +34,8 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added DamperJoint
+* improved implementation of slider and hinge joints/motors
 * Crispin Deul added the implementation of his paper Deul, Kugelstadt, Weiler, Bender, "Direct Position-Based Solver for Stiff Rods", Computer Graphics Forum 2018 and a corresponding demo
 * added collision detection for arbitrary meshes based on cubic signed distance fields
 * added implementation of the paper Kugelstadt, Schoemer, "Position and Orientation Based Cosserat Rods", SCA 2016
@@ -89,6 +91,7 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- target velocity motor slider joint
 		- ball joint between rigid body and particle
 		- distance joint
+		- damper joint
 		- implicit spring
 	- Generic constraints
 

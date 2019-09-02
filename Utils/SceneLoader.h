@@ -108,7 +108,6 @@ namespace Utilities
 		struct SliderJointData
 		{
 			unsigned int m_bodyID[2];
-			Vector3r m_position;
 			Vector3r m_axis;
 		};
 
@@ -155,7 +154,6 @@ namespace Utilities
 		struct TargetPositionMotorSliderJointData
 		{
 			unsigned int m_bodyID[2];
-			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
 			std::vector<Real> m_targetSequence;
@@ -165,11 +163,17 @@ namespace Utilities
 		struct TargetVelocityMotorSliderJointData
 		{
 			unsigned int m_bodyID[2];
-			Vector3r m_position;
 			Vector3r m_axis;
 			Real m_target;
 			std::vector<Real> m_targetSequence;
 			bool m_repeat;
+		};
+
+		struct DamperJointData
+		{
+			unsigned int m_bodyID[2];
+			Vector3r m_axis;
+			Real m_stiffness;
 		};
 
 		struct SceneData
@@ -223,6 +227,7 @@ namespace Utilities
 			std::vector<TargetVelocityMotorHingeJointData> m_targetVelocityMotorHingeJointData;
 			std::vector<TargetPositionMotorSliderJointData> m_targetPositionMotorSliderJointData;
 			std::vector<TargetVelocityMotorSliderJointData> m_targetVelocityMotorSliderJointData;
+			std::vector<DamperJointData> m_damperJointData;
 			std::vector<RigidBodySpringData> m_rigidBodySpringData;
 			std::vector<DistanceJointData> m_distanceJointData;
 		};
@@ -245,6 +250,7 @@ namespace Utilities
 		void readTargetVelocityMotorSliderJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
 		void readRigidBodySprings(const nlohmann::json &j, const std::string &key, SceneData &sceneData);
 		void readDistanceJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData);
+		void readDamperJoints(const nlohmann::json &child, const std::string &key, SceneData &sceneData);
 
 		template <typename T>
 		static bool readValue(const nlohmann::json &j, const std::string &key, T &v)

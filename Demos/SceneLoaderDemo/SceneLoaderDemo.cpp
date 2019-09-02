@@ -1025,7 +1025,7 @@ void readScene(const bool readFile)
 	for (unsigned int i = 0; i < data.m_sliderJointData.size(); i++)
 	{
 		const SceneLoader::SliderJointData &jd = data.m_sliderJointData[i];
-		model->addSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_axis);
 	}
 
 	for (unsigned int i = 0; i < data.m_rigidBodyParticleBallJointData.size(); i++)
@@ -1055,7 +1055,7 @@ void readScene(const bool readFile)
 	for (unsigned int i = 0; i < data.m_targetPositionMotorSliderJointData.size(); i++)
 	{
 		const SceneLoader::TargetPositionMotorSliderJointData &jd = data.m_targetPositionMotorSliderJointData[i];
-		model->addTargetPositionMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addTargetPositionMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_axis);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
 		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
@@ -1064,10 +1064,16 @@ void readScene(const bool readFile)
 	for (unsigned int i = 0; i < data.m_targetVelocityMotorSliderJointData.size(); i++)
 	{
 		const SceneLoader::TargetVelocityMotorSliderJointData &jd = data.m_targetVelocityMotorSliderJointData[i];
-		model->addTargetVelocityMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position, jd.m_axis);
+		model->addTargetVelocityMotorSliderJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_axis);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTarget(jd.m_target);
 		((MotorJoint*)constraints[constraints.size() - 1])->setTargetSequence(jd.m_targetSequence);
 		((MotorJoint*)constraints[constraints.size() - 1])->setRepeatSequence(jd.m_repeat);
+	}
+
+	for (unsigned int i = 0; i < data.m_damperJointData.size(); i++)
+	{
+		const SceneLoader::DamperJointData &jd = data.m_damperJointData[i];
+		model->addDamperJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_axis, jd.m_stiffness);
 	}
 
 	for (unsigned int i = 0; i < data.m_rigidBodySpringData.size(); i++)

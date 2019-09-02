@@ -297,13 +297,13 @@ void createBodyModel()
 	model->addTargetAngleMotorHingeJoint(12, 13, Vector3r(0.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
 	model->addTargetVelocityMotorHingeJoint(13, 14, Vector3r(0.0, jointY, 3.0), Vector3r(0.0, 1.0, 0.0));
   
-	model->addSliderJoint(15, 16, Vector3r(4.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model->addSliderJoint(15, 16, Vector3r(1.0, 0.0, 0.0));
 	model->addBallJoint(16, 17, Vector3r(4.25, jointY, 3.0));
 
-	model->addTargetPositionMotorSliderJoint(18, 19, Vector3r(8.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model->addTargetPositionMotorSliderJoint(18, 19, Vector3r(1.0, 0.0, 0.0));
 	model->addBallJoint(19, 20, Vector3r(8.25, jointY, 3.0));
 
-	model->addTargetVelocityMotorSliderJoint(21, 22, Vector3r(12.0, jointY, 1.0), Vector3r(1.0, 0.0, 0.0));
+	model->addTargetVelocityMotorSliderJoint(21, 22, Vector3r(1.0, 0.0, 0.0));
 	model->addBallJoint(22, 23, Vector3r(12.25, jointY, 3.0));
 
 	jointY -= 5.5;

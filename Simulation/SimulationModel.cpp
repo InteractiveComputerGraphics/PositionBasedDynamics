@@ -300,10 +300,10 @@ bool SimulationModel::addUniversalJoint(const unsigned int rbIndex1, const unsig
 	return res;
 }
 
-bool SimulationModel::addSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+bool SimulationModel::addSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis)
 {
 	SliderJoint *joint = new SliderJoint();
-	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, axis);
 	if (res)
 	{
 		m_constraints.push_back(joint);
@@ -312,10 +312,10 @@ bool SimulationModel::addSliderJoint(const unsigned int rbIndex1, const unsigned
 	return res;
 }
 
-bool SimulationModel::addTargetPositionMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+bool SimulationModel::addTargetPositionMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis)
 {
 	TargetPositionMotorSliderJoint *joint = new TargetPositionMotorSliderJoint();
-	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, axis);
 	if (res)
 	{
 		m_constraints.push_back(joint);
@@ -324,10 +324,10 @@ bool SimulationModel::addTargetPositionMotorSliderJoint(const unsigned int rbInd
 	return res;
 }
 
-bool SimulationModel::addTargetVelocityMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+bool SimulationModel::addTargetVelocityMotorSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis)
 {
 	TargetVelocityMotorSliderJoint *joint = new TargetVelocityMotorSliderJoint();
-	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, pos, axis);
+	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, axis);
 	if (res)
 	{
 		m_constraints.push_back(joint);
@@ -356,6 +356,18 @@ bool SimulationModel::addTargetVelocityMotorHingeJoint(const unsigned int rbInde
 	if (res)
 	{
 		m_constraints.push_back(hj);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
+bool SimulationModel::addDamperJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis, const Real stiffness)
+{
+	DamperJoint *joint = new DamperJoint();
+	const bool res = joint->initConstraint(*this, rbIndex1, rbIndex2, axis, stiffness);
+	if (res)
+	{
+		m_constraints.push_back(joint);
 		m_groupsInitialized = false;
 	}
 	return res;

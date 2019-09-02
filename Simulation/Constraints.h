@@ -67,7 +67,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 12> m_jointInfo;
+		Eigen::Matrix<Real, 4, 7> m_jointInfo;
 
 		HingeJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -95,12 +95,12 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 14> m_jointInfo;
+		Eigen::Matrix<Real, 4, 6> m_jointInfo;
 
 		SliderJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
@@ -129,12 +129,12 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 14> m_jointInfo;
+		Eigen::Matrix<Real, 4, 6> m_jointInfo;
 
 		TargetPositionMotorSliderJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
@@ -143,12 +143,12 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 14> m_jointInfo;
+		Eigen::Matrix<Real, 4, 6> m_jointInfo;
 
 		TargetVelocityMotorSliderJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis);
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 		virtual bool solveVelocityConstraint(SimulationModel &model, const unsigned int iter);
@@ -158,7 +158,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 14> m_jointInfo;
+		Eigen::Matrix<Real, 4, 8> m_jointInfo;
 		TargetAngleMotorHingeJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
@@ -180,7 +180,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 14> m_jointInfo;
+		Eigen::Matrix<Real, 4, 8> m_jointInfo;
 		TargetVelocityMotorHingeJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
@@ -188,6 +188,22 @@ namespace PBD
 		virtual bool updateConstraint(SimulationModel &model);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 		virtual bool solveVelocityConstraint(SimulationModel &model, const unsigned int iter);
+	};
+
+	class DamperJoint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Real m_stiffness;
+		Eigen::Matrix<Real, 4, 6> m_jointInfo;
+		Real m_lambda;
+
+		DamperJoint() : Constraint(2) {}
+		virtual int &getTypeId() const { return TYPE_ID; }
+
+		bool initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis, const Real stiffness);
+		virtual bool updateConstraint(SimulationModel &model);
+		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
  
 	class RigidBodyParticleBallJoint : public Constraint

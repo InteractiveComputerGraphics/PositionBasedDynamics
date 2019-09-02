@@ -165,15 +165,27 @@ def addUniversalJoint(scene, rbId1, rbId2, position, axis1, axis2):
 ######################################################
 # add slider joint
 ######################################################
-def addSliderJoint(scene, rbId1, rbId2, position, axis):
+def addSliderJoint(scene, rbId1, rbId2, axis):
     joint = {
 		    'bodyID1': rbId1,
 			'bodyID2': rbId2,
-			'position': position,
             'axis': axis
 		}
     scene['SliderJoints'].append(joint)
     return
+	
+######################################################
+# add damper joint
+######################################################
+def addDamperJoint(scene, rbId1, rbId2, axis, stiffness):
+	joint = {
+			'bodyID1': rbId1,
+			'bodyID2': rbId2,
+			'axis': axis,
+			'stiffness': stiffness
+		}
+	scene['DamperJoints'].append(joint)
+	return	
 
 ######################################################
 # add RigidBodyParticleBallJoint
@@ -223,11 +235,10 @@ def addTargetVelocityMotorHingeJoint(scene, rbId1, rbId2, position, axis, target
 ######################################################
 # add TargetPositionMotorSliderJoint
 ######################################################
-def addTargetPositionMotorSliderJoint(scene, rbId1, rbId2, position, axis, target):
+def addTargetPositionMotorSliderJoint(scene, rbId1, rbId2, axis, target):
     joint = {
 		    'bodyID1': rbId1,
 			'bodyID2': rbId2,
-			'position': position,
             'axis': axis,
             'target': target
 		}
@@ -237,11 +248,10 @@ def addTargetPositionMotorSliderJoint(scene, rbId1, rbId2, position, axis, targe
 ######################################################
 # add TargetVelocityMotorSliderJoint
 ######################################################
-def addTargetVelocityMotorSliderJoint(scene, rbId1, rbId2, position, axis, target):
+def addTargetVelocityMotorSliderJoint(scene, rbId1, rbId2, axis, target):
     joint = {
 		    'bodyID1': rbId1,
 			'bodyID2': rbId2,
-			'position': position,
             'axis': axis,
             'target': target
 		}
@@ -272,7 +282,7 @@ def addDistanceJoint(scene, rbId1, rbId2, position1, position2):
 			'position1': position1,
 			'position2': position2
 		}
-    scene['DistanceJoint'].append(joint)
+    scene['DistanceJoints'].append(joint)
     return
 
 ######################################################
@@ -288,6 +298,7 @@ def generateScene(name, camPosition=[0, 10, 30], camLookat=[0,0,0]):
     scene['HingeJoints'] = []
     scene['UniversalJoints'] = []
     scene['SliderJoints'] = []
+    scene['DamperJoints'] = []
     scene['RigidBodyParticleBallJoints'] = []
     scene['TargetAngleMotorHingeJoints'] = []
     scene['TargetVelocityMotorHingeJoints'] = []

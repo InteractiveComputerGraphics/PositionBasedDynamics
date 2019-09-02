@@ -127,6 +127,12 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 			readDistanceJoints(m_json, "DistanceJoints", sceneData);
 
 		//////////////////////////////////////////////////////////////////////////
+		// read DamperJoints
+		//////////////////////////////////////////////////////////////////////////
+		if (m_json.find("DamperJoints") != m_json.end())
+			readDamperJoints(m_json, "DamperJoints", sceneData);
+
+		//////////////////////////////////////////////////////////////////////////
 		// read TargetAngleMotorHingeJoint
 		//////////////////////////////////////////////////////////////////////////
 		if (m_json.find("TargetAngleMotorHingeJoints") != m_json.end())
@@ -550,7 +556,6 @@ void SceneLoader::readSliderJoints(const nlohmann::json &j, const std::string &k
 		SliderJointData jd;
 		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
 			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joint, "position", jd.m_position) &&
 			readVector(joint, "axis", jd.m_axis))
 		{
 			sceneData.m_sliderJointData.push_back(jd);
@@ -652,7 +657,6 @@ void SceneLoader::readTargetPositionMotorSliderJoints(const nlohmann::json &j, c
 		TargetPositionMotorSliderJointData jd;
 		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
 			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joint, "position", jd.m_position) &&
 			readVector(joint, "axis", jd.m_axis))
 		{
 			if (!readValue(joint, "target", jd.m_target))
@@ -687,7 +691,6 @@ void SceneLoader::readTargetVelocityMotorSliderJoints(const nlohmann::json &j, c
 		TargetVelocityMotorSliderJointData jd;
 		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
 			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
-			readVector(joint, "position", jd.m_position) &&
 			readVector(joint, "axis", jd.m_axis))
 		{
 			if (!readValue(joint, "target", jd.m_target))
@@ -744,6 +747,23 @@ void SceneLoader::readDistanceJoints(const nlohmann::json &j, const std::string 
 			readVector(joint, "position2", jd.m_position2))
 		{
 			sceneData.m_distanceJointData.push_back(jd);
+		}
+	}
+}
+
+void SceneLoader::readDamperJoints(const nlohmann::json &j, const std::string &key, SceneData &sceneData)
+{
+	const nlohmann::json &child = j[key];
+
+	for (auto& joint : child)
+	{
+		DamperJointData jd;
+		if (readValue(joint, "bodyID1", jd.m_bodyID[0]) &&
+			readValue(joint, "bodyID2", jd.m_bodyID[1]) &&
+			readVector(joint, "axis", jd.m_axis) &&
+			readValue(joint, "stiffness", jd.m_stiffness))
+		{
+			sceneData.m_damperJointData.push_back(jd);
 		}
 	}
 }

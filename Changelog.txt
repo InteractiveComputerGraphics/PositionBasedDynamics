@@ -1,3 +1,11 @@
+1.7.0
+	- added DamperJoint
+	- improved implementation of SliderJoint
+	- improved implementation of TargetPositionMotorSliderJoint
+	- improved implementation of TargetVelocityMotorSliderJoint
+	- improved implementation of HingeJoint
+	- improved implementation of TargetAngleMotorHingeJoint
+	- improved implementation of TargetVelocityMotorHingeJoint
 	- use XPBD to implement an implicit spring
 	- added distance joint for rigid bodies
 	- small optimizations

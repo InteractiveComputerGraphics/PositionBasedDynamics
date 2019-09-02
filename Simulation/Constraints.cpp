@@ -34,6 +34,7 @@ int TargetVelocityMotorHingeJoint::TYPE_ID = IDFactory::getId();
 int SliderJoint::TYPE_ID = IDFactory::getId();
 int TargetPositionMotorSliderJoint::TYPE_ID = IDFactory::getId();
 int TargetVelocityMotorSliderJoint::TYPE_ID = IDFactory::getId();
+int DamperJoint::TYPE_ID = IDFactory::getId();
 int RigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
 int ParticleRigidBodyContactConstraint::TYPE_ID = IDFactory::getId();
 int ParticleTetContactConstraint::TYPE_ID = IDFactory::getId();
@@ -355,7 +356,7 @@ bool UniversalJoint::solvePositionConstraint(SimulationModel &model, const unsig
 //////////////////////////////////////////////////////////////////////////
 // SliderJoint
 //////////////////////////////////////////////////////////////////////////
-bool SliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+bool SliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis)
 {
 	m_bodies[0] = rbIndex1;
 	m_bodies[1] = rbIndex2;
@@ -367,7 +368,7 @@ bool SliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIn
 		rb1.getRotation(),
 		rb2.getPosition(),
 		rb2.getRotation(),
-		pos, axis,
+		axis,
 		m_jointInfo);
 }
 
@@ -432,7 +433,7 @@ bool SliderJoint::solvePositionConstraint(SimulationModel &model, const unsigned
 //////////////////////////////////////////////////////////////////////////
 // TargetPositionMotorSliderJoint
 //////////////////////////////////////////////////////////////////////////
-bool TargetPositionMotorSliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+bool TargetPositionMotorSliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis)
 {
 	m_bodies[0] = rbIndex1;
 	m_bodies[1] = rbIndex2;
@@ -444,7 +445,7 @@ bool TargetPositionMotorSliderJoint::initConstraint(SimulationModel &model, cons
 		rb1.getRotation(),
 		rb2.getPosition(),
 		rb2.getRotation(),
-		pos, axis,
+		axis,
 		m_jointInfo);
 }
 
@@ -511,7 +512,7 @@ bool TargetPositionMotorSliderJoint::solvePositionConstraint(SimulationModel &mo
 //////////////////////////////////////////////////////////////////////////
 // TargetVelocityMotorSliderJoint
 //////////////////////////////////////////////////////////////////////////
-bool TargetVelocityMotorSliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis)
+bool TargetVelocityMotorSliderJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis)
 {
 	m_bodies[0] = rbIndex1;
 	m_bodies[1] = rbIndex2;
@@ -523,7 +524,7 @@ bool TargetVelocityMotorSliderJoint::initConstraint(SimulationModel &model, cons
 		rb1.getRotation(),
 		rb2.getPosition(),
 		rb2.getRotation(),
-		pos, axis,
+		axis,
 		m_jointInfo);
 }
 
@@ -599,11 +600,13 @@ bool TargetVelocityMotorSliderJoint::solveVelocityConstraint(SimulationModel &mo
 		rb1.getPosition(),
 		rb1.getVelocity(),
 		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
 		rb1.getAngularVelocity(),
 		rb2.getInvMass(),
 		rb2.getPosition(),
 		rb2.getVelocity(),
 		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
 		rb2.getAngularVelocity(),
 		m_target,
 		m_jointInfo,
@@ -819,6 +822,93 @@ bool TargetVelocityMotorHingeJoint::solveVelocityConstraint(SimulationModel &mod
 		{
 			rb2.getVelocity() += corr_v2;
 			rb2.getAngularVelocity() += corr_omega2;
+		}
+	}
+	return res;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// DamperJoint
+//////////////////////////////////////////////////////////////////////////
+bool DamperJoint::initConstraint(SimulationModel &model, const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &axis, const Real stiffness)
+{
+	m_stiffness = stiffness;
+	m_lambda = 0.0;
+	m_bodies[0] = rbIndex1;
+	m_bodies[1] = rbIndex2;
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::init_DamperJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		axis,
+		m_jointInfo);
+}
+
+bool DamperJoint::updateConstraint(SimulationModel &model)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+	return PositionBasedRigidBodyDynamics::update_DamperJoint(
+		rb1.getPosition(),
+		rb1.getRotation(),
+		rb2.getPosition(),
+		rb2.getRotation(),
+		m_jointInfo);
+}
+
+bool DamperJoint::solvePositionConstraint(SimulationModel &model, const unsigned int iter)
+{
+	SimulationModel::RigidBodyVector &rb = model.getRigidBodies();
+
+	RigidBody &rb1 = *rb[m_bodies[0]];
+	RigidBody &rb2 = *rb[m_bodies[1]];
+
+	const Real dt = TimeManager::getCurrent()->getTimeStepSize();
+
+	if (iter == 0)
+		m_lambda = 0.0;
+
+	Vector3r corr_x1, corr_x2;
+	Quaternionr corr_q1, corr_q2;
+	const bool res = PositionBasedRigidBodyDynamics::solve_DamperJoint(
+		rb1.getInvMass(),
+		rb1.getPosition(),
+		rb1.getInertiaTensorInverseW(),
+		rb1.getRotation(),
+		rb2.getInvMass(),
+		rb2.getPosition(),
+		rb2.getInertiaTensorInverseW(),
+		rb2.getRotation(),
+		m_stiffness,
+		dt,
+		m_jointInfo,
+		m_lambda,
+		corr_x1,
+		corr_q1,
+		corr_x2,
+		corr_q2);
+
+	if (res)
+	{
+		if (rb1.getMass() != 0.0)
+		{
+			rb1.getPosition() += corr_x1;
+			rb1.getRotation().coeffs() += corr_q1.coeffs();
+			rb1.getRotation().normalize();
+			rb1.rotationUpdated();
+		}
+		if (rb2.getMass() != 0.0)
+		{
+			rb2.getPosition() += corr_x2;
+			rb2.getRotation().coeffs() += corr_q2.coeffs();
+			rb2.getRotation().normalize();
+			rb2.rotationUpdated();
 		}
 	}
 	return res;
