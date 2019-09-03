@@ -67,6 +67,7 @@ namespace PBD
 		void renderParticleRigidBodyContact(ParticleRigidBodyContactConstraint &cc);
 		void renderSpring(RigidBodySpring &s);
 		void renderDistanceJoint(DistanceJoint &j);
+		void renderDamperJoint(DamperJoint &j);
 
 	public:
 		static int PAUSE;

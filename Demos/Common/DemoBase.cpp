@@ -390,6 +390,10 @@ void DemoBase::render()
 		{
 			renderDistanceJoint(*(DistanceJoint*)constraints[i]);
 		}
+		else if (constraints[i]->getTypeId() == DamperJoint::TYPE_ID)
+		{
+			renderDamperJoint(*(DamperJoint*)constraints[i]);
+		}
 	}
 
 
@@ -751,6 +755,20 @@ void DemoBase::renderDistanceJoint(DistanceJoint &j)
 	MiniGL::drawSphere(j.m_jointInfo.col(2), 0.1f, m_jointColor);
 	MiniGL::drawSphere(j.m_jointInfo.col(3), 0.1f, m_jointColor);
 	MiniGL::drawCylinder(j.m_jointInfo.col(2), j.m_jointInfo.col(3), m_jointColor, 0.05f);
+}
+
+void DemoBase::renderDamperJoint(DamperJoint &joint)
+{
+	SimulationModel *model = Simulation::getCurrent()->getModel();
+	const SimulationModel::RigidBodyVector &rigidBodies = model->getRigidBodies();
+	RigidBody *rb = rigidBodies[joint.m_bodies[0]];
+
+	Quaternionr qR0;
+	qR0.coeffs() = joint.m_jointInfo.col(1);
+	const Vector3r &c = rb->getPosition();
+	Vector3r axis = qR0.matrix().col(0);
+	MiniGL::drawSphere(c, 0.1f, m_jointColor);
+	MiniGL::drawCylinder(c - axis, c + axis, m_jointColor, 0.05f);
 }
 
 void DemoBase::mouseMove(int x, int y, void *clientData)
