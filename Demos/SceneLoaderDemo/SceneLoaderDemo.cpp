@@ -468,8 +468,8 @@ CubicSDFCollisionDetection::GridPtr generateSDF(const std::string &modelFile, co
 			{
 				domain.extend(x);
 			}
-			domain.max() += 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
-			domain.min() -= 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
+			domain.max() += 0.1 * Eigen::Vector3d::Ones();
+			domain.min() -= 0.1 * Eigen::Vector3d::Ones();
 
 			LOG_INFO << "Set SDF resolution: " << resolutionSDF[0] << ", " << resolutionSDF[1] << ", " << resolutionSDF[2];
 			distanceField = std::make_shared<CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ resolutionSDF[0], resolutionSDF[1], resolutionSDF[2] }));
@@ -626,8 +626,8 @@ void readScene(const bool readFile)
 						{
 							domain.extend(x);
 						}
-						domain.max() += 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
-						domain.min() -= 1.0e-3 * domain.diagonal().norm() * Eigen::Vector3d::Ones();
+						domain.max() += 0.1 * Eigen::Vector3d::Ones();
+						domain.min() -= 0.1 * Eigen::Vector3d::Ones();
 
 						LOG_INFO << "Set SDF resolution: " << rbd.m_resolutionSDF[0] << ", " << rbd.m_resolutionSDF[1] << ", " << rbd.m_resolutionSDF[2];
 						distanceFields[sdfFileName] = std::make_shared<CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ rbd.m_resolutionSDF[0], rbd.m_resolutionSDF[1], rbd.m_resolutionSDF[2] }));

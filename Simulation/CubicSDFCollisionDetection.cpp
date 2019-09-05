@@ -32,6 +32,7 @@ void CubicSDFCollisionDetection::addCubicSDFCollisionObject(const unsigned int b
  	co->m_bvh.init(vertices, numVertices);
  	co->m_bvh.construct();
 	co->m_testMesh = testMesh;
+	co->m_invertSDF = 1.0;
 	if (invertSDF)
 		co->m_invertSDF = -1.0;
 	m_collisionObjects.push_back(co);
@@ -48,6 +49,7 @@ void PBD::CubicSDFCollisionDetection::addCubicSDFCollisionObject(const unsigned 
 	co->m_bvh.init(vertices, numVertices);
 	co->m_bvh.construct();
 	co->m_testMesh = testMesh;
+	co->m_invertSDF = 1.0;
 	if (invertSDF)
 		co->m_invertSDF = -1.0;
 	m_collisionObjects.push_back(co);
