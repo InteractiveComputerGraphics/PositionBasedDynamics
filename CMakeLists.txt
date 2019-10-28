@@ -12,6 +12,10 @@ include(${PROJECT_PATH}/CMake/Common.cmake)
 
 add_definitions(-DPBD_DATA_PATH="../data")
 
+if (NOT WIN32)
+	message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
 if (DEFINED PBD_EXTERNALINSTALLDIR)
 	set(ExternalInstallDir "${PBD_EXTERNALINSTALLDIR}" CACHE INTERNAL "External install directory")	
 else()

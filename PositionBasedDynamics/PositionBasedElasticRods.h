@@ -23,8 +23,8 @@ namespace PBD
 	//  deul[at] gsc.tu-darmstadt.de
 	//
 
-	using Matrix6r = Eigen::Matrix<Real, 6, 6>;
-	using Vector6r = Eigen::Matrix<Real, 6, 1>;
+	using Matrix6r = Eigen::Matrix<Real, 6, 6, Eigen::DontAlign>;
+	using Vector6r = Eigen::Matrix<Real, 6, 1, Eigen::DontAlign>;
 	/** Node in the simulated tree structure */
 	struct Node {
 		Node() {
@@ -321,7 +321,7 @@ namespace PBD
 			const Real averageSegmentLength,
 			const Real youngsModulus,
 			const Real torsionModulus,
-			Eigen::Matrix<Real, 3, 4> &jointInfo,
+			Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &jointInfo,
 			Vector3r &stiffnessCoefficientK,
 			Vector3r &restDarbouxVector
 			);
@@ -359,7 +359,7 @@ namespace PBD
 			const Quaternionr &q0,
 			const Vector3r &x1,
 			const Quaternionr &q1,
-			Eigen::Matrix<Real, 3, 4> &jointInfo
+			Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &jointInfo
 		);
 
 		///** Determine the position and orientation corrections for the combined zero-stretch, bending and twisting constraint (eq. 23 in the paper). \n\n
@@ -402,7 +402,7 @@ namespace PBD
 			const Real averageSegmentLength,
 			const Vector3r &stretchCompliance,
 			const Vector3r &bendingAndTorsionCompliance,
-			const Eigen::Matrix<Real, 3, 4> &jointInfo,
+			const Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &jointInfo,
 			Vector3r &corr_x0, Quaternionr &corr_q0,
 			Vector3r &corr_x1, Quaternionr &corr_q1,
 			Vector6r &lambdaSum

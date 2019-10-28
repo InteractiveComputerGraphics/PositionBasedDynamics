@@ -747,7 +747,7 @@ Real PBD::DirectPositionBasedSolverForStiffRods::factor(const int intervalIndex,
 		const Quaternionr &q0 = segment0->Rotation();
 		const Quaternionr &q1 = segment1->Rotation();
 
-		const Eigen::Matrix<Real, 3, 4> &constraintInfo(currentConstraint->getConstraintInfo());
+		const Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &constraintInfo(currentConstraint->getConstraintInfo());
 		Vector6r &rhs(RHS[currentConstraintIndex]);
 
 		// Compute zero-stretch part of constraint violation
@@ -837,7 +837,7 @@ Real PBD::DirectPositionBasedSolverForStiffRods::factor(const int intervalIndex,
 					sign = -1;
 				}
 
-				const Eigen::Matrix<Real, 3, 4> &constraintInfo(constraint->getConstraintInfo());
+				const Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &constraintInfo(constraint->getConstraintInfo());
 				const Vector3r r = constraintInfo.col(2 + segmentIndex) - segment->Position();
 				Matrix3r r_cross;
 				Real crossSign(-static_cast<Real>(1.0)*sign);
@@ -868,7 +868,7 @@ Real PBD::DirectPositionBasedSolverForStiffRods::factor(const int intervalIndex,
 					sign = -1;
 				}
 
-				const Eigen::Matrix<Real, 3, 4> &constraintInfo(constraint->getConstraintInfo());
+				const Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &constraintInfo(constraint->getConstraintInfo());
 				const Vector3r r = constraintInfo.col(2 + segmentIndex) - segment->Position();
 				Matrix3r r_crossT;
 				MathFunctions::crossProductMatrix(sign*r, r_crossT);
@@ -1141,7 +1141,7 @@ bool PBD::DirectPositionBasedSolverForStiffRods::init_StretchBendingTwistingCons
 	const Real averageSegmentLength, 
 	const Real youngsModulus, 
 	const Real torsionModulus, 
-	Eigen::Matrix<Real, 3, 4> &constraintInfo, 
+	Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &constraintInfo, 
 	Vector3r &stiffnessCoefficientK, 
 	Vector3r &restDarbouxVector
 	)
@@ -1207,7 +1207,7 @@ bool PBD::DirectPositionBasedSolverForStiffRods::initBeforeProjection_StretchBen
 bool PBD::DirectPositionBasedSolverForStiffRods::update_StretchBendingTwistingConstraint(
 	const Vector3r &x0, const Quaternionr &q0, 
 	const Vector3r &x1, const Quaternionr &q1, 
-	Eigen::Matrix<Real, 3, 4> &constraintInfo
+	Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &constraintInfo
 	)
 {
 	// constraintInfo contains
@@ -1238,7 +1238,7 @@ bool PBD::DirectPositionBasedSolverForStiffRods::solve_StretchBendingTwistingCon
 	const Real averageSegmentLength, 
 	const Vector3r &stretchCompliance, 
 	const Vector3r &bendingAndTorsionCompliance, 
-	const Eigen::Matrix<Real, 3, 4> &constraintInfo,
+	const Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &constraintInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0, 
 	Vector3r &corr_x1, Quaternionr &corr_q1, 
 	Vector6r &lambdaSum

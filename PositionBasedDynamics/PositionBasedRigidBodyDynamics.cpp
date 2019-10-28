@@ -88,7 +88,7 @@ void PositionBasedRigidBodyDynamics::computeMatrixK(
 }
 
 // ----------------------------------------------------------------------------------------------
-void PositionBasedRigidBodyDynamics::computeMatrixG(const Quaternionr &q, Eigen::Matrix<Real, 4, 3> &G)
+void PositionBasedRigidBodyDynamics::computeMatrixG(const Quaternionr &q, Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> &G)
 {
 	G(0, 0) = -0.5*q.x();
 	G(0, 1) = -0.5*q.y();
@@ -108,7 +108,7 @@ void PositionBasedRigidBodyDynamics::computeMatrixG(const Quaternionr &q, Eigen:
 }
 
 // ----------------------------------------------------------------------------------------------
-void PositionBasedRigidBodyDynamics::computeMatrixQ(const Quaternionr &q, Eigen::Matrix<Real, 4, 4> &Q)
+void PositionBasedRigidBodyDynamics::computeMatrixQ(const Quaternionr &q, Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> &Q)
 {
 	Q(0, 0) = q.w();
 	Q(0, 1) = -q.x();
@@ -132,7 +132,7 @@ void PositionBasedRigidBodyDynamics::computeMatrixQ(const Quaternionr &q, Eigen:
 }
 
 // ----------------------------------------------------------------------------------------------
-void PositionBasedRigidBodyDynamics::computeMatrixQHat(const Quaternionr &q, Eigen::Matrix<Real, 4, 4> &Q)
+void PositionBasedRigidBodyDynamics::computeMatrixQHat(const Quaternionr &q, Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> &Q)
 {
 	Q(0, 0) = q.w();
 	Q(0, 1) = -q.x();
@@ -163,7 +163,7 @@ bool PositionBasedRigidBodyDynamics::init_BallJoint(
 	const Vector3r &x1, 						
 	const Quaternionr &q1,					
 	const Vector3r &ballJointPosition,		
-	Eigen::Matrix<Real, 3, 4> &ballJointInfo
+	Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &ballJointInfo
 	)
 {
 	// jointInfo contains
@@ -190,7 +190,7 @@ bool PositionBasedRigidBodyDynamics::update_BallJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 3, 4> &ballJointInfo
+	Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &ballJointInfo
 	)
 {
 	// jointInfo contains
@@ -218,7 +218,7 @@ bool PositionBasedRigidBodyDynamics::solve_BallJoint(
 	const Vector3r &x1, 						
 	const Matrix3r &inertiaInverseW1,		
 	const Quaternionr &q1,	
-	const Eigen::Matrix<Real, 3, 4> &ballJointInfo,
+	const Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &ballJointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -269,7 +269,7 @@ bool PositionBasedRigidBodyDynamics::init_DistanceJoint(
 	const Quaternionr &q1,
 	const Vector3r &pos0,
 	const Vector3r &pos1,
-	Eigen::Matrix<Real, 3, 4> &jointInfo
+	Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &jointInfo
 )
 {
 	// jointInfo contains
@@ -296,7 +296,7 @@ bool PositionBasedRigidBodyDynamics::update_DistanceJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 3, 4> &jointInfo
+	Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &jointInfo
 )
 {
 	// jointInfo contains
@@ -328,7 +328,7 @@ bool PositionBasedRigidBodyDynamics::solve_DistanceJoint(
 	const Real stiffness,
 	const Real restLength,	
 	const Real dt,
-	const Eigen::Matrix<Real, 3, 4> &jointInfo,
+	const Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> &jointInfo,
 	Real &lambda,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
@@ -423,7 +423,7 @@ bool PositionBasedRigidBodyDynamics::init_BallOnLineJoint(
 	const Quaternionr &q1,
 	const Vector3r &position,
 	const Vector3r &direction,
-	Eigen::Matrix<Real, 3, 10> &jointInfo
+	Eigen::Matrix<Real, 3, 10, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -469,7 +469,7 @@ bool PositionBasedRigidBodyDynamics::update_BallOnLineJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 3, 10> &jointInfo
+	Eigen::Matrix<Real, 3, 10, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -508,7 +508,7 @@ bool PositionBasedRigidBodyDynamics::solve_BallOnLineJoint(
 	const Vector3r &x1,
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
-	const Eigen::Matrix<Real, 3, 10> &jointInfo,
+	const Eigen::Matrix<Real, 3, 10, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -567,7 +567,7 @@ bool PositionBasedRigidBodyDynamics::init_HingeJoint(
 	const Quaternionr &q1,
 	const Vector3r &position,
 	const Vector3r &direction,
-	Eigen::Matrix<Real, 4, 7> &jointInfo
+	Eigen::Matrix<Real, 4, 7, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -612,10 +612,10 @@ bool PositionBasedRigidBodyDynamics::init_HingeJoint(
 	const Quaternionr q00 = (q0.conjugate() * qR0).conjugate();
 	const Quaternionr q10 = (q1.conjugate() * qR0).conjugate();
 
-	Eigen::Matrix<Real, 4, 4> Qq00, QHatq10;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq00, QHatq10;
 	computeMatrixQ(q00, Qq00);
 	computeMatrixQHat(q10, QHatq10);
-	Eigen::Matrix<Real, 2, 4> Pr = (QHatq10.transpose() * Qq00).block<2, 4>(2, 0);
+	Eigen::Matrix<Real, 2, 4, Eigen::DontAlign> Pr = (QHatq10.transpose() * Qq00).block<2, 4>(2, 0);
 	jointInfo.block<4, 2>(0, 0) = Pr.transpose();
 
 	return true;
@@ -627,7 +627,7 @@ bool PositionBasedRigidBodyDynamics::update_HingeJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 4, 7> &jointInfo
+	Eigen::Matrix<Real, 4, 7, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -657,7 +657,7 @@ bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 	const Vector3r &x1,
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
-	const Eigen::Matrix<Real, 4, 7> &jointInfo,
+	const Eigen::Matrix<Real, 4, 7, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -689,9 +689,9 @@ bool PositionBasedRigidBodyDynamics::solve_HingeJoint(
 	MathFunctions::crossProductMatrix(r0, r0_star);
 	MathFunctions::crossProductMatrix(r1, r1_star);
 
-	Eigen::Matrix<Real, 4, 3> Gq1;
+	Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> Gq1;
 	computeMatrixG(q1, Gq1);
-	Eigen::Matrix<Real, 4, 4> Qq0;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq0;
 	computeMatrixQ(q0, Qq0);
 
 	const Eigen::Matrix<Real, 2, 3> t = -Pr * (Qq0.transpose() * Gq1);
@@ -777,7 +777,7 @@ bool PositionBasedRigidBodyDynamics::init_UniversalJoint(
 	const Vector3r &position,
 	const Vector3r &jointAxis0,
 	const Vector3r &jointAxis1,
-	Eigen::Matrix<Real, 3, 8> &jointInfo
+	Eigen::Matrix<Real, 3, 8, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -831,7 +831,7 @@ bool PositionBasedRigidBodyDynamics::update_UniversalJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 3, 8> &jointInfo
+	Eigen::Matrix<Real, 3, 8, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -869,7 +869,7 @@ bool PositionBasedRigidBodyDynamics::solve_UniversalJoint(
 	const Vector3r &x1,
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
-	const Eigen::Matrix<Real, 3, 8> &jointInfo,
+	const Eigen::Matrix<Real, 3, 8, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -976,7 +976,7 @@ bool PositionBasedRigidBodyDynamics::init_SliderJoint(
 	const Vector3r &x1,
 	const Quaternionr &q1,
 	const Vector3r &direction,
-	Eigen::Matrix<Real, 4, 6> &jointInfo
+	Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1014,7 +1014,7 @@ bool PositionBasedRigidBodyDynamics::init_SliderJoint(
 	const Quaternionr q00 = (q0.conjugate() * qR0).conjugate();
 	const Quaternionr q10 = (q1.conjugate() * qR0).conjugate();
 
-	Eigen::Matrix<Real, 4, 4> Qq00, QHatq10;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq00, QHatq10;
 	computeMatrixQ(q00, Qq00);
 	computeMatrixQHat(q10, QHatq10);
 	Eigen::Matrix<Real, 3, 4> Pr = (QHatq10.transpose() * Qq00).block<3, 4>(1, 0);
@@ -1029,7 +1029,7 @@ bool PositionBasedRigidBodyDynamics::update_SliderJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 4, 6> &jointInfo
+	Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1055,7 +1055,7 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
 	const Vector3r &x1,
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
-	const Eigen::Matrix<Real, 4, 6> &jointInfo,
+	const Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -1084,9 +1084,9 @@ bool PositionBasedRigidBodyDynamics::solve_SliderJoint(
  	C.block<3, 1>(2, 0) = Pr * qVec;
 
 
-	Eigen::Matrix<Real, 4, 3> Gq1;
+	Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> Gq1;
 	computeMatrixG(q1, Gq1);
-	Eigen::Matrix<Real, 4, 4> Qq0;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq0;
 	computeMatrixQ(q0, Qq0);
 
 	const Matrix3r t = -Pr * (Qq0.transpose() * Gq1);
@@ -1159,7 +1159,7 @@ bool PositionBasedRigidBodyDynamics::init_TargetPositionMotorSliderJoint(
 	const Vector3r &x1,
 	const Quaternionr &q1,
 	const Vector3r &direction,
-	Eigen::Matrix<Real, 4, 6> &jointInfo
+	Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1196,7 +1196,7 @@ bool PositionBasedRigidBodyDynamics::init_TargetPositionMotorSliderJoint(
 	const Quaternionr q00 = (q0.conjugate() * qR0).conjugate();
 	const Quaternionr q10 = (q1.conjugate() * qR0).conjugate();
 
-	Eigen::Matrix<Real, 4, 4> Qq00, QHatq10;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq00, QHatq10;
 	computeMatrixQ(q00, Qq00);
 	computeMatrixQHat(q10, QHatq10);
 	Eigen::Matrix<Real, 3, 4> Pr = (QHatq10.transpose() * Qq00).block<3, 4>(1, 0);
@@ -1211,7 +1211,7 @@ bool PositionBasedRigidBodyDynamics::update_TargetPositionMotorSliderJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 4, 6> &jointInfo
+	Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1236,7 +1236,7 @@ bool PositionBasedRigidBodyDynamics::solve_TargetPositionMotorSliderJoint(
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
 	const Real targetPosition,	
-	const Eigen::Matrix<Real, 4, 6> &jointInfo,
+	const Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -1260,9 +1260,9 @@ bool PositionBasedRigidBodyDynamics::solve_TargetPositionMotorSliderJoint(
 	const Vector4r qVec(tmp.w(), tmp.x(), tmp.y(), tmp.z());
 	C.block<3, 1>(3, 0) = Pr * qVec;
 
-	Eigen::Matrix<Real, 4, 3> Gq1;
+	Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> Gq1;
 	computeMatrixG(q1, Gq1);
-	Eigen::Matrix<Real, 4, 4> Qq0;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq0;
 	computeMatrixQ(q0, Qq0);
 
 	const Matrix3r t = -Pr * (Qq0.transpose() * Gq1);
@@ -1334,7 +1334,7 @@ bool PositionBasedRigidBodyDynamics::init_TargetVelocityMotorSliderJoint(
 	const Vector3r &x1,
 	const Quaternionr &q1,
 	const Vector3r &direction,
-	Eigen::Matrix<Real, 4, 6> &jointInfo
+	Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1352,7 +1352,7 @@ bool PositionBasedRigidBodyDynamics::update_TargetVelocityMotorSliderJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 4, 6> &jointInfo
+	Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1374,7 +1374,7 @@ bool PositionBasedRigidBodyDynamics::solve_TargetVelocityMotorSliderJoint(
 	const Vector3r &x1,
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
-	const Eigen::Matrix<Real, 4, 6> &jointInfo,
+	const Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -1399,7 +1399,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorSliderJoin
 	const Quaternionr &q1,
 	const Vector3r &omega1,
 	const Real targetVelocity,
-	const Eigen::Matrix<Real, 4, 6> &jointInfo,
+	const Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_v0, Vector3r &corr_omega0,
 	Vector3r &corr_v1, Vector3r &corr_omega1)
 {
@@ -1424,9 +1424,9 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorSliderJoin
 	// compute K= J M^1 J^T
 	const Eigen::Matrix<Real, 3, 4> &Pr = jointInfo.block<4, 3>(0, 3).transpose();
 
-	Eigen::Matrix<Real, 4, 3> Gq1;
+	Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> Gq1;
 	computeMatrixG(q1, Gq1);
-	Eigen::Matrix<Real, 4, 4> Qq0;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq0;
 	computeMatrixQ(q0, Qq0);
 
 	const Matrix3r t = -Pr * (Qq0.transpose() * Gq1);
@@ -1495,7 +1495,7 @@ bool PositionBasedRigidBodyDynamics::init_TargetAngleMotorHingeJoint(
 	const Quaternionr &q1,
 	const Vector3r &position,
 	const Vector3r &direction,
-	Eigen::Matrix<Real, 4, 8> &jointInfo
+	Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1540,7 +1540,7 @@ bool PositionBasedRigidBodyDynamics::init_TargetAngleMotorHingeJoint(
 	const Quaternionr q00 = (q0.conjugate() * qR0).conjugate();
 	const Quaternionr q10 = (q1.conjugate() * qR0).conjugate();
 
-	Eigen::Matrix<Real, 4, 4> Qq00, QHatq10;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq00, QHatq10;
 	computeMatrixQ(q00, Qq00);
 	computeMatrixQHat(q10, QHatq10);
 	Eigen::Matrix<Real, 3, 4> Pr = (QHatq10.transpose() * Qq00).block<3, 4>(1, 0);
@@ -1555,7 +1555,7 @@ bool PositionBasedRigidBodyDynamics::update_TargetAngleMotorHingeJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 4, 8> &jointInfo
+	Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1586,7 +1586,7 @@ bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
 	const Real targetAngle,
-	const Eigen::Matrix<Real, 4, 8> &jointInfo,
+	const Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -1618,9 +1618,9 @@ bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
 	MathFunctions::crossProductMatrix(r0, r0_star);
 	MathFunctions::crossProductMatrix(r1, r1_star);
 
-	Eigen::Matrix<Real, 4, 3> Gq1;
+	Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> Gq1;
 	computeMatrixG(q1, Gq1);
-	Eigen::Matrix<Real, 4, 4> Qq0;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq0;
 	computeMatrixQ(q0, Qq0);
 
 	const Matrix3r t = -Pr * (Qq0.transpose() * Gq1);
@@ -1707,7 +1707,7 @@ bool PositionBasedRigidBodyDynamics::init_TargetVelocityMotorHingeJoint(
 	const Quaternionr &q1,
 	const Vector3r &position,
 	const Vector3r &direction,
-	Eigen::Matrix<Real, 4, 8> &jointInfo
+	Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1755,7 +1755,7 @@ bool PositionBasedRigidBodyDynamics::init_TargetVelocityMotorHingeJoint(
 	const Quaternionr q00 = (q0.conjugate() * qR0).conjugate();
 	const Quaternionr q10 = (q1.conjugate() * qR0).conjugate();
 
-	Eigen::Matrix<Real, 4, 4> Qq00, QHatq10;
+	Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq00, QHatq10;
 	computeMatrixQ(q00, Qq00);
 	computeMatrixQHat(q10, QHatq10);
 	Eigen::Matrix<Real, 2, 4> Pr = (QHatq10.transpose() * Qq00).block<2, 4>(2, 0);
@@ -1770,7 +1770,7 @@ bool PositionBasedRigidBodyDynamics::update_TargetVelocityMotorHingeJoint(
 	const Quaternionr &q0,
 	const Vector3r &x1,
 	const Quaternionr &q1,
-	Eigen::Matrix<Real, 4, 8> &jointInfo
+	Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -1803,7 +1803,7 @@ bool PositionBasedRigidBodyDynamics::solve_TargetVelocityMotorHingeJoint(
 	const Vector3r &x1,
 	const Matrix3r &inertiaInverseW1,
 	const Quaternionr &q1,
-	const Eigen::Matrix<Real, 4, 8> &jointInfo,
+	const Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1, Quaternionr &corr_q1)
 {
@@ -1828,7 +1828,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 	const Matrix3r &inertiaInverseW1,
 	const Vector3r &omega1,
 	const Real targetAngularVelocity,
-	const Eigen::Matrix<Real, 4, 8> &jointInfo,
+	const Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_v0, Vector3r &corr_omega0,
 	Vector3r &corr_v1, Vector3r &corr_omega1)
 {
@@ -1934,7 +1934,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 		const Vector3r &x1,
 		const Quaternionr &q1,
 		const Vector3r &direction,
-		Eigen::Matrix<Real, 4, 6> &jointInfo
+		Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 	{
 		// jointInfo contains
@@ -1971,7 +1971,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 		const Quaternionr q00 = (q0.conjugate() * qR0).conjugate();
 		const Quaternionr q10 = (q1.conjugate() * qR0).conjugate();
 
-		Eigen::Matrix<Real, 4, 4> Qq00, QHatq10;
+		Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq00, QHatq10;
 		computeMatrixQ(q00, Qq00);
 		computeMatrixQHat(q10, QHatq10);
 		Eigen::Matrix<Real, 3, 4> Pr = (QHatq10.transpose() * Qq00).block<3, 4>(1, 0);
@@ -1986,7 +1986,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 		const Quaternionr &q0,
 		const Vector3r &x1,
 		const Quaternionr &q1,
-		Eigen::Matrix<Real, 4, 6> &jointInfo
+		Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo
 	)
 	{
 		// jointInfo contains
@@ -2014,7 +2014,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 		const Quaternionr &q1,
 		const Real stiffness,
 		const Real dt,
-		const Eigen::Matrix<Real, 4, 6> &jointInfo,
+		const Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> &jointInfo,
 		Real &lambda,
 		Vector3r &corr_x0, Quaternionr &corr_q0,
 		Vector3r &corr_x1, Quaternionr &corr_q1)
@@ -2040,9 +2040,9 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 		const Vector4r qVec(tmp.w(), tmp.x(), tmp.y(), tmp.z());
 		C.block<3, 1>(3, 0) = Pr * qVec;
 
-		Eigen::Matrix<Real, 4, 3> Gq1;
+		Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> Gq1;
 		computeMatrixG(q1, Gq1);
-		Eigen::Matrix<Real, 4, 4> Qq0;
+		Eigen::Matrix<Real, 4, 4, Eigen::DontAlign> Qq0;
 		computeMatrixQ(q0, Qq0);
 
 		const Matrix3r t = -Pr * (Qq0.transpose() * Gq1);
@@ -2122,7 +2122,7 @@ bool PositionBasedRigidBodyDynamics::init_RigidBodyParticleBallJoint(
 	const Vector3r &x0,
 	const Quaternionr &q0,
 	const Vector3r &x1,
-	Eigen::Matrix<Real, 3, 2> &jointInfo
+	Eigen::Matrix<Real, 3, 2, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -2143,7 +2143,7 @@ bool PositionBasedRigidBodyDynamics::update_RigidBodyParticleBallJoint(
 	const Vector3r &x0,
 	const Quaternionr &q0,
 	const Vector3r &x1,
-	Eigen::Matrix<Real, 3, 2> &jointInfo
+	Eigen::Matrix<Real, 3, 2, Eigen::DontAlign> &jointInfo
 	)
 {
 	// jointInfo contains
@@ -2165,7 +2165,7 @@ bool PositionBasedRigidBodyDynamics::solve_RigidBodyParticleBallJoint(
 	const Quaternionr &q0,
 	const Real invMass1,
 	const Vector3r &x1,
-	const Eigen::Matrix<Real, 3, 2> &jointInfo,
+	const Eigen::Matrix<Real, 3, 2, Eigen::DontAlign> &jointInfo,
 	Vector3r &corr_x0, Quaternionr &corr_q0,
 	Vector3r &corr_x1)
 {
@@ -2226,7 +2226,7 @@ bool PositionBasedRigidBodyDynamics::init_RigidBodyContactConstraint(
 	const Vector3r &cp1,						// contact point of body 1
 	const Vector3r &normal,					// contact normal in body 1
 	const Real restitutionCoeff,					// coefficient of restitution
-	Eigen::Matrix<Real, 3, 5> &constraintInfo)
+	Eigen::Matrix<Real, 3, 5, Eigen::DontAlign> &constraintInfo)
 {
 	// constraintInfo contains
 	// 0:	contact point in body 0 (global)
@@ -2292,7 +2292,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_RigidBodyContactConstraint(
 	const Real stiffness,							// stiffness parameter of penalty impulse
 	const Real frictionCoeff,						// friction coefficient
 	Real &sum_impulses,							// sum of all impulses
-	Eigen::Matrix<Real, 3, 5> &constraintInfo,		// precomputed contact info
+	Eigen::Matrix<Real, 3, 5, Eigen::DontAlign> &constraintInfo,		// precomputed contact info
 	Vector3r &corr_v0, Vector3r &corr_omega0,
 	Vector3r &corr_v1, Vector3r &corr_omega1)
 {
@@ -2388,7 +2388,7 @@ bool PositionBasedRigidBodyDynamics::init_ParticleRigidBodyContactConstraint(
 	const Vector3r &cp1,						// contact point of body 1
 	const Vector3r &normal,					// contact normal in body 1
 	const Real restitutionCoeff,					// coefficient of restitution
-	Eigen::Matrix<Real, 3, 5> &constraintInfo)
+	Eigen::Matrix<Real, 3, 5, Eigen::DontAlign> &constraintInfo)
 {
 	// constraintInfo contains
 	// 0:	contact point in body 0 (global)
@@ -2454,7 +2454,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_ParticleRigidBodyContactConst
 	const Real stiffness,							// stiffness parameter of penalty impulse
 	const Real frictionCoeff,						// friction coefficient
 	Real &sum_impulses,							// sum of all impulses
-	Eigen::Matrix<Real, 3, 5> &constraintInfo,		// precomputed contact info
+	Eigen::Matrix<Real, 3, 5, Eigen::DontAlign> &constraintInfo,		// precomputed contact info
 	Vector3r &corr_v0,
 	Vector3r &corr_v1, Vector3r &corr_omega1)
 {

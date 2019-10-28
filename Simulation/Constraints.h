@@ -39,7 +39,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 4> m_jointInfo;
+		Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> m_jointInfo;
 
 		BallJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -53,7 +53,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 10> m_jointInfo;
+		Eigen::Matrix<Real, 3, 10, Eigen::DontAlign> m_jointInfo;
 
 		BallOnLineJoint() : Constraint(2) {} 
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -67,7 +67,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 4, 7> m_jointInfo;
+		Eigen::Matrix<Real, 4, 7, Eigen::DontAlign> m_jointInfo;
 
 		HingeJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -81,7 +81,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 8> m_jointInfo;
+		Eigen::Matrix<Real, 3, 8, Eigen::DontAlign> m_jointInfo;
 
 		UniversalJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -95,7 +95,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 4, 6> m_jointInfo;
+		Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> m_jointInfo;
 
 		SliderJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -129,7 +129,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 4, 6> m_jointInfo;
+		Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> m_jointInfo;
 
 		TargetPositionMotorSliderJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -143,7 +143,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 4, 6> m_jointInfo;
+		Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> m_jointInfo;
 
 		TargetVelocityMotorSliderJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -158,7 +158,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 4, 8> m_jointInfo;
+		Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> m_jointInfo;
 		TargetAngleMotorHingeJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
@@ -180,7 +180,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 4, 8> m_jointInfo;
+		Eigen::Matrix<Real, 4, 8, Eigen::DontAlign> m_jointInfo;
 		TargetVelocityMotorHingeJoint() : MotorJoint() {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
@@ -195,7 +195,7 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Real m_stiffness;
-		Eigen::Matrix<Real, 4, 6> m_jointInfo;
+		Eigen::Matrix<Real, 4, 6, Eigen::DontAlign> m_jointInfo;
 		Real m_lambda;
 
 		DamperJoint() : Constraint(2) {}
@@ -210,7 +210,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 2> m_jointInfo;
+		Eigen::Matrix<Real, 3, 2, Eigen::DontAlign> m_jointInfo;
 
 		RigidBodyParticleBallJoint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
@@ -224,7 +224,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 4> m_jointInfo;
+		Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> m_jointInfo;
 		Real m_restLength;
 		Real m_stiffness;
 		Real m_lambda;
@@ -241,7 +241,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 4> m_jointInfo;
+		Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> m_jointInfo;
 		Real m_restLength;
 
 		DistanceJoint() : Constraint(2) {}
@@ -408,7 +408,7 @@ namespace PBD
 		Real m_stiffness; 
 		Real m_frictionCoeff;
 		Real m_sum_impulses;
-		Eigen::Matrix<Real, 3, 5> m_constraintInfo;
+		Eigen::Matrix<Real, 3, 5, Eigen::DontAlign> m_constraintInfo;
 
 		RigidBodyContactConstraint() {}
 		~RigidBodyContactConstraint() {}
@@ -430,7 +430,7 @@ namespace PBD
 		Real m_stiffness;
 		Real m_frictionCoeff;
 		Real m_sum_impulses;
-		Eigen::Matrix<Real, 3, 5> m_constraintInfo;
+		Eigen::Matrix<Real, 3, 5, Eigen::DontAlign> m_constraintInfo;
 
 		ParticleRigidBodyContactConstraint() {}
 		~ParticleRigidBodyContactConstraint() {}
@@ -454,7 +454,7 @@ namespace PBD
 		Vector3r m_bary;
 		Real m_lambda;
 		Real m_frictionCoeff;
-		Eigen::Matrix<Real, 3, 3> m_constraintInfo;
+		Eigen::Matrix<Real, 3, 3, Eigen::DontAlign> m_constraintInfo;
 		Real m_invMasses[4];
 		Vector3r m_x[4];
 		Vector3r m_v[4];
@@ -500,11 +500,11 @@ namespace PBD
 
 	class StretchBendingTwistingConstraint : public Constraint
 	{
-		using Matrix6r = Eigen::Matrix<Real, 6, 6>;
-		using Vector6r = Eigen::Matrix<Real, 6, 1>;
+		using Matrix6r = Eigen::Matrix<Real, 6, 6, Eigen::DontAlign>;
+		using Vector6r = Eigen::Matrix<Real, 6, 1, Eigen::DontAlign>;
 	public:
 		static int TYPE_ID;
-		Eigen::Matrix<Real, 3, 4> m_constraintInfo;
+		Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> m_constraintInfo;
 
 		Real m_averageRadius;
 		Real m_averageSegmentLength;
@@ -528,7 +528,7 @@ namespace PBD
 	struct Node;
 	struct Interval;
 	class SimulationModel;
-	using Vector6r = Eigen::Matrix<Real, 6, 1>;
+	using Vector6r = Eigen::Matrix<Real, 6, 1, Eigen::DontAlign>;
 
 	class DirectPositionBasedSolverForStiffRodsConstraint : public Constraint
 	{
@@ -552,7 +552,7 @@ namespace PBD
 		{
 		public:
 			std::vector<unsigned int> m_segments;
-			Eigen::Matrix<Real, 3, 4> m_constraintInfo;
+			Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> m_constraintInfo;
 
 			Real m_averageRadius;
 			Real m_averageSegmentLength;
@@ -567,7 +567,7 @@ namespace PBD
 				return 0u;
 			};
 
-			virtual Eigen::Matrix<Real, 3, 4> & getConstraintInfo(){ return m_constraintInfo; }
+			virtual Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> & getConstraintInfo(){ return m_constraintInfo; }
 			virtual Real getAverageSegmentLength(){ return m_averageSegmentLength; }
 			virtual Vector3r &getRestDarbouxVector(){ return m_restDarbouxVector; }
 			virtual Vector3r &getStiffnessCoefficientK() { return m_stiffnessCoefficientK; };

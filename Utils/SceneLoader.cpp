@@ -29,7 +29,7 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 		readVector(m_json, "cameraPosition", sceneData.m_camPosition);
 		sceneData.m_camLookat = Vector3r(5.0, 0.0, 0.0);
 		readVector(m_json, "cameraLookat", sceneData.m_camLookat);
-
+		
 		//////////////////////////////////////////////////////////////////////////
 		// read general 
 		//////////////////////////////////////////////////////////////////////////
@@ -244,7 +244,7 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 			// translation
 			rbd.m_x.setZero();
 			readVector(rigidBody, "translation", rbd.m_x);
-
+			
 			// rotation axis
 			Vector3r axis;
 			axis.setZero();
@@ -257,7 +257,7 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 			}
 			else
 				rbd.m_q = Quaternionr(1.0, 0.0, 0.0, 0.0);
-
+				
 			// scale
 			rbd.m_scale = Vector3r(1.0, 1.0, 1.0);
 			readVector(rigidBody, "scale", rbd.m_scale);
@@ -299,9 +299,9 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 			rbd.m_thicknessSDF = 0.1;
 			readValue(rigidBody, "thicknessSDF", rbd.m_thicknessSDF);
 
-			rbd.m_resolutionSDF = Eigen::Matrix<unsigned int, 3, 1>(10, 10, 10);
+			rbd.m_resolutionSDF = Eigen::Matrix<unsigned int, 3, 1, Eigen::DontAlign>(10, 10, 10);
 			readVector(rigidBody, "resolutionSDF", rbd.m_resolutionSDF);
-
+			
 			rbd.m_json = rigidBody;
 		}
 	}
@@ -470,7 +470,7 @@ void SceneLoader::readTetModels(const nlohmann::json &j, const std::string &key,
 			data.m_thicknessSDF = 0.1;
 			readValue(tetModel, "thicknessSDF", data.m_thicknessSDF);
 
-			data.m_resolutionSDF = Eigen::Matrix<unsigned int, 3, 1>(10, 10, 10);
+			data.m_resolutionSDF = Eigen::Matrix<unsigned int, 3, 1, Eigen::DontAlign>(10, 10, 10);
 			readVector(tetModel, "resolutionSDF", data.m_resolutionSDF);
 
 			data.m_json = tetModel;

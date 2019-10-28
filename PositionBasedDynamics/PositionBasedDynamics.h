@@ -473,7 +473,7 @@ namespace PBD
 			const Vector3r v[],								// velocities of tet particles
 			const Vector3r &bary,							// barycentric coordinates of contact point in tet
 			const Vector3r &normal,							// contact normal in body 1
-			Eigen::Matrix<Real, 3, 3> &constraintInfo);
+			Eigen::Matrix<Real, 3, 3, Eigen::DontAlign> &constraintInfo);
 
 
 		/** Perform a solver step for a contact constraint between a particle and a tetrahedron.
@@ -496,7 +496,7 @@ namespace PBD
 			const Real invMass[],							// inverse masses of tet particles
 			const Vector3r x[],								// positions of tet particles
 			const Vector3r &bary,							// barycentric coordinates of contact point in tet
-			Eigen::Matrix<Real, 3, 3> &constraintInfo,		// precomputed contact info
+			Eigen::Matrix<Real, 3, 3, Eigen::DontAlign> &constraintInfo,		// precomputed contact info
 			Real &lambda,
 			Vector3r &corr0,
 			Vector3r corr[]);
@@ -528,7 +528,7 @@ namespace PBD
 			const Vector3r &bary,							// barycentric coordinates of contact point in tet
 			const Real lambda,
 			const Real frictionCoeff,						// friction coefficient
-			Eigen::Matrix<Real, 3, 3> &constraintInfo,		// precomputed contact info
+			Eigen::Matrix<Real, 3, 3, Eigen::DontAlign> &constraintInfo,		// precomputed contact info
 			Vector3r &corr_v0,
 			Vector3r corr_v[]);
 	};

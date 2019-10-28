@@ -95,14 +95,14 @@ namespace Utilities
 
 	public:
 		typedef std::vector<unsigned int> Faces;
-		typedef std::vector<Vector3r, Alloc_Vector3r> FaceNormals;
-		typedef std::vector<Vector3r, Alloc_Vector3r> VertexNormals;
+		typedef std::vector<Vector3r> FaceNormals;
+		typedef std::vector<Vector3r> VertexNormals;
 		typedef std::vector<Face> FaceData;
 		typedef std::vector<Edge> Edges;
 		typedef std::vector<VertexFaces> VerticesFaces;
 		typedef std::vector<VertexEdges> VerticesEdges;
 		typedef std::vector<unsigned int> UVIndices;
-		typedef std::vector<Vector2r, Alloc_Vector2r> UVs;
+		typedef std::vector<Vector2r> UVs;
 
 	protected:
 		unsigned int m_numPoints;

@@ -21,7 +21,7 @@ namespace PBD
 			Real m_StartingTime;
 			Real m_EndingTime;
 			unsigned int m_Type;
-			std::vector<Vector3r, Alloc_Vector3r> m_Data;
+			std::vector<Vector3r> m_Data;
 		};
 
 		struct StretchBendingTwistingConstraintData
@@ -65,18 +65,18 @@ namespace PBD
 			Real m_TorsionModulus;
 			std::set<unsigned int> m_StaticSegments;
 			unsigned int m_SolverType;
-			std::vector<Vector3r, Alloc_Vector3r> m_SegmentPositions;
-			std::vector<Quaternionr, Alloc_Quaternionr> m_SegmentOrientations;
-			std::vector<Vector3r, Alloc_Vector3r> m_SegmentScales;
+			std::vector<Vector3r> m_SegmentPositions;
+			std::vector<Quaternionr> m_SegmentOrientations;
+			std::vector<Vector3r> m_SegmentScales;
 			std::vector<Real> m_SegmentDensities;
 			std::vector<std::string> m_SegmentModelFiles;
 			std::vector<Real> m_SegmentFrictionCoefficients;
 			std::vector<Real> m_SegmentRestitutioCoefficients;
 			std::vector<short> m_SegmentCollisionCategoryBits;
 			std::vector<short> m_SegmentCollisionFilterMaskBits;
-			std::vector<Vector3r, Alloc_Vector3r> m_SBTConstraintPositions;
+			std::vector<Vector3r> m_SBTConstraintPositions;
 			std::vector<std::vector<unsigned int>> m_SBTConstraintBodiesIndices;
-			std::vector<Vector3r, Alloc_Vector3r> m_SBTConstraintStiffnessModifier;
+			std::vector<Vector3r> m_SBTConstraintStiffnessModifier;
 		};
 
 		struct RodSceneData : public SceneLoader::SceneData{

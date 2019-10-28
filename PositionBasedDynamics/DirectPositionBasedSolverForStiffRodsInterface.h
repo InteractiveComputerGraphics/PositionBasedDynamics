@@ -30,9 +30,9 @@ namespace PBD{
 	class RodConstraint
 	{
 	public:
-		using Vector6r = Eigen::Matrix<Real, 6, 1>;
+		using Vector6r = Eigen::Matrix<Real, 6, 1, Eigen::DontAlign>;
 		virtual unsigned int segmentIndex(unsigned int i) = 0;
-		virtual Eigen::Matrix<Real, 3, 4> & getConstraintInfo() = 0;
+		virtual Eigen::Matrix<Real, 3, 4, Eigen::DontAlign> & getConstraintInfo() = 0;
 		virtual Real getAverageSegmentLength() = 0;
 		virtual Vector3r &getRestDarbouxVector() = 0;
 		virtual Vector3r &getStiffnessCoefficientK() = 0;

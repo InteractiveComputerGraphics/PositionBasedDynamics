@@ -5,6 +5,7 @@ if(WIN32)
   set(SIMULATION_LINK_LIBRARIES freeglut opengl32.lib glu32.lib ${SIMULATION_LINK_LIBRARIES})
   set(SIMULATION_DEPENDENCIES freeglut ${SIMULATION_DEPENDENCIES})
 else()
+  set(OpenGL_GL_PREFERENCE GLVND)
   find_package(GLUT REQUIRED)
   find_package(OpenGL REQUIRED)
 

@@ -37,7 +37,7 @@ namespace Utilities
 			Vector3r m_collisionObjectScale;
 			bool m_invertSDF;
 			Real m_thicknessSDF;
-			Eigen::Matrix<unsigned int, 3, 1> m_resolutionSDF;
+			Eigen::Matrix<unsigned int, 3, 1, Eigen::DontAlign> m_resolutionSDF;
 
 			nlohmann::json m_json;
 		};
@@ -74,7 +74,7 @@ namespace Utilities
 			Vector3r m_collisionObjectScale;
 			bool m_invertSDF;
 			Real m_thicknessSDF;
-			Eigen::Matrix<unsigned int, 3, 1> m_resolutionSDF;
+			Eigen::Matrix<unsigned int, 3, 1, Eigen::DontAlign> m_resolutionSDF;
 			nlohmann::json m_json;
 		};
 
@@ -263,7 +263,7 @@ namespace Utilities
 		}
 
 		template <typename T, int size>
-		static bool readVector(const nlohmann::json &j, const std::string &key, Eigen::Matrix<T, size, 1> &vec)
+		static bool readVector(const nlohmann::json &j, const std::string &key, Eigen::Matrix<T, size, 1, Eigen::DontAlign> &vec)
 		{
 			if (j.find(key) == j.end())
 				return false;
