@@ -45,16 +45,19 @@ add_library(Simulation
 ############################################################
 # Discregrid
 ############################################################
-include_directories(${ExternalInstallDir}/Discregrid/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_Discregrid)
+include_directories(${Discregrid_INCLUDE_DIR})
+if (TARGET Ext_Discregrid)
+	add_dependencies(Simulation Ext_Discregrid)
+endif()
+
 
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${ExternalInstallDir}/GenericParameters/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
-
-add_dependencies(Simulation ${SIMULATION_DEPENDENCIES})
+include_directories(${GenericParameters_INCLUDE_DIR})
+if(TARGET Ext_GenericParameters)
+	add_dependencies(Simulation Ext_GenericParameters)
+endif()
 
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )

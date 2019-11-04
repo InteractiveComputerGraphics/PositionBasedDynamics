@@ -19,8 +19,10 @@ endif()
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${PROJECT_BINARY_DIR}/GenericParameters/include)
-set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
+include_directories(${GenericParameters_INCLUDE_DIR})
+if(TARGET Ext_GenericParameters)
+	set(SIMULATION_DEPENDENCIES ${SIMULATION_DEPENDENCIES} Ext_GenericParameters)
+endif()
 
 add_executable(GenericParticleConstraintsDemo
 	  GenericParticleConstraintsDemo.cpp
