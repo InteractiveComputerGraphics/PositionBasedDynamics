@@ -1,3 +1,5 @@
+	- update to Eigen 3.3.7
+	
 1.7.0
 	- added DamperJoint
 	- improved implementation of SliderJoint
