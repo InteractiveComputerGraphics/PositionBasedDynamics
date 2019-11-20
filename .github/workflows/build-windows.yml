@@ -1,0 +1,21 @@
+name: build-windows
+
+on: [push]
+
+jobs:
+  build-windows:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, windows-2016]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: configure
+      run: mkdir build-release;cd build-release;cmake ..
+      shell: pwsh
+    - name: build
+      run: cmake --build build-release --config Release
+
+
