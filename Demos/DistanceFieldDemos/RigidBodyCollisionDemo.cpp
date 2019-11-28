@@ -345,7 +345,7 @@ void createBodyModel()
 
 					const std::vector<Vector3r> *vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
 					const unsigned int nVert = static_cast<unsigned int>(vertices->size());
-					cd.addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, 1.0);
+					cd.addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, 2.0);
 				}
 				else if (currentType == 3)
 				{
