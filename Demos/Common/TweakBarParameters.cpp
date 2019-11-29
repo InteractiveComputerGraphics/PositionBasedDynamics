@@ -287,7 +287,7 @@ void TW_CALL TweakBarParameters::getParameterValue(void *value, void *clientData
 	}
 	else if (paramBase->getType() == ParameterBase::BOOL)
 	{
-		const bool val = static_cast<NumericParameter<bool>*>(paramBase)->getValue();
+		const bool val = static_cast<BoolParameter*>(paramBase)->getValue();
 		*(bool*)(value) = val;
 	}
 	else if (paramBase->getType() == RealVectorParameterType)

@@ -1,6 +1,5 @@
 
 #include "BoundingSphereHierarchy.h"
-#include "MiniBall.h"
 
 #include <iostream>
 #include <unordered_set>
@@ -21,30 +20,16 @@ Vector3r const& PointCloudBSH::entity_position(unsigned int i) const
     return m_vertices[i];
 }
 
-struct PCBSHCoordAccessor
-{
-    PCBSHCoordAccessor(const Vector3r *vertices_,
-        std::vector<unsigned int> const* lst_)
-        : vertices(vertices_), lst(lst_)
-    {
-    }
-
-    using Pit = unsigned int;
-    using Cit = Real const*;
-    inline  Cit operator() (Pit it) const {
-        return vertices[(*lst)[it]].data();
-    }
-    const Vector3r *vertices;
-    std::vector<unsigned int> const* lst;
-};
-
-
 void PointCloudBSH::compute_hull(unsigned int b, unsigned int n, BoundingSphere& hull) const
 {
-    auto mb = Miniball::Miniball<PCBSHCoordAccessor>(3, b, b + n,  {m_vertices, &m_lst});
+	auto vertices_subset = std::vector<Vector3r>(n);
+	for (unsigned int i=b; i < b+n; ++i)
+		vertices_subset[i-b] = m_vertices[m_lst[i]];
 
-    hull.x() = Map<Vector3r const>(mb.center());
-    hull.r() = std::sqrt(mb.squared_radius());
+	const BoundingSphere s(vertices_subset);
+
+	hull.x() = s.x();
+	hull.r() = s.r();
 }
 
 void PointCloudBSH::compute_hull_approx(unsigned int b, unsigned int n, BoundingSphere& hull) const
@@ -74,25 +59,6 @@ void PointCloudBSH::init(const Vector3r *vertices, const unsigned int numVertice
 }
 
 //////////////////////////////////////////////////////////////////////////
-
-
-struct TMBSHCoordAccessor
-{
-	TMBSHCoordAccessor(const Vector3r *vertices_, const unsigned int *indices_, 
-		std::vector<unsigned int> const* lst_)
-		: vertices(vertices_), lst(lst_)
-	{
-	}
-
-	using Pit = unsigned int;
-	using Cit = Real const*;
-	inline  Cit operator() (Pit it) const {
-		return vertices[(*lst)[it]].data();
-	}
-	const Vector3r *vertices;
-	const unsigned int *indices;
-	std::vector<unsigned int> const* lst;
-};
 
 
 TetMeshBSH::TetMeshBSH()

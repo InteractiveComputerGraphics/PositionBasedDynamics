@@ -40,9 +40,11 @@ else()
 	   Ext_Discregrid
 	   PREFIX "${ExternalInstallDir}/Discregrid"
 	   GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
-	   GIT_TAG "c0fb5aeac4c8a83e9f37c720315f13a834409b81"
+	   GIT_TAG "267067f727c552eba7da8bdb406eafd40673823e"
 	   INSTALL_DIR ${ExternalInstallDir}/Discregrid
-	   CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=${EXT_CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
+	   CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=${EXT_CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid
+	   -DBUILD_AS_SHARED_LIBS:BOOL=0
+	   -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
 	) 
 	ExternalProject_Get_Property(Ext_Discregrid INSTALL_DIR)
 	set(Discregrid_INCLUDE_DIR ${INSTALL_DIR}/include)

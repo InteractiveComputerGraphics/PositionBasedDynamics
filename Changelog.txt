@@ -1,3 +1,4 @@
+	- removed MiniBall dependency
 	- update to Eigen 3.3.7
 	
 1.7.0

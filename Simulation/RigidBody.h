@@ -93,6 +93,7 @@ namespace PBD
 				m_lastX = x;
 				m_oldX = x;
 				m_v.setZero();
+				m_v0.setZero();
 				m_a.setZero();
 
 				setInertiaTensor(inertiaTensor);
@@ -106,6 +107,7 @@ namespace PBD
 				m_x0_mat.setZero();
 				rotationUpdated();
 				m_omega.setZero();
+				m_omega0.setZero();
 				m_torque.setZero();
 
 				m_restitutionCoeff = static_cast<Real>(0.6);
@@ -125,6 +127,7 @@ namespace PBD
 				m_lastX = x;
 				m_oldX = x;
 				m_v.setZero();
+				m_v0.setZero();
 				m_a.setZero();
 
 				m_q = rotation;
@@ -134,6 +137,7 @@ namespace PBD
 				m_rot = m_q.matrix();
 				rotationUpdated();
 				m_omega.setZero();
+				m_omega0.setZero();
 				m_torque.setZero();
 
 				m_restitutionCoeff = static_cast<Real>(0.6);
