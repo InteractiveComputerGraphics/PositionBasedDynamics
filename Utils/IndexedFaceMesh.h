@@ -75,7 +75,7 @@ namespace Utilities
 			{
 				m_numEdges = other.m_numEdges;
 				m_eIndices = new unsigned int[m_numEdges];
-#if defined(WIN32) || defined(_WIN32) || defined(WIN64)		
+#if defined(_MSC_VER)
 				std::copy(other.m_eIndices, other.m_eIndices + m_numEdges,
 					stdext::unchecked_array_iterator<unsigned int*>(m_eIndices));
 #else

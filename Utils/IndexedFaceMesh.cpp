@@ -18,7 +18,7 @@ IndexedFaceMesh& IndexedFaceMesh::operator=(IndexedFaceMesh const& other)
     for (size_t i(0u); i < m_faces.size(); ++i)
     {
         m_faces[i].m_edges = new unsigned int[m_verticesPerFace];
-#if defined(WIN32) || defined(_WIN32) || defined(WIN64)	    
+#if defined(_MSC_VER)
         std::copy(other.m_faces[i].m_edges, other.m_faces[i].m_edges + m_verticesPerFace,
             stdext::unchecked_array_iterator<unsigned int*>(m_faces[i].m_edges));
 #else

@@ -13,6 +13,11 @@
 #include <unistd.h>
 #endif
 
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+#include <sys/stat.h>
+#endif
+
+
 namespace Utilities
 {
 	/** \brief This class implements different file system functions.
