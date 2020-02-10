@@ -39,7 +39,7 @@ namespace Utilities
 			{
 				m_numFaces = other.m_numFaces;
 				m_fIndices = new unsigned int[m_numFaces];
-#if defined(WIN32) || defined(_WIN32) || defined(WIN64)		
+#if defined(_MSC_VER)
 				std::copy(other.m_fIndices, other.m_fIndices + m_numFaces,
 					stdext::unchecked_array_iterator<unsigned int*>(m_fIndices));
 #else
