@@ -23,8 +23,9 @@ else()
 endif()	
 
 include(ExternalProject)
-set(EigenDir "${CMAKE_SOURCE_DIR}/extern/eigen")
 
+## Eigen3 is used by most of the libraries that follow
+find_package(Eigen3 REQUIRED)
 
 set(EXT_CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -44,7 +45,7 @@ else()
 	   INSTALL_DIR ${ExternalInstallDir}/Discregrid
 	   CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=${EXT_CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid
 	   -DBUILD_AS_SHARED_LIBS:BOOL=0
-	   -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EigenDir}
+	   -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR}
 	) 
 	ExternalProject_Get_Property(Ext_Discregrid INSTALL_DIR)
 	set(Discregrid_INCLUDE_DIR ${INSTALL_DIR}/include)
