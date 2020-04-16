@@ -189,7 +189,7 @@ void MiniGL::drawCylinder(const Vector3r &a, const Vector3r &b, const float *col
 	if (vz == 0)
 		vz = .00000001;
 	Real v = sqrt(vx*vx + vy*vy + vz*vz);
-	Real ax = 57.2957795*acos(vz / v);
+	Real ax = static_cast<Real>(57.2957795)*acos(vz / v);
 	if (vz < 0.0)
 		ax = -ax;
 	Real rx = -vy*vz;
@@ -924,18 +924,18 @@ void MiniGL::mouseMove (int x, int y)
 		// translate scene in z direction		
 		if (modifier_key == GLUT_ACTIVE_CTRL)
 		{
-			move (0, 0, -(d_x + d_y) / 10.0);
+			move (0, 0, -(d_x + d_y) / static_cast<Real>(10.0));
 		}
 		// translate scene in x/y direction
 		else if (modifier_key == GLUT_ACTIVE_SHIFT)
 		{
-			move (-d_x / 20.0f, -d_y / 20.0, 0);
+			move (-d_x / static_cast<Real>(20.0), -d_y / static_cast<Real>(20.0), 0);
 		}
 		// rotate scene around x, y axis
 		else if (modifier_key == GLUT_ACTIVE_ALT)
 		{
-			rotateX(d_y/ 100.0);
-			rotateY(-d_x/ 100.0);
+			rotateX(d_y/ static_cast<Real>(100.0));
+			rotateY(-d_x/ static_cast<Real>(100.0));
 		}
 	}
 

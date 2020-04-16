@@ -12,7 +12,7 @@
 
 namespace Utilities
 {
-	enum LogLevel { DEBUG=0, INFO, WARN, ERR };
+	enum class LogLevel { DEBUG=0, INFO, WARN, ERR };
 
 	class LogSink
 	{

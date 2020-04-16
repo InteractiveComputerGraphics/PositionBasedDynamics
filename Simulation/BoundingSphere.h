@@ -47,8 +47,8 @@ namespace PBD
 		{
 			const Vector3r ba = b - a;
 
-			m_x = (a + b) * 0.5;
-			m_r = 0.5 * ba.norm();
+			m_x = (a + b) * static_cast<Real>(0.5);
+			m_r = static_cast<Real>(0.5) * ba.norm();
 		}
 
 		/**
@@ -69,9 +69,9 @@ namespace PBD
 				ca[0], ca[1], ca[2],
 				baxca[0], baxca[1], baxca[2];
 
-			r[0] = 0.5 * ba.squaredNorm();
-			r[1] = 0.5 * ca.squaredNorm();
-			r[2] = 0.0;
+			r[0] = static_cast<Real>(0.5) * ba.squaredNorm();
+			r[1] = static_cast<Real>(0.5) * ca.squaredNorm();
+			r[2] = static_cast<Real>(0.0);
 
 			m_x = T.inverse() * r;
 			m_r = m_x.norm();
@@ -97,9 +97,9 @@ namespace PBD
 				ca[0], ca[1], ca[2],
 				da[0], da[1], da[2];
 
-			r[0] = 0.5 * ba.squaredNorm();
-			r[1] = 0.5 * ca.squaredNorm();
-			r[2] = 0.5 * da.squaredNorm();
+			r[0] = static_cast<Real>(0.5) * ba.squaredNorm();
+			r[1] = static_cast<Real>(0.5) * ca.squaredNorm();
+			r[2] = static_cast<Real>(0.5) * da.squaredNorm();
 			m_x = T.inverse() * r;
 			m_r = m_x.norm();
 			m_x += a;
@@ -189,7 +189,7 @@ namespace PBD
 			}
 
 			m_x = S.m_x;
-			m_r = S.m_r + epsilon;	//add epsilon to make sure that all non-pertubated points are inside the sphere
+			m_r = S.m_r + static_cast<Real>(epsilon);		//add epsilon to make sure that all non-pertubated points are inside the sphere
 		}
 
 		/**

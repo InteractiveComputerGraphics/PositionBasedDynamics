@@ -90,21 +90,21 @@ void PositionBasedRigidBodyDynamics::computeMatrixK(
 // ----------------------------------------------------------------------------------------------
 void PositionBasedRigidBodyDynamics::computeMatrixG(const Quaternionr &q, Eigen::Matrix<Real, 4, 3, Eigen::DontAlign> &G)
 {
-	G(0, 0) = -0.5*q.x();
-	G(0, 1) = -0.5*q.y();
-	G(0, 2) = -0.5*q.z();
+	G(0, 0) = -static_cast<Real>(0.5)*q.x();
+	G(0, 1) = -static_cast<Real>(0.5)*q.y();
+	G(0, 2) = -static_cast<Real>(0.5)*q.z();
 
-	G(1, 0) = 0.5*q.w();
-	G(1, 1) = 0.5*q.z();
-	G(1, 2) = -0.5*q.y();
+	G(1, 0) = static_cast<Real>(0.5)*q.w();
+	G(1, 1) = static_cast<Real>(0.5)*q.z();
+	G(1, 2) = static_cast<Real>(-0.5)*q.y();
 
-	G(2, 0) = -0.5*q.z();
-	G(2, 1) = 0.5*q.w();
-	G(2, 2) = 0.5*q.x();
+	G(2, 0) = static_cast<Real>(-0.5)*q.z();
+	G(2, 1) = static_cast<Real>(0.5)*q.w();
+	G(2, 2) = static_cast<Real>(0.5)*q.x();
 
-	G(3, 0) = 0.5*q.y();
-	G(3, 1) = -0.5*q.x();
-	G(3, 2) = 0.5*q.w();
+	G(3, 0) = static_cast<Real>(0.5)*q.y();
+	G(3, 1) = static_cast<Real>(-0.5)*q.x();
+	G(3, 2) = static_cast<Real>(0.5)*q.w();
 }
 
 // ----------------------------------------------------------------------------------------------
@@ -371,13 +371,13 @@ bool PositionBasedRigidBodyDynamics::solve_DistanceJoint(
 	Real alpha = 0.0;
 	if (stiffness != 0.0)
 	{
-		alpha = 1.0 / (stiffness * dt * dt);
+		alpha = static_cast<Real>(1.0) / (stiffness * dt * dt);
 		K += alpha;
 	}
 	
 	Real Kinv = 0.0;
 	if (fabs(K) > static_cast<Real>(1e-6))
-		Kinv = 1.0 / K;
+		Kinv = static_cast<Real>(1.0) / K;
 	else
 	{
 		corr_x0.setZero();
@@ -1609,7 +1609,7 @@ bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
 	const Quaternionr tmp = (q0.conjugate() * q1);
 	const Vector4r qVec(tmp.w(), tmp.x(), tmp.y(), tmp.z());
 	C.block<3, 1>(3, 0) = Pr * qVec;
-	C(3, 0) -= sin(0.5*targetAngle);
+	C(3, 0) -= sin(static_cast<Real>(0.5)*targetAngle);
 
 
 	const Vector3r r0 = c0 - x0;
@@ -2085,7 +2085,7 @@ bool PositionBasedRigidBodyDynamics::velocitySolve_TargetVelocityMotorHingeJoint
 		Real alpha = 0.0;
 		if (stiffness != 0.0)
 		{
-			alpha = 1.0 / (stiffness * dt * dt);
+			alpha = static_cast<Real>(1.0) / (stiffness * dt * dt);
 			K(0,0) += alpha;
 		}
 
