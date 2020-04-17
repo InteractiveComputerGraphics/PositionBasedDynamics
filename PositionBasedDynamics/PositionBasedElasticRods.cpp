@@ -775,7 +775,7 @@ Real PBD::DirectPositionBasedSolverForStiffRods::factor(const int intervalIndex,
 		// compute max error
 		for (unsigned char i(0); i < 6; ++i)
 		{
-			maxError = std::max(maxError, abs(rhs[i]));
+			maxError = std::max(maxError, std::abs(rhs[i]));
 		}
 
 		// Compute a part of the Jacobian here, because the relationship
