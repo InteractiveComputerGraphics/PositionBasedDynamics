@@ -132,6 +132,7 @@ void reset()
 	base->getSelectedParticles().clear();
 
 	Simulation::getCurrent()->getModel()->cleanup();
+	Simulation::getCurrent()->getTimeStep()->getCollisionDetection()->cleanup();
 
 	buildModel();
 }
