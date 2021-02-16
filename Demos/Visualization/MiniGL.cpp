@@ -466,7 +466,8 @@ void MiniGL::display ()
 		scenefunc ();
 
 	TwDraw();  // draw the tweak bar(s)
-	glutSwapBuffers();
+	//glutSwapBuffers();
+	glFlush();
 }
 
 void MiniGL::init(int argc, char **argv, const int width, const int height, const int posx, const int posy, const char *name)
@@ -478,7 +479,7 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	scenefunc = NULL;
 
 	glutInit (&argc, argv);
-	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
 
 	atexit(destroy);
 

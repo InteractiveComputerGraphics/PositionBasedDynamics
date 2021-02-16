@@ -84,7 +84,6 @@ void Simulation::reset()
 		m_timeStep->reset();
 
 	TimeManager::getCurrent()->setTime(static_cast<Real>(0.0));
-	TimeManager::getCurrent()->setTimeStepSize(static_cast<Real>(0.005));
 }
 
 void Simulation::setSimulationMethod(const int val)

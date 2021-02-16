@@ -2,8 +2,9 @@
 	"Name": "ClothCollisionScene1",
 	"Simulation": 
 	{
-		"timeStepSize": 0.0025,
-		"maxIter" : 5,
+		"timeStepSize": 0.005,
+		"maxIterations" : 1,
+		"subSteps": 2, 
 		"maxIterVel" : 5,
 		"velocityUpdateMethod" : 0,
 		"contactTolerance": 0.05,
@@ -12,7 +13,7 @@
 		"contactStiffnessRigidBody" : 1.0,
 		"contactStiffnessParticleRigidBody": 100.0,
 		"cloth_stiffness": 1.0,
-		"cloth_bendingStiffness": 0.005,
+		"cloth_bendingStiffness": 0.01,
 		"cloth_xxStiffness": 1.0,
 		"cloth_yyStiffness": 1.0,
 		"cloth_xyStiffness": 1.0,

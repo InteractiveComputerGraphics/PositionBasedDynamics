@@ -530,10 +530,11 @@
             -2,
             0
         ],
-        "maxIter": 50,
-        "maxIterVel": 50,
+        "maxIterations": 1,
+        "maxIterationsV": 5,
+		"subSteps": 5,
         "numberOfStepsPerRenderUpdate": 10,
-        "timeStepSize": 0.005,
+        "timeStepSize": 0.01,
         "triangleModelBendingMethod": 2,
         "triangleModelSimulationMethod": 2,
         "velocityUpdateMethod": 0

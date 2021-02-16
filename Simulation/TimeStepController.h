@@ -13,6 +13,7 @@ namespace PBD
 	public: 		
 // 		static int SOLVER_ITERATIONS;
 // 		static int SOLVER_ITERATIONS_V;
+		static int NUM_SUB_STEPS;
 		static int MAX_ITERATIONS;
 		static int MAX_ITERATIONS_V;
 		static int VELOCITY_UPDATE_METHOD;
@@ -24,6 +25,7 @@ namespace PBD
 		int m_velocityUpdateMethod;
 		unsigned int m_iterations;
 		unsigned int m_iterationsV;
+		unsigned int m_subSteps;
 		unsigned int m_maxIterations;
 		unsigned int m_maxIterationsV;
 

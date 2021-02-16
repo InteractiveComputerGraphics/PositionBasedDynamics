@@ -196,8 +196,6 @@ namespace Utilities
 			Real m_contactStiffnessParticleRigidBody;
 
 			int m_velocityUpdateMethod;
-			unsigned int m_maxIter;
-			unsigned int m_maxIterVel;
 
 			Real m_cloth_stiffness;
 			Real m_cloth_bendingStiffness;

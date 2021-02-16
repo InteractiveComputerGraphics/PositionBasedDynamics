@@ -12,6 +12,7 @@ using namespace GenParam;
 
 // int TimeStepController::SOLVER_ITERATIONS = -1;
 // int TimeStepController::SOLVER_ITERATIONS_V = -1;
+int TimeStepController::NUM_SUB_STEPS = -1;
 int TimeStepController::MAX_ITERATIONS = -1;
 int TimeStepController::MAX_ITERATIONS_V = -1;
 int TimeStepController::VELOCITY_UPDATE_METHOD = -1;
@@ -24,8 +25,9 @@ TimeStepController::TimeStepController()
 	m_velocityUpdateMethod = 0;
 	m_iterations = 0;
 	m_iterationsV = 0;
-	m_maxIterations = 5;
+	m_maxIterations = 1;
 	m_maxIterationsV = 5;
+	m_subSteps = 5;
 	m_collisionDetection = NULL;	
 }
 
@@ -41,6 +43,11 @@ void TimeStepController::initParameters()
 // 	setGroup(SOLVER_ITERATIONS, "PBD");
 // 	setDescription(SOLVER_ITERATIONS, "Iterations required by the solver.");
 // 	getParameter(SOLVER_ITERATIONS)->setReadOnly(true);
+
+	NUM_SUB_STEPS = createNumericParameter("subSteps", "# sub steps", &m_subSteps);
+	setGroup(NUM_SUB_STEPS, "PBD");
+	setDescription(NUM_SUB_STEPS, "Number of sub steps of the solver.");
+	static_cast<NumericParameter<unsigned int>*>(getParameter(NUM_SUB_STEPS))->setMinValue(1);
 
 	MAX_ITERATIONS = createNumericParameter("maxIterations", "Max. iterations", &m_maxIterations);
 	setGroup(MAX_ITERATIONS, "PBD");
@@ -69,7 +76,7 @@ void TimeStepController::step(SimulationModel &model)
 {
 	START_TIMING("simulation step");
 	TimeManager *tm = TimeManager::getCurrent ();
-	const Real h = tm->getTimeStepSize();
+	const Real hOld = tm->getTimeStepSize();
  
 	//////////////////////////////////////////////////////////////////////////
 	// rigid body model
@@ -80,46 +87,93 @@ void TimeStepController::step(SimulationModel &model)
 	OrientationData &od = model.getOrientations();
 
 	const int numBodies = (int)rb.size();
-	#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
+
+	Real h = hOld / (Real)m_subSteps;
+	tm->setTimeStepSize(h);
+	for (unsigned int step = 0; step < m_subSteps; step++)
 	{
-		#pragma omp for schedule(static) nowait
-		for (int i = 0; i < numBodies; i++)
-		{ 
-			rb[i]->getLastPosition() = rb[i]->getOldPosition();
-			rb[i]->getOldPosition() = rb[i]->getPosition();
-			TimeIntegration::semiImplicitEuler(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getVelocity(), rb[i]->getAcceleration());
-			rb[i]->getLastRotation() = rb[i]->getOldRotation();
-			rb[i]->getOldRotation() = rb[i]->getRotation();
-			TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
-			rb[i]->rotationUpdated();
+		#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
+		{
+			#pragma omp for schedule(static) nowait
+			for (int i = 0; i < numBodies; i++)
+			{ 
+				rb[i]->getLastPosition() = rb[i]->getOldPosition();
+				rb[i]->getOldPosition() = rb[i]->getPosition();
+				TimeIntegration::semiImplicitEuler(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getVelocity(), rb[i]->getAcceleration());
+				rb[i]->getLastRotation() = rb[i]->getOldRotation();
+				rb[i]->getOldRotation() = rb[i]->getRotation();
+				TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
+				rb[i]->rotationUpdated();
+			}
+
+			//////////////////////////////////////////////////////////////////////////
+			// particle model
+			//////////////////////////////////////////////////////////////////////////
+			#pragma omp for schedule(static) 
+			for (int i = 0; i < (int) pd.size(); i++)
+			{
+				pd.getLastPosition(i) = pd.getOldPosition(i);
+				pd.getOldPosition(i) = pd.getPosition(i);
+				TimeIntegration::semiImplicitEuler(h, pd.getMass(i), pd.getPosition(i), pd.getVelocity(i), pd.getAcceleration(i));
+			}
+
+			//////////////////////////////////////////////////////////////////////////
+			// orientation model
+			//////////////////////////////////////////////////////////////////////////
+			#pragma omp for schedule(static) 
+			for (int i = 0; i < (int)od.size(); i++)
+			{
+				od.getLastQuaternion(i) = od.getOldQuaternion(i);
+				od.getOldQuaternion(i) = od.getQuaternion(i);
+				TimeIntegration::semiImplicitEulerRotation(h, od.getMass(i), od.getInvMass(i) * Matrix3r::Identity() ,od.getQuaternion(i), od.getVelocity(i), Vector3r(0,0,0));
+			}
 		}
 
-		//////////////////////////////////////////////////////////////////////////
-		// particle model
-		//////////////////////////////////////////////////////////////////////////
-		#pragma omp for schedule(static) 
-		for (int i = 0; i < (int) pd.size(); i++)
-		{
-			pd.getLastPosition(i) = pd.getOldPosition(i);
-			pd.getOldPosition(i) = pd.getPosition(i);
-			TimeIntegration::semiImplicitEuler(h, pd.getMass(i), pd.getPosition(i), pd.getVelocity(i), pd.getAcceleration(i));
-		}
+		START_TIMING("position constraints projection");
+		positionConstraintProjection(model);
+		STOP_TIMING_AVG;
 
-		//////////////////////////////////////////////////////////////////////////
-		// orientation model
-		//////////////////////////////////////////////////////////////////////////
-		#pragma omp for schedule(static) 
-		for (int i = 0; i < (int)od.size(); i++)
+		#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
 		{
-			od.getLastQuaternion(i) = od.getOldQuaternion(i);
-			od.getOldQuaternion(i) = od.getQuaternion(i);
-			TimeIntegration::semiImplicitEulerRotation(h, od.getMass(i), od.getInvMass(i) * Matrix3r::Identity() ,od.getQuaternion(i), od.getVelocity(i), Vector3r(0,0,0));
+			// Update velocities	
+			#pragma omp for schedule(static) nowait
+			for (int i = 0; i < numBodies; i++)
+			{
+				if (m_velocityUpdateMethod == 0)
+				{
+					TimeIntegration::velocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getVelocity());
+					TimeIntegration::angularVelocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getAngularVelocity());
+				}
+				else
+				{
+					TimeIntegration::velocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getLastPosition(), rb[i]->getVelocity());
+					TimeIntegration::angularVelocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getLastRotation(), rb[i]->getAngularVelocity());
+				}
+			}
+
+			// Update velocities	
+			#pragma omp for schedule(static) 
+			for (int i = 0; i < (int) pd.size(); i++)
+			{
+				if (m_velocityUpdateMethod == 0)
+					TimeIntegration::velocityUpdateFirstOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getVelocity(i));
+				else
+					TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
+			}
+
+			// Update velocites of orientations
+			#pragma omp for schedule(static) 
+			for (int i = 0; i < (int)od.size(); i++)
+			{
+				if (m_velocityUpdateMethod == 0)
+					TimeIntegration::angularVelocityUpdateFirstOrder(h, od.getMass(i), od.getQuaternion(i), od.getOldQuaternion(i), od.getVelocity(i));
+				else
+					TimeIntegration::angularVelocityUpdateSecondOrder(h, od.getMass(i), od.getQuaternion(i), od.getOldQuaternion(i), od.getLastQuaternion(i), od.getVelocity(i));
+			}
 		}
 	}
-
-	START_TIMING("position constraints projection");
-	positionConstraintProjection(model);
-	STOP_TIMING_AVG;
+	h = hOld;
+	tm->setTimeStepSize(hOld);
 
 	#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
 	{
@@ -127,41 +181,11 @@ void TimeStepController::step(SimulationModel &model)
 		#pragma omp for schedule(static) nowait
 		for (int i = 0; i < numBodies; i++)
 		{
-			if (m_velocityUpdateMethod == 0)
-			{
-				TimeIntegration::velocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getVelocity());
-				TimeIntegration::angularVelocityUpdateFirstOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getAngularVelocity());
-			}
-			else
-			{
-				TimeIntegration::velocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getOldPosition(), rb[i]->getLastPosition(), rb[i]->getVelocity());
-				TimeIntegration::angularVelocityUpdateSecondOrder(h, rb[i]->getMass(), rb[i]->getRotation(), rb[i]->getOldRotation(), rb[i]->getLastRotation(), rb[i]->getAngularVelocity());
-			}
-			// update geometry
 			if (rb[i]->getMass() != 0.0)
 				rb[i]->getGeometry().updateMeshTransformation(rb[i]->getPosition(), rb[i]->getRotationMatrix());
 		}
-
-		// Update velocities	
-		#pragma omp for schedule(static) 
-		for (int i = 0; i < (int) pd.size(); i++)
-		{
-			if (m_velocityUpdateMethod == 0)
-				TimeIntegration::velocityUpdateFirstOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getVelocity(i));
-			else
-				TimeIntegration::velocityUpdateSecondOrder(h, pd.getMass(i), pd.getPosition(i), pd.getOldPosition(i), pd.getLastPosition(i), pd.getVelocity(i));
-		}
-
-		// Update velocites of orientations
-		#pragma omp for schedule(static) 
-		for (int i = 0; i < (int)od.size(); i++)
-		{
-			if (m_velocityUpdateMethod == 0)
-				TimeIntegration::angularVelocityUpdateFirstOrder(h, od.getMass(i), od.getQuaternion(i), od.getOldQuaternion(i), od.getVelocity(i));
-			else
-				TimeIntegration::angularVelocityUpdateSecondOrder(h, od.getMass(i), od.getQuaternion(i), od.getOldQuaternion(i), od.getLastQuaternion(i), od.getVelocity(i));
-		}
 	}
+
 
 	if (m_collisionDetection)
 	{
@@ -221,8 +245,8 @@ void TimeStepController::reset()
 {
 	m_iterations = 0;
 	m_iterationsV = 0;
-	m_maxIterations = 5;
-	m_maxIterationsV = 5;
+	//m_maxIterations = 5;
+	//m_maxIterationsV = 5;
 }
 
 void TimeStepController::positionConstraintProjection(SimulationModel &model)

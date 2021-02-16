@@ -39,6 +39,7 @@ void buildModel ();
 void readScene(const bool readFile);
 void render ();
 void reset();
+void exportOBJ();
 void TW_CALL setContactTolerance(const void *value, void *clientData);
 void TW_CALL getContactTolerance(void *value, void *clientData);
 void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData);
@@ -60,6 +61,10 @@ CubicSDFCollisionDetection cd;
 short clothSimulationMethod = 2;
 short solidSimulationMethod = 2;
 short bendingMethod = 2;
+bool enableExportOBJ = false;
+unsigned int exportFPS = 25;
+Real nextFrameTime = 0.0;
+unsigned int frameCounter = 1;
 
 
 // main 
@@ -129,6 +134,9 @@ void initParameters()
 
 	MiniGL::initTweakBarParameters();
 
+	TwAddVarRW(MiniGL::getTweakBar(), "ExportOBJ", TW_TYPE_BOOL32, &enableExportOBJ, " label='Export OBJ'");
+	TwAddVarRW(MiniGL::getTweakBar(), "ExportFPS", TW_TYPE_UINT32, &exportFPS, " label='Export FPS'");
+
 	TweakBarParameters::createParameterGUI();
 	TweakBarParameters::createParameterObjectGUI(base);
 	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
@@ -138,6 +146,7 @@ void initParameters()
 
 void reset()
 {
+	const Real h = TimeManager::getCurrent()->getTimeStepSize();
 	Utilities::Timing::printAverageTimes();
 	Utilities::Timing::reset();
 
@@ -147,7 +156,11 @@ void reset()
 	Simulation::getCurrent()->getModel()->cleanup();
 	Simulation::getCurrent()->getTimeStep()->getCollisionDetection()->cleanup();
 
+	nextFrameTime = 0.0;
+	frameCounter = 1;
+
 	readScene(false);
+	TimeManager::getCurrent()->setTimeStepSize(h);
 }
 
 void timeStep ()
@@ -167,6 +180,8 @@ void timeStep ()
 		START_TIMING("SimStep");
 		Simulation::getCurrent()->getTimeStep()->step(*model);
 		STOP_TIMING_AVG;
+
+		exportOBJ();
 	}
 
 	// Update visualization models
@@ -1089,6 +1104,101 @@ void readScene(const bool readFile)
 	}
 }
 
+void exportMeshOBJ(const std::string &exportFileName, const unsigned int nVert, const Vector3r* pos, const unsigned int nTri, const unsigned int* faces)
+{
+	// Open the file
+	std::ofstream outfile(exportFileName);
+	if (!outfile)
+	{
+		LOG_WARN << "Cannot open a file to save OBJ mesh.";
+		return;
+	}
+
+	// Header
+	outfile << "# Created by the PositionBasedDynamics library\n";
+	outfile << "g default\n";
+
+	// Vertices
+	{
+		for (auto j = 0u; j < nVert; j++)
+		{
+			const Vector3r& x = pos[j];
+			outfile << "v " << x[0] << " " << x[1] << " " << x[2] << "\n";
+		}
+	}
+
+	// faces
+	{
+		for (auto j = 0; j < nTri; j++)
+		{
+			outfile << "f " << faces[3 * j + 0] + 1 << " " << faces[3 * j + 1] + 1 << " " << faces[3 * j + 2] + 1 << "\n";
+		}
+	}
+	outfile.close();
+}
+
+
+void exportOBJ()
+{
+	if (!enableExportOBJ)
+		return;
+
+	if (TimeManager::getCurrent()->getTime() < nextFrameTime)
+		return;
+
+	nextFrameTime += 1.0 / (Real)exportFPS;
+
+	//////////////////////////////////////////////////////////////////////////
+	// rigid bodies
+	//////////////////////////////////////////////////////////////////////////
+
+	std::string exportPath = base->getOutputPath() + "/export";
+	FileSystem::makeDirs(exportPath);
+
+	SimulationModel* model = Simulation::getCurrent()->getModel();
+	const ParticleData& pd = model->getParticles();
+	for (unsigned int i = 0; i < model->getTriangleModels().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getTriangleModels()[i]->getParticleMesh();
+		const unsigned int offset = model->getTriangleModels()[i]->getIndexOffset();
+		const Vector3r* x = model->getParticles().getVertices()->data();
+		
+		std::string fileName = "triangle_model";
+		fileName = fileName + std::to_string(i) + "_" + std::to_string(frameCounter) + ".obj";
+		std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+		exportMeshOBJ(exportFileName, mesh.numVertices(), &x[offset], mesh.numFaces(), mesh.getFaces().data());
+	}
+
+	for (unsigned int i = 0; i < model->getTetModels().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getTetModels()[i]->getVisMesh();
+		const unsigned int offset = model->getTetModels()[i]->getIndexOffset();
+		const Vector3r* x = model->getTetModels()[i]->getVisVertices().getVertices()->data();
+
+		std::string fileName = "tet_model";
+		fileName = fileName + std::to_string(i) + "_" + std::to_string(frameCounter) + ".obj";
+		std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+		exportMeshOBJ(exportFileName, mesh.numVertices(), x, mesh.numFaces(), mesh.getFaces().data());
+	}
+
+	for (unsigned int i = 0; i < model->getRigidBodies().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getRigidBodies()[i]->getGeometry().getMesh();
+		const Vector3r *x = model->getRigidBodies()[i]->getGeometry().getVertexData().getVertices()->data();
+
+		std::string fileName = "rigid_body";
+		fileName = fileName + std::to_string(i) + "_" + std::to_string(frameCounter) + ".obj";
+		std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+		exportMeshOBJ(exportFileName, mesh.numVertices(), x, mesh.numFaces(), mesh.getFaces().data());
+	}
+
+
+	frameCounter++;
+}
+
 void TW_CALL setContactTolerance(const void *value, void *clientData)
 {
 	const Real val = *(const Real *)(value);
@@ -1158,3 +1268,4 @@ void TW_CALL getSolidSimulationMethod(void *value, void *clientData)
 {
 	*(short *)(value) = *((short*)clientData);
 }
+

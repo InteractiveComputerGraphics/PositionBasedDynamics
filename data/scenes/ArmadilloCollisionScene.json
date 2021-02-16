@@ -2,9 +2,11 @@
 	"Name": "DeformableSolidCollisionScene1",
 	"Simulation": 
 	{
-		"timeStepSize": 0.005,
-		"maxIter" : 5,
-		"maxIterVel" : 5,
+		"timeStepSize": 0.01,
+		"numberOfStepsPerRenderUpdate": 4,
+		"subSteps": 5,
+		"maxIterations" : 1,
+		"maxIterationsV" : 5,
 		"velocityUpdateMethod" : 0,
 		"contactTolerance": 0.0,
 		"tetModelSimulationMethod": 2,

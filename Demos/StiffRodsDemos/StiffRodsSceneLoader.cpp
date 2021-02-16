@@ -524,8 +524,6 @@ void PBD::StiffRodsSceneLoader::readStiffRodsScene(const std::string &fileName, 
 		//////////////////////////////////////////////////////////////////////////
 		sceneData.m_timeStepSize = static_cast<Real>(0.005);
 		sceneData.m_gravity = Vector3r(0, -static_cast<Real>(9.81), 0);
-		sceneData.m_maxIter = 5;
-		sceneData.m_maxIterVel = 5;
 		sceneData.m_velocityUpdateMethod = 0;
 		sceneData.m_triangleModelSimulationMethod = -1;
 		sceneData.m_triangleModelBendingMethod = -1;

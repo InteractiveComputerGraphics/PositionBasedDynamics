@@ -114,6 +114,7 @@ namespace PBD
 		std::vector<unsigned int>& getSelectedRigidBodies() { return m_selectedBodies; }
 		bool getUseCache() const { return m_useCache; }
 		void setUseCache(bool val) { m_useCache = val; }
+		std::string getOutputPath() const { return m_outputPath; }
 
 		Utilities::SceneLoader::SceneData& getSceneData() { return m_scene; }
 	};

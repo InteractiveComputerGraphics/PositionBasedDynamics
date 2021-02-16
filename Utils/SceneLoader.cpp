@@ -35,8 +35,6 @@ void SceneLoader::readScene(const std::string &fileName, SceneData &sceneData)
 		//////////////////////////////////////////////////////////////////////////
 		sceneData.m_timeStepSize = 0.005;
 		sceneData.m_gravity = Vector3r(0, -9.81, 0);
-		sceneData.m_maxIter = 5;
-		sceneData.m_maxIterVel = 5;
 		sceneData.m_velocityUpdateMethod = 0;
 		sceneData.m_triangleModelSimulationMethod = -1;
 		sceneData.m_triangleModelBendingMethod = -1;
@@ -169,8 +167,6 @@ void SceneLoader::readSimulation(const nlohmann::json &j, const std::string &key
 
 	readValue(child, "timeStepSize", sceneData.m_timeStepSize);
 	readVector(child, "gravity", sceneData.m_gravity);
-	readValue(child, "maxIter", sceneData.m_maxIter);
-	readValue(child, "maxIterVel", sceneData.m_maxIterVel);
 	readValue(child, "velocityUpdateMethod", sceneData.m_velocityUpdateMethod);
 	readValue(child, "triangleModelSimulationMethod", sceneData.m_triangleModelSimulationMethod);
 	readValue(child, "triangleModelBendingMethod", sceneData.m_triangleModelBendingMethod);
