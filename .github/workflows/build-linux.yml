@@ -9,8 +9,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: Install glut
-      run: sudo apt-get -y install xorg-dev
+    - name: Install packages
+      run: sudo apt-get -y install xorg-dev freeglut3-dev
     - name: configure
       run: mkdir build-release && cd build-release && cmake -DCMAKE_BUILD_TYPE=Release ..
     - name: build
