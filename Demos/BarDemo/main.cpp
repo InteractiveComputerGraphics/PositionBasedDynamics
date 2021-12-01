@@ -72,7 +72,7 @@ int main( int argc, char **argv )
 
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod,
-			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}' group=Simulation");
+			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}, 5 {XPBD volume constraints}' group=Simulation");
 	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_REAL, setStiffness, getStiffness, model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Simulation' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "PoissonRatio", TW_TYPE_REAL, setPoissonRatio, getPoissonRatio, model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='Simulation' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Strain based dynamics' ");
@@ -232,6 +232,8 @@ void createMesh()
 	}
 
 	// init constraints
+	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
+	model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 1.0);
 	for (unsigned int cm = 0; cm < model->getTetModels().size(); cm++)
 	{
 		const unsigned int nTets = model->getTetModels()[cm]->getParticleMesh().numTets();
@@ -296,6 +298,31 @@ void createMesh()
 				// which contain the vertex.
 				const unsigned int nc[4] = { vTets[v[0]].m_numTets, vTets[v[1]].m_numTets, vTets[v[2]].m_numTets, vTets[v[3]].m_numTets };
 				model->addShapeMatchingConstraint(4, v, nc);
+			}
+		}
+		else if (simulationMethod == 5)
+		{
+			model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 100000);
+			model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 100000);
+			const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model->getTetModels()[cm]->getParticleMesh().numEdges();
+			const IndexedTetMesh::Edge* edges = model->getTetModels()[cm]->getParticleMesh().getEdges().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const unsigned int v1 = edges[i].m_vert[0] + offset;
+				const unsigned int v2 = edges[i].m_vert[1] + offset;
+
+				model->addDistanceConstraint_XPBD(v1, v2);
+			}
+
+			for (unsigned int i = 0; i < nTets; i++)
+			{
+				const unsigned int v1 = tets[4 * i];
+				const unsigned int v2 = tets[4 * i + 1];
+				const unsigned int v3 = tets[4 * i + 2];
+				const unsigned int v4 = tets[4 * i + 3];
+
+				model->addVolumeConstraint_XPBD(v1, v2, v3, v4);
 			}
 		}
 		model->getTetModels()[cm]->updateMeshNormals(pd);

@@ -461,6 +461,18 @@ bool SimulationModel::addDistanceConstraint(const unsigned int particle1, const 
 	return res;
 }
 
+bool SimulationModel::addDistanceConstraint_XPBD(const unsigned int particle1, const unsigned int particle2)
+{
+	DistanceConstraint_XPBD* c = new DistanceConstraint_XPBD();
+	const bool res = c->initConstraint(*this, particle1, particle2);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
 bool SimulationModel::addDihedralConstraint(const unsigned int particle1, const unsigned int particle2, 
 											const unsigned int particle3, const unsigned int particle4)
 {
@@ -478,6 +490,19 @@ bool SimulationModel::addIsometricBendingConstraint(const unsigned int particle1
 													const unsigned int particle3, const unsigned int particle4)
 {
 	IsometricBendingConstraint *c = new IsometricBendingConstraint();
+	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
+bool SimulationModel::addIsometricBendingConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
+														const unsigned int particle3, const unsigned int particle4)
+{
+	IsometricBendingConstraint_XPBD* c = new IsometricBendingConstraint_XPBD();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
 	if (res)
 	{
@@ -517,6 +542,19 @@ bool SimulationModel::addVolumeConstraint(const unsigned int particle1, const un
 										const unsigned int particle3, const unsigned int particle4)
 {
 	VolumeConstraint *c = new VolumeConstraint();
+	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
+bool SimulationModel::addVolumeConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
+	const unsigned int particle3, const unsigned int particle4)
+{
+	VolumeConstraint_XPBD* c = new VolumeConstraint_XPBD();
 	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
 	if (res)
 	{

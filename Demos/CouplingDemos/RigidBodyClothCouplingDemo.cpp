@@ -76,9 +76,10 @@ int main( int argc, char **argv )
 	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 10.0, 30.0), Vector3r (0.0, 0.0, 0.0));
 
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
+	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod, 
+		" label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}, 4 {XPBD distance constraints}' group=Simulation");
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}, 3 {XPBD isometric bending}' group=Bending");
 
 	MiniGL::mainLoop ();	
 
@@ -431,6 +432,8 @@ void createClothMesh()
 	// init constraints
 	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
 	{
+		model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
+		model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 0.01);
 		if (simulationMethod == 1)
 		{
 			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
@@ -470,6 +473,20 @@ void createClothMesh()
 				const unsigned int v2 = tris[3 * i + 1] + offset;
 				const unsigned int v3 = tris[3 * i + 2] + offset;
 				model->addStrainTriangleConstraint(v1, v2, v3);
+			}
+		}
+		else if (simulationMethod == 4)
+		{
+			model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 100000);
+			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
+			const IndexedFaceMesh::Edge* edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const unsigned int v1 = edges[i].m_vert[0] + offset;
+				const unsigned int v2 = edges[i].m_vert[1] + offset;
+
+				model->addDistanceConstraint_XPBD(v1, v2);
 			}
 		}
 		if (bendingMethod != 0)
@@ -516,6 +533,11 @@ void createClothMesh()
 							model->addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
 						else if (bendingMethod == 2)
 							model->addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
+						else if (bendingMethod == 3)
+						{
+							model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 100.0);
+							model->addIsometricBendingConstraint_XPBD(vertex1, vertex2, vertex3, vertex4);
+						}
 					}
 				}
 			}

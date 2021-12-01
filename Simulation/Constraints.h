@@ -265,6 +265,20 @@ namespace PBD
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
+	class DistanceConstraint_XPBD : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Real m_restLength;
+		Real m_lambda;
+
+		DistanceConstraint_XPBD() : Constraint(2) {}
+		virtual int& getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2);
+		virtual bool solvePositionConstraint(SimulationModel& model, const unsigned int iter);
+	};
+
 	class DihedralConstraint : public Constraint
 	{
 	public:
@@ -291,6 +305,21 @@ namespace PBD
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
+	};
+
+	class IsometricBendingConstraint_XPBD : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Matrix4r m_Q;
+		Real m_lambda;
+
+		IsometricBendingConstraint_XPBD() : Constraint(4) {}
+		virtual int& getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2,
+			const unsigned int particle3, const unsigned int particle4);
+		virtual bool solvePositionConstraint(SimulationModel& model, const unsigned int iter);
 	};
 
 	class FEMTriangleConstraint : public Constraint
@@ -334,6 +363,21 @@ namespace PBD
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
 								const unsigned int particle3, const unsigned int particle4);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
+	};
+
+	class VolumeConstraint_XPBD : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Real m_restVolume;
+		Real m_lambda;
+
+		VolumeConstraint_XPBD() : Constraint(4) {}
+		virtual int& getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2,
+			const unsigned int particle3, const unsigned int particle4);
+		virtual bool solvePositionConstraint(SimulationModel& model, const unsigned int iter);
 	};
 
 	class FEMTetConstraint : public Constraint

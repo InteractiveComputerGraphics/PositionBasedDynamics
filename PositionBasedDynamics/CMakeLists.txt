@@ -17,6 +17,8 @@ add_library(PositionBasedDynamics
 		SPHKernels.h
 		TimeIntegration.cpp
 		TimeIntegration.h
+		XPBD.cpp
+		XPBD.h
 		
 		CMakeLists.txt
 )

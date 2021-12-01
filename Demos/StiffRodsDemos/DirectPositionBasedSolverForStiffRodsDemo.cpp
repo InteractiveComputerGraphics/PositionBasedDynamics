@@ -112,18 +112,19 @@ int main(int argc, char **argv)
 	if (triModels.size() > 0)
 	{
 		TwType enumType2 = TwDefineEnum("ClothSimulationMethodType", NULL, 0);
-		TwAddVarCB(MiniGL::getTweakBar(), "ClothSimulationMethod", enumType2, setClothSimulationMethod, getClothSimulationMethod, &clothSimulationMethod, " label='Cloth sim. method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
+		TwAddVarCB(MiniGL::getTweakBar(), "ClothSimulationMethod", enumType2, setClothSimulationMethod, getClothSimulationMethod, &clothSimulationMethod, 
+			" label='Cloth sim. method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}, 4 {XPBD distance constraints}' group=Simulation");
 	}
 	if (tetModels.size() > 0)
 	{
 	TwType enumType3 = TwDefineEnum("SolidSimulationMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "SolidSimulationMethod", enumType3, setSolidSimulationMethod, getSolidSimulationMethod, &solidSimulationMethod,
-		" label='Solid sim. method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}' group=Simulation");
+		" label='Solid sim. method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}, 5 {XPBD volume constraints}' group=Simulation");
 	}
 	if (triModels.size() > 0)
 	{
 		TwType enumType4 = TwDefineEnum("BendingMethodType", NULL, 0);
-		TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType4, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
+		TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType4, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}, 3 {XPBD isometric bending}' group=Bending");
 	}
 
 	MiniGL::mainLoop();
@@ -240,6 +241,8 @@ void initTriangleModelConstraints()
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
 	{
+		model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
+		model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 0.01);
 		const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
 		if (clothSimulationMethod == 1)
 		{
@@ -278,6 +281,18 @@ void initTriangleModelConstraints()
 				const unsigned int v2 = tris[3 * i + 1] + offset;
 				const unsigned int v3 = tris[3 * i + 2] + offset;
 				model->addStrainTriangleConstraint(v1, v2, v3);
+			}
+		}
+		else if (clothSimulationMethod == 4)
+		{
+			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
+			const IndexedFaceMesh::Edge* edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const unsigned int v1 = edges[i].m_vert[0] + offset;
+				const unsigned int v2 = edges[i].m_vert[1] + offset;
+
+				model->addDistanceConstraint_XPBD(v1, v2);
 			}
 		}
 		if (bendingMethod != 0)
@@ -323,6 +338,11 @@ void initTriangleModelConstraints()
 							model->addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
 						else if (bendingMethod == 2)
 							model->addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
+						else if (bendingMethod == 3)
+						{
+							model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 100.0);
+							model->addIsometricBendingConstraint_XPBD(vertex1, vertex2, vertex3, vertex4);
+						}
 					}
 				}
 			}
@@ -334,6 +354,8 @@ void initTetModelConstraints()
 {
 	// init constraints
 	SimulationModel *model = Simulation::getCurrent()->getModel();
+	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
+	model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 1.0);
 	for (unsigned int cm = 0; cm < model->getTetModels().size(); cm++)
 	{
 		const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
@@ -402,6 +424,31 @@ void initTetModelConstraints()
 				// which contain the vertex.
 				const unsigned int nc[4] = { vTets[v[0]].m_numTets, vTets[v[1]].m_numTets, vTets[v[2]].m_numTets, vTets[v[3]].m_numTets };
 				model->addShapeMatchingConstraint(4, v, nc);
+			}
+		}
+		else if (solidSimulationMethod == 5)
+		{
+			model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 100000);
+			model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 100000);
+			const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
+			const unsigned int nEdges = model->getTetModels()[cm]->getParticleMesh().numEdges();
+			const IndexedTetMesh::Edge* edges = model->getTetModels()[cm]->getParticleMesh().getEdges().data();
+			for (unsigned int i = 0; i < nEdges; i++)
+			{
+				const unsigned int v1 = edges[i].m_vert[0] + offset;
+				const unsigned int v2 = edges[i].m_vert[1] + offset;
+
+				model->addDistanceConstraint_XPBD(v1, v2);
+			}
+
+			for (unsigned int i = 0; i < nTets; i++)
+			{
+				const unsigned int v1 = tets[4 * i];
+				const unsigned int v2 = tets[4 * i + 1];
+				const unsigned int v3 = tets[4 * i + 2];
+				const unsigned int v4 = tets[4 * i + 3];
+
+				model->addVolumeConstraint_XPBD(v1, v2, v3, v4);
 			}
 		}
 	}

@@ -163,13 +163,18 @@ namespace PBD
 				const Real restitutionCoeff, const Real frictionCoeff);
 
 			bool addDistanceConstraint(const unsigned int particle1, const unsigned int particle2);
+			bool addDistanceConstraint_XPBD(const unsigned int particle1, const unsigned int particle2);
 			bool addDihedralConstraint(	const unsigned int particle1, const unsigned int particle2,
 										const unsigned int particle3, const unsigned int particle4);
 			bool addIsometricBendingConstraint(const unsigned int particle1, const unsigned int particle2,
 										const unsigned int particle3, const unsigned int particle4);
+			bool addIsometricBendingConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
+										const unsigned int particle3, const unsigned int particle4);
 			bool addFEMTriangleConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int particle3);
 			bool addStrainTriangleConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int particle3);
 			bool addVolumeConstraint(const unsigned int particle1, const unsigned int particle2,
+									const unsigned int particle3, const unsigned int particle4);
+			bool addVolumeConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);
 			bool addFEMTetConstraint(const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4);

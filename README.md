@@ -70,13 +70,13 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 		- stretch-shear constraint
 		- Cosserat constraint
 	- Deformable solids:		
-		- point-point distance constraint
+		- point-point distance constraint (PBD & XPBD)
 		- point-edge distance constraint
 		- point-triangle distance constraint
 		- edge-edge distance constraint
 		- dihedral bending constraint
-		- isometric bending constraint
-		- volume constraint
+		- isometric bending constraint (PBD & XPBD)
+		- volume constraint (PBD & XPBD)
 		- shape matching
 		- FEM-based PBD (2D & 3D)
 		- strain-based dynamics (2D & 3D)
@@ -132,6 +132,7 @@ SIGGRAPH/Eurographics Symposium on Computer Animation, 2014
 * M. Macklin and M. Müller, "Position based fluids", ACM Trans. Graph. 32, 4, 2013
 * Dan Koschier, Crispin Deul and Jan Bender, "Hierarchical hp-Adaptive Signed Distance Fields", In Proceedings of ACM SIGGRAPH / EUROGRAPHICS Symposium on Computer Animation (SCA), 2016
 * Tassilo Kugelstadt, Elmar Schoemer, "Position and Orientation Based Cosserat Rods", In Proceedings of ACM SIGGRAPH / EUROGRAPHICS Symposium on Computer Animation (SCA), 2016
+* M. Macklin, M. Müller and N. Chentanez, "XPBD: Position-based Simulation of Compliant Constrained Dynamics", Proceedings of the 9th International Conference on Motion in Games (MIG), 2016
 
 
 

@@ -17,10 +17,6 @@ namespace PBD
 	public:
 		static int GRAVITATION;
 
-		static int ENUM_SIMULATION_PBD;
-		static int ENUM_SIMULATION_XPBD;
-		static int ENUM_SIMULATION_IBDS;
-
 	protected:
 		SimulationModel *m_model;
 		TimeStep *m_timeStep;
