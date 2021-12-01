@@ -110,6 +110,7 @@
 		{
 			"id": 2,
 			"geometryFile": "../models/cube.obj",
+			"flatShading": true,
 			"isDynamic": 0, 
 			"density": 500, 
 			"translation": [0,0,0],

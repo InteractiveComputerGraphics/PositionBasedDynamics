@@ -102,7 +102,7 @@ void TimeStepController::step(SimulationModel &model)
 				TimeIntegration::semiImplicitEuler(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getVelocity(), rb[i]->getAcceleration());
 				rb[i]->getLastRotation() = rb[i]->getOldRotation();
 				rb[i]->getOldRotation() = rb[i]->getRotation();
-				TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
+				TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorW(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
 				rb[i]->rotationUpdated();
 			}
 
@@ -125,7 +125,7 @@ void TimeStepController::step(SimulationModel &model)
 			{
 				od.getLastQuaternion(i) = od.getOldQuaternion(i);
 				od.getOldQuaternion(i) = od.getQuaternion(i);
-				TimeIntegration::semiImplicitEulerRotation(h, od.getMass(i), od.getInvMass(i) * Matrix3r::Identity() ,od.getQuaternion(i), od.getVelocity(i), Vector3r(0,0,0));
+				TimeIntegration::semiImplicitEulerRotation(h, od.getMass(i), od.getMass(i) * Matrix3r::Identity(), od.getInvMass(i) * Matrix3r::Identity(),od.getQuaternion(i), od.getVelocity(i), Vector3r(0,0,0));
 			}
 		}
 

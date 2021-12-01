@@ -165,8 +165,6 @@ namespace PBD
 		 * @param  dim (radius, height) of cylinder
 		 */		
 		void addCollisionCylinder(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector2r &dim, const bool testMesh = true, const bool invertSDF = false);
-
-		std::vector<ContactData> m_tempContacts;
 	};
 }
 

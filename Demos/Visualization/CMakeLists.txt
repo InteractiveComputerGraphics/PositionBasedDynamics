@@ -1,5 +1,3 @@
-include_directories(${PROJECT_PATH}/extern/freeglut/include)
-
 set(VIS_HEADER_FILES
 	${PROJECT_PATH}/Demos/Visualization/MiniGL.h
 	${PROJECT_PATH}/Demos/Visualization/Selection.h
@@ -9,6 +7,7 @@ set(VIS_HEADER_FILES
 
 	
 set(VIS_SOURCE_FILES
+	${PROJECT_SOURCE_DIR}/extern/glfw/deps/glad_gl.c
 	${PROJECT_PATH}/Demos/Visualization/MiniGL.cpp                       
 	${PROJECT_PATH}/Demos/Visualization/Shader.cpp
 	) 

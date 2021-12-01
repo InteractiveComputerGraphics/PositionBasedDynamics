@@ -1674,7 +1674,14 @@ bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
 		K.block<3, 3>(3, 3) += t * inertiaInverseW1 * t.transpose();
 	}
 
-	const Eigen::Matrix<Real, 6, 1> lambda = K.llt().solve(-C);
+	auto& llt = K.llt();
+	const Eigen::Matrix<Real, 6, 1> lambda = llt.solve(-C);
+	if (llt.info() != Eigen::Success)
+	{
+		std::cerr << "Cholesky decomposition failed.";
+		std::cerr << llt.info();
+		return false;
+	}
 
 	const Vector3r pt = lambda.block<3, 1>(0, 0);
 	const Vector3r amt = t.transpose() * lambda.block<3, 1>(3, 0);
@@ -1693,6 +1700,8 @@ bool PositionBasedRigidBodyDynamics::solve_TargetAngleMotorHingeJoint(
 		const Vector3r ot = (inertiaInverseW1 * (r1.cross(-pt) - amt));
 		const Quaternionr otQ(0.0, ot[0], ot[1], ot[2]);
 		corr_q1.coeffs() = 0.5 *(otQ*q1).coeffs();
+
+		//std::cout << pt.transpose() << ",      " << ot.transpose() << "\n";
 	}
 
 	return true;

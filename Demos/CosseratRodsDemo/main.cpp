@@ -1,7 +1,6 @@
 #include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "Simulation/SimulationModel.h"
@@ -69,11 +68,9 @@ int main( int argc, char **argv )
 
 	initParameters();
 
-	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
-
 	// OpenGL
-	MiniGL::setClientIdleFunc (50, timeStep);		
-	MiniGL::setKeyFunc(0, 'r', reset);
+	MiniGL::setClientIdleFunc (timeStep);		
+	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
 
@@ -85,7 +82,7 @@ int main( int argc, char **argv )
 	TwAddVarCB(MiniGL::getTweakBar(), "Bending stiffness 2", TW_TYPE_REAL, setBendingStiffness2, getBendingStiffness2, model, " label='Bending stiffness 2'  min=0.0 max=1.0 step=0.1 precision=4 group='Bend twist constraints' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "Twisting stiffness", TW_TYPE_REAL, setTwistingStiffness, getTwistingStiffness, model, " label='Twisting stiffness'  min=0.0 max=1.0 step=0.1 precision=4 group='Bend twist constraints' ");
 
-	glutMainLoop ();	
+	MiniGL::mainLoop ();	
 
 	Utilities::Timing::printAverageTimes();
 	Utilities::Timing::printTimeSums();

@@ -22,6 +22,7 @@ void TimeIntegration::semiImplicitEuler(
 void TimeIntegration::semiImplicitEulerRotation(
 	const Real h,
 	const Real mass,
+	const Matrix3r& invertiaW,
 	const Matrix3r &invInertiaW,
 	Quaternionr &rotation,
 	Vector3r &angularVelocity,	
@@ -29,8 +30,7 @@ void TimeIntegration::semiImplicitEulerRotation(
 {
 	if (mass != 0.0)
 	{
-		// simple form without nutation effect
-		angularVelocity += h * invInertiaW * torque;
+		angularVelocity += h * invInertiaW * (torque - (angularVelocity.cross(invertiaW * angularVelocity)));
 
 		Quaternionr angVelQ(0.0, angularVelocity[0], angularVelocity[1], angularVelocity[2]);
 		rotation.coeffs() += h * 0.5 * (angVelQ * rotation).coeffs();

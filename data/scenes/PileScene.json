@@ -20,6 +20,7 @@
             "density": 500,
             "friction": 0.3,
             "geometryFile": "../models/cube.obj",
+			"flatShading": true,
             "id": 1,
             "isDynamic": 0,
             "restitution": 0.5,

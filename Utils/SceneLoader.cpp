@@ -233,6 +233,10 @@ void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &ke
 			rbd.m_isDynamic = true;
 			readValue(rigidBody, "isDynamic", rbd.m_isDynamic);
 
+			// is dynamic body
+			rbd.m_flatShading = false;
+			readValue(rigidBody, "flatShading", rbd.m_flatShading);
+
 			// density
 			rbd.m_density = 1.0;
 			readValue(rigidBody, "density", rbd.m_density);

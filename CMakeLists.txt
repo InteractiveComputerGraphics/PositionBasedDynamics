@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+################################################################################
+# general CMake and project setup
+################################################################################
+cmake_minimum_required(VERSION 3.1)
 
 project(PositionBasedDynamics)
 
@@ -76,11 +79,8 @@ add_subdirectory(PositionBasedDynamics)
 add_subdirectory(Simulation)
 add_subdirectory(Utils)
 if (NOT PBD_NO_DEMOS)
-	if (WIN32)
-		add_subdirectory(extern/freeglut)
-	endif()
+	add_subdirectory(extern/glfw)
 	add_subdirectory(extern/AntTweakBar)
-	add_subdirectory(extern/glew)
 	add_subdirectory(extern/md5)
 	add_subdirectory(Demos)
 endif()

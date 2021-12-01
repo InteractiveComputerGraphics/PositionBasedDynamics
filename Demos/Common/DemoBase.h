@@ -24,6 +24,7 @@ namespace PBD
 		GLint m_context_major_version;
 		GLint m_context_minor_version;
 		Shader m_shader;
+		Shader m_shaderFlat;
 		Shader m_shaderTex;
 		bool m_doPause;
 		Real m_pauseAt;
@@ -46,7 +47,7 @@ namespace PBD
 
 		void initShaders();
 
-		static void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end, void *clientData);
+		static void selection(const Vector2i &start, const Vector2i &end, void *clientData);
 		static void mouseMove(int x, int y, void *clientData);
 
 		void renderTriangleModels();
@@ -105,10 +106,13 @@ namespace PBD
 		GLint getContextMinorVersion() const { return m_context_minor_version; }
 		Shader& getShader() { return m_shader; }
 		Shader& getShaderTex() { return m_shaderTex; }
+		Shader& getShaderFlat() { return m_shaderFlat; }
 		void shaderTexBegin(const float *col);
 		void shaderTexEnd();
 		void shaderBegin(const float *col);
 		void shaderEnd();
+		void shaderFlatBegin(const float* col);
+		void shaderFlatEnd();
 
 		std::vector<unsigned int>& getSelectedParticles() { return m_selectedParticles; }
 		std::vector<unsigned int>& getSelectedRigidBodies() { return m_selectedBodies; }

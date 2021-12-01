@@ -17,12 +17,13 @@ RigidBodyGeometry::Mesh &RigidBodyGeometry::getMesh()
 	return m_mesh;
 }
 
-void RigidBodyGeometry::initMesh(const unsigned int nVertices, const unsigned int nFaces, const Vector3r *vertices, const unsigned int* indices, const Mesh::UVIndices& uvIndices, const Mesh::UVs& uvs, const Vector3r &scale)
+void RigidBodyGeometry::initMesh(const unsigned int nVertices, const unsigned int nFaces, const Vector3r *vertices, const unsigned int* indices, const Mesh::UVIndices& uvIndices, const Mesh::UVs& uvs, const Vector3r &scale, const bool flatShading)
 {
 	m_mesh.release();
 	m_mesh.initMesh(nVertices, nFaces * 2, nFaces);
 	m_vertexData_local.resize(nVertices);
 	m_vertexData.resize(nVertices);
+	m_mesh.setFlatShading(flatShading);
 	for (unsigned int i = 0; i < nVertices; i++)
 	{
 		m_vertexData_local.getPosition(i) = vertices[i].cwiseProduct(scale);

@@ -40,7 +40,9 @@ add_definitions(-DTW_EXPORTS -DTW_STATIC)
 
 if (WIN32)
     list(APPEND ATB_SOURCES src/TwEventWin.c)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -wd4005")
+	if (MSVC)
+		set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W0")
+	endif(MSVC)
 endif()
 
 if (APPLE)
@@ -51,6 +53,7 @@ if (APPLE)
    add_definitions(-D_MACOSX)   
 elseif (UNIX)
     add_definitions(-D_UNIX -D__PLACEMENT_NEW_INLINE)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 endif()
 
 include_directories(include)

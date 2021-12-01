@@ -33,6 +33,7 @@ namespace PBD
 		static void semiImplicitEulerRotation(
 			const Real h,
 			const Real mass,
+			const Matrix3r& invertiaW,
 			const Matrix3r &invInertiaW,
 			Quaternionr &rotation,
 			Vector3r &angularVelocity,

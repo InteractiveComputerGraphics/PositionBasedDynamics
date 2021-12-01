@@ -159,7 +159,6 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 		}
 	}
 
-	m_tempContacts.clear();
 	for (unsigned int i = 0; i < contacts_mt.size(); i++)
 	{
 		for (unsigned int j = 0; j < contacts_mt[i].size(); j++)
@@ -178,7 +177,6 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 					contacts_mt[i][j].m_elementIndex2, contacts_mt[i][j].m_bary2,
 					contacts_mt[i][j].m_cp1, contacts_mt[i][j].m_cp2, contacts_mt[i][j].m_normal,					
 					contacts_mt[i][j].m_dist, contacts_mt[i][j].m_restitution, contacts_mt[i][j].m_friction);
-				m_tempContacts.push_back(contacts_mt[i][j]);
 			}
 		}
 	}

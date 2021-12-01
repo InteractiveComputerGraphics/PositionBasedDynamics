@@ -1,7 +1,6 @@
 #include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "GenericConstraintsModel.h"
@@ -55,15 +54,13 @@ int main( int argc, char **argv )
 
 	initParameters();
 
-	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
-
 	// OpenGL
-	MiniGL::setClientIdleFunc (50, timeStep);		
-	MiniGL::setKeyFunc(0, 'r', reset);
+	MiniGL::setClientIdleFunc (timeStep);		
+	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
 
-	glutMainLoop ();	
+	MiniGL::mainLoop();
 
 	Utilities::Timing::printAverageTimes();
 	Utilities::Timing::printTimeSums();

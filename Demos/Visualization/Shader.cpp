@@ -12,6 +12,7 @@ Shader::Shader(void)
 		m_shaders[i] = 0;
 	m_attributes.clear();
 	m_uniforms.clear();
+	m_program = 0;
 }
 
 Shader::~Shader(void)
@@ -19,7 +20,8 @@ Shader::~Shader(void)
 	m_initialized = false;
 	m_attributes.clear();
 	m_uniforms.clear();
-	glDeleteProgram(m_program);
+	if (m_program)
+		glDeleteProgram(m_program);
 }
 
 void Shader::compileShaderString(GLenum type, const std::string &source) 

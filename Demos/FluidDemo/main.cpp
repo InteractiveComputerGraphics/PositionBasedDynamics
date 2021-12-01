@@ -1,8 +1,6 @@
 #include "Common/Common.h"
-#include "GL/glew.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "FluidModel.h"
@@ -23,7 +21,6 @@ INIT_TIMING
 INIT_LOGGING
 
 using namespace PBD;
-using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
@@ -35,7 +32,7 @@ void initBoundaryData(std::vector<Vector3r> &boundaryParticles);
 void render ();
 void cleanup();
 void reset();
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end, void *clientData);
+void selection(const Vector2i &start, const Vector2i &end, void *clientData);
 void createSphereBuffers(Real radius, int resolution);
 void renderSphere(const Vector3r &x, const float color[]);
 void releaseSphereBuffers();
@@ -85,13 +82,21 @@ int main( int argc, char **argv )
 	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	// OpenGL
-	MiniGL::init (argc, argv, 1024, 768, 0, 0, "Fluid demo");
+	MiniGL::init (argc, argv, 1280, 1024, "Fluid demo");
 	MiniGL::initLights ();
-	MiniGL::setClientIdleFunc (50, timeStep);		
-	MiniGL::setKeyFunc(0, 'r', reset);
+	MiniGL::setClientIdleFunc (timeStep);		
+	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setSelectionFunc(selection, nullptr);
 
 	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
+
+	MiniGL::addReshapeFunc([](int width, int height) { TwWindowSize(width, height); });
+	MiniGL::addKeyboardFunc([](int key, int scancode, int action, int mods) -> bool { return TwEventKeyGLFW(key, action); });
+	MiniGL::addCharFunc([](int key, int action) -> bool { return TwEventCharGLFW(key, action); });
+	MiniGL::addMousePressFunc([](int button, int action, int mods) -> bool { return TwEventMouseButtonGLFW(button, action); });
+	MiniGL::addMouseMoveFunc([](int x, int y) -> bool { return TwEventMousePosGLFW(x, y); });
+	MiniGL::addMouseWheelFunc([](int pos, double xoffset, double yoffset) -> bool { return TwEventMouseWheelGLFW(pos); });
+
 
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 3.0, 8.0), Vector3r (0.0, 0.0, 0.0));
@@ -107,7 +112,7 @@ int main( int argc, char **argv )
 	if (context_major_version >= 3)
 		createSphereBuffers((Real)particleRadius, 8);
 
-	glutMainLoop ();	
+	MiniGL::mainLoop();	
 
 	cleanup ();
 
@@ -150,14 +155,14 @@ void mouseMove(int x, int y, void *clientData)
 	oldMousePos = mousePos;
 }
 
-void selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end, void *clientData)
+void selection(const Vector2i &start, const Vector2i &end, void *clientData)
 {
 	std::vector<unsigned int> hits;
 	selectedParticles.clear();
 	ParticleData &pd = model.getParticles();
 	Selection::selectRect(start, end, &pd.getPosition(0), &pd.getPosition(pd.size() - 1), selectedParticles);
 	if (selectedParticles.size() > 0)
-		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
+		MiniGL::setMouseMoveFunc(2, mouseMove);
 	else
 		MiniGL::setMouseMoveFunc(-1, NULL);
 
@@ -184,7 +189,7 @@ void buildModel ()
 void render ()
 {
 	float gridColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	MiniGL::drawGrid(gridColor);
+	MiniGL::drawGrid_xz(gridColor);
 
 	MiniGL::coordinateSystem();
 
@@ -423,20 +428,20 @@ void createSphereBuffers(Real radius, int resolution)
 		n[i].normalize();
 
 
-	glGenBuffersARB(1, &vertexbuffer);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexbuffer);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, v.size() * sizeof(Vector3r), &v[0], GL_STATIC_DRAW);
+	glGenBuffers(1, &vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vector3r), &v[0], GL_STATIC_DRAW);
 
-	glGenBuffersARB(1, &normalbuffer);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalbuffer);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, n.size() * sizeof(Vector3r), &n[0], GL_STATIC_DRAW);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glGenBuffers(1, &normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, n.size() * sizeof(Vector3r), &n[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// Generate a buffer for the indices as well
-	glGenBuffersARB(1, &elementbuffer);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, elementbuffer);
-	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	glGenBuffers(1, &elementbuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// store the number of indices for later use
 	vertexBufferSize = (unsigned int)indices.size();
@@ -456,20 +461,20 @@ void renderSphere(const Vector3r &x, const float color[])
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
 
 
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glVertexPointer(3, GL_REAL, 0, 0);
 
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 	glNormalPointer(GL_REAL, 0, 0);
 
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, elementbuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
 	glPushMatrix();
 	glTranslated(x[0], x[1], x[2]);
 	glDrawElements(GL_TRIANGLES, (GLsizei)vertexBufferSize, GL_UNSIGNED_SHORT, 0);
 	glPopMatrix();
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -479,17 +484,17 @@ void releaseSphereBuffers()
 {
 	if (elementbuffer != 0)
 	{
-		glDeleteBuffersARB(1, &elementbuffer);
+		glDeleteBuffers(1, &elementbuffer);
 		elementbuffer = 0;
 	}
 	if (normalbuffer != 0)
 	{
-		glDeleteBuffersARB(1, &normalbuffer);
+		glDeleteBuffers(1, &normalbuffer);
 		normalbuffer = 0;
 	}
 	if (vertexbuffer != 0)
 	{
-		glDeleteBuffersARB(1, &vertexbuffer);
+		glDeleteBuffers(1, &vertexbuffer);
 		vertexbuffer = 0;
 	}
 }

@@ -1,7 +1,6 @@
 #include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "Simulation/SimulationModel.h"
@@ -70,11 +69,9 @@ int main( int argc, char **argv )
 
 	initParameters();
 
-	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
-
 	// OpenGL
-	MiniGL::setClientIdleFunc (50, timeStep);		
-	MiniGL::setKeyFunc(0, 'r', reset);
+	MiniGL::setClientIdleFunc (timeStep);		
+	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);
 	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 10.0, 30.0), Vector3r (0.0, 0.0, 0.0));
 
@@ -83,7 +80,7 @@ int main( int argc, char **argv )
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
 
-	glutMainLoop ();	
+	MiniGL::mainLoop ();	
 
 	base->cleanup();
 
@@ -230,10 +227,12 @@ void createRigidBodyModel()
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	loadObj(fileName, vd, mesh, Vector3r(width, height, depth));
+	mesh.setFlatShading(true);
 
 	IndexedFaceMesh mesh_static;
 	VertexData vd_static;
 	loadObj(fileName, vd_static, mesh_static, Vector3r(0.5, 0.5, 0.5));
+	mesh_static.setFlatShading(true);
 
 	rb.resize(12);
 

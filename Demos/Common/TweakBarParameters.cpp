@@ -130,25 +130,11 @@ void TweakBarParameters::createParameterObjectGUI(ParameterObject *paramObj)
 				TwAddVarCB(MiniGL::getTweakBar(), varName, TW_TYPE_DIR3R, setParameterValue, getParameterValue, m_params[m_params.size() - 1].get(), str);
 			}
 		}
-
-// 		else if ((desc->type == IBDS::IBDS_STRING_PARAMETER) || (desc->type == IBDS::IBDS_FILEPATH_PARAMETER))
-// 		{
-// 			//const bool &defaultValue = paramObj->getParameterDefaultValue<bool>(j);
-// 			char str[400];
-// 			char tmp.c_str()[20];
-// 			if (desc->readOnly)
-// 				sprintf(tmp.c_str(), "%s", "readonly=true");
-// 			else
-// 				sprintf(tmp.c_str(), "%s", "readonly=false");
-// 
-// 			// Defining new unique var name
-// 			char varName[500];
-// 			sprintf(varName, "%s::%s", objName.c_str(), desc->fullName.c_str());
-// 
-// 			sprintf(str, " label='%s' help='%s' group='%s' %s ", desc->label.c_str(), desc->description.c_str(), objName.c_str(), tmp.c_str());
-// 			TwAddVarCB(MiniGL::getTwBar(), varName, TW_TYPE_CDSTRING, setParameterValue, getParameterValue, &m_params[m_params.size() - 1], str);
-// 		}
-// 		
+		else if (paramBase->getType() == ParameterBase::STRING)
+		{
+			sprintf(str, " label='%s' help='%s' group='%s' %s ", paramBase->getLabel().c_str(), paramBase->getDescription().c_str(), paramBase->getGroup().c_str(), tmp.c_str());
+			TwAddVarCB(MiniGL::getTweakBar(), varName, TW_TYPE_STDSTRING, setParameterValue, getParameterValue, m_params[m_params.size() - 1].get(), str);
+		}
 	}
 }
 
@@ -232,11 +218,11 @@ void TW_CALL TweakBarParameters::setParameterValue(const void *value, void *clie
 			static_cast<VectorParameter<Real>*>(paramBase)->setValue(val);
 		}
 	}
-// 	else if ((desc->type == IBDS::IBDS_STRING_PARAMETER) || (desc->type == IBDS::IBDS_FILEPATH_PARAMETER))
-// 	{
-// 		const std::string val = std::string(*(const char **)(value));
-// 		paramObj->setParameter<std::string>(desc->id, val);
-// 	}
+	else if (paramBase->getType() == ParameterBase::STRING)
+	{
+		const std::string *srcPtr = static_cast<const std::string *>(value);
+		static_cast<StringParameter*>(paramBase)->setValue(*srcPtr);
+	}
 }
 
 void TW_CALL TweakBarParameters::getParameterValue(void *value, void *clientData)
@@ -300,10 +286,11 @@ void TW_CALL TweakBarParameters::getParameterValue(void *value, void *clientData
 			((Real*)value)[2] = val[2];
 		}
 	}
-// 	else if ((desc->type == IBDS::IBDS_STRING_PARAMETER) || (desc->type == IBDS::IBDS_FILEPATH_PARAMETER))
-// 	{
-// 		const std::string &val = paramObj->getParameter<std::string>(desc->id);
-// 		*(const char **)(value) = val.c_str();
-// 	}
+	else if (paramBase->getType() == ParameterBase::STRING)
+	{
+		const std::string &val = static_cast<StringParameter*>(paramBase)->getValue();
+		std::string *destPtr = static_cast<std::string *>(value);
+		TwCopyStdStringToLibrary(*destPtr, val);
+	}
 }
 

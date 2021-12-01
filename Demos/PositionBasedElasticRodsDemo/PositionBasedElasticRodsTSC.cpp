@@ -48,7 +48,7 @@ void PositionBasedElasticRodsTSC::step(SimulationModel &model)
 				TimeIntegration::semiImplicitEuler(h, rb[i]->getMass(), rb[i]->getPosition(), rb[i]->getVelocity(), rb[i]->getAcceleration());
 				rb[i]->getLastRotation() = rb[i]->getOldRotation();
 				rb[i]->getOldRotation() = rb[i]->getRotation();
-				TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
+				TimeIntegration::semiImplicitEulerRotation(h, rb[i]->getMass(), rb[i]->getInertiaTensorW(), rb[i]->getInertiaTensorInverseW(), rb[i]->getRotation(), rb[i]->getAngularVelocity(), rb[i]->getTorque());
 				rb[i]->rotationUpdated();
  			}
 

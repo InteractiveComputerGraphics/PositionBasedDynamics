@@ -11,7 +11,7 @@ def scale(vec, s):
 s = 1
 
 scene = generateScene('CarScene', camPosition=[1,5,20], camLookat=[0,0,0])
-addParameters(scene, h=0.005, maxIter=50, maxIterVel=50, contactTolerance=0.01, gravity=[0,-2,0], numberOfStepsPerRenderUpdate=10)
+addParameters(scene, h=0.005, maxIter=1, maxIterVel=5, subSteps=5, contactTolerance=0.01, gravity=[0,-2,0], numberOfStepsPerRenderUpdate=10)
 
 # floor
 floorScale=[1000, 1, 1000]
@@ -20,7 +20,7 @@ floorT = [0,-0.5,0]
 floorT = scale(floorT, s)
 addRigidBody(scene, '../models/cube.obj', 2, coScale=floorScale, 
              scale=floorScale, translation=floorT, 
-             dynamic=0, rest= 0.5)
+             dynamic=0, rest= 0.5, flatShading=True)
 
 carX = [0,2,0]
 
@@ -31,7 +31,7 @@ chassisX = add_vector(carX, [0,-0.1,0.1])
 chassisScale = [2.5,0.4,1]
 chassisScale = scale(chassisScale, s)
 chassis = addRigidBody(scene, '../models/cube.obj', 0, coScale=chassisScale, scale=chassisScale, 
-                     translation=chassisX, dynamic=1, rest=restitution, friction=0.0, density = 200)
+                     translation=chassisX, dynamic=1, rest=restitution, friction=0.0, density = 200, flatShading=True)
 
 # damper bodies
 damperScale = [0.2,0.1,0.2]
@@ -39,26 +39,26 @@ damperScale = scale(damperScale, s)
 damperDensity = 50000;
 damperX1 = add_vector(carX, [1.75, -0.7, 0.5])
 dBody1 = addRigidBody(scene, '../models/cube.obj', 0, coScale=damperScale, scale=damperScale, 
-                     translation=damperX1, dynamic=1, rest=restitution, density = damperDensity)
+                     translation=damperX1, dynamic=1, rest=restitution, density = damperDensity, flatShading=True)
 
 damperX2 = add_vector(carX, [1.75, -0.7, -0.5])
 dBody2 = addRigidBody(scene, '../models/cube.obj', 0, coScale=damperScale, scale=damperScale, 
-                     translation=damperX2, dynamic=1, rest=restitution, density = damperDensity)
+                     translation=damperX2, dynamic=1, rest=restitution, density = damperDensity, flatShading=True)
 
 damperX3 = add_vector(carX, [-1.75, -0.7, 0.5])
 dBody3 = addRigidBody(scene, '../models/cube.obj', 0, coScale=damperScale, scale=damperScale, 
-                     translation=damperX3, dynamic=1, rest=restitution, density = damperDensity)
+                     translation=damperX3, dynamic=1, rest=restitution, density = damperDensity, flatShading=True)
 
 damperX4 = add_vector(carX, [-1.75, -0.7, -0.5])
 dBody4 = addRigidBody(scene, '../models/cube.obj', 0, coScale=damperScale, scale=damperScale, 
-                     translation=damperX4, dynamic=1, rest=restitution, density = damperDensity)
+                     translation=damperX4, dynamic=1, rest=restitution, density = damperDensity, flatShading=True)
 
 # steering
 steeringBodyX = add_vector(carX, [-1.75, -0.15, 0])
 steeringBodyScale = [0.2,0.1,1]
 steeringBodyScale = scale(steeringBodyScale, s)
 steeringBody = addRigidBody(scene, '../models/cube.obj', 0, coScale=steeringBodyScale, scale=steeringBodyScale, 
-                     translation=steeringBodyX, dynamic=1, rest=restitution, density = 10000)
+                     translation=steeringBodyX, dynamic=1, rest=restitution, density = 10000, flatShading=True)
 
 steeringMotorX = add_vector(carX, [-1.75, -0.4, 0])
 addTargetAngleMotorHingeJoint(scene, chassis, steeringBody, steeringMotorX, [0, 1, 0], 0.707, [0,0, 2, 0.707, 8, 0.707, 12, -0.707, 18, -0.707, 20, 0], 1)

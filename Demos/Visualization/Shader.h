@@ -1,9 +1,9 @@
-#ifndef __SHADER_H__
-#define __SHADER_H__
+#ifndef __Shader_h__
+#define __Shader_h__
 
 #include <map>
 #include <string>
-#include "GL/glew.h"
+#include <glad/gl.h>
 
 namespace PBD
 {

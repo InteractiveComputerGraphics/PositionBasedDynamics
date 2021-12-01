@@ -1,7 +1,6 @@
 #include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "Simulation/SimulationModel.h"
@@ -65,11 +64,9 @@ int main( int argc, char **argv )
 
 	initParameters();
 
-	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
-
 	// OpenGL
-	MiniGL::setClientIdleFunc (50, timeStep);		
-	MiniGL::setKeyFunc(0, 'r', reset);
+	MiniGL::setClientIdleFunc (timeStep);		
+	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
 
@@ -81,7 +78,7 @@ int main( int argc, char **argv )
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Strain based dynamics' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, model, " label='Normalize shear' group='Strain based dynamics' ");
 
-	glutMainLoop ();	
+	MiniGL::mainLoop();
 
 	Utilities::Timing::printAverageTimes();
 	Utilities::Timing::printTimeSums();
@@ -334,23 +331,23 @@ void TW_CALL getPoissonRatio(void *value, void *clientData)
 void TW_CALL setNormalizeStretch(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setValue<Real>(SimulationModel::SOLID_NORMALIZE_STRETCH, val);
+	((SimulationModel*)clientData)->setValue<bool>(SimulationModel::SOLID_NORMALIZE_STRETCH, val);
 }
 
 void TW_CALL getNormalizeStretch(void *value, void *clientData)
 {
-	*(bool *)(value) = ((SimulationModel*)clientData)->getValue<Real>(SimulationModel::SOLID_NORMALIZE_STRETCH);
+	*(bool *)(value) = ((SimulationModel*)clientData)->getValue<bool>(SimulationModel::SOLID_NORMALIZE_STRETCH);
 }
 
 void TW_CALL setNormalizeShear(const void *value, void *clientData)
 {
 	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setValue<Real>(SimulationModel::SOLID_NORMALIZE_SHEAR, val);
+	((SimulationModel*)clientData)->setValue<bool>(SimulationModel::SOLID_NORMALIZE_SHEAR, val);
 }
 
 void TW_CALL getNormalizeShear(void *value, void *clientData)
 {
-	*(bool *)(value) = ((SimulationModel*)clientData)->getValue<Real>(SimulationModel::SOLID_NORMALIZE_SHEAR);
+	*(bool *)(value) = ((SimulationModel*)clientData)->getValue<bool>(SimulationModel::SOLID_NORMALIZE_SHEAR);
 }
 
 void TW_CALL setSimulationMethod(const void *value, void *clientData)

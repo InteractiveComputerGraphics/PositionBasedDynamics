@@ -4,7 +4,6 @@
 #include "Utils/FileSystem.h"
 #include "Simulation/TimeManager.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/Simulation.h"
 #include "NumericParameter.h"
 #include "Utils/Logger.h"
@@ -174,7 +173,7 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 	LOG_DEBUG << "Host name:   " << SystemInfo::getHostName();
 
 	// OpenGL
-	MiniGL::init(argc, argv, 1024, 768, 0, 0, demoName);
+	MiniGL::init(argc, argv, 1280, 1024, demoName);
 	MiniGL::initLights();
 	MiniGL::initTexture();
 	MiniGL::getOpenGLVersion(m_context_major_version, m_context_minor_version);
@@ -183,6 +182,13 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 
 	if (MiniGL::checkOpenGLVersion(3, 3))
 		initShaders();
+
+	MiniGL::addReshapeFunc([](int width, int height) { TwWindowSize(width, height); });
+	MiniGL::addKeyboardFunc([](int key, int scancode, int action, int mods) -> bool { return TwEventKeyGLFW(key, action); });
+	MiniGL::addCharFunc([](int key, int action) -> bool { return TwEventCharGLFW(key, action); });
+	MiniGL::addMousePressFunc([](int button, int action, int mods) -> bool { return TwEventMouseButtonGLFW(button, action); });
+	MiniGL::addMouseMoveFunc([](int x, int y) -> bool { return TwEventMousePosGLFW(x, y); });
+	MiniGL::addMouseWheelFunc([](int pos, double xoffset, double yoffset) -> bool { return TwEventMouseWheelGLFW(pos); });
 }
 
 void DemoBase::readScene()
@@ -224,6 +230,21 @@ void DemoBase::initShaders()
 	m_shaderTex.addUniform("shininess");
 	m_shaderTex.addUniform("specular_factor");
 	m_shaderTex.end();
+
+	vertFile = m_dataPath + "/shaders/vs_flat.glsl";
+	std::string geomFile = m_dataPath + "/shaders/gs_flat.glsl";
+	fragFile = m_dataPath + "/shaders/fs_flat.glsl";
+	m_shaderFlat.compileShaderFile(GL_VERTEX_SHADER, vertFile);
+	m_shaderFlat.compileShaderFile(GL_GEOMETRY_SHADER, geomFile);
+	m_shaderFlat.compileShaderFile(GL_FRAGMENT_SHADER, fragFile);
+	m_shaderFlat.createAndLinkProgram();
+	m_shaderFlat.begin();
+	m_shaderFlat.addUniform("modelview_matrix");
+	m_shaderFlat.addUniform("projection_matrix");
+	m_shaderFlat.addUniform("surface_color");
+	m_shaderFlat.addUniform("shininess");
+	m_shaderFlat.addUniform("specular_factor");
+	m_shaderFlat.end();
 }
 
 
@@ -267,6 +288,26 @@ void DemoBase::shaderEnd()
 	m_shader.end();
 }
 
+void DemoBase::shaderFlatBegin(const float* col)
+{
+	m_shaderFlat.begin();
+	glUniform1f(m_shaderFlat.getUniform("shininess"), 5.0f);
+	glUniform1f(m_shaderFlat.getUniform("specular_factor"), 0.2f);
+
+	GLfloat matrix[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+	glUniformMatrix4fv(m_shaderFlat.getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
+	GLfloat pmatrix[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
+	glUniformMatrix4fv(m_shaderFlat.getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
+	glUniform3fv(m_shaderFlat.getUniform("surface_color"), 1, col);
+}
+
+void DemoBase::shaderFlatEnd()
+{
+	m_shaderFlat.end();
+}
+
 void DemoBase::readParameters()
 {
 	m_sceneLoader->readParameterObject(this);
@@ -278,7 +319,7 @@ void DemoBase::readParameters()
 void DemoBase::render()
 {
 	float gridColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	MiniGL::drawGrid(gridColor);
+	MiniGL::drawGrid_xz(gridColor);
 
 	MiniGL::coordinateSystem();
 
@@ -290,7 +331,7 @@ void DemoBase::render()
 	SimulationModel::ParticleRigidBodyContactConstraintVector &particleRigidBodyContacts = model->getParticleRigidBodyContactConstraints();
 
 	float selectionColor[4] = { 0.8f, 0.0f, 0.0f, 1 };
-	float surfaceColor[4] = { 0.3f, 0.5f, 0.8f, 1 };
+	float surfaceColor[4] = { 0.1f, 0.4f, 0.7f, 1 };
 	float staticColor[4] = { 0.5f, 0.5f, 0.5f, 1 };
 
 	if (m_renderContacts)
@@ -301,8 +342,6 @@ void DemoBase::render()
 			renderParticleRigidBodyContact(particleRigidBodyContacts[i]);
 	}
 
-
-	shaderBegin(staticColor);
 
 	for (size_t i = 0; i < rb.size(); i++)
 	{
@@ -315,6 +354,12 @@ void DemoBase::render()
 
 		const VertexData &vd = rb[i]->getGeometry().getVertexData();
 		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
+
+		if (mesh.getFlatShading())
+			shaderFlatBegin(staticColor);
+		else
+			shaderBegin(staticColor);
+
 		if (!selected)
 		{
 			if (rb[i]->getMass() == 0.0)
@@ -333,9 +378,14 @@ void DemoBase::render()
 			glUniform3fv(m_shader.getUniform("surface_color"), 1, selectionColor);
 			Visualization::drawMesh(vd, mesh, 0, selectionColor);
 		}
+
+		if (mesh.getFlatShading())
+			shaderFlatEnd();
+		else
+			shaderEnd();
 	}
 
-	shaderEnd();
+	
 
 	renderTriangleModels();
 	renderTetModels();
@@ -538,7 +588,7 @@ void DemoBase::renderTetModels()
 {
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	const ParticleData &pd = model->getParticles();
-	float surfaceColor[4] = { 0.1f, 0.3f, 0.5f, 1 };
+	float surfaceColor[4] = { 0.1f, 0.4f, 0.7f, 1 };
 
 	shaderBegin(surfaceColor);
 
@@ -800,7 +850,7 @@ void DemoBase::mouseMove(int x, int y, void *clientData)
 	base->m_oldMousePos = mousePos;
 }
 
-void DemoBase::selection(const Eigen::Vector2i &start, const Eigen::Vector2i &end, void *clientData)
+void DemoBase::selection(const Vector2i &start, const Vector2i &end, void *clientData)
 {
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	DemoBase *base = (DemoBase*)clientData;
@@ -824,7 +874,7 @@ void DemoBase::selection(const Eigen::Vector2i &start, const Eigen::Vector2i &en
 	if (rb.size() > 0)
 		Selection::selectRect(start, end, &x[0], &x[rb.size() - 1], base->m_selectedBodies);
 	if ((base->m_selectedBodies.size() > 0) || (base->m_selectedParticles.size() > 0))
-		MiniGL::setMouseMoveFunc(GLUT_MIDDLE_BUTTON, mouseMove);
+		MiniGL::setMouseMoveFunc(2, mouseMove);
 	else
 		MiniGL::setMouseMoveFunc(-1, NULL);
 

@@ -4,14 +4,15 @@ import math
 ######################################################
 # add parameters
 ######################################################
-def addParameters(scene, h=0.005, maxIter=5, maxIterVel=5, velocityUpdateMethod=0, contactTolerance=0.05, triangleModelSimulationMethod=2, triangleModelBendingMethod=2, 
+def addParameters(scene, h=0.005, maxIter=5, maxIterVel=5, subSteps=5, velocityUpdateMethod=0, contactTolerance=0.05, triangleModelSimulationMethod=2, triangleModelBendingMethod=2, 
                   contactStiffnessRigidBody=1.0, contactStiffnessParticleRigidBody=100.0, 
                   cloth_stiffness=1.0, cloth_bendingStiffness=0.005, cloth_xxStiffness=1.0, cloth_yyStiffness=1.0, cloth_xyStiffness=1.0,
                   cloth_xyPoissonRatio=0.3, cloth_yxPoissonRatio=0.3, cloth_normalizeStretch=0, cloth_normalizeShear=0, gravity=[0,-9.81,0], numberOfStepsPerRenderUpdate=4):
     parameters = {  'timeStepSize': h,
                     'gravity': gravity,
-                    'maxIter' : maxIter,
-				    'maxIterVel' : maxIterVel,
+                    'maxIterations' : maxIter,
+				    'maxIterationsV' : maxIterVel,
+                    'subSteps': subSteps,
 					'numberOfStepsPerRenderUpdate': numberOfStepsPerRenderUpdate,
 				    'velocityUpdateMethod' : velocityUpdateMethod,
 				    'contactTolerance': contactTolerance,
@@ -37,7 +38,7 @@ def addParameters(scene, h=0.005, maxIter=5, maxIterVel=5, velocityUpdateMethod=
 ######################################################
 def addRigidBody(scene, geoFile, coType, coFile='', coScale=[1,1,1], translation=[0,0,0], axis=[1,0,0], angle=0.0, scale=[1,1,1], 
                  v=[0,0,0], omega=[0,0,0], dynamic=1, density=500, rest=0.6, friction=0.3, 
-                 testMesh = 1):
+                 testMesh = 1, flatShading=False):
     global current_id 
     rb = {  'id': current_id,
 			'geometryFile': geoFile,
@@ -54,7 +55,8 @@ def addRigidBody(scene, geoFile, coType, coFile='', coScale=[1,1,1], translation
 			'collisionObjectType': coType,
 			'collisionObjectScale': coScale,
 			'collisionObjectFileName': coFile, 
-            'testMesh': testMesh
+            'testMesh': testMesh,
+            'flatShading': flatShading
           }
     current_id += 1
 

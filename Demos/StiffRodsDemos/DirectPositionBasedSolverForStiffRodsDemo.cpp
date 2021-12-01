@@ -15,7 +15,6 @@
 #include "Demos/Common/DemoBase.h"
 #include "Demos/Common/TweakBarParameters.h"
 #include "Simulation/Simulation.h"
-#include "GL/glut.h"
 #include <Eigen/Dense>
 #include <iostream>
 #include <set>
@@ -98,12 +97,10 @@ int main(int argc, char **argv)
 	initParameters();
 	base->readParameters();
 
-	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
-
 	// OpenGL
-	MiniGL::setClientIdleFunc(50, timeStep);
-	MiniGL::setKeyFunc(0, 'r', reset);
-	MiniGL::setKeyFunc(1, 's', singleStep);
+	MiniGL::setClientIdleFunc(timeStep);
+	MiniGL::addKeyFunc('r', reset);
+	MiniGL::addKeyFunc('s', singleStep);
 	MiniGL::setClientSceneFunc(render);
 	MiniGL::setViewport(40.0f, 0.1f, 500.0f, camPos, camLookat);
 
@@ -129,7 +126,7 @@ int main(int argc, char **argv)
 		TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType4, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
 	}
 
-	glutMainLoop();
+	MiniGL::mainLoop();
 
 	base->cleanup();
 
@@ -781,6 +778,7 @@ void readScene()
 
 		VertexData &vd = objFiles[rbd.m_modelFile].first;
 		IndexedFaceMesh &mesh = objFiles[rbd.m_modelFile].second;
+		mesh.setFlatShading(rbd.m_flatShading);
 
 		rb[rbIndex] = new RigidBody();
 		rb[rbIndex]->initBody(rbd.m_density,
@@ -890,6 +888,7 @@ void readScene()
 
 			VertexData &vd = objFiles[segmentData.m_modelFile].first;
 			IndexedFaceMesh &mesh = objFiles[segmentData.m_modelFile].second;
+			mesh.setFlatShading(segmentData.m_flatShading);
 
 			//compute mass and inertia of a cylinder
 			Vector3r & scale(segmentData.m_scale);

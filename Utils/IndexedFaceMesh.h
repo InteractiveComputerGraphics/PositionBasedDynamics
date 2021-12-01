@@ -117,6 +117,7 @@ namespace Utilities
 		unsigned int m_verticesPerFace;
 		FaceNormals m_normals;
 		VertexNormals m_vertexNormals;
+		bool m_flatShading;
 
 	public:
 		IndexedFaceMesh(const unsigned int verticesPerFace = 3);
@@ -126,6 +127,8 @@ namespace Utilities
 
 		void release();
 		bool isClosed() const;
+		bool getFlatShading() const { return m_flatShading; }
+		void setFlatShading(const bool v) { m_flatShading = v; }
 		void initMesh(const unsigned int nPoints, const unsigned int nEdges, const unsigned int nFaces);
 		void addFace(const unsigned int * const indices);
 		void addFace(const int * const indices);

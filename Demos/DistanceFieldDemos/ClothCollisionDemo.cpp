@@ -1,7 +1,6 @@
 #include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "Simulation/SimulationModel.h"
@@ -66,20 +65,18 @@ int main( int argc, char **argv )
 
 	initParameters();
 
-	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
-
 	// OpenGL
-	MiniGL::setClientIdleFunc (50, timeStep);		
-	MiniGL::setKeyFunc(0, 'r', reset);
+	MiniGL::setClientIdleFunc (timeStep);		
+	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
-	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
+	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (0.0, 10.0, 25.0), Vector3r (0.0, 0.0, 0.0));
 
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod, " label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}' group=Simulation");
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
 
-	glutMainLoop ();	
+	MiniGL::mainLoop ();	
 
 	base->cleanup ();
 
@@ -116,6 +113,7 @@ void reset()
 	base->getSelectedParticles().clear();
 
 	Simulation::getCurrent()->getModel()->cleanup();
+	cd.cleanup();
 
 	buildModel();
 }
@@ -203,6 +201,7 @@ void buildModel ()
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	loadObj(fileName, vd, mesh, Vector3r::Ones());
+	mesh.setFlatShading(true);
 
 	string fileNameTorus = FileSystem::normalizePath(base->getDataPath() + "/models/torus.obj");
 	IndexedFaceMesh meshTorus;
@@ -216,7 +215,7 @@ void buildModel ()
 	// floor
 	rb[0] = new RigidBody();
 	rb[0]->initBody(1.0,
-		Vector3r(0.0, -5.5, 0.0),
+		Vector3r(0.0, -2.5, 0.0),
 		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vd, mesh,
 		Vector3r(100.0, 1.0, 100.0));
@@ -225,7 +224,7 @@ void buildModel ()
 	// torus
 	rb[1] = new RigidBody();
 	rb[1]->initBody(1.0,
-		Vector3r(5.0, -1.5, 5.0),
+		Vector3r(0.0, 1.5, 0.0),
 		Quaternionr(1.0, 0.0, 0.0, 0.0),
 		vdTorus, meshTorus,
 		Vector3r(2.0, 2.0, 2.0));
@@ -278,7 +277,7 @@ void createMesh()
 		{
 			const Real y = (Real)dy*j;
 			const Real x = (Real)dx*i;
-			points[i*nCols + j] = Vector3r(x, 1.0, y);
+			points[i*nCols + j] = Vector3r(x-5.0, 4.0, y-5.0);
 
 			uvs[i*nCols + j][0] = x/width;
 			uvs[i*nCols + j][1] = y/height;

@@ -1,7 +1,6 @@
 #include "Common/Common.h"
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
-#include "GL/glut.h"
 #include "Simulation/TimeManager.h"
 #include <Eigen/Dense>
 #include "Simulation/SimulationModel.h"
@@ -93,11 +92,9 @@ int main( int argc, char **argv )
 	initParameters();
 	base->readParameters();
 
-	Simulation::getCurrent()->setSimulationMethodChangedCallback([&]() { reset(); initParameters(); base->getSceneLoader()->readParameterObject(Simulation::getCurrent()->getTimeStep()); });
-	
 	// OpenGL
-	MiniGL::setClientIdleFunc (50, timeStep);		
-	MiniGL::setKeyFunc(0, 'r', reset);
+	MiniGL::setClientIdleFunc (timeStep);		
+	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport(40.0f, 0.1f, 500.0f, camPos, camLookat);
 
@@ -113,7 +110,7 @@ int main( int argc, char **argv )
 	TwType enumType4 = TwDefineEnum("BendingMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType4, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}' group=Bending");
 
-	glutMainLoop ();	
+	MiniGL::mainLoop();
 
 	base->cleanup();
 
@@ -729,6 +726,7 @@ void readScene(const bool readFile)
 
 		VertexData &vd = objFiles[rbd.m_modelFile].first;
 		IndexedFaceMesh &mesh = objFiles[rbd.m_modelFile].second;
+		mesh.setFlatShading(rbd.m_flatShading);
 
 		rb[i] = new RigidBody();
 		rb[i]->initBody(rbd.m_density,

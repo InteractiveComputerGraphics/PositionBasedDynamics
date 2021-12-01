@@ -46,6 +46,7 @@ IndexedFaceMesh::IndexedFaceMesh(const unsigned int verticesPerFace)
 {
 	m_verticesPerFace = verticesPerFace;
 	m_closed=false;
+	m_flatShading = false;
 }
 
 IndexedFaceMesh::~IndexedFaceMesh()

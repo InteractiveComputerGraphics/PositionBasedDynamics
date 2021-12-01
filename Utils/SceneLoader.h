@@ -22,6 +22,7 @@ namespace Utilities
 		{			
 			unsigned int m_id;
 			std::string m_modelFile;
+			bool m_flatShading;
 			bool m_isDynamic;
 			Real m_density;
 			Vector3r m_x;

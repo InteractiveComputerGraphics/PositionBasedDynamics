@@ -35,6 +35,8 @@ namespace PBD
 			* are constant over time.
 			*/
 			Vector3r m_inertiaTensor;
+			/** 3x3 matrix, inertia tensor in world space */
+			Matrix3r m_inertiaTensorW;
 			/** Inverse inertia tensor in body space */
 			Vector3r m_inertiaTensorInverse;
 			/** 3x3 matrix, inverse of the inertia tensor in world space */
@@ -113,7 +115,7 @@ namespace PBD
 				m_restitutionCoeff = static_cast<Real>(0.6);
 				m_frictionCoeff = static_cast<Real>(0.2);
 
-				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs(), scale);
+				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs(), scale, mesh.getFlatShading());
 				getGeometry().updateMeshTransformation(getPosition(), getRotationMatrix());
 			}
 
@@ -143,7 +145,7 @@ namespace PBD
 				m_restitutionCoeff = static_cast<Real>(0.6);
 				m_frictionCoeff = static_cast<Real>(0.2);
 
-				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs(), scale);
+				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs(), scale, mesh.getFlatShading());
 				determineMassProperties(density);
 				getGeometry().updateMeshTransformation(getPosition(), getRotationMatrix());
 			}
@@ -190,15 +192,16 @@ namespace PBD
 				if (m_mass != 0.0)
 				{
 					m_rot = m_q.matrix();
-					updateInverseInertiaW();
+					updateInertiaW();
 					updateInverseTransformation();
 				}
 			}
 
-			void updateInverseInertiaW()
+			void updateInertiaW()
 			{
 				if (m_mass != 0.0)
 				{
+					m_inertiaTensorW = m_rot * m_inertiaTensor.asDiagonal() * m_rot.transpose();
 					m_inertiaTensorInverseW = m_rot * m_inertiaTensorInverse.asDiagonal() * m_rot.transpose();
 				}
 			}
@@ -414,6 +417,16 @@ namespace PBD
 			{
 				m_inertiaTensor = value;
 				m_inertiaTensorInverse = Vector3r(static_cast<Real>(1.0) / value[0], static_cast<Real>(1.0) / value[1], static_cast<Real>(1.0) / value[2]);
+			}
+
+			FORCE_INLINE Matrix3r& getInertiaTensorW()
+			{
+				return m_inertiaTensorW;
+			}
+
+			FORCE_INLINE const Matrix3r& getInertiaTensorW() const
+			{
+				return m_inertiaTensorW;
 			}
 
 			FORCE_INLINE const Vector3r &getInertiaTensorInverse() const

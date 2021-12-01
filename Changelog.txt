@@ -1,3 +1,7 @@
+	- added glfw 
+	- removed freeglut and glew
+	- added flat shading
+
 1.8.0
 	- added OBJ export
 	- added substepping
