@@ -36,6 +36,8 @@ http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 
+* added Python binding
+* added some XPBD constraints
 * added OBJ export
 * added substepping
 * added DamperJoint

@@ -204,29 +204,29 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model->getConstraints();
 
-	string fileNameBox = FileSystem::normalizePath(base->getDataPath() + "/models/cube.obj");
+	string fileNameBox = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube.obj");
 	IndexedFaceMesh meshBox;
 	VertexData vdBox;
 	loadObj(fileNameBox, vdBox, meshBox, Vector3r::Ones());
 	meshBox.setFlatShading(true);
 
-	string fileNameCylinder = FileSystem::normalizePath(base->getDataPath() + "/models/cylinder.obj");
+	string fileNameCylinder = FileSystem::normalizePath(base->getExePath() + "/resources/models/cylinder.obj");
 	IndexedFaceMesh meshCylinder;
 	VertexData vdCylinder;
 	loadObj(fileNameCylinder, vdCylinder, meshCylinder, Vector3r::Ones());
 
-	string fileNameTorus = FileSystem::normalizePath(base->getDataPath() + "/models/torus.obj");
+	string fileNameTorus = FileSystem::normalizePath(base->getExePath() + "/resources/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	loadObj(fileNameTorus, vdTorus, meshTorus, Vector3r::Ones());
 
-	string fileNameCube = FileSystem::normalizePath(base->getDataPath() + "/models/cube_5.obj");
+	string fileNameCube = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube_5.obj");
 	IndexedFaceMesh meshCube;
 	VertexData vdCube;
 	loadObj(fileNameCube, vdCube, meshCube, Vector3r::Ones());
 	meshCube.setFlatShading(true);
 
-	string fileNameSphere = FileSystem::normalizePath(base->getDataPath() + "/models/sphere.obj");
+	string fileNameSphere = FileSystem::normalizePath(base->getExePath() + "/resources/models/sphere.obj");
 	IndexedFaceMesh meshSphere;
 	VertexData vdSphere;
 	loadObj(fileNameSphere, vdSphere, meshSphere, 2.0*Vector3r::Ones());

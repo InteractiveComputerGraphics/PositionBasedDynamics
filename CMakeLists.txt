@@ -13,8 +13,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(${PROJECT_PATH}/CMake/Common.cmake)
 
-add_definitions(-DPBD_DATA_PATH="../data")
-
 if (NOT WIN32)
 	message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 endif()
@@ -78,11 +76,16 @@ endif()
 add_subdirectory(PositionBasedDynamics)
 add_subdirectory(Simulation)
 add_subdirectory(Utils)
-if (NOT PBD_NO_DEMOS)
+if (NOT PBD_LIBS_ONLY)
+	include(DataCopyTargets)
 	add_subdirectory(extern/glfw)
 	add_subdirectory(extern/AntTweakBar)
 	add_subdirectory(extern/md5)
 	add_subdirectory(Demos)
+	if (USE_PYTHON_BINDINGS)
+		add_subdirectory(extern/pybind)
+		add_subdirectory(pyPBD)
+	endif ()
 endif()
 
 

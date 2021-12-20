@@ -13,6 +13,7 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Real m_restLength;
+		Real m_stiffness;
 
 		static void constraintFct(
 			const unsigned int numberOfParticles,
@@ -32,7 +33,7 @@ namespace PBD
 		GenericDistanceConstraint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2);
+		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -41,6 +42,7 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Matrix4r m_Q;
+		Real m_stiffness;
 
 		static void constraintFct(
 			const unsigned int numberOfParticles,
@@ -53,7 +55,7 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-								const unsigned int particle3, const unsigned int particle4);
+								const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 

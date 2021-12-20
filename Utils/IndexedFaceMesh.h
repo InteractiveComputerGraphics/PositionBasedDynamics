@@ -2,6 +2,7 @@
 #define __INDEXEDFACEMESH_H__
 
 #include <vector>
+#include <array>
 #include "Common/Common.h"
 #include <iterator>
 
@@ -12,95 +13,18 @@ namespace Utilities
 	public:
 		struct Edge
 		{
-			unsigned int m_face[2];
-			unsigned int m_vert[2];
-		};
-
-		struct Face
-		{
-			unsigned int *m_edges;
-		};
-
-		// Stores the indices of each face connected to a specific vertex
-		struct VertexFaces
-		{
-			VertexFaces()
-			{
-				m_fIndices = 0;
-				m_numFaces = 0;
-			}
-
-			VertexFaces(VertexFaces const& other)
-			{
-				*this = other;
-			}
-
-			VertexFaces& operator=(VertexFaces const& other)
-			{
-				m_numFaces = other.m_numFaces;
-				m_fIndices = new unsigned int[m_numFaces];
-#if defined(_MSC_VER)
-				std::copy(other.m_fIndices, other.m_fIndices + m_numFaces,
-					stdext::unchecked_array_iterator<unsigned int*>(m_fIndices));
-#else
-				std::copy(other.m_fIndices, other.m_fIndices + m_numFaces, m_fIndices);
-#endif		
-				return *this;
-			}
-
-			~VertexFaces()
-			{
-				delete[] m_fIndices;
-			}
-
-			unsigned int m_numFaces;
-			unsigned int* m_fIndices;
-		};
-
-		// Stores the indices of each edge connected to a specific vertex
-		struct VertexEdges
-		{
-			VertexEdges()
-			{
-				m_eIndices = 0;
-				m_numEdges = 0;
-			}
-
-			VertexEdges(VertexEdges const& other)
-			{
-				*this = other;
-			}
-
-			VertexEdges& operator=(VertexEdges const& other)
-			{
-				m_numEdges = other.m_numEdges;
-				m_eIndices = new unsigned int[m_numEdges];
-#if defined(_MSC_VER)
-				std::copy(other.m_eIndices, other.m_eIndices + m_numEdges,
-					stdext::unchecked_array_iterator<unsigned int*>(m_eIndices));
-#else
-				std::copy(other.m_eIndices, other.m_eIndices + m_numEdges, m_eIndices);
-#endif		
-				return *this;
-			}
-
-			~VertexEdges()
-			{
-				delete[] m_eIndices;
-			}
-
-			unsigned int m_numEdges;
-			unsigned int* m_eIndices;
+			std::array<unsigned int, 2> m_face;
+			std::array<unsigned int, 2> m_vert;
 		};
 
 	public:
 		typedef std::vector<unsigned int> Faces;
 		typedef std::vector<Vector3r> FaceNormals;
 		typedef std::vector<Vector3r> VertexNormals;
-		typedef std::vector<Face> FaceData;
+		typedef std::vector<std::vector<unsigned int>> FacesEdges;
 		typedef std::vector<Edge> Edges;
-		typedef std::vector<VertexFaces> VerticesFaces;
-		typedef std::vector<VertexEdges> VerticesEdges;
+		typedef std::vector<std::vector<unsigned int>> VerticesEdges;
+		typedef std::vector<std::vector<unsigned int>> VerticesFaces;
 		typedef std::vector<unsigned int> UVIndices;
 		typedef std::vector<Vector2r> UVs;
 
@@ -108,19 +32,19 @@ namespace Utilities
 		unsigned int m_numPoints;
 		Faces m_indices;
 		Edges m_edges;
-		FaceData m_faces;
+		FacesEdges m_facesEdges;
 		bool m_closed;
 		UVIndices m_uvIndices;
 		UVs m_uvs;
 		VerticesFaces m_verticesFaces;
 		VerticesEdges m_verticesEdges;
-		unsigned int m_verticesPerFace;
+		const unsigned int m_verticesPerFace = 3u;
 		FaceNormals m_normals;
 		VertexNormals m_vertexNormals;
 		bool m_flatShading;
 
 	public:
-		IndexedFaceMesh(const unsigned int verticesPerFace = 3);
+		IndexedFaceMesh();
 		IndexedFaceMesh(IndexedFaceMesh const& other);
 		IndexedFaceMesh& operator=(IndexedFaceMesh const& other);
 		~IndexedFaceMesh();
@@ -143,7 +67,7 @@ namespace Utilities
 		VertexNormals& getVertexNormals(){ return m_vertexNormals; }
 		Edges& getEdges() { return m_edges; }
 		const Edges& getEdges() const { return m_edges; }
-		const FaceData& getFaceData() const { return m_faces; }
+		const FacesEdges& getFacesEdges() const { return m_facesEdges; }
 		const UVIndices& getUVIndices() const { return m_uvIndices; }
 		const UVs& getUVs() const { return m_uvs; }
 		const VerticesFaces& getVertexFaces() const { return m_verticesFaces; }

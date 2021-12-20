@@ -14,8 +14,7 @@ bool PositionBasedDynamics::solve_DistanceConstraint(
 	const Vector3r &p0, Real invMass0, 
 	const Vector3r &p1, Real invMass1,
 	const Real restLength,
-	const Real compressionStiffness,
-	const Real stretchStiffness,
+	const Real stiffness,
 	Vector3r &corr0, Vector3r &corr1)
 {				
 	Real wSum = invMass0 + invMass1;
@@ -27,10 +26,7 @@ bool PositionBasedDynamics::solve_DistanceConstraint(
 	n.normalize();
 	
 	Vector3r corr;
-	if (d < restLength)
-		corr = compressionStiffness * n * (d - restLength) / wSum;
-	else
-		corr = stretchStiffness * n * (d - restLength) / wSum;
+	corr = stiffness * n * (d - restLength) / wSum;
 
 	corr0 =  invMass0 * corr;
 	corr1 = -invMass1 * corr;
@@ -110,21 +106,16 @@ bool PositionBasedDynamics::solve_VolumeConstraint(
 	const Vector3r &p1, Real invMass1,
 	const Vector3r &p2, Real invMass2,
 	const Vector3r &p3, Real invMass3,
-	const Real restVolume,
-	const Real negVolumeStiffness,			
-	const Real posVolumeStiffness,
+	const Real restVolume,	
+	const Real stiffness,
 	Vector3r &corr0, Vector3r &corr1, Vector3r &corr2, Vector3r &corr3)
 {
 	Real volume = static_cast<Real>(1.0 / 6.0) * (p1 - p0).cross(p2 - p0).dot(p3 - p0);
 
 	corr0.setZero(); corr1.setZero(); corr2.setZero(); corr3.setZero();
 
-	if (posVolumeStiffness == 0.0 && volume > 0.0)
+	if (stiffness == 0.0)
 		return false;
-
-	if (negVolumeStiffness == 0.0 && volume < 0.0)
-		return false;
-
 
 	Vector3r grad0 = (p1 - p2).cross(p3 - p2);
 	Vector3r grad1 = (p2 - p0).cross(p3 - p0);
@@ -140,10 +131,7 @@ bool PositionBasedDynamics::solve_VolumeConstraint(
 	if (fabs(lambda) < eps)
 		return false;
 
-	if (volume < 0.0)
-		lambda = negVolumeStiffness * (volume - restVolume) / lambda;
-	else
-		lambda = posVolumeStiffness * (volume - restVolume) / lambda;
+	lambda = stiffness * (volume - restVolume) / lambda;
 
 	corr0 = -lambda * invMass0 * grad0;
 	corr1 = -lambda * invMass1 * grad1;
@@ -487,13 +475,13 @@ bool PositionBasedDynamics::solve_EdgeEdgeDistanceConstraint(
 	return true;
 }
 
+#include <iostream>
+
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedDynamics::init_ShapeMatchingConstraint(
 	const Vector3r x0[], const Real invMasses[], int numPoints,
-	Vector3r &restCm, Matrix3r &invRestMat)
+	Vector3r &restCm)
 {
-	invRestMat.setIdentity();
-
 	// center of mass
 	restCm.setZero();
 	Real wsum = 0.0;
@@ -506,36 +494,13 @@ bool PositionBasedDynamics::init_ShapeMatchingConstraint(
 		return false;
 	restCm /= wsum;
 
-	// A
-	Matrix3r A;
-	A.setZero();
-	for (int i = 0; i < numPoints; i++) {
-		const Vector3r qi = x0[i] - restCm;
-		Real wi = static_cast<Real>(1.0) / (invMasses[i] + eps);
-		Real x2 = wi * qi[0] * qi[0];
-		Real y2 = wi * qi[1] * qi[1];
-		Real z2 = wi * qi[2] * qi[2];
-		Real xy = wi * qi[0] * qi[1];
-		Real xz = wi * qi[0] * qi[2];
-		Real yz = wi * qi[1] * qi[2];
-		A(0, 0) += x2; A(0, 1) += xy; A(0, 2) += xz;
-		A(1, 0) += xy; A(1, 1) += y2; A(1, 2) += yz;
-		A(2, 0) += xz; A(2, 1) += yz; A(2, 2) += z2;
-	}
-	Real det = A.determinant();
-	if (fabs(det) > eps)
-	{
-		invRestMat = A.inverse();
-		return true;
-	}
-	return false;
+	return true;
 }
 
 // ----------------------------------------------------------------------------------------------
 bool PositionBasedDynamics::solve_ShapeMatchingConstraint(
 	const Vector3r x0[], const Vector3r x[], const Real invMasses[], int numPoints,
 	const Vector3r &restCm, 
-	const Matrix3r &invRestMat,
 	const Real stiffness,
 	const bool allowStretch,
 	Vector3r corr[], Matrix3r *rot)
@@ -571,7 +536,7 @@ bool PositionBasedDynamics::solve_ShapeMatchingConstraint(
 		mat(2, 0) += p[2] * q[0]; mat(2, 1) += p[2] * q[1]; mat(2, 2) += p[2] * q[2];
 	}
 
-	mat = mat * invRestMat;
+	//mat = mat * invRestMat;
 
 	Matrix3r R, U, D;
 	R = mat;

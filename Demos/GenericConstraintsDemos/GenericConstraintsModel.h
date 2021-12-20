@@ -14,9 +14,9 @@ namespace PBD
 			GenericConstraintsModel();
 			virtual ~GenericConstraintsModel();
 
-			bool addGenericDistanceConstraint(const unsigned int particle1, const unsigned int particle2);
+			bool addGenericDistanceConstraint(const unsigned int particle1, const unsigned int particle2, const Real stiffness);
 			bool addGenericIsometricBendingConstraint(const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
+									const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 			bool addGenericHingeJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 			bool addGenericSliderJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Vector3r &axis);
 			bool addGenericBallJoint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos);

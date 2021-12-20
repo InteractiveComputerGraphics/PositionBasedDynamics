@@ -32,11 +32,28 @@ void buildModel ();
 void createMesh();
 void render ();
 void reset();
-void initParameters();
 void TW_CALL setBendingMethod(const void *value, void *clientData);
 void TW_CALL getBendingMethod(void *value, void *clientData);
 void TW_CALL setSimulationMethod(const void *value, void *clientData);
 void TW_CALL getSimulationMethod(void *value, void *clientData);
+void TW_CALL setBendingStiffness(const void* value, void* clientData);
+void TW_CALL getBendingStiffness(void* value, void* clientData);
+void TW_CALL setDistanceStiffness(const void* value, void* clientData);
+void TW_CALL getDistanceStiffness(void* value, void* clientData);
+void TW_CALL setXXStiffness(const void* value, void* clientData);
+void TW_CALL getXXStiffness(void* value, void* clientData);
+void TW_CALL setYYStiffness(const void* value, void* clientData);
+void TW_CALL getYYStiffness(void* value, void* clientData);
+void TW_CALL setXYStiffness(const void* value, void* clientData);
+void TW_CALL getXYStiffness(void* value, void* clientData);
+void TW_CALL setXYPoissonRatio(const void* value, void* clientData);
+void TW_CALL getXYPoissonRatio(void* value, void* clientData);
+void TW_CALL setYXPoissonRatio(const void* value, void* clientData);
+void TW_CALL getYXPoissonRatio(void* value, void* clientData);
+void TW_CALL setNormalizeStretch(const void* value, void* clientData);
+void TW_CALL getNormalizeStretch(void* value, void* clientData);
+void TW_CALL setNormalizeShear(const void* value, void* clientData);
+void TW_CALL getNormalizeShear(void* value, void* clientData);
 
 
 const int nRows = 50;
@@ -45,6 +62,15 @@ const Real width = 10.0;
 const Real height = 10.0;
 short simulationMethod = 2;
 short bendingMethod = 2;
+Real distanceStiffness = 1.0;
+Real xxStiffness = 1.0;
+Real yyStiffness = 1.0;
+Real xyStiffness = 1.0;
+Real xyPoissonRatio = 0.3;
+Real yxPoissonRatio = 0.3;
+bool normalizeStretch = false;
+bool normalizeShear = false;
+Real bendingStiffness = 0.01;
 bool doPause = true;
 DemoBase *base;
 DistanceFieldCollisionDetection cd;
@@ -63,7 +89,7 @@ int main( int argc, char **argv )
 
 	buildModel();
 
-	initParameters();
+	base->createParameterGUI();
 
 	// OpenGL
 	MiniGL::setClientIdleFunc (timeStep);		
@@ -75,11 +101,21 @@ int main( int argc, char **argv )
 	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod, 
 		" label='Simulation method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}, 4 {XPBD distance constraints}' group=Simulation");
 	TwType enumType3 = TwDefineEnum("BendingMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}, 3 {XPBD isometric bending}' group=Bending");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType3, setBendingMethod, getBendingMethod, &bendingMethod, 
+		" label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}, 3 {XPBD isometric bending}' group=Bending");
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, model, " label='Bending stiffness'  min=0.0 step=0.1 precision=4 group='Bending' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "DistanceStiffness", TW_TYPE_REAL, setDistanceStiffness, getDistanceStiffness, model, " label='Distance constraint stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "xxStiffness", TW_TYPE_REAL, setXXStiffness, getXXStiffness, model, " label='xx stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "yyStiffness", TW_TYPE_REAL, setYYStiffness, getYYStiffness, model, " label='yy stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "xyStiffness", TW_TYPE_REAL, setXYStiffness, getXYStiffness, model, " label='xy stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "xyPoissonRatio", TW_TYPE_REAL, setXYPoissonRatio, getXYPoissonRatio, model, " label='xy Poisson ratio'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "yxPoissonRatio", TW_TYPE_REAL, setYXPoissonRatio, getYXPoissonRatio, model, " label='yx Poisson ratio'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "normalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Cloth' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "normalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, model, " label='Normalize shear' group='Cloth' ");
 
-	MiniGL::mainLoop ();	
+	MiniGL::mainLoop();	
 
-	base->cleanup ();
+	base->cleanup();
 
 	Utilities::Timing::printAverageTimes();
 	Utilities::Timing::printTimeSums();
@@ -89,20 +125,6 @@ int main( int argc, char **argv )
 	delete model;
 
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -198,13 +220,13 @@ void buildModel ()
 	createMesh();
 
 	// create static rigid body
-	string fileName = FileSystem::normalizePath(base->getDataPath() + "/models/cube.obj");
+	string fileName = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	loadObj(fileName, vd, mesh, Vector3r::Ones());
 	mesh.setFlatShading(true);
 
-	string fileNameTorus = FileSystem::normalizePath(base->getDataPath() + "/models/torus.obj");
+	string fileNameTorus = FileSystem::normalizePath(base->getExePath() + "/resources/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	loadObj(fileNameTorus, vdTorus, meshTorus, Vector3r::Ones());
@@ -254,7 +276,6 @@ void buildModel ()
 	}
 }
 
-
 void render ()
 {
 	base->render();
@@ -265,185 +286,26 @@ void render ()
 */
 void createMesh()
 {
-	TriangleModel::ParticleMesh::UVs uvs;
-	uvs.resize(nRows*nCols);
-
-	const Real dy = width / (Real)(nCols-1);
-	const Real dx = height / (Real)(nRows-1);
-
-	Vector3r points[nRows*nCols];
-	for (int i = 0; i < nRows; i++)
-	{
-		for (int j = 0; j < nCols; j++)
-		{
-			const Real y = (Real)dy*j;
-			const Real x = (Real)dx*i;
-			points[i*nCols + j] = Vector3r(x-5.0, 4.0, y-5.0);
-
-			uvs[i*nCols + j][0] = x/width;
-			uvs[i*nCols + j][1] = y/height;
-		}
-	}
-	const int nIndices = 6 * (nRows - 1)*(nCols - 1);
-
-	TriangleModel::ParticleMesh::UVIndices uvIndices;
-	uvIndices.resize(nIndices);
-
-	unsigned int indices[nIndices];
-	int index = 0;
-	for (int i = 0; i < nRows - 1; i++)
-	{
-		for (int j = 0; j < nCols - 1; j++)
-		{
-			int helper = 0;
-			if (i % 2 == j % 2)
-				helper = 1;
-
-			indices[index] = i*nCols + j;
-			indices[index + 1] = i*nCols + j + 1;
-			indices[index + 2] = (i + 1)*nCols + j + helper;
-
-			uvIndices[index] = i*nCols + j;
-			uvIndices[index + 1] = i*nCols + j + 1;
-			uvIndices[index + 2] = (i + 1)*nCols + j + helper;
-			index += 3;
-
-			indices[index] = (i + 1)*nCols + j + 1;
-			indices[index + 1] = (i + 1)*nCols + j;
-			indices[index + 2] = i*nCols + j + 1 - helper;
-
-			uvIndices[index] = (i + 1)*nCols + j + 1;
-			uvIndices[index + 1] = (i + 1)*nCols + j;
-			uvIndices[index + 2] = i*nCols + j + 1 - helper;
-			index += 3;
-		}
-	}
-
-	SimulationModel *model = Simulation::getCurrent()->getModel();
-	model->addTriangleModel(nRows*nCols, nIndices / 3, &points[0], &indices[0], uvIndices, uvs);
-	
-	ParticleData &pd = model->getParticles();
-	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
-	{
-		pd.setMass(i, 1.0);
-	}
+	SimulationModel* model = Simulation::getCurrent()->getModel();
+	model->addRegularTriangleModel(nCols, nRows,
+		Vector3r(-5, 4, -5), AngleAxisr(M_PI * 0.5, Vector3r(1, 0, 0)).matrix(), Vector2r(width, height));
 
 	// init constraints
 	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
 	{
-		model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
-		model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 0.01);
-		if (simulationMethod == 1)
-		{
-			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
-			const IndexedFaceMesh::Edge *edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
+		distanceStiffness = 1.0;
+		if (simulationMethod == 4)
+			distanceStiffness = 100000;
+		model->addClothConstraints(model->getTriangleModels()[cm], simulationMethod, distanceStiffness, xxStiffness, 
+			yyStiffness, xyStiffness, xyPoissonRatio, yxPoissonRatio, normalizeStretch, normalizeShear);
 
-				model->addDistanceConstraint(v1, v2);
-			}
-		}
-		else if (simulationMethod == 2)
-		{
-			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
-			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
-			const unsigned int *tris = mesh.getFaces().data();
-			const unsigned int nFaces = mesh.numFaces();
-			for (unsigned int i = 0; i < nFaces; i++)
-			{
-				const unsigned int v1 = tris[3 * i] + offset;
-				const unsigned int v2 = tris[3 * i + 1] + offset;
-				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model->addFEMTriangleConstraint(v1, v2, v3);
-			}
-		}
-		else if (simulationMethod == 3)
-		{
-			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
-			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
-			const unsigned int *tris = mesh.getFaces().data();
-			const unsigned int nFaces = mesh.numFaces();
-			for (unsigned int i = 0; i < nFaces; i++)
-			{
-				const unsigned int v1 = tris[3 * i] + offset;
-				const unsigned int v2 = tris[3 * i + 1] + offset;
-				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model->addStrainTriangleConstraint(v1, v2, v3);
-			}
-		}
-		else if (simulationMethod == 4)
-		{
-			model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 100000);
-			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
-			const IndexedFaceMesh::Edge* edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
-
-				model->addDistanceConstraint_XPBD(v1, v2);
-			}
-		}
-		if (bendingMethod != 0)
-		{
-			const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
-			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
-			unsigned int nEdges = mesh.numEdges();
-			const TriangleModel::ParticleMesh::Edge *edges = mesh.getEdges().data();
-			const unsigned int *tris = mesh.getFaces().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const int tri1 = edges[i].m_face[0];
-				const int tri2 = edges[i].m_face[1];
-				if ((tri1 != 0xffffffff) && (tri2 != 0xffffffff))
-				{
-					// Find the triangle points which do not lie on the axis
-					const int axisPoint1 = edges[i].m_vert[0];
-					const int axisPoint2 = edges[i].m_vert[1];
-					int point1 = -1;
-					int point2 = -1;
-					for (int j = 0; j < 3; j++)
-					{
-						if ((tris[3 * tri1 + j] != axisPoint1) && (tris[3 * tri1 + j] != axisPoint2))
-						{
-							point1 = tris[3 * tri1 + j];
-							break;
-						}
-					}
-					for (int j = 0; j < 3; j++)
-					{
-						if ((tris[3 * tri2 + j] != axisPoint1) && (tris[3 * tri2 + j] != axisPoint2))
-						{
-							point2 = tris[3 * tri2 + j];
-							break;
-						}
-					}
-					if ((point1 != -1) && (point2 != -1))
-					{
-						const unsigned int vertex1 = point1 + offset;
-						const unsigned int vertex2 = point2 + offset;
-						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
-						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
-						if (bendingMethod == 1)
-							model->addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
-						else if (bendingMethod == 2)
-							model->addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
-						else if (bendingMethod == 3)
-						{
-							model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 100.0);
-							model->addIsometricBendingConstraint_XPBD(vertex1, vertex2, vertex3, vertex4);
-						}
-					}
-				}
-			}
-		}
+		bendingStiffness = 0.01;
+		if (bendingMethod == 3)
+			bendingStiffness = 100.0;
+		model->addBendingConstraints(model->getTriangleModels()[cm], bendingMethod, bendingStiffness);
 	}
 
-	LOG_INFO << "Number of triangles: " << nIndices / 3;
+	LOG_INFO << "Number of triangles: " << model->getTriangleModels()[0]->getParticleMesh().numFaces();
 	LOG_INFO << "Number of vertices: " << nRows*nCols;
 
 }
@@ -470,4 +332,109 @@ void TW_CALL setSimulationMethod(const void *value, void *clientData)
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
 	*(short *)(value) = *((short*)clientData);
+}
+
+void TW_CALL setBendingStiffness(const void* value, void* clientData)
+{
+	bendingStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<DihedralConstraint, Real, &DihedralConstraint::m_stiffness>(bendingStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<IsometricBendingConstraint, Real, &IsometricBendingConstraint::m_stiffness>(bendingStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<IsometricBendingConstraint_XPBD, Real, &IsometricBendingConstraint_XPBD::m_stiffness>(bendingStiffness);
+}
+
+void TW_CALL getBendingStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = bendingStiffness;
+}
+
+void TW_CALL setDistanceStiffness(const void* value, void* clientData)
+{
+	distanceStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(distanceStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(distanceStiffness);
+}
+
+void TW_CALL getDistanceStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = distanceStiffness;
+}
+
+void TW_CALL setXXStiffness(const void* value, void* clientData)
+{
+	xxStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xxStiffness>(xxStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xxStiffness>(xxStiffness);
+}
+
+void TW_CALL getXXStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = xxStiffness;
+}
+
+void TW_CALL getYYStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = yyStiffness;
+}
+
+void TW_CALL setYYStiffness(const void* value, void* clientData)
+{
+	yyStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_yyStiffness>(yyStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_yyStiffness>(yyStiffness);
+}
+
+void TW_CALL getXYStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = xyStiffness;
+}
+
+void TW_CALL setXYStiffness(const void* value, void* clientData)
+{
+	xyStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xyStiffness>(xyStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xyStiffness>(xyStiffness);
+}
+
+void TW_CALL getXYPoissonRatio(void* value, void* clientData)
+{
+	*(Real*)(value) = xyPoissonRatio;
+}
+
+void TW_CALL setXYPoissonRatio(const void* value, void* clientData)
+{
+	xyPoissonRatio = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xyPoissonRatio>(xyPoissonRatio);
+}
+
+void TW_CALL getYXPoissonRatio(void* value, void* clientData)
+{
+	*(Real*)(value) = yxPoissonRatio;
+}
+
+void TW_CALL setYXPoissonRatio(const void* value, void* clientData)
+{
+	yxPoissonRatio = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_yxPoissonRatio>(yxPoissonRatio);
+}
+
+void TW_CALL getNormalizeStretch(void* value, void* clientData)
+{
+	*(bool*)(value) = normalizeStretch;
+}
+
+void TW_CALL setNormalizeStretch(const void* value, void* clientData)
+{
+	normalizeStretch = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeStretch>(normalizeStretch);
+}
+
+void TW_CALL getNormalizeShear(void* value, void* clientData)
+{
+	*(bool*)(value) = normalizeShear;
+}
+
+void TW_CALL setNormalizeShear(const void* value, void* clientData)
+{
+	normalizeShear= *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeShear>(normalizeShear);
 }

@@ -27,12 +27,14 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
-void initParameters();
 void timeStep ();
 void buildModel ();
 void createRod();
 void render ();
 void reset();
+
+void TW_CALL setDistanceStiffness(const void* value, void* clientData);
+void TW_CALL getDistanceStiffness(void* value, void* clientData);
 
 void TW_CALL setRestDarbouxX(const void *value, void *clientData);
 void TW_CALL setRestDarbouxY(const void *value, void *clientData);
@@ -53,6 +55,7 @@ void TW_CALL setBendingAndTwistingStiffnessZ(const void *value, void *clientData
 
 DemoBase *base;
 PositionBasedElasticRodsTSC sim;
+Real distanceStiffness = 1.0;
 
 const int numberOfPoints = 32;
 
@@ -74,13 +77,15 @@ int main( int argc, char **argv )
 
 	buildModel();
 
-	initParameters();
+	base->createParameterGUI();
 
 	// OpenGL
 	MiniGL::setClientIdleFunc (timeStep);		
 	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 5.0, 10.0), Vector3r (5.0, 0.0, 0.0));
+
+	TwAddVarCB(MiniGL::getTweakBar(), "DistanceStiffness", TW_TYPE_REAL, setDistanceStiffness, getDistanceStiffness, model, " label='Distance constraint stiffness'  min=0.0 step=0.1 precision=4 group='BendTwist' ");
 
 	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxX", TW_TYPE_REAL, setRestDarbouxX, getRestDarbouxX, model, " label='Rest Darboux X'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
 	TwAddVarCB(MiniGL::getTweakBar(), "RestDarbouxY", TW_TYPE_REAL, setRestDarbouxY, getRestDarbouxY, model, " label='Rest Darboux Y'  min=-1.0 max = 1.0 step=0.01 precision=2 group=BendTwist ");
@@ -100,20 +105,6 @@ int main( int argc, char **argv )
 	delete model;
 	
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -215,7 +206,7 @@ void createRod()
 
 	for (unsigned int i = 0; i < numberOfPoints - 1; i++)
 	{
-		model->addDistanceConstraint(i, i + 1);
+		model->addDistanceConstraint(i, i + 1, distanceStiffness);
 		model->addPerpendiculaBisectorConstraint(i, i + 1, i);
 		model->addGhostPointEdgeDistanceConstraint(i, i + 1, i);
 		
@@ -297,3 +288,14 @@ void TW_CALL getBendingAndTwistingStiffnessZ(void *value, void *clientData)
 	*(Real *)(value) = ((PositionBasedElasticRodsModel*)clientData)->getBendingAndTwistingStiffness()[2];
 }
 
+void TW_CALL setDistanceStiffness(const void* value, void* clientData)
+{
+	distanceStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(distanceStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(distanceStiffness);
+}
+
+void TW_CALL getDistanceStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = distanceStiffness;
+}

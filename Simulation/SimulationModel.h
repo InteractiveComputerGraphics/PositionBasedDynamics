@@ -17,23 +17,9 @@ namespace PBD
 	class SimulationModel : public GenParam::ParameterObject
 	{
 		public:
-			static int CLOTH_STIFFNESS;
-			static int CLOTH_BENDING_STIFFNESS;
-			static int CLOTH_STIFFNESS_XX;
-			static int CLOTH_STIFFNESS_YY;
-			static int CLOTH_STIFFNESS_XY;
-			static int CLOTH_POISSON_RATIO_XY;
-			static int CLOTH_POISSON_RATIO_YX;
-			static int CLOTH_NORMALIZE_STRETCH;
-			static int CLOTH_NORMALIZE_SHEAR;
-
-			static int SOLID_STIFFNESS;
-			static int SOLID_POISSON_RATIO;
-			static int SOLID_NORMALIZE_STRETCH;
-			static int SOLID_NORMALIZE_SHEAR;
-
-		public:
 			SimulationModel();
+			SimulationModel(const SimulationModel&) = delete;
+			SimulationModel& operator=(const SimulationModel&) = delete;
 			virtual ~SimulationModel();
 
 			void init();
@@ -63,32 +49,8 @@ namespace PBD
 			ParticleSolidContactConstraintVector m_particleSolidContactConstraints;
 			ConstraintGroupVector m_constraintGroups;
 
-			Real m_cloth_stiffness;
-			Real m_cloth_bendingStiffness;
-			Real m_cloth_xxStiffness;
-			Real m_cloth_yyStiffness;
-			Real m_cloth_xyStiffness;
-			Real m_cloth_xyPoissonRatio;
-			Real m_cloth_yxPoissonRatio;
-			bool  m_cloth_normalizeStretch;
-			bool  m_cloth_normalizeShear;
-
-			Real m_solid_stiffness;
-			Real m_solid_poissonRatio;
-			bool m_solid_normalizeStretch;
-			bool m_solid_normalizeShear;
-
 			Real m_contactStiffnessRigidBody;
 			Real m_contactStiffnessParticleRigidBody;
-
-			Real m_rod_stretchingStiffness;
-			Real m_rod_shearingStiffness1;
-			Real m_rod_shearingStiffness2;
-			Real m_rod_bendingStiffness1;
-			Real m_rod_bendingStiffness2;
-			Real m_rod_twistingStiffness;
-
-			virtual void initParameters();
 
 	public:
 			void reset();			
@@ -116,12 +78,20 @@ namespace PBD
 				unsigned int* indices,
 				const TriangleModel::ParticleMesh::UVIndices& uvIndices,
 				const TriangleModel::ParticleMesh::UVs& uvs);
+			void addRegularTriangleModel(const int width, const int height,
+				const Vector3r& translation = Vector3r::Zero(), 
+				const Matrix3r& rotation = Matrix3r::Identity(), 
+				const Vector2r& scale = Vector2r::Ones());
 
 			void addTetModel(
 				const unsigned int nPoints, 
 				const unsigned int nTets, 
 				Vector3r *points,
 				unsigned int* indices);
+			void addRegularTetModel(const int width, const int height, const int depth,
+				const Vector3r& translation = Vector3r::Zero(),
+				const Matrix3r& rotation = Matrix3r::Identity(), 
+				const Vector3r& scale = Vector3r::Ones());
 
 			void addLineModel(
 				const unsigned int nPoints,
@@ -162,27 +132,37 @@ namespace PBD
 				const Vector3r &normal, const Real dist,
 				const Real restitutionCoeff, const Real frictionCoeff);
 
-			bool addDistanceConstraint(const unsigned int particle1, const unsigned int particle2);
-			bool addDistanceConstraint_XPBD(const unsigned int particle1, const unsigned int particle2);
+			bool addDistanceConstraint(const unsigned int particle1, const unsigned int particle2, const Real stiffness);
+			bool addDistanceConstraint_XPBD(const unsigned int particle1, const unsigned int particle2, const Real stiffness);
 			bool addDihedralConstraint(	const unsigned int particle1, const unsigned int particle2,
-										const unsigned int particle3, const unsigned int particle4);
+										const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 			bool addIsometricBendingConstraint(const unsigned int particle1, const unsigned int particle2,
-										const unsigned int particle3, const unsigned int particle4);
+										const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 			bool addIsometricBendingConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
-										const unsigned int particle3, const unsigned int particle4);
-			bool addFEMTriangleConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int particle3);
-			bool addStrainTriangleConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int particle3);
+										const unsigned int particle3, const unsigned int particle4, const Real stiffness);
+			bool addFEMTriangleConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int particle3, 
+				const Real xxStiffness, const Real yyStiffness, const Real xyStiffness,
+				const Real xyPoissonRatio, const Real yxPoissonRatio);
+			bool addStrainTriangleConstraint(const unsigned int particle1, const unsigned int particle2, 
+				const unsigned int particle3, const Real xxStiffness, const Real yyStiffness, const Real xyStiffness,
+				const bool normalizeStretch, const bool normalizeShear);
 			bool addVolumeConstraint(const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
+									const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 			bool addVolumeConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
+									const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 			bool addFEMTetConstraint(const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
+									const unsigned int particle3, const unsigned int particle4, 
+									const Real stiffness, const Real poissonRatio);
 			bool addStrainTetConstraint(const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
-			bool addShapeMatchingConstraint(const unsigned int numberOfParticles, const unsigned int particleIndices[], const unsigned int numClusters[]);
-			bool addStretchShearConstraint(const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1);
-			bool addBendTwistConstraint(const unsigned int quaternion1, const unsigned int quaternion2);
+									const unsigned int particle3, const unsigned int particle4, 
+									const Real stretchStiffness, const Real shearStiffness,
+									const bool normalizeStretch, const bool normalizeShear);
+			bool addShapeMatchingConstraint(const unsigned int numberOfParticles, const unsigned int particleIndices[], const unsigned int numClusters[], const Real stiffness);
+			bool addStretchShearConstraint(const unsigned int particle1, const unsigned int particle2, 
+				const unsigned int quaternion1, const Real stretchingStiffness,
+				const Real shearingStiffness1, const Real shearingStiffness2);
+			bool addBendTwistConstraint(const unsigned int quaternion1, const unsigned int quaternion2, 
+				const Real twistingStiffness, const Real bendingStiffness1, const Real bendingStiffness2);
 			bool addStretchBendingTwistingConstraint(const unsigned int rbIndex1, const unsigned int rbIndex2, const Vector3r &pos, const Real averageRadius, const Real averageSegmentLength, const Real youngsModulus, const Real torsionModulus);
 			bool addDirectPositionBasedSolverForStiffRodsConstraint(const std::vector<std::pair<unsigned int, unsigned int>> & jointSegmentIndices, const std::vector<Vector3r> &jointPositions, const std::vector<Real> &averageRadii, const std::vector<Real> &averageSegmentLengths, const std::vector<Real> &youngsModuli, const std::vector<Real> &torsionModuli);
 
@@ -191,18 +171,25 @@ namespace PBD
 			Real getContactStiffnessParticleRigidBody() const { return m_contactStiffnessParticleRigidBody; }
 			void setContactStiffnessParticleRigidBody(Real val) { m_contactStiffnessParticleRigidBody = val; }
 		
-		    Real getRodStretchingStiffness() const { return m_rod_stretchingStiffness;  }
-			void setRodStretchingStiffness(Real val) { m_rod_stretchingStiffness = val; }
-			Real getRodShearingStiffness1() const { return m_rod_shearingStiffness1; }
-			void setRodShearingStiffness1(Real val) { m_rod_shearingStiffness1 = val; }
-			Real getRodShearingStiffness2() const { return m_rod_shearingStiffness2; }
-			void setRodShearingStiffness2(Real val) { m_rod_shearingStiffness2 = val; }
-			Real getRodBendingStiffness1() const { return m_rod_bendingStiffness1; }
-			void setRodBendingStiffness1(Real val) { m_rod_bendingStiffness1 = val; }
-			Real getRodBendingStiffness2() const { return m_rod_bendingStiffness2; }
-			void setRodBendingStiffness2(Real val) { m_rod_bendingStiffness2 = val; }
-			Real getRodTwistingStiffness() const { return m_rod_twistingStiffness; }
-			void setRodTwistingStiffness(Real val) { m_rod_twistingStiffness = val; }
+			void addClothConstraints(const TriangleModel* tm, const unsigned int clothMethod, 
+				const Real distanceStiffness, const Real xxStiffness, const Real yyStiffness,
+				const Real xyStiffness, const Real xyPoissonRatio, const Real yxPoissonRatio,
+				const bool normalizeStretch, const bool normalizeShear);
+			void addBendingConstraints(const TriangleModel* tm, const unsigned int bendingMethod, const Real stiffness);
+			void addSolidConstraints(const TetModel* tm, const unsigned int solidMethod, const Real stiffness, 
+				const Real poissonRatio, const Real volumeStiffness, 
+				const bool normalizeStretch, const bool normalizeShear);
+
+			template<typename ConstraintType, typename T, T ConstraintType::* MemPtr>
+			void setConstraintValue(const T v)
+			{
+				for (auto i = 0; i < m_constraints.size(); i++)
+				{
+					ConstraintType* c = dynamic_cast<ConstraintType*>(m_constraints[i]);
+					if (c != nullptr)
+						c->*MemPtr = v;
+				}
+			}
 	};
 }
 

@@ -26,11 +26,6 @@ void TetModel::cleanupModel()
 	m_particleMesh.release();
 }
 
-TetModel::ParticleMesh &TetModel::getParticleMesh() 
-{
-	return m_particleMesh;
-}
-
 TetModel::SurfaceMesh &TetModel::getSurfaceMesh()
 {
 	return m_surfaceMesh;

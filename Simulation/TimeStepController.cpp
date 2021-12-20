@@ -175,9 +175,8 @@ void TimeStepController::step(SimulationModel &model)
 	h = hOld;
 	tm->setTimeStepSize(hOld);
 
-	#pragma omp parallel if(numBodies > MIN_PARALLEL_SIZE) default(shared)
+	#pragma omp parallel default(shared)
 	{
-		// Update velocities	
 		#pragma omp for schedule(static) nowait
 		for (int i = 0; i < numBodies; i++)
 		{

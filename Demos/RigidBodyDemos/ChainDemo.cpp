@@ -189,15 +189,14 @@ void createBodyModel()
 {
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
-	SimulationModel::ConstraintVector &constraints = model->getConstraints();
 
-	string fileName = FileSystem::normalizePath(base->getDataPath() + "/models/cube.obj");
+	string fileName = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	loadObj(fileName, vd, mesh, Vector3r(width, height, depth));
 	mesh.setFlatShading(true);
 
-	string fileName2 = FileSystem::normalizePath(base->getDataPath() + "/models/bunny_10k.obj");
+	string fileName2 = FileSystem::normalizePath(base->getExePath() + "/resources/models/bunny_10k.obj");
 	IndexedFaceMesh mesh2;
 	VertexData vd2;
 	loadObj(fileName2, vd2, mesh2, Vector3r(2.0, 2.0, 2.0));
@@ -221,7 +220,6 @@ void createBodyModel()
 	rb[numberOfBodies - 1] = new RigidBody();
 	rb[numberOfBodies - 1]->initBody(density, t, q, vd2, mesh2);
 
-	constraints.reserve(numberOfBodies - 1);
 	for (unsigned int i = 0; i < numberOfBodies-1; i++)
 	{
 		model->addBallJoint(i, i + 1, Vector3r((Real)i*width + static_cast<Real>(0.5)*width, 0.0, 0.0));

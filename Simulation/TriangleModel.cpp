@@ -27,11 +27,6 @@ void TriangleModel::updateMeshNormals(const ParticleData &pd)
 	m_particleMesh.updateVertexNormals(pd);
 }
 
-TriangleModel::ParticleMesh &TriangleModel::getParticleMesh()
-{
-	return m_particleMesh;
-}
-
 void TriangleModel::initMesh(const unsigned int nPoints, const unsigned int nFaces, const unsigned int indexOffset, unsigned int* indices, const ParticleMesh::UVIndices& uvIndices, const ParticleMesh::UVs& uvs)
 {
 	m_indexOffset = indexOffset;

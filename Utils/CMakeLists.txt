@@ -4,7 +4,10 @@ git_local_changes(GIT_LOCAL_CHANGES)
 if (${GIT_LOCAL_CHANGES} STREQUAL "DIRTY")
 	set(COMPILER_MESSAGE "#pragma WARNING(Local changes not committed.)")
 endif()
-configure_file("${PROJECT_PATH}/Utils/Version.h.in" "${PROJECT_PATH}/Utils/Version.h" @ONLY)
+
+file (STRINGS "../version" PBD_VERSION)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/Version.h @ONLY)
 
 add_library(Utils
 		FileSystem.h

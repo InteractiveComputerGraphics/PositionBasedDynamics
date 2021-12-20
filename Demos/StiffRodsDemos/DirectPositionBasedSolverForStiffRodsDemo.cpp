@@ -34,7 +34,6 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
-void initParameters();
 void timeStep();
 void buildModel();
 void readScene();
@@ -53,7 +52,34 @@ void TW_CALL setClothSimulationMethod(const void *value, void *clientData);
 void TW_CALL getClothSimulationMethod(void *value, void *clientData);
 void TW_CALL setSolidSimulationMethod(const void *value, void *clientData);
 void TW_CALL getSolidSimulationMethod(void *value, void *clientData);
-
+void TW_CALL setBendingStiffness(const void* value, void* clientData);
+void TW_CALL getBendingStiffness(void* value, void* clientData);
+void TW_CALL setDistanceStiffness(const void* value, void* clientData);
+void TW_CALL getDistanceStiffness(void* value, void* clientData);
+void TW_CALL setXXStiffness(const void* value, void* clientData);
+void TW_CALL getXXStiffness(void* value, void* clientData);
+void TW_CALL setYYStiffness(const void* value, void* clientData);
+void TW_CALL getYYStiffness(void* value, void* clientData);
+void TW_CALL setXYStiffness(const void* value, void* clientData);
+void TW_CALL getXYStiffness(void* value, void* clientData);
+void TW_CALL setXYPoissonRatio(const void* value, void* clientData);
+void TW_CALL getXYPoissonRatio(void* value, void* clientData);
+void TW_CALL setYXPoissonRatio(const void* value, void* clientData);
+void TW_CALL getYXPoissonRatio(void* value, void* clientData);
+void TW_CALL setNormalizeStretch(const void* value, void* clientData);
+void TW_CALL getNormalizeStretch(void* value, void* clientData);
+void TW_CALL setNormalizeShear(const void* value, void* clientData);
+void TW_CALL getNormalizeShear(void* value, void* clientData);
+void TW_CALL setSolidStiffness(const void* value, void* clientData);
+void TW_CALL getSolidStiffness(void* value, void* clientData);
+void TW_CALL setSolidPoissonRatio(const void* value, void* clientData);
+void TW_CALL getSolidPoissonRatio(void* value, void* clientData);
+void TW_CALL setVolumeStiffness(const void* value, void* clientData);
+void TW_CALL getVolumeStiffness(void* value, void* clientData);
+void TW_CALL setSolidNormalizeStretch(const void* value, void* clientData);
+void TW_CALL getSolidNormalizeStretch(void* value, void* clientData);
+void TW_CALL setSolidNormalizeShear(const void* value, void* clientData);
+void TW_CALL getSolidNormalizeShear(void* value, void* clientData);
 
 void singleStep();
 
@@ -64,6 +90,20 @@ CubicSDFCollisionDetection cd;
 short clothSimulationMethod = 2;
 short solidSimulationMethod = 2;
 short bendingMethod = 2;
+Real distanceStiffness = 1.0;
+Real xxStiffness = 1.0;
+Real yyStiffness = 1.0;
+Real xyStiffness = 1.0;
+Real xyPoissonRatio = 0.3;
+Real yxPoissonRatio = 0.3;
+bool normalizeStretch = false;
+bool normalizeShear = false;
+Real bendingStiffness = 0.01;
+Real solidStiffness = 1.0;
+Real solidPoissonRatio = 0.3;
+bool solidNormalizeStretch = false;
+bool solidNormalizeShear = false;
+Real volumeStiffness = 1.0;
 
 string sceneFileName = "/scenes/Wilberforce_scene.json";
 string sceneName;
@@ -77,12 +117,11 @@ int main(int argc, char **argv)
 	REPORT_MEMORY_LEAKS;
 	
 	std::string exePath = FileSystem::getProgramPath();
-	std::string dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	if (argc > 1)
 		sceneFileName = string(argv[1]);
 	else
-		sceneFileName = FileSystem::normalizePath(dataPath + sceneFileName);
+		sceneFileName = FileSystem::normalizePath(exePath + "/resources" + sceneFileName);
 
 	base = new DemoBase();
 	base->init(argc, argv, sceneFileName.c_str());
@@ -94,7 +133,7 @@ int main(int argc, char **argv)
 
 	buildModel();
 
-	initParameters();
+	base->createParameterGUI();
 	base->readParameters();
 
 	// OpenGL
@@ -114,17 +153,31 @@ int main(int argc, char **argv)
 		TwType enumType2 = TwDefineEnum("ClothSimulationMethodType", NULL, 0);
 		TwAddVarCB(MiniGL::getTweakBar(), "ClothSimulationMethod", enumType2, setClothSimulationMethod, getClothSimulationMethod, &clothSimulationMethod, 
 			" label='Cloth sim. method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}, 4 {XPBD distance constraints}' group=Simulation");
+		TwAddVarCB(MiniGL::getTweakBar(), "DistanceStiffness", TW_TYPE_REAL, setDistanceStiffness, getDistanceStiffness, model, " label='Distance constraint stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "xxStiffness", TW_TYPE_REAL, setXXStiffness, getXXStiffness, model, " label='xx stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "yyStiffness", TW_TYPE_REAL, setYYStiffness, getYYStiffness, model, " label='yy stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "xyStiffness", TW_TYPE_REAL, setXYStiffness, getXYStiffness, model, " label='xy stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "xyPoissonRatio", TW_TYPE_REAL, setXYPoissonRatio, getXYPoissonRatio, model, " label='xy Poisson ratio'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "yxPoissonRatio", TW_TYPE_REAL, setYXPoissonRatio, getYXPoissonRatio, model, " label='yx Poisson ratio'  min=0.0 step=0.1 precision=4 group='Cloth' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "normalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Cloth' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "normalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, model, " label='Normalize shear' group='Cloth' ");
 	}
 	if (tetModels.size() > 0)
 	{
-	TwType enumType3 = TwDefineEnum("SolidSimulationMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "SolidSimulationMethod", enumType3, setSolidSimulationMethod, getSolidSimulationMethod, &solidSimulationMethod,
-		" label='Solid sim. method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}, 5 {XPBD volume constraints}' group=Simulation");
+		TwType enumType3 = TwDefineEnum("SolidSimulationMethodType", NULL, 0);
+		TwAddVarCB(MiniGL::getTweakBar(), "SolidSimulationMethod", enumType3, setSolidSimulationMethod, getSolidSimulationMethod, &solidSimulationMethod,
+			" label='Solid sim. method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}, 5 {XPBD volume constraints}' group=Simulation");
+		TwAddVarCB(MiniGL::getTweakBar(), "stiffness", TW_TYPE_REAL, setSolidStiffness, getSolidStiffness, model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "poissonRatio", TW_TYPE_REAL, setSolidPoissonRatio, getSolidPoissonRatio, model, " label='Poisson ratio'  min=0.0 step=0.1 precision=4 group='Solid' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "normalizeStretch", TW_TYPE_BOOL32, setSolidNormalizeStretch, getSolidNormalizeStretch, model, " label='Normalize stretch' group='Solid' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "normalizeShear", TW_TYPE_BOOL32, setSolidNormalizeShear, getSolidNormalizeShear, model, " label='Normalize shear' group='Solid' ");
+		TwAddVarCB(MiniGL::getTweakBar(), "volumeStiffness", TW_TYPE_REAL, setVolumeStiffness, getVolumeStiffness, model, " label='Volume stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
 	}
 	if (triModels.size() > 0)
 	{
 		TwType enumType4 = TwDefineEnum("BendingMethodType", NULL, 0);
 		TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType4, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}, 3 {XPBD isometric bending}' group=Bending");
+		TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, model, " label='Bending stiffness'  min=0.0 step=0.1 precision=4 group='Bending' ");
 	}
 
 	MiniGL::mainLoop();
@@ -139,20 +192,6 @@ int main(int argc, char **argv)
 	delete model;
 
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -241,216 +280,34 @@ void initTriangleModelConstraints()
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
 	{
-		model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
-		model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 0.01);
-		const unsigned int offset = model->getTriangleModels()[cm]->getIndexOffset();
-		if (clothSimulationMethod == 1)
-		{
-			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
-			const IndexedFaceMesh::Edge *edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
+		distanceStiffness = 1.0;
+		if (clothSimulationMethod == 4)
+			distanceStiffness = 100000;
+		model->addClothConstraints(model->getTriangleModels()[cm], clothSimulationMethod, distanceStiffness, xxStiffness,
+			yyStiffness, xyStiffness, xyPoissonRatio, yxPoissonRatio, normalizeStretch, normalizeShear);
 
-				model->addDistanceConstraint(v1, v2);
-			}
-		}
-		else if (clothSimulationMethod == 2)
-		{
-
-			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
-			const unsigned int *tris = mesh.getFaces().data();
-			const unsigned int nFaces = mesh.numFaces();
-			for (unsigned int i = 0; i < nFaces; i++)
-			{
-				const unsigned int v1 = tris[3 * i] + offset;
-				const unsigned int v2 = tris[3 * i + 1] + offset;
-				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model->addFEMTriangleConstraint(v1, v2, v3);
-			}
-		}
-		else if (clothSimulationMethod == 3)
-		{
-			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
-			const unsigned int *tris = mesh.getFaces().data();
-			const unsigned int nFaces = mesh.numFaces();
-			for (unsigned int i = 0; i < nFaces; i++)
-			{
-				const unsigned int v1 = tris[3 * i] + offset;
-				const unsigned int v2 = tris[3 * i + 1] + offset;
-				const unsigned int v3 = tris[3 * i + 2] + offset;
-				model->addStrainTriangleConstraint(v1, v2, v3);
-			}
-		}
-		else if (clothSimulationMethod == 4)
-		{
-			const unsigned int nEdges = model->getTriangleModels()[cm]->getParticleMesh().numEdges();
-			const IndexedFaceMesh::Edge* edges = model->getTriangleModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
-
-				model->addDistanceConstraint_XPBD(v1, v2);
-			}
-		}
-		if (bendingMethod != 0)
-		{
-			TriangleModel::ParticleMesh &mesh = model->getTriangleModels()[cm]->getParticleMesh();
-			unsigned int nEdges = mesh.numEdges();
-			const TriangleModel::ParticleMesh::Edge *edges = mesh.getEdges().data();
-			const unsigned int *tris = mesh.getFaces().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const int tri1 = edges[i].m_face[0];
-				const int tri2 = edges[i].m_face[1];
-				if ((tri1 != 0xffffffff) && (tri2 != 0xffffffff))
-				{
-					// Find the triangle points which do not lie on the axis
-					const int axisPoint1 = edges[i].m_vert[0];
-					const int axisPoint2 = edges[i].m_vert[1];
-					int point1 = -1;
-					int point2 = -1;
-					for (int j = 0; j < 3; j++)
-					{
-						if ((tris[3 * tri1 + j] != axisPoint1) && (tris[3 * tri1 + j] != axisPoint2))
-						{
-							point1 = tris[3 * tri1 + j];
-							break;
-						}
-					}
-					for (int j = 0; j < 3; j++)
-					{
-						if ((tris[3 * tri2 + j] != axisPoint1) && (tris[3 * tri2 + j] != axisPoint2))
-						{
-							point2 = tris[3 * tri2 + j];
-							break;
-						}
-					}
-					if ((point1 != -1) && (point2 != -1))
-					{
-						const unsigned int vertex1 = point1 + offset;
-						const unsigned int vertex2 = point2 + offset;
-						const unsigned int vertex3 = edges[i].m_vert[0] + offset;
-						const unsigned int vertex4 = edges[i].m_vert[1] + offset;
-						if (bendingMethod == 1)
-							model->addDihedralConstraint(vertex1, vertex2, vertex3, vertex4);
-						else if (bendingMethod == 2)
-							model->addIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
-						else if (bendingMethod == 3)
-						{
-							model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, 100.0);
-							model->addIsometricBendingConstraint_XPBD(vertex1, vertex2, vertex3, vertex4);
-						}
-					}
-				}
-			}
-		}
+		bendingStiffness = 0.01;
+		if (bendingMethod == 3)
+			bendingStiffness = 100.0;
+		model->addBendingConstraints(model->getTriangleModels()[cm], bendingMethod, bendingStiffness);
 	}
 }
 
 void initTetModelConstraints()
 {
 	// init constraints
-	SimulationModel *model = Simulation::getCurrent()->getModel();
-	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
-	model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 1.0);
+	SimulationModel* model = Simulation::getCurrent()->getModel();
+	solidStiffness = 1.0;
+	if (solidSimulationMethod == 5)
+		solidStiffness = 100000;
+
+	volumeStiffness = 1.0;
+	if (solidSimulationMethod == 5)
+		volumeStiffness = 100000;
 	for (unsigned int cm = 0; cm < model->getTetModels().size(); cm++)
 	{
-		const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
-		const unsigned int nTets = model->getTetModels()[cm]->getParticleMesh().numTets();
-		const unsigned int *tets = model->getTetModels()[cm]->getParticleMesh().getTets().data();
-		const IndexedTetMesh::VertexTets *vTets = model->getTetModels()[cm]->getParticleMesh().getVertexTets().data();
-		if (solidSimulationMethod == 1)
-		{
-			const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model->getTetModels()[cm]->getParticleMesh().numEdges();
-			const IndexedTetMesh::Edge *edges = model->getTetModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
-
-				model->addDistanceConstraint(v1, v2);
-			}
-
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i] + offset;
-				const unsigned int v2 = tets[4 * i + 1] + offset;
-				const unsigned int v3 = tets[4 * i + 2] + offset;
-				const unsigned int v4 = tets[4 * i + 3] + offset;
-
-				model->addVolumeConstraint(v1, v2, v3, v4);
-			}
-		}
-		else if (solidSimulationMethod == 2)
-		{
-			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i] + offset;
-				const unsigned int v2 = tets[4 * i + 1] + offset;
-				const unsigned int v3 = tets[4 * i + 2] + offset;
-				const unsigned int v4 = tets[4 * i + 3] + offset;
-
-				model->addFEMTetConstraint(v1, v2, v3, v4);
-			}
-		}
-		else if (solidSimulationMethod == 3)
-		{
-			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i] + offset;
-				const unsigned int v2 = tets[4 * i + 1] + offset;
-				const unsigned int v3 = tets[4 * i + 2] + offset;
-				const unsigned int v4 = tets[4 * i + 3] + offset;
-
-				model->addStrainTetConstraint(v1, v2, v3, v4);
-			}
-		}
-		else if (solidSimulationMethod == 4)
-		{
-			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v[4] = { tets[4 * i] + offset,
-					tets[4 * i + 1] + offset,
-					tets[4 * i + 2] + offset,
-					tets[4 * i + 3] + offset };
-				// Important: Divide position correction by the number of clusters 
-				// which contain the vertex.
-				const unsigned int nc[4] = { vTets[v[0]].m_numTets, vTets[v[1]].m_numTets, vTets[v[2]].m_numTets, vTets[v[3]].m_numTets };
-				model->addShapeMatchingConstraint(4, v, nc);
-			}
-		}
-		else if (solidSimulationMethod == 5)
-		{
-			model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 100000);
-			model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 100000);
-			const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model->getTetModels()[cm]->getParticleMesh().numEdges();
-			const IndexedTetMesh::Edge* edges = model->getTetModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
-
-				model->addDistanceConstraint_XPBD(v1, v2);
-			}
-
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i];
-				const unsigned int v2 = tets[4 * i + 1];
-				const unsigned int v3 = tets[4 * i + 2];
-				const unsigned int v4 = tets[4 * i + 3];
-
-				model->addVolumeConstraint_XPBD(v1, v2, v3, v4);
-			}
-		}
+		model->addSolidConstraints(model->getTetModels()[cm], solidSimulationMethod, solidStiffness,
+			solidPoissonRatio, volumeStiffness, solidNormalizeStretch, solidNormalizeShear);
 	}
 }
 
@@ -613,21 +470,21 @@ void readScene()
 	model->setContactStiffnessRigidBody(data.m_contactStiffnessRigidBody);
 	model->setContactStiffnessParticleRigidBody(data.m_contactStiffnessParticleRigidBody);
 
-	model->setValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS, data.m_cloth_bendingStiffness);
-	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS_XX, data.m_cloth_xxStiffness);
-	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS_YY, data.m_cloth_yyStiffness);
-	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS_XY, data.m_cloth_xyStiffness);
-	model->setValue<Real>(SimulationModel::CLOTH_POISSON_RATIO_XY, data.m_cloth_xyPoissonRatio);
-	model->setValue<Real>(SimulationModel::CLOTH_POISSON_RATIO_YX, data.m_cloth_yxPoissonRatio);
-	model->setValue<bool>(SimulationModel::CLOTH_NORMALIZE_STRETCH, data.m_cloth_normalizeStretch);
-	model->setValue<bool>(SimulationModel::CLOTH_NORMALIZE_SHEAR, data.m_cloth_normalizeShear);
 
-	model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, data.m_solid_stiffness);
-	model->setValue<Real>(SimulationModel::SOLID_POISSON_RATIO, data.m_solid_poissonRatio);
-	model->setValue<bool>(SimulationModel::SOLID_NORMALIZE_STRETCH, data.m_solid_normalizeStretch);
-	model->setValue<bool>(SimulationModel::SOLID_NORMALIZE_SHEAR, data.m_solid_normalizeShear);
+	bendingStiffness = data.m_cloth_bendingStiffness;
+	xxStiffness = data.m_cloth_xxStiffness;
+	yyStiffness = data.m_cloth_yyStiffness;
+	xyStiffness = data.m_cloth_xyStiffness;
+	xyPoissonRatio = data.m_cloth_xyPoissonRatio;
+	yxPoissonRatio = data.m_cloth_yxPoissonRatio;
+	normalizeStretch = data.m_cloth_normalizeStretch;
+	normalizeShear = data.m_cloth_normalizeShear;
 
-
+	solidStiffness = data.m_solid_stiffness;
+	solidPoissonRatio = data.m_solid_poissonRatio;
+	solidNormalizeStretch = data.m_solid_normalizeStretch;
+	solidNormalizeShear = data.m_solid_normalizeShear;
+	volumeStiffness = data.m_volume_stiffness;
 
 	//////////////////////////////////////////////////////////////////////////
 	// rigid bodies
@@ -1409,3 +1266,168 @@ void TW_CALL getSolidSimulationMethod(void *value, void *clientData)
 	*(short *)(value) = *((short*)clientData);
 }
 
+void TW_CALL setBendingStiffness(const void* value, void* clientData)
+{
+	bendingStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<DihedralConstraint, Real, &DihedralConstraint::m_stiffness>(bendingStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<IsometricBendingConstraint, Real, &IsometricBendingConstraint::m_stiffness>(bendingStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<IsometricBendingConstraint_XPBD, Real, &IsometricBendingConstraint_XPBD::m_stiffness>(bendingStiffness);
+}
+
+void TW_CALL getBendingStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = bendingStiffness;
+}
+
+void TW_CALL setDistanceStiffness(const void* value, void* clientData)
+{
+	distanceStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(distanceStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(distanceStiffness);
+}
+
+void TW_CALL getDistanceStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = distanceStiffness;
+}
+
+void TW_CALL setXXStiffness(const void* value, void* clientData)
+{
+	xxStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xxStiffness>(xxStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xxStiffness>(xxStiffness);
+}
+
+void TW_CALL getXXStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = xxStiffness;
+}
+
+void TW_CALL getYYStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = yyStiffness;
+}
+
+void TW_CALL setYYStiffness(const void* value, void* clientData)
+{
+	yyStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_yyStiffness>(yyStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_yyStiffness>(yyStiffness);
+}
+
+void TW_CALL getXYStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = xyStiffness;
+}
+
+void TW_CALL setXYStiffness(const void* value, void* clientData)
+{
+	xyStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xyStiffness>(xyStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xyStiffness>(xyStiffness);
+}
+
+void TW_CALL getXYPoissonRatio(void* value, void* clientData)
+{
+	*(Real*)(value) = xyPoissonRatio;
+}
+
+void TW_CALL setXYPoissonRatio(const void* value, void* clientData)
+{
+	xyPoissonRatio = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xyPoissonRatio>(xyPoissonRatio);
+}
+
+void TW_CALL getYXPoissonRatio(void* value, void* clientData)
+{
+	*(Real*)(value) = yxPoissonRatio;
+}
+
+void TW_CALL setYXPoissonRatio(const void* value, void* clientData)
+{
+	yxPoissonRatio = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_yxPoissonRatio>(yxPoissonRatio);
+}
+
+void TW_CALL getNormalizeStretch(void* value, void* clientData)
+{
+	*(bool*)(value) = normalizeStretch;
+}
+
+void TW_CALL setNormalizeStretch(const void* value, void* clientData)
+{
+	normalizeStretch = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeStretch>(normalizeStretch);
+}
+
+void TW_CALL getNormalizeShear(void* value, void* clientData)
+{
+	*(bool*)(value) = normalizeShear;
+}
+
+void TW_CALL setNormalizeShear(const void* value, void* clientData)
+{
+	normalizeShear = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeShear>(normalizeShear);
+}
+
+void TW_CALL setSolidStiffness(const void* value, void* clientData)
+{
+	solidStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_stiffness>(solidStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_stretchStiffness>(solidStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_shearStiffness>(solidStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(solidStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(solidStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<ShapeMatchingConstraint, Real, &ShapeMatchingConstraint::m_stiffness>(solidStiffness);
+}
+
+void TW_CALL getSolidStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = solidStiffness;
+}
+
+void TW_CALL setVolumeStiffness(const void* value, void* clientData)
+{
+	volumeStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<VolumeConstraint, Real, &VolumeConstraint::m_stiffness>(volumeStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<VolumeConstraint_XPBD, Real, &VolumeConstraint_XPBD::m_stiffness>(volumeStiffness);
+}
+
+void TW_CALL getVolumeStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = volumeStiffness;
+}
+
+void TW_CALL getSolidPoissonRatio(void* value, void* clientData)
+{
+	*(Real*)(value) = solidPoissonRatio;
+}
+
+void TW_CALL setSolidPoissonRatio(const void* value, void* clientData)
+{
+	solidPoissonRatio = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_poissonRatio>(solidPoissonRatio);
+}
+
+void TW_CALL getSolidNormalizeStretch(void* value, void* clientData)
+{
+	*(bool*)(value) = solidNormalizeStretch;
+}
+
+void TW_CALL setSolidNormalizeStretch(const void* value, void* clientData)
+{
+	solidNormalizeStretch = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeStretch>(solidNormalizeStretch);
+}
+
+void TW_CALL getSolidNormalizeShear(void* value, void* clientData)
+{
+	*(bool*)(value) = solidNormalizeShear;
+}
+
+void TW_CALL setSolidNormalizeShear(const void* value, void* clientData)
+{
+	solidNormalizeShear = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeShear>(solidNormalizeShear);
+}

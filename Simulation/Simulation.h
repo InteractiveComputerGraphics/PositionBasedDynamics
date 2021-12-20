@@ -30,6 +30,8 @@ namespace PBD
 
 	public:
 		Simulation ();
+		Simulation(const Simulation&) = delete;
+		Simulation& operator=(const Simulation&) = delete;
 		~Simulation ();
 
 		void init();
