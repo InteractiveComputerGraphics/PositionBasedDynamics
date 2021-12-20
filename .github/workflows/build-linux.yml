@@ -45,7 +45,7 @@ jobs:
         # python-versions: 'cp37-cp37m'
         python-versions: '${{ matrix.python-version }}'
         build-requirements: ''
-        system-packages: 'cmake3'
+        system-packages: 'cmake3 libXrandr-devel libXinerama-devel libXcursor-devel libXi-devel'
         package-path: ''
         pip-wheel-args: '--manylinux-build'
 
