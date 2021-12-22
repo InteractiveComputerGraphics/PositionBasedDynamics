@@ -12,6 +12,38 @@
 
 namespace py = pybind11;
 
+PBD::CubicSDFCollisionDetection::GridPtr generateSDF(const std::vector<Vector3r> &vertices, const std::vector<unsigned int>& faces, const Eigen::Matrix<unsigned int, 3, 1>& resolution)
+{
+    const unsigned int nFaces = faces.size()/3;
+#ifdef USE_DOUBLE
+    Discregrid::TriangleMesh sdfMesh((vertices[0]).data(), faces.data(), vertices.size(), nFaces);
+#else
+    // if type is float, copy vector to double vector
+    std::vector<double> doubleVec;
+    doubleVec.resize(3 * vertices.size());
+    for (unsigned int i = 0; i < vertices.size(); i++)
+        for (unsigned int j = 0; j < 3; j++)
+            doubleVec[3 * i + j] = vertices[i][j];
+    Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vertices.size(), nFaces);
+#endif
+    Discregrid::MeshDistance md(sdfMesh);
+    Eigen::AlignedBox3d domain;
+    for (auto const& x : sdfMesh.vertices())
+    {
+        domain.extend(x);
+    }
+    domain.max() += 0.1 * Eigen::Vector3d::Ones();
+    domain.min() -= 0.1 * Eigen::Vector3d::Ones();
+
+    std::cout << "Set SDF resolution: " << resolution[0] << ", " << resolution[1] << ", " << resolution[2] << std::endl;
+    auto sdf = std::make_shared<PBD::CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ resolution[0], resolution[1], resolution[2] }));
+    auto func = Discregrid::DiscreteGrid::ContinuousFunction{};
+    func = [&md](Eigen::Vector3d const& xi) {return md.signedDistanceCached(xi); };
+    std::cout << "Generate SDF\n";
+    sdf->addFunction(func, true);
+    return sdf;
+}
+
 void SimulationModelModule(py::module m_sub) 
 {
     py::class_<PBD::TriangleModel>(m_sub, "TriangleModel")
@@ -63,101 +95,138 @@ void SimulationModelModule(py::module m_sub)
         .def("resetContacts", &PBD::SimulationModel::resetContacts)
         .def("updateConstraints", &PBD::SimulationModel::updateConstraints)
         .def("initConstraintGroups", &PBD::SimulationModel::initConstraintGroups)
-
-        .def("addTriangleModel", [](    
-            PBD::SimulationModel &model,
-            const unsigned int nPoints,
-            const unsigned int nFaces,
-            std::vector<Vector3r> &points,
-            std::vector<unsigned int> &indices,
-            const PBD::TriangleModel::ParticleMesh::UVIndices& uvIndices,
-            const PBD::TriangleModel::ParticleMesh::UVs& uvs)
-            {
-                model.addTriangleModel(nPoints, nFaces, points.data(), indices.data(), uvIndices, uvs);
-            })
-        .def("addTriangleModelCollision", [](
+        .def("addTriangleModel", [](
             PBD::SimulationModel& model,
-            const unsigned int nPoints,
-            const unsigned int nFaces,
             std::vector<Vector3r>& points,
             std::vector<unsigned int>& indices,
             const PBD::TriangleModel::ParticleMesh::UVIndices& uvIndices,
-            const PBD::TriangleModel::ParticleMesh::UVs& uvs)
+            const PBD::TriangleModel::ParticleMesh::UVs& uvs,
+            const bool testMesh)
             {
                 auto& triModels = model.getTriangleModels();
                 int i = triModels.size();
-                model.addTriangleModel(nPoints, nFaces, points.data(), indices.data(), uvIndices, uvs);
-                PBD::ParticleData& pd = model.getParticles();
-                const unsigned int nVert = triModels[i]->getParticleMesh().numVertices();
-                unsigned int offset = triModels[i]->getIndexOffset();
-                PBD::Simulation* sim = PBD::Simulation::getCurrent();
-                PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
-                if (cd != nullptr)
-                    cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
-            })
-        .def("addRegularTriangleModel", &PBD::SimulationModel::addRegularTriangleModel)
-        .def("addRegularTriangleModelCollision", [](PBD::SimulationModel &model, 
+                model.addTriangleModel(points.size(), indices.size()/3, points.data(), indices.data(), uvIndices, uvs);
+                if (testMesh)
+                {
+                    PBD::ParticleData& pd = model.getParticles();
+                    const unsigned int nVert = triModels[i]->getParticleMesh().numVertices();
+                    unsigned int offset = triModels[i]->getIndexOffset();
+                    PBD::Simulation* sim = PBD::Simulation::getCurrent();
+                    PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
+                    if (cd != nullptr)
+                        cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
+                }
+                return triModels[i];
+            }, py::arg("points"), py::arg("indices"), py::arg("uvIndices") = PBD::TriangleModel::ParticleMesh::UVIndices(),
+                py::arg("uvs") = PBD::TriangleModel::ParticleMesh::UVs(), py::arg("testMesh") = false,
+                py::return_value_policy::reference)
+        .def("addRegularTriangleModel", [](PBD::SimulationModel &model, 
             const int width, const int height,
             const Vector3r& translation,
             const Matrix3r& rotation,
-            const Vector2r& scale)
+            const Vector2r& scale,
+            const bool testMesh)
             {
                 auto &triModels = model.getTriangleModels();
                 int i = triModels.size();
                 model.addRegularTriangleModel(width, height, translation, rotation, scale);
-                PBD::ParticleData& pd = model.getParticles();
-                const unsigned int nVert = triModels[i]->getParticleMesh().numVertices();
-                unsigned int offset = triModels[i]->getIndexOffset();
-                PBD::Simulation* sim = PBD::Simulation::getCurrent();
-                PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
-                if (cd != nullptr)
-                    cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
-            })
+                if (testMesh)
+                {
+                    PBD::ParticleData& pd = model.getParticles();
+                    const unsigned int nVert = triModels[i]->getParticleMesh().numVertices();
+                    unsigned int offset = triModels[i]->getIndexOffset();
+                    PBD::Simulation* sim = PBD::Simulation::getCurrent();
+                    PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
+                    if (cd != nullptr)
+                        cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
+                }
+                return triModels[i];
+            }, py::arg("width"), py::arg("height"), py::arg("translation") = Vector3r::Zero(),
+                py::arg("rotation") = Matrix3r::Identity(), py::arg("scale") = Vector2r::Ones(), py::arg("testMesh") = false,
+                py::return_value_policy::reference)
         .def("addTetModel", [](
             PBD::SimulationModel& model,
-            const unsigned int nPoints,
-            const unsigned int nTets,
             std::vector<Vector3r>& points,
-            std::vector<unsigned int>& indices)
-            {
-                model.addTetModel(nPoints, nTets, points.data(), indices.data());
-            })
-        .def("addTetModelCollision", [](
-            PBD::SimulationModel& model,
-            const unsigned int nPoints,
-            const unsigned int nTets,
-            std::vector<Vector3r>& points,
-            std::vector<unsigned int>& indices)
+            std::vector<unsigned int>& indices,
+            const bool testMesh, 
+            bool generateCollisionObject, const Eigen::Matrix<unsigned int, 3, 1>& resolution)
             {
                 auto& tetModels = model.getTetModels();
                 int i = tetModels.size();
-                model.addTetModel(nPoints, nTets, points.data(), indices.data());
+                model.addTetModel(points.size(), indices.size()/4, points.data(), indices.data());
+
                 PBD::ParticleData& pd = model.getParticles();
-                const unsigned int nVert = tetModels[i]->getParticleMesh().numVertices();
-                unsigned int offset = tetModels[i]->getIndexOffset();
+                PBD::TetModel* tetModel = tetModels[i];
+                const unsigned int nVert = tetModel->getParticleMesh().numVertices();
+                unsigned int offset = tetModel->getIndexOffset();
                 PBD::Simulation* sim = PBD::Simulation::getCurrent();
-                PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
-                if (cd != nullptr)
-                    cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
-            })
-        .def("addRegularTetModel", &PBD::SimulationModel::addRegularTetModel)
-        .def("addRegularTetModelCollision", [](PBD::SimulationModel &model, 
+                if (generateCollisionObject)
+                {                   
+                    auto &surfaceMesh = tetModel->getSurfaceMesh();
+                    PBD::CubicSDFCollisionDetection::GridPtr sdf = generateSDF(points, surfaceMesh.getFaces(), resolution);
+                    if (sdf != nullptr)
+                    {
+                        PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
+                        if (cd != nullptr)
+                        {
+                            auto index = cd->getCollisionObjects().size();
+                            cd->addCubicSDFCollisionObject(i,
+                                PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType,
+                                &pd.getPosition(offset), nVert, sdf, Vector3r::Ones(), testMesh, false);
+
+                            const unsigned int modelIndex = cd->getCollisionObjects()[index]->m_bodyIndex;
+                            PBD::TetModel* tm = tetModels[modelIndex];
+                            const unsigned int offset = tm->getIndexOffset();
+                            const Utilities::IndexedTetMesh& mesh = tm->getParticleMesh();
+
+                            ((PBD::DistanceFieldCollisionDetection::DistanceFieldCollisionObject*)cd->getCollisionObjects()[index])->initTetBVH(&pd.getPosition(offset), mesh.numVertices(), mesh.getTets().data(), mesh.numTets(), cd->getTolerance());
+                        }
+                    }
+                }
+                else if (testMesh)
+                {                    
+                    PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
+                    if (cd != nullptr)
+                    {
+                        auto index = cd->getCollisionObjects().size();
+                        cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
+
+                        const unsigned int modelIndex = cd->getCollisionObjects()[index]->m_bodyIndex;
+                        PBD::TetModel* tm = tetModels[modelIndex];
+                        const unsigned int offset = tm->getIndexOffset();
+                        const Utilities::IndexedTetMesh& mesh = tm->getParticleMesh();
+
+                        ((PBD::DistanceFieldCollisionDetection::DistanceFieldCollisionObject*)cd->getCollisionObjects()[index])->initTetBVH(&pd.getPosition(offset), mesh.numVertices(), mesh.getTets().data(), mesh.numTets(), cd->getTolerance());
+                    }
+                }
+                return tetModel;
+            }, py::arg("points"), py::arg("indices"), py::arg("testMesh") = false,
+                py::arg("generateCollisionObject") = false, py::arg("resolution") = Eigen::Matrix<unsigned int, 3, 1>(30, 30, 30),
+                py::return_value_policy::reference)
+        .def("addRegularTetModel", [](PBD::SimulationModel &model, 
             const int width, const int height, const int depth,
             const Vector3r& translation,
             const Matrix3r& rotation,
-            const Vector3r& scale)
+            const Vector3r& scale,
+            const bool testMesh)
             {
                 auto &tetModels = model.getTetModels();
                 int i = tetModels.size();
                 model.addRegularTetModel(width, height, depth, translation, rotation, scale);
-                PBD::ParticleData& pd = model.getParticles();
-                const unsigned int nVert = tetModels[i]->getParticleMesh().numVertices();
-                unsigned int offset = tetModels[i]->getIndexOffset();
-                PBD::Simulation* sim = PBD::Simulation::getCurrent();
-                PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
-                if (cd != nullptr)
-                    cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
-            })
+                if (testMesh)
+                {
+                    PBD::ParticleData& pd = model.getParticles();
+                    const unsigned int nVert = tetModels[i]->getParticleMesh().numVertices();
+                    unsigned int offset = tetModels[i]->getIndexOffset();
+                    PBD::Simulation* sim = PBD::Simulation::getCurrent();
+                    PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
+                    if (cd != nullptr)
+                        cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
+                }
+                return tetModels[i];
+            }, py::arg("width"), py::arg("height"), py::arg("depth"), py::arg("translation") = Vector3r::Zero(),
+                py::arg("rotation") = Matrix3r::Identity(), py::arg("scale") = Vector3r::Ones(), py::arg("testMesh") = false, 
+                py::return_value_policy::reference)
         .def("addLineModel", [](
             PBD::SimulationModel& model,
             const unsigned int nPoints,
@@ -237,13 +306,14 @@ void SimulationModelModule(py::module m_sub)
         .def("addRigidBody", [](PBD::SimulationModel &model, const Real density, 
             const PBD::VertexData& vertices, 
             const Utilities::IndexedFaceMesh& mesh, 
-            const Vector3r& x, const Real angle, const Vector3r &rotationAxis, 
+            const Vector3r& translation, const Matrix3r& rotation,
             const Vector3r& scale, 
+            const bool testMesh,
             const PBD::CubicSDFCollisionDetection::GridPtr sdf)
             {
                 PBD::SimulationModel::RigidBodyVector& rbs = model.getRigidBodies();
                 PBD::RigidBody *rb = new PBD::RigidBody();
-                rb->initBody(density, x, Quaternionr(AngleAxisr(angle, rotationAxis)), vertices, mesh, scale);
+                rb->initBody(density, translation, Quaternionr(rotation), vertices, mesh, scale);
                 rbs.push_back(rb);
                 if (sdf != nullptr)
                 {
@@ -251,15 +321,65 @@ void SimulationModelModule(py::module m_sub)
                     PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
                     if (cd != nullptr)
                     {
-                        const std::vector<Vector3r>* vertices = rb->getGeometry().getVertexDataLocal().getVertices();
-                        const unsigned int nVert = static_cast<unsigned int>(vertices->size());
+                        const std::vector<Vector3r>& vertices = rb->getGeometry().getVertexDataLocal().getVertices();
+                        const unsigned int nVert = static_cast<unsigned int>(vertices.size());
                         cd->addCubicSDFCollisionObject(rbs.size() - 1,
                             PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType,
-                            vertices->data(), nVert, sdf, scale, true, false);
+                            vertices.data(), nVert, sdf, scale, testMesh, false);
                     }
                 }
                 return rb;
-            }, py::return_value_policy::reference)
+            }, py::arg("density"), py::arg("vertices"), py::arg("mesh"), py::arg("translation") = Vector3r::Zero(),
+                py::arg("rotation") = Matrix3r::Identity(), py::arg("scale") = Vector3r::Ones(), py::arg("testMesh") = false,
+                py::arg("sdf"),
+                py::return_value_policy::reference)
+        .def("addRigidBody", [](PBD::SimulationModel &model, const Real density, 
+            const PBD::VertexData& vertices, 
+            const Utilities::IndexedFaceMesh& mesh, 
+            const Vector3r& translation, const Matrix3r &rotation,
+            const Vector3r& scale,             
+            const bool testMesh, 
+            const bool generateCollisionObject, const Eigen::Matrix<unsigned int, 3, 1>& resolution)
+            {
+                PBD::Simulation* sim = PBD::Simulation::getCurrent();
+                PBD::SimulationModel::RigidBodyVector& rbs = model.getRigidBodies();
+                PBD::RigidBody *rb = new PBD::RigidBody();
+                auto i = rbs.size();
+                rb->initBody(density, translation, Quaternionr(rotation), vertices, mesh, scale);
+                rbs.push_back(rb);
+
+                if (generateCollisionObject)
+                {
+                    PBD::CubicSDFCollisionDetection::GridPtr sdf = generateSDF(vertices.getVertices(), mesh.getFaces(), resolution);
+                    if (sdf != nullptr)
+                    {
+                        PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
+                        if (cd != nullptr)
+                        {
+                            const std::vector<Vector3r>& vertices = rb->getGeometry().getVertexDataLocal().getVertices();
+                            const unsigned int nVert = static_cast<unsigned int>(vertices.size());
+                            cd->addCubicSDFCollisionObject(rbs.size() - 1,
+                                PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType,
+                                vertices.data(), nVert, sdf, scale, testMesh, false);
+                        }
+                    }
+                }
+                else if (testMesh)
+                {
+                    PBD::CubicSDFCollisionDetection* cd = dynamic_cast<PBD::CubicSDFCollisionDetection*>(sim->getTimeStep()->getCollisionDetection());
+                    if (cd != nullptr)
+                    {
+                        auto index = cd->getCollisionObjects().size();
+                        const std::vector<Vector3r>& vertices = rbs[i]->getGeometry().getVertexDataLocal().getVertices();
+                        const unsigned int nVert = static_cast<unsigned int>(vertices.size());
+                        cd->addCollisionObjectWithoutGeometry(i, PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, true);
+                    }
+                }
+                return rb;
+            }, py::arg("density"), py::arg("vertices"), py::arg("mesh"), py::arg("translation") = Vector3r::Zero(),
+                py::arg("rotation") = Matrix3r::Identity(), py::arg("scale") = Vector3r::Ones(), py::arg("testMesh") = false,
+                py::arg("generateCollisionObject") = false, py::arg("resolution") = Eigen::Matrix<unsigned int, 3, 1>(30,30,30),
+                py::return_value_policy::reference)
         ;
 
 }

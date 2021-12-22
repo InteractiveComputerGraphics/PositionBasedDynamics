@@ -68,12 +68,26 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 				if (co->m_bodyType == CollisionDetection::CollisionObject::TriangleModelCollisionObjectType) 
 				{
 					DistanceFieldCollisionObject *sco = (DistanceFieldCollisionObject*)co;
+
+					TriangleModel* tm = triModels[co->m_bodyIndex];
+					const unsigned int offset = tm->getIndexOffset();
+					const IndexedFaceMesh& mesh = tm->getParticleMesh();
+					const unsigned int numVert = mesh.numVertices();
+					sco->m_bvh.init(&pd.getPosition(offset), numVert);
 					sco->m_bvh.update();
 				}
-
-				if (co->m_bodyType == CollisionDetection::CollisionObject::TetModelCollisionObjectType)
+				else if (co->m_bodyType == CollisionDetection::CollisionObject::TetModelCollisionObjectType)
 				{
+					TetModel* tm = tetModels[co->m_bodyIndex];
+					const unsigned int offset = tm->getIndexOffset();
+					const IndexedTetMesh& mesh = tm->getParticleMesh();
+					const unsigned int numVert = mesh.numVertices();
+
 					DistanceFieldCollisionObject *sco = (DistanceFieldCollisionObject*)co;
+					sco->m_bvh.init(&pd.getPosition(offset), numVert);
+					sco->m_bvhTets.updateVertices(&pd.getPosition(offset));
+					sco->m_bvhTets0.updateVertices(&pd.getPosition(offset));
+
 					sco->m_bvh.update();
 					sco->m_bvhTets.update();
 				}

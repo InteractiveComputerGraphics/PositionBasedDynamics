@@ -58,7 +58,8 @@ def drawMesh(pd, mesh, offset, color):
     #glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 15.0)
     #glColor3fv(color)
 
-    vertices = np.reshape(pd.getVertices(), -1)
+    v = np.array(pd.getVertices())
+    vertices = np.reshape(v[offset:], -1)
     normals = np.reshape(np.negative(np.array(mesh.getVertexNormals())), -1)
 
     #glEnableClientState(GL_VERTEX_ARRAY)

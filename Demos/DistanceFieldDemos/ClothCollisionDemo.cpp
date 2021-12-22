@@ -257,13 +257,13 @@ void buildModel ()
 	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, &cd);
 	cd.setTolerance(static_cast<Real>(0.05));
 
-	const std::vector<Vector3r> *vertices1 = rb[0]->getGeometry().getVertexDataLocal().getVertices();
-	const unsigned int nVert1 = static_cast<unsigned int>(vertices1->size());
-	cd.addCollisionBox(0, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices1)[0], nVert1, Vector3r(100.0, 1.0, 100.0));
+	const std::vector<Vector3r> &vertices1 = rb[0]->getGeometry().getVertexDataLocal().getVertices();
+	const unsigned int nVert1 = static_cast<unsigned int>(vertices1.size());
+	cd.addCollisionBox(0, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices1.data(), nVert1, Vector3r(100.0, 1.0, 100.0));
 
-	const std::vector<Vector3r> *vertices2 = rb[1]->getGeometry().getVertexDataLocal().getVertices();
-	const unsigned int nVert2 = static_cast<unsigned int>(vertices2->size());
-	cd.addCollisionTorus(1, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices2)[0], nVert2, Vector2r(2.0, 1.0));
+	const std::vector<Vector3r> &vertices2 = rb[1]->getGeometry().getVertexDataLocal().getVertices();
+	const unsigned int nVert2 = static_cast<unsigned int>(vertices2.size());
+	cd.addCollisionTorus(1, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices2.data(), nVert2, Vector2r(2.0, 1.0));
 	
 	SimulationModel::TriangleModelVector &tm = model->getTriangleModels();
 	ParticleData &pd = model->getParticles();

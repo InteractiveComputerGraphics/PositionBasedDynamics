@@ -660,10 +660,12 @@ void SimulationModel::addRegularTriangleModel(const int width, const int height,
 
 	const unsigned int nPoints = height * width;
 	const unsigned int nFaces = nIndices / 3;
+	const auto modelIndex = m_triangleModels.size();
 	addTriangleModel(nPoints, nFaces, points.data(), indices.data(), uvIndices, uvs);
+	const auto offset = m_triangleModels[modelIndex]->getIndexOffset();
 
 	ParticleData& pd = getParticles();
-	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
+	for (unsigned int i = offset; i < offset + m_triangleModels[modelIndex]->getParticleMesh().numVertices(); i++)
 		pd.setMass(i, 1.0);
 }
 
@@ -760,10 +762,12 @@ void SimulationModel::addRegularTetModel(const int width, const int height, cons
 			}
 		}
 	}
+	const auto modelIndex = m_tetModels.size();
 	addTetModel(width * height * depth, (unsigned int)indices.size() / 4u, points.data(), indices.data());
+	const auto offset = m_tetModels[modelIndex]->getIndexOffset();
 
 	ParticleData& pd = getParticles();
-	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
+	for (unsigned int i = offset; i < offset + m_tetModels[modelIndex]->getParticleMesh().numVertices(); i++)
 	{
 		pd.setMass(i, 1.0);
 	}

@@ -662,29 +662,29 @@ void readScene(const bool readFile)
 		rb[i]->setRestitutionCoeff(rbd.m_restitutionCoeff);
 		rb[i]->setFrictionCoeff(rbd.m_frictionCoeff);
 
-		const std::vector<Vector3r> *vertices = rb[i]->getGeometry().getVertexDataLocal().getVertices();
-		const unsigned int nVert = static_cast<unsigned int>(vertices->size());
+		const std::vector<Vector3r> &vertices = rb[i]->getGeometry().getVertexDataLocal().getVertices();
+		const unsigned int nVert = static_cast<unsigned int>(vertices.size());
 
 		switch (rbd.m_collisionObjectType)
 		{
 			case SceneLoader::No_Collision_Object: break;
 			case SceneLoader::Sphere: 
-				cd.addCollisionSphere(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale[0], rbd.m_testMesh, rbd.m_invertSDF);
+				cd.addCollisionSphere(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale[0], rbd.m_testMesh, rbd.m_invertSDF);
 				break;
 			case SceneLoader::Box:
-				cd.addCollisionBox(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+				cd.addCollisionBox(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
 				break;
 			case SceneLoader::Cylinder:
-				cd.addCollisionCylinder(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
+				cd.addCollisionCylinder(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
 				break;
 			case SceneLoader::Torus:
-				cd.addCollisionTorus(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
+				cd.addCollisionTorus(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
 				break;
 			case SceneLoader::HollowSphere:
-				cd.addCollisionHollowSphere(i, PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale[0], rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
+				cd.addCollisionHollowSphere(i, PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale[0], rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
 				break;
 			case SceneLoader::HollowBox:
-				cd.addCollisionHollowBox(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, rbd.m_collisionObjectScale, rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
+				cd.addCollisionHollowBox(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale, rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
 				break;
 			case SceneLoader::SDF:
 			{	
@@ -695,10 +695,10 @@ void readScene(const bool readFile)
 					const string resStr = to_string(rbd.m_resolutionSDF[0]) + "_" + to_string(rbd.m_resolutionSDF[1]) + "_" + to_string(rbd.m_resolutionSDF[2]);
 					const std::string modelFileName = FileSystem::getFileNameWithExt(rbd.m_modelFile);
 					const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
-					cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[sdfFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+					cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, distanceFields[sdfFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
 				}
 				else
-					cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, distanceFields[rbd.m_collisionObjectFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+					cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, distanceFields[rbd.m_collisionObjectFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
 				break;
 			}
 		}
@@ -1076,7 +1076,7 @@ void exportOBJ()
 	{
 		const IndexedFaceMesh& mesh = model->getTriangleModels()[i]->getParticleMesh();
 		const unsigned int offset = model->getTriangleModels()[i]->getIndexOffset();
-		const Vector3r* x = model->getParticles().getVertices()->data();
+		const Vector3r* x = model->getParticles().getVertices().data();
 		
 		std::string fileName = "triangle_model";
 		fileName = fileName + std::to_string(i) + "_" + std::to_string(frameCounter) + ".obj";
@@ -1089,7 +1089,7 @@ void exportOBJ()
 	{
 		const IndexedFaceMesh& mesh = model->getTetModels()[i]->getVisMesh();
 		const unsigned int offset = model->getTetModels()[i]->getIndexOffset();
-		const Vector3r* x = model->getTetModels()[i]->getVisVertices().getVertices()->data();
+		const Vector3r* x = model->getTetModels()[i]->getVisVertices().getVertices().data();
 
 		std::string fileName = "tet_model";
 		fileName = fileName + std::to_string(i) + "_" + std::to_string(frameCounter) + ".obj";
@@ -1101,7 +1101,7 @@ void exportOBJ()
 	for (unsigned int i = 0; i < model->getRigidBodies().size(); i++)
 	{
 		const IndexedFaceMesh& mesh = model->getRigidBodies()[i]->getGeometry().getMesh();
-		const Vector3r *x = model->getRigidBodies()[i]->getGeometry().getVertexData().getVertices()->data();
+		const Vector3r *x = model->getRigidBodies()[i]->getGeometry().getVertexData().getVertices().data();
 
 		std::string fileName = "rigid_body";
 		fileName = fileName + std::to_string(i) + "_" + std::to_string(frameCounter) + ".obj";

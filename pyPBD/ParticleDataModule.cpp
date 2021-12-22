@@ -26,7 +26,7 @@ void ParticleDataModule(py::module m_sub)
         .def("size", &PBD::VertexData::size)
         //.def("getVertices", &PBD::VertexData::getVertices, py::return_value_policy::reference);
         .def("getVertices", [](PBD::VertexData& vd) -> py::memoryview {
-            void* base_ptr = const_cast<Real*>(&(*vd.getVertices())[0][0]);
+            void* base_ptr = const_cast<Real*>(&(vd.getVertices())[0][0]);
             int num_vert = vd.size();
             return py::memoryview::from_buffer((Real*)base_ptr, { num_vert, 3 }, { sizeof(Real) * 3, sizeof(Real) }, true);
             });
@@ -52,7 +52,7 @@ void ParticleDataModule(py::module m_sub)
         .def("size", &PBD::ParticleData::size)
         //.def("getVertices", &PBD::ParticleData::getVertices, py::return_value_policy::reference);
         .def("getVertices", [](PBD::ParticleData &pd) -> py::memoryview {
-            void* base_ptr = const_cast<Real*>(&(*pd.getVertices())[0][0]);
+            void* base_ptr = const_cast<Real*>(&(pd.getVertices())[0][0]);
             int num_vert = pd.getNumberOfParticles();
             return py::memoryview::from_buffer((Real*)base_ptr, { num_vert, 3 }, { sizeof(Real) * 3, sizeof(Real) }, true);
             });

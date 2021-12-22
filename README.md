@@ -4,7 +4,7 @@
 
 This library supports the physically-based simulation of mechanical effects. In the last years position-based simulation methods have become popular in the graphics community. In contrast to classical simulation approaches these methods compute the position changes in each simulation step directly, based on the solution of a quasi-static problem. Therefore, position-based approaches are fast, stable and controllable which make them well-suited for use in interactive environments. However, these methods are generally not as accurate as force-based methods but still provide visual plausibility. Hence, the main application areas of position-based simulation are virtual reality, computer games and special effects in movies and commercials.
 
-The PositionBasedDynamics library allows the position-based handling of many types of constraints in a physically-based simulation. The library uses [CMake](http://www.cmake.org/), [Eigen](http://eigen.tuxfamily.org/), [json](https://github.com/nlohmann/json/) and [AntTweakBar](http://anttweakbar.sourceforge.net/) (only for the demos). All external dependencies are included. 
+The PositionBasedDynamics library allows the position-based handling of many types of constraints in a physically-based simulation. The library uses [CMake](http://www.cmake.org/), [Eigen](http://eigen.tuxfamily.org/), [json](https://github.com/nlohmann/json/), [pybind](https://github.com/pybind/pybind11), [glfw](https://www.glfw.org/) and [AntTweakBar](http://anttweakbar.sourceforge.net/) (only for the demos). All external dependencies are included. 
 
 Furthermore we use our own library:
 - [Discregrid](https://github.com/InteractiveComputerGraphics/Discregrid/) to generate cubic signed distance fields for the collision detection
@@ -14,11 +14,16 @@ Furthermore we use our own library:
 
 ## News
 
+* We added a Python interface: [pyPBD](https://pypi.org/project/pyPBD/)
 * Our new [paper](https://animation.rwth-aachen.de/publication/0557/) about a Direct Position-Based Solver for Stiff Rods uses the PositionBasedDynamics library. You can watch the video  [here](https://www.youtube.com/watch?v=EFH9xt4omls).
 * PBD now has a collision detection based on cubic signed distance fields
 * SPlisHSPlasH is our new open-source fluid simulator which uses the PositionBasedDynamics library to handle rigid-fluid coupling. It can be downloaded here:
 [https://github.com/InteractiveComputerGraphics/SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
 * Our new [paper](http://interactive-graphics.de/index.php/research/98-hierarchical-hp-adaptive-signed-distance-fields) about adaptive signed distance fields uses the PositionBasedDynamics library. You can watch the video  [here](https://www.youtube.com/watch?v=x_Iq2yM4FcA).
+
+## Forum
+
+On our [GitHub discussions](https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/discussions) page you can ask questions, discuss about simulation topics, and share ideas.
 
 ## Build Instructions
 
@@ -27,6 +32,16 @@ This project is based on [CMake](https://cmake.org/). Simply generate project, M
 - Debian 9 64-bit, CMake 3.12.3, GCC 6.3.0.
 
 Note: Please use a 64-bit target on a 64-bit operating system. 32-bit builds on a 64-bit OS are not supported.
+
+## Python Installation Instruction
+
+For Windows and Linux targets there exists prebuilt python wheel files which can be installed using
+
+```
+pip install pypbd
+```
+
+These are available for different Python Versions. See also here: [pyPBD](https://pypi.org/project/pyPBD/).
 
 ## Documentation
 

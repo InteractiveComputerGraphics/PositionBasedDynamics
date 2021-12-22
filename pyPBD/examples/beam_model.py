@@ -34,7 +34,7 @@ def buildModel():
 def createMesh(simModel):
     sim = pbd.Simulation.getCurrent()
     model = sim.getModel()
-    model.addRegularTetModel(width, height, depth, [5,0,0], np.identity(3), [10, 1.5, 1.5]) 
+    tetModel = model.addRegularTetModel(width, height, depth, translation=[5,0,0], scale=[10, 1.5, 1.5]) 
 
     pd = model.getParticles()
     
@@ -45,18 +45,16 @@ def createMesh(simModel):
                 pd.setMass(i*height*depth + j*depth + k, 0.0)
     
     # init constraints
-    tetModels = model.getTetModels()
     stiffness = 1.0
     if (simModel == 5):
         stiffness = 100000
     poissonRatio = 0.3
-    for tetModel in tetModels:
-        model.addSolidConstraints(tetModel, simModel, stiffness, poissonRatio, stiffness, False, False)
+    model.addSolidConstraints(tetModel, simModel, stiffness, poissonRatio, stiffness, False, False)
 
-        tetModel.updateMeshNormals(pd);
-        
-        print("Number of tets: " + str(tetModel.getParticleMesh().numTets()))
-        print("Number of vertices: " + str(width*height*depth))
+    tetModel.updateMeshNormals(pd);
+    
+    print("Number of tets: " + str(tetModel.getParticleMesh().numTets()))
+    print("Number of vertices: " + str(width*height*depth))
 
 def render():
     sim = pbd.Simulation.getCurrent()

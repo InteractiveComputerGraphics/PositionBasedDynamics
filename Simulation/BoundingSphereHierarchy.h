@@ -44,6 +44,7 @@ namespace PBD
 			const final;
 		void compute_hull_approx(unsigned int b, unsigned int n, BoundingSphere& hull)
 			const final;
+		void updateVertices(const Vector3r* vertices);
 
 	private:
 		const Vector3r *m_vertices;

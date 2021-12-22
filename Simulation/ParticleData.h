@@ -74,9 +74,9 @@ namespace PBD
 			return (unsigned int)m_x.size();
 		}
 
-		FORCE_INLINE const std::vector<Vector3r>* getVertices()
+		FORCE_INLINE const std::vector<Vector3r>& getVertices() const
 		{
-			return &m_x;
+			return m_x;
 		}
 	};
 
@@ -255,9 +255,9 @@ namespace PBD
 				return (unsigned int) m_x.size();
 			}
 
-			FORCE_INLINE const std::vector<Vector3r>* getVertices()
+			FORCE_INLINE const std::vector<Vector3r>& getVertices() const
 			{
-				return &m_x;
+				return m_x;
 			}
 
 			/** Resize the array containing the particle data.
