@@ -27,9 +27,9 @@ namespace PBD
 			Real m_frictionCoeff;
 
 		public:
-			void updateConstraints();
+			ParticleMesh &getParticleMesh() { return m_particleMesh; }
+			const ParticleMesh& getParticleMesh() const { return m_particleMesh; }
 
-			ParticleMesh &getParticleMesh();
 			void cleanupModel();
 
 			unsigned int getIndexOffset() const; 

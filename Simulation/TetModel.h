@@ -59,12 +59,11 @@ namespace PBD
 
 
 		public:
-			void updateConstraints();
-
 			SurfaceMesh &getSurfaceMesh();
 			VertexData &getVisVertices();
 			SurfaceMesh &getVisMesh();
-			ParticleMesh &getParticleMesh();
+			ParticleMesh& getParticleMesh() { return m_particleMesh; }
+			const ParticleMesh& getParticleMesh() const { return m_particleMesh; }
 			void cleanupModel();
 
 			unsigned int getIndexOffset() const;

@@ -13,6 +13,7 @@
 #include "Demos/Common/DemoBase.h"
 #include "Demos/Common/TweakBarParameters.h"
 #include "Simulation/Simulation.h"
+#include "GenericConstraints.h"
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
@@ -24,12 +25,15 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
-void initParameters();
 void timeStep ();
 void buildModel ();
 void createMesh();
 void render ();
 void reset();
+void TW_CALL setBendingStiffness(const void* value, void* clientData);
+void TW_CALL getBendingStiffness(void* value, void* clientData);
+void TW_CALL setDistanceStiffness(const void* value, void* clientData);
+void TW_CALL getDistanceStiffness(void* value, void* clientData);
 
 DemoBase *base;
 
@@ -37,6 +41,8 @@ const int nRows = 30;
 const int nCols = 30;
 const Real width = 10.0;
 const Real height = 10.0;
+Real bendingStiffness = 0.01;
+Real distanceStiffness = 1.0;
 
 // main 
 int main( int argc, char **argv )
@@ -52,13 +58,16 @@ int main( int argc, char **argv )
 
 	buildModel();
 
-	initParameters();
+	base->createParameterGUI();
 
 	// OpenGL
 	MiniGL::setClientIdleFunc (timeStep);		
 	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
+
+	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, model, " label='Bending stiffness'  min=0.0 step=0.1 precision=4 group='Bending' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "DistanceStiffness", TW_TYPE_REAL, setDistanceStiffness, getDistanceStiffness, model, " label='Distance constraint stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
 
 	MiniGL::mainLoop();
 
@@ -70,20 +79,6 @@ int main( int argc, char **argv )
 	delete model;
 
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -135,72 +130,14 @@ void render ()
 */
 void createMesh()
 {
-	TriangleModel::ParticleMesh::UVs uvs;
-	uvs.resize(nRows*nCols);
-
-	const Real dy = width / (Real)(nCols - 1);
-	const Real dx = height / (Real)(nRows - 1);
-
-	Vector3r points[nRows*nCols];
-	for (int i = 0; i < nRows; i++)
-	{
-		for (int j = 0; j < nCols; j++)
-		{
-			const Real y = (Real)dy*j;
-			const Real x = (Real)dx*i;
-			points[i*nCols + j] = Vector3r(x, 1.0, y);
-
-			uvs[i*nCols + j][0] = x/width;
-			uvs[i*nCols + j][1] = y/height;
-		}
-	}
-	const int nIndices = 6 * (nRows - 1)*(nCols - 1);
-
-	TriangleModel::ParticleMesh::UVIndices uvIndices;
-	uvIndices.resize(nIndices);
-
-	unsigned int indices[nIndices];
-	int index = 0;
-	for (int i = 0; i < nRows - 1; i++)
-	{
-		for (int j = 0; j < nCols - 1; j++)
-		{
-			int helper = 0;
-			if (i % 2 == j % 2)
-				helper = 1;
-
-			indices[index] = i*nCols + j;
-			indices[index + 1] = i*nCols + j + 1;
-			indices[index + 2] = (i + 1)*nCols + j + helper;
-
-			uvIndices[index] = i*nCols + j;
-			uvIndices[index + 1] = i*nCols + j + 1;
-			uvIndices[index + 2] = (i + 1)*nCols + j + helper;
-			index += 3;
-
-			indices[index] = (i + 1)*nCols + j + 1;
-			indices[index + 1] = (i + 1)*nCols + j;
-			indices[index + 2] = i*nCols + j + 1 - helper;
-
-			uvIndices[index] = (i + 1)*nCols + j + 1;
-			uvIndices[index + 1] = (i + 1)*nCols + j;
-			uvIndices[index + 2] = i*nCols + j + 1 - helper;
-			index += 3;
-		}
-	}
-	
-	GenericConstraintsModel *model = (GenericConstraintsModel*) Simulation::getCurrent()->getModel();
-	model->addTriangleModel(nRows*nCols, nIndices / 3, &points[0], &indices[0], uvIndices, uvs);
-	
-	ParticleData &pd = model->getParticles();
-	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
-	{
-		pd.setMass(i, 1.0);
-	}
+	GenericConstraintsModel* model = (GenericConstraintsModel*)Simulation::getCurrent()->getModel();
+	model->addRegularTriangleModel(nCols, nRows,
+		Vector3r(0, 1, 0), AngleAxisr(M_PI * 0.5, Vector3r(1, 0, 0)).matrix(), Vector2r(width, height));
 
 	// Set mass of points to zero => make it static
+	ParticleData& pd = model->getParticles();
 	pd.setMass(0, 0.0);
-	pd.setMass((nRows-1)*nCols, 0.0);
+	pd.setMass(nRows-1, 0.0);
 
 	// init constraints
 	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
@@ -216,7 +153,7 @@ void createMesh()
 			const unsigned int v1 = edges[i].m_vert[0] + offset;
 			const unsigned int v2 = edges[i].m_vert[1] + offset;
 
-			model->addGenericDistanceConstraint(v1, v2);
+			model->addGenericDistanceConstraint(v1, v2, distanceStiffness);
 		}
 
 		// bending constraints
@@ -254,13 +191,35 @@ void createMesh()
 					const unsigned int vertex2 = point2 + offset;
 					const unsigned int vertex3 = edges[i].m_vert[0] + offset;
 					const unsigned int vertex4 = edges[i].m_vert[1] + offset;
-					model->addGenericIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4);
+					model->addGenericIsometricBendingConstraint(vertex1, vertex2, vertex3, vertex4, bendingStiffness);
 				}
 			}
 		}
 	}
 
-	LOG_INFO << "Number of triangles: " << nIndices / 3;
+	LOG_INFO << "Number of triangles: " << model->getTriangleModels()[0]->getParticleMesh().numFaces();
 	LOG_INFO << "Number of vertices: " << nRows*nCols;
 
+}
+
+void TW_CALL setBendingStiffness(const void* value, void* clientData)
+{
+	bendingStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<GenericIsometricBendingConstraint, Real, &GenericIsometricBendingConstraint::m_stiffness>(bendingStiffness);
+}
+
+void TW_CALL getBendingStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = bendingStiffness;
+}
+
+void TW_CALL setDistanceStiffness(const void* value, void* clientData)
+{
+	distanceStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<GenericDistanceConstraint, Real, &GenericDistanceConstraint::m_stiffness>(distanceStiffness);
+}
+
+void TW_CALL getDistanceStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = distanceStiffness;
 }

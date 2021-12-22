@@ -1162,8 +1162,9 @@ bool DistanceJoint::solvePositionConstraint(SimulationModel &model, const unsign
 //////////////////////////////////////////////////////////////////////////
 // DistanceConstraint
 //////////////////////////////////////////////////////////////////////////
-bool DistanceConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2)
+bool DistanceConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	ParticleData &pd = model.getParticles();
@@ -1191,7 +1192,7 @@ bool DistanceConstraint::solvePositionConstraint(SimulationModel &model, const u
 	Vector3r corr1, corr2;
 	const bool res = PositionBasedDynamics::solve_DistanceConstraint(
 		x1, invMass1, x2, invMass2,
-		m_restLength, model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS), model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS), corr1, corr2);
+		m_restLength, m_stiffness, corr1, corr2);
 
 	if (res)
 	{
@@ -1206,8 +1207,9 @@ bool DistanceConstraint::solvePositionConstraint(SimulationModel &model, const u
 //////////////////////////////////////////////////////////////////////////
 // DistanceConstraint_XPBD
 //////////////////////////////////////////////////////////////////////////
-bool DistanceConstraint_XPBD::initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2)
+bool DistanceConstraint_XPBD::initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_lambda = 0.0;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
@@ -1241,7 +1243,7 @@ bool DistanceConstraint_XPBD::solvePositionConstraint(SimulationModel& model, co
 	Vector3r corr1, corr2;
 	const bool res = XPBD::solve_DistanceConstraint(
 		x1, invMass1, x2, invMass2,
-		m_restLength, model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS), dt, m_lambda,
+		m_restLength, m_stiffness, dt, m_lambda,
 		corr1, corr2);
 
 	if (res)
@@ -1259,8 +1261,9 @@ bool DistanceConstraint_XPBD::solvePositionConstraint(SimulationModel& model, co
 //////////////////////////////////////////////////////////////////////////
 
 bool DihedralConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-										const unsigned int particle3, const unsigned int particle4)
+										const unsigned int particle3, const unsigned int particle4, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1317,7 +1320,7 @@ bool DihedralConstraint::solvePositionConstraint(SimulationModel &model, const u
 	const bool res = PositionBasedDynamics::solve_DihedralConstraint(
 		x1, invMass1, x2, invMass2, x3, invMass3, x4, invMass4,
 		m_restAngle,
-		model.getValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS),
+		m_stiffness,
 		corr1, corr2, corr3, corr4);
 
 	if (res)
@@ -1339,8 +1342,9 @@ bool DihedralConstraint::solvePositionConstraint(SimulationModel &model, const u
 // IsometricBendingConstraint
 //////////////////////////////////////////////////////////////////////////
 bool IsometricBendingConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-												const unsigned int particle3, const unsigned int particle4)
+												const unsigned int particle3, const unsigned int particle4, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1379,7 +1383,7 @@ bool IsometricBendingConstraint::solvePositionConstraint(SimulationModel &model,
 	const bool res = PositionBasedDynamics::solve_IsometricBendingConstraint(
 		x1, invMass1, x2, invMass2, x3, invMass3, x4, invMass4,
 		m_Q,
-		model.getValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS),
+		m_stiffness,
 		corr1, corr2, corr3, corr4);
 
 	if (res)
@@ -1400,9 +1404,10 @@ bool IsometricBendingConstraint::solvePositionConstraint(SimulationModel &model,
 // IsometricBendingConstraint_XPBD
 //////////////////////////////////////////////////////////////////////////
 bool IsometricBendingConstraint_XPBD::initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2,
-	const unsigned int particle3, const unsigned int particle4)
+		const unsigned int particle3, const unsigned int particle4, const Real stiffness)
 {
 	m_lambda = 0.0;
+	m_stiffness = stiffness;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1446,7 +1451,7 @@ bool IsometricBendingConstraint_XPBD::solvePositionConstraint(SimulationModel& m
 	const bool res = XPBD::solve_IsometricBendingConstraint(
 		x1, invMass1, x2, invMass2, x3, invMass3, x4, invMass4,
 		m_Q, 
-		model.getValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS),
+		m_stiffness,
 		dt, m_lambda, 
 		corr1, corr2, corr3, corr4);
 
@@ -1468,8 +1473,14 @@ bool IsometricBendingConstraint_XPBD::solvePositionConstraint(SimulationModel& m
 // FEMTriangleConstraint
 //////////////////////////////////////////////////////////////////////////
 bool FEMTriangleConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-	const unsigned int particle3)
+	const unsigned int particle3, const Real xxStiffness, const Real yyStiffness, const Real xyStiffness,
+	const Real xyPoissonRatio, const Real yxPoissonRatio)
 {
+	m_xxStiffness = xxStiffness;
+	m_yyStiffness = yyStiffness;
+	m_xyStiffness = xyStiffness;
+	m_xyPoissonRatio = xyPoissonRatio;
+	m_yxPoissonRatio = yxPoissonRatio;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1506,11 +1517,11 @@ bool FEMTriangleConstraint::solvePositionConstraint(SimulationModel &model, cons
 		x3, invMass3,
 		m_area,
 		m_invRestMat,
-		model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS_XX),
-		model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS_YY),
-		model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS_XY),
-		model.getValue<Real>(SimulationModel::CLOTH_POISSON_RATIO_XY),
-		model.getValue<Real>(SimulationModel::CLOTH_POISSON_RATIO_YX),
+		m_xxStiffness,
+		m_yyStiffness,
+		m_xyStiffness,
+		m_xyPoissonRatio,
+		m_yxPoissonRatio,
 		corr1, corr2, corr3);
 
 	if (res)
@@ -1530,8 +1541,14 @@ bool FEMTriangleConstraint::solvePositionConstraint(SimulationModel &model, cons
 // StrainTriangleConstraint
 //////////////////////////////////////////////////////////////////////////
 bool StrainTriangleConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-	const unsigned int particle3)
+	const unsigned int particle3, const Real xxStiffness, const Real yyStiffness, const Real xyStiffness,
+	const bool normalizeStretch, const bool normalizeShear)
 {
+	m_xxStiffness = xxStiffness;
+	m_yyStiffness = yyStiffness;
+	m_xyStiffness = xyStiffness;
+	m_normalizeStretch = normalizeStretch;
+	m_normalizeShear = normalizeShear;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1572,11 +1589,11 @@ bool StrainTriangleConstraint::solvePositionConstraint(SimulationModel &model, c
 		x2, invMass2,
 		x3, invMass3,
 		m_invRestMat,
-		model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS_XX),
-		model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS_YY),
-		model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS_XY),
-		model.getValue<bool>(SimulationModel::CLOTH_NORMALIZE_STRETCH),
-		model.getValue<bool>(SimulationModel::CLOTH_NORMALIZE_SHEAR),
+		m_xxStiffness,
+		m_yyStiffness,
+		m_xyStiffness,
+		m_normalizeStretch,
+		m_normalizeShear,
 		corr1, corr2, corr3);
 
 	if (res)
@@ -1597,8 +1614,9 @@ bool StrainTriangleConstraint::solvePositionConstraint(SimulationModel &model, c
 //////////////////////////////////////////////////////////////////////////
 
 bool VolumeConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-	const unsigned int particle3, const unsigned int particle4)
+	const unsigned int particle3, const unsigned int particle4, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1640,8 +1658,7 @@ bool VolumeConstraint::solvePositionConstraint(SimulationModel &model, const uns
 		x3, invMass3,
 		x4, invMass4,
 		m_restVolume,
-		model.getValue<Real>(SimulationModel::SOLID_STIFFNESS),
-		model.getValue<Real>(SimulationModel::SOLID_STIFFNESS),
+		m_stiffness,
 		corr1, corr2, corr3, corr4);
 
 	if (res)
@@ -1663,8 +1680,9 @@ bool VolumeConstraint::solvePositionConstraint(SimulationModel &model, const uns
 //////////////////////////////////////////////////////////////////////////
 
 bool VolumeConstraint_XPBD::initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2,
-	const unsigned int particle3, const unsigned int particle4)
+	const unsigned int particle3, const unsigned int particle4, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_lambda = 0.0;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
@@ -1712,7 +1730,7 @@ bool VolumeConstraint_XPBD::solvePositionConstraint(SimulationModel& model, cons
 		x3, invMass3,
 		x4, invMass4,
 		m_restVolume,
-		model.getValue<Real>(SimulationModel::SOLID_STIFFNESS),
+		m_stiffness,
 		dt, m_lambda,
 		corr1, corr2, corr3, corr4);
 
@@ -1734,8 +1752,11 @@ bool VolumeConstraint_XPBD::solvePositionConstraint(SimulationModel& model, cons
 // FEMTetConstraint
 //////////////////////////////////////////////////////////////////////////
 bool FEMTetConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4)
+									const unsigned int particle3, const unsigned int particle4, 
+									const Real stiffness, const Real poissonRatio)
 {
+	m_stiffness = stiffness;
+	m_poissonRatio = poissonRatio;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1784,8 +1805,8 @@ bool FEMTetConstraint::solvePositionConstraint(SimulationModel &model, const uns
 		x4, invMass4,
 		m_volume,
 		m_invRestMat,
-		model.getValue<Real>(SimulationModel::SOLID_STIFFNESS),
-		model.getValue<Real>(SimulationModel::SOLID_POISSON_RATIO), handleInversion,
+		m_stiffness,
+		m_poissonRatio, handleInversion,
 		corr1, corr2, corr3, corr4);
 
 	if (res)
@@ -1807,8 +1828,14 @@ bool FEMTetConstraint::solvePositionConstraint(SimulationModel &model, const uns
 // StrainTetConstraint
 //////////////////////////////////////////////////////////////////////////
 bool StrainTetConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-	const unsigned int particle3, const unsigned int particle4)
+	const unsigned int particle3, const unsigned int particle4, 
+	const Real stretchStiffness, const Real shearStiffness,
+	const bool normalizeStretch, const bool normalizeShear)
 {
+	m_stretchStiffness = stretchStiffness;
+	m_shearStiffness = shearStiffness;
+	m_normalizeStretch = normalizeStretch;
+	m_normalizeShear = normalizeShear;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = particle3;
@@ -1843,9 +1870,6 @@ bool StrainTetConstraint::solvePositionConstraint(SimulationModel &model, const 
 	const Real invMass3 = pd.getInvMass(i3);
 	const Real invMass4 = pd.getInvMass(i4);
 
-	const Real stiff = model.getValue<Real>(SimulationModel::SOLID_STIFFNESS);
-	Vector3r stiffness(stiff, stiff, stiff);
-
 	Vector3r corr1, corr2, corr3, corr4;
 	const bool res = PositionBasedDynamics::solve_StrainTetraConstraint(
 		x1, invMass1,
@@ -1853,10 +1877,10 @@ bool StrainTetConstraint::solvePositionConstraint(SimulationModel &model, const 
 		x3, invMass3,
 		x4, invMass4,
 		m_invRestMat,
-		stiffness,
-		stiffness,
-		model.getValue<bool>(SimulationModel::SOLID_NORMALIZE_STRETCH),
-		model.getValue<bool>(SimulationModel::SOLID_NORMALIZE_SHEAR),
+		m_stretchStiffness * Vector3r::Ones(),
+		m_shearStiffness * Vector3r::Ones(),
+		m_normalizeStretch,
+		m_normalizeShear,
 		corr1, corr2, corr3, corr4);
 
 	if (res)
@@ -1877,10 +1901,12 @@ bool StrainTetConstraint::solvePositionConstraint(SimulationModel &model, const 
 // ShapeMatchingConstraint
 //////////////////////////////////////////////////////////////////////////
 bool ShapeMatchingConstraint::initConstraint(SimulationModel &model, 
-			const unsigned int particleIndices[], const unsigned int numClusters[])
+			const unsigned int particleIndices[], const unsigned int numClusters[], 
+			const Real stiffness)
 {
+	m_stiffness = stiffness;
 	ParticleData &pd = model.getParticles();
-	for (unsigned int i = 0; i < m_numberOfBodies; i++)
+	for (unsigned int i = 0; i < numberOfBodies(); i++)
 	{
 		m_bodies[i] = particleIndices[i];
 		m_x0[i] = pd.getPosition0(m_bodies[i]);
@@ -1888,27 +1914,27 @@ bool ShapeMatchingConstraint::initConstraint(SimulationModel &model,
 		m_numClusters[i] = numClusters[i];
 	}
 
-	const bool res = PositionBasedDynamics::init_ShapeMatchingConstraint(m_x0, m_w, m_numberOfBodies, m_restCm, m_invRestMat);
+	const bool res = PositionBasedDynamics::init_ShapeMatchingConstraint(m_x0, m_w, numberOfBodies(), m_restCm);
 	return res;
 }
 
 bool ShapeMatchingConstraint::solvePositionConstraint(SimulationModel &model, const unsigned int iter)
 {
 	ParticleData &pd = model.getParticles();
-	for (unsigned int i = 0; i < m_numberOfBodies; i++)
+	for (unsigned int i = 0; i < numberOfBodies(); i++)
 	{
 		m_x[i] = pd.getPosition(m_bodies[i]);
 	}
 
 	const bool res = PositionBasedDynamics::solve_ShapeMatchingConstraint(
-		m_x0, m_x, m_w, m_numberOfBodies,
-		m_restCm, m_invRestMat,
-		model.getValue<Real>(SimulationModel::SOLID_STIFFNESS), false,
+		m_x0, m_x, m_w, numberOfBodies(),
+		m_restCm, 
+		m_stiffness, false,
 		m_corr);
 
 	if (res)
 	{
-		for (unsigned int i = 0; i < m_numberOfBodies; i++)
+		for (unsigned int i = 0; i < numberOfBodies(); i++)
 		{
 			// Important: Divide position correction by the number of clusters 
 			// which contain the vertex. 
@@ -2118,8 +2144,8 @@ bool ParticleTetContactConstraint::initConstraint(SimulationModel &model,
 		pd.getPosition(particleIndex),
 		pd.getVelocity(particleIndex),
 		m_invMasses,
-		m_x,
-		m_v,
+		m_x.data(),
+		m_v.data(),
 		bary, normal, 
 		m_constraintInfo);
 }
@@ -2143,7 +2169,7 @@ bool ParticleTetContactConstraint::solvePositionConstraint(SimulationModel &mode
 		pd.getInvMass(m_bodies[0]),
 		pd.getPosition(m_bodies[0]),
 		m_invMasses,
-		m_x,
+		m_x.data(),
 		m_bary,
 		m_constraintInfo,
 		m_lambda,
@@ -2191,8 +2217,8 @@ bool ParticleTetContactConstraint::solveVelocityConstraint(SimulationModel &mode
  		pd.getPosition(m_bodies[0]),
  		pd.getVelocity(m_bodies[0]),
  		m_invMasses,
- 		m_x,
- 		m_v,
+ 		m_x.data(),
+ 		m_v.data(),
 		m_bary, 
 		m_lambda,
  		m_frictionCoeff,
@@ -2219,8 +2245,13 @@ bool ParticleTetContactConstraint::solveVelocityConstraint(SimulationModel &mode
 //////////////////////////////////////////////////////////////////////////
 // StretchShearConstraint
 //////////////////////////////////////////////////////////////////////////
-bool StretchShearConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1)
+bool StretchShearConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, 
+	const unsigned int quaternion1, const Real stretchingStiffness,
+	const Real shearingStiffness1, const Real shearingStiffness2)
 {
+	m_stretchingStiffness = stretchingStiffness;
+	m_shearingStiffness1 = shearingStiffness1;
+	m_shearingStiffness2 = shearingStiffness2;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	m_bodies[2] = quaternion1;
@@ -2249,9 +2280,9 @@ bool StretchShearConstraint::solvePositionConstraint(SimulationModel &model, con
 	const Real invMass1 = pd.getInvMass(i1);
 	const Real invMass2 = pd.getInvMass(i2);
 	const Real invMassq1 = od.getInvMass(iq1);
-	Vector3r stiffness(model.getRodShearingStiffness1(), 
-					   model.getRodShearingStiffness2(), 
-					   model.getRodStretchingStiffness());
+	Vector3r stiffness(m_shearingStiffness1,
+						m_shearingStiffness2,
+						m_stretchingStiffness);
 
 	Vector3r corr1, corr2;
 	Quaternionr corrq1;
@@ -2278,8 +2309,13 @@ bool StretchShearConstraint::solvePositionConstraint(SimulationModel &model, con
 //////////////////////////////////////////////////////////////////////////
 // BendTwistConstraint
 //////////////////////////////////////////////////////////////////////////
-bool BendTwistConstraint::initConstraint(SimulationModel &model, const unsigned int quaternion1, const unsigned int quaternion2)
+bool BendTwistConstraint::initConstraint(SimulationModel &model, const unsigned int quaternion1, 
+	const unsigned int quaternion2, const Real twistingStiffness,
+	const Real bendingStiffness1, const Real bendingStiffness2)
 {
+	m_twistingStiffness = twistingStiffness;
+	m_bendingStiffness1 = bendingStiffness1;
+	m_bendingStiffness2 = bendingStiffness2;
 	m_bodies[0] = quaternion1;
 	m_bodies[1] = quaternion2;
 	OrientationData &od = model.getOrientations();
@@ -2308,9 +2344,9 @@ bool BendTwistConstraint::solvePositionConstraint(SimulationModel &model, const 
 	Quaternionr &q2 = od.getQuaternion(i2);
 	const Real invMass1 = od.getInvMass(i1);
 	const Real invMass2 = od.getInvMass(i2);
-	Vector3r stiffness(model.getRodBendingStiffness1(), 
-					   model.getRodBendingStiffness2(), 
-					   model.getRodTwistingStiffness());
+	Vector3r stiffness(m_bendingStiffness1, 
+					   m_bendingStiffness2, 
+					   m_twistingStiffness);
 
 	Quaternionr corr1, corr2;
 	const bool res = PositionBasedCosseratRods::solve_BendTwistConstraint(
@@ -2506,9 +2542,7 @@ bool PBD::DirectPositionBasedSolverForStiffRodsConstraint::initConstraint(
 		uniqueSegmentIndices.insert(idxPair.second);
 	}
 
-	delete[] m_bodies;
-	m_numberOfBodies = (unsigned int)uniqueSegmentIndices.size();
-	m_bodies = new unsigned int[m_numberOfBodies];
+	m_bodies.resize(uniqueSegmentIndices.size());
 
 	// initialize m_bodies for constraint colouring algorithm of multi threading implementation
 

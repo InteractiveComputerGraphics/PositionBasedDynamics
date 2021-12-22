@@ -79,7 +79,6 @@ int main( int argc, char **argv )
 	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
 
 	exePath = FileSystem::getProgramPath();
-	dataPath = exePath + "/" + std::string(PBD_DATA_PATH);
 
 	// OpenGL
 	MiniGL::init (argc, argv, 1280, 1024, "Fluid demo");

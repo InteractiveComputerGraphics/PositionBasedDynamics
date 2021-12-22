@@ -55,12 +55,15 @@ void IndexedTetMesh::addTet(const int * const indices)
 void IndexedTetMesh::buildNeighbors()
 {
 	typedef std::vector<unsigned int> VertexEdges;
-	typedef std::vector<unsigned int> VertexFaces;
-	typedef std::vector<unsigned int> VertexTets;
 
-	VertexEdges* vEdges = new VertexEdges[numVertices()];
-	VertexFaces* vFaces = new VertexFaces[numVertices()];
-	VertexTets* vTets = new VertexTets[numVertices()];
+	m_verticesEdges.clear(); // to delete old pointers
+	m_verticesEdges.resize(numVertices());
+
+	m_verticesFaces.clear(); // to delete old pointers
+	m_verticesFaces.resize(numVertices());
+
+	m_verticesTets.clear(); // to delete old pointers
+	m_verticesTets.resize(numVertices());
 
 	m_faces.clear();
 	m_edges.clear();
@@ -92,7 +95,7 @@ void IndexedTetMesh::buildNeighbors()
 		{
 			// add vertex-tet connection
 			const unsigned int vIndex = m_tetIndices[4*i+j];
-			vTets[vIndex].push_back(i);
+			m_verticesTets[vIndex].push_back(i);
 		}
 
 		for(unsigned int j=0u; j < 4; j++)
@@ -103,15 +106,15 @@ void IndexedTetMesh::buildNeighbors()
 			const unsigned int c = faces[j*3+2];
 			unsigned int face = 0xffffffff;
 			// find face
-			for(unsigned int k=0; k < vFaces[a].size(); k++)
+			for(unsigned int k=0; k < m_verticesFaces[a].size(); k++)
 			{
 				// Check if we already have this face in the list
-				const unsigned int& faceIndex = vFaces[a][k];
+				const unsigned int& faceIndex = m_verticesFaces[a][k];
 				if(((m_faceIndices[3*faceIndex] == a) || (m_faceIndices[3*faceIndex] == b) || (m_faceIndices[3*faceIndex] == c)) &&
 					((m_faceIndices[3*faceIndex+1] == a) || (m_faceIndices[3*faceIndex+1] == b) || (m_faceIndices[3*faceIndex+1] == c)) &&
 					((m_faceIndices[3*faceIndex+2] == a) || (m_faceIndices[3*faceIndex+2] == b) || (m_faceIndices[3*faceIndex+2] == c)))
 				{
-					face = vFaces[a][k];
+					face = m_verticesFaces[a][k];
 					break;
 				}
 			}
@@ -128,9 +131,9 @@ void IndexedTetMesh::buildNeighbors()
 				m_faces.push_back(f);
 
 				// add vertex-face connection				
-				vFaces[a].push_back(face);
-				vFaces[b].push_back(face);
-				vFaces[c].push_back(face);
+				m_verticesFaces[a].push_back(face);
+				m_verticesFaces[b].push_back(face);
+				m_verticesFaces[c].push_back(face);
 			}
 			else
 			{
@@ -148,14 +151,14 @@ void IndexedTetMesh::buildNeighbors()
 			const unsigned int b = edges[j*2+1];
 			unsigned int edge = 0xffffffff;
 			// find edge
-			for(unsigned int k=0; k < vEdges[a].size(); k++)
+			for(unsigned int k=0; k < m_verticesEdges[a].size(); k++)
 			{
 				// Check if we already have this edge in the list
-				const Edge& e = m_edges[vEdges[a][k]];
+				const Edge& e = m_edges[m_verticesEdges[a][k]];
 				if(((e.m_vert[0] == a) || (e.m_vert[0] == b)) &&
 					((e.m_vert[1] == a) || (e.m_vert[1] == b)))
 				{
-					edge = vEdges[a][k];
+					edge = m_verticesEdges[a][k];
 					break;
 				}
 			}
@@ -169,37 +172,11 @@ void IndexedTetMesh::buildNeighbors()
 				edge = (unsigned int) m_edges.size() - 1u;					
 
 				// add vertex-edge connection				
-				vEdges[a].push_back(edge);
-				vEdges[b].push_back(edge);
+				m_verticesEdges[a].push_back(edge);
+				m_verticesEdges[b].push_back(edge);
 			}
 			// append edge
 			m_tets[i].m_edges[j] = edge;
 		}
 	}
-
-	m_verticesEdges.clear(); // to delete old pointers
-	m_verticesEdges.resize(numVertices());
-	m_verticesFaces.clear(); // to delete old pointers
-	m_verticesFaces.resize(numVertices());
-	m_verticesTets.clear(); // to delete old pointers
-	m_verticesTets.resize(numVertices());
-	for(unsigned int i=0; i < numVertices(); i++)
-	{
-		m_verticesEdges[i].m_numEdges = (unsigned int) vEdges[i].size();
-		m_verticesEdges[i].m_eIndices = new unsigned int[m_verticesEdges[i].m_numEdges];
-		memcpy(m_verticesEdges[i].m_eIndices, vEdges[i].data(), sizeof(unsigned int)*m_verticesEdges[i].m_numEdges);
-
-		m_verticesFaces[i].m_numFaces = (unsigned int) vFaces[i].size();
-		m_verticesFaces[i].m_fIndices = new unsigned int[m_verticesFaces[i].m_numFaces];
-		memcpy(m_verticesFaces[i].m_fIndices, vFaces[i].data(), sizeof(unsigned int)*m_verticesFaces[i].m_numFaces);
-
-		m_verticesTets[i].m_numTets = (unsigned int) vTets[i].size();
-		m_verticesTets[i].m_tIndices = new unsigned int[m_verticesTets[i].m_numTets];
-		memcpy(m_verticesTets[i].m_tIndices, vTets[i].data(), sizeof(unsigned int)*m_verticesTets[i].m_numTets);
-	}
-
-	delete [] vEdges;
-	delete [] vFaces;
-	delete [] vTets;
-
 }

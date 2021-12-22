@@ -12,6 +12,7 @@
 #include "Utils/SystemInfo.h"
 #include "../Visualization/Visualization.h"
 #include "Simulation/DistanceFieldCollisionDetection.h"
+#include "Demos/Common/TweakBarParameters.h"
 
 INIT_LOGGING
 INIT_TIMING
@@ -109,6 +110,20 @@ void DemoBase::initParameters()
 
 }
 
+void DemoBase::createParameterGUI()
+{
+	TwRemoveAllVars(MiniGL::getTweakBar());
+	TweakBarParameters::cleanup();
+
+	MiniGL::initTweakBarParameters();
+
+	TweakBarParameters::createParameterGUI();
+	TweakBarParameters::createParameterObjectGUI(this);
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
+	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
+}
+
 void DemoBase::cleanup()
 {	
 	m_scene.m_rigidBodyData.clear();
@@ -134,9 +149,8 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 {
 	initParameters();
 	m_exePath = FileSystem::getProgramPath();
-	m_dataPath = FileSystem::normalizePath(getExePath() + "/" + std::string(PBD_DATA_PATH));
 
-	m_sceneFile = getDataPath() + "/scenes/DeformableSolidCollisionScene.json";
+	m_sceneFile = "";
 	setUseCache(true);
 	for (int i = 1; i < argc; i++)
 	{
@@ -171,6 +185,7 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 	LOG_DEBUG << "Git SHA1:    " << GIT_SHA1;
 	LOG_DEBUG << "Git status:  " << GIT_LOCAL_STATUS;
 	LOG_DEBUG << "Host name:   " << SystemInfo::getHostName();
+	LOG_INFO << "PositionBasedDynamics " << PBD_VERSION;
 
 	// OpenGL
 	MiniGL::init(argc, argv, 1280, 1024, demoName);
@@ -205,8 +220,8 @@ void DemoBase::readScene()
 
 void DemoBase::initShaders()
 {
-	std::string vertFile = m_dataPath + "/shaders/vs_smooth.glsl";
-	std::string fragFile = m_dataPath + "/shaders/fs_smooth.glsl";
+	std::string vertFile = m_exePath + "/resources/shaders/vs_smooth.glsl";
+	std::string fragFile = m_exePath + "/resources/shaders/fs_smooth.glsl";
 	m_shader.compileShaderFile(GL_VERTEX_SHADER, vertFile);
 	m_shader.compileShaderFile(GL_FRAGMENT_SHADER, fragFile);
 	m_shader.createAndLinkProgram();
@@ -218,8 +233,8 @@ void DemoBase::initShaders()
 	m_shader.addUniform("specular_factor");
 	m_shader.end();
 
-	vertFile = m_dataPath + "/shaders/vs_smoothTex.glsl";
-	fragFile = m_dataPath + "/shaders/fs_smoothTex.glsl";
+	vertFile = m_exePath + "/resources/shaders/vs_smoothTex.glsl";
+	fragFile = m_exePath + "/resources/shaders/fs_smoothTex.glsl";
 	m_shaderTex.compileShaderFile(GL_VERTEX_SHADER, vertFile);
 	m_shaderTex.compileShaderFile(GL_FRAGMENT_SHADER, fragFile);
 	m_shaderTex.createAndLinkProgram();
@@ -231,9 +246,9 @@ void DemoBase::initShaders()
 	m_shaderTex.addUniform("specular_factor");
 	m_shaderTex.end();
 
-	vertFile = m_dataPath + "/shaders/vs_flat.glsl";
-	std::string geomFile = m_dataPath + "/shaders/gs_flat.glsl";
-	fragFile = m_dataPath + "/shaders/fs_flat.glsl";
+	vertFile = m_exePath + "/resources/shaders/vs_flat.glsl";
+	std::string geomFile = m_exePath + "/resources/shaders/gs_flat.glsl";
+	fragFile = m_exePath + "/resources/shaders/fs_flat.glsl";
 	m_shaderFlat.compileShaderFile(GL_VERTEX_SHADER, vertFile);
 	m_shaderFlat.compileShaderFile(GL_GEOMETRY_SHADER, geomFile);
 	m_shaderFlat.compileShaderFile(GL_FRAGMENT_SHADER, fragFile);

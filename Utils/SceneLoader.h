@@ -213,6 +213,8 @@ namespace Utilities
 			bool m_solid_normalizeStretch;
 			bool m_solid_normalizeShear;
 
+			bool m_volume_stiffness;
+
 			std::vector<RigidBodyData> m_rigidBodyData;			
 			std::vector<TriangleModelData> m_triangleModelData;
 			std::vector<TetModelData> m_tetModelData;

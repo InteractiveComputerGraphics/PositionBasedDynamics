@@ -1,3 +1,11 @@
+2.0.1
+	- extended and modified Python interface
+	- more Python examples
+	- bugfixes
+	
+2.0.0
+	- added Python binding
+	- cleaned up demos
 	- added XPBD distance constraint
 	- added XPBD isometric bending constraint
 	- added XPBD volume constraint

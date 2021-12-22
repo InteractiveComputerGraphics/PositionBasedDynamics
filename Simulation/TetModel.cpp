@@ -12,6 +12,9 @@ TetModel::TetModel() :
 	m_visMesh(),
 	m_particleMesh()	
 {
+	m_initialX.setZero();
+	m_initialR.setIdentity();
+	m_initialScale.setOnes();
 	m_restitutionCoeff = static_cast<Real>(0.6);
 	m_frictionCoeff = static_cast<Real>(0.2);
 }
@@ -24,11 +27,6 @@ TetModel::~TetModel(void)
 void TetModel::cleanupModel()
 {
 	m_particleMesh.release();
-}
-
-TetModel::ParticleMesh &TetModel::getParticleMesh() 
-{
-	return m_particleMesh;
 }
 
 TetModel::SurfaceMesh &TetModel::getSurfaceMesh()

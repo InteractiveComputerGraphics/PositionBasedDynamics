@@ -15,7 +15,7 @@ set(PBD_DEMOS
 	StiffRodsDemos
 )
 
-if (NOT PBD_NO_DEMOS)
+if (NOT PBD_LIBS_ONLY)
 	foreach (_demo_name ${PBD_DEMOS})
 		option(Build_${_demo_name} "Build ${_demo_name}"	ON)
 		if (Build_${_demo_name})

@@ -2,6 +2,7 @@
 #define __INDEXEDTETMESH_H__
 
 #include <vector>
+#include <array>
 #include "Common/Common.h"
 
 namespace Utilities
@@ -11,75 +12,21 @@ namespace Utilities
 	public:
 		struct Edge
 		{
-			unsigned int m_vert[2];
+			std::array<unsigned int, 2> m_vert;
 		};
 
 		struct Face
 		{
 			// edge indices
-			unsigned int m_edges[3];
+			std::array<unsigned int, 3> m_edges;
 			// tet indices
-			unsigned int m_tets[2];
+			std::array<unsigned int, 2> m_tets;
 		};
 
 		struct Tet
 		{
-			unsigned int m_edges[6];
-			unsigned int m_faces[4];
-		};
-
-		// Stores the indices of each tet connected to a specific vertex
-		struct VertexTets
-		{
-			VertexTets()
-			{
-				m_tIndices = 0;
-				m_numTets = 0;
-			}
-
-			~VertexTets()
-			{
-				delete [] m_tIndices;
-			}
-
-			unsigned int m_numTets;
-			unsigned int* m_tIndices;
-		};
-
-		// Stores the indices of each face connected to a specific vertex
-		struct VertexFaces
-		{
-			VertexFaces()
-			{
-				m_fIndices = 0;
-				m_numFaces = 0;
-			}
-
-			~VertexFaces()
-			{
-				delete [] m_fIndices;
-			}
-
-			unsigned int m_numFaces;
-			unsigned int* m_fIndices;
-		};
-
-		// Stores the indices of each edge connected to a specific vertex
-		struct VertexEdges
-		{
-			VertexEdges()
-			{
-				m_eIndices = 0;
-				m_numEdges = 0;
-			}
-
-			~VertexEdges()
-			{
-				delete [] m_eIndices;
-			}
-
-			unsigned int m_numEdges;
-			unsigned int* m_eIndices;
+			std::array<unsigned int, 6> m_edges;
+			std::array<unsigned int, 4> m_faces;
 		};
 
 	public:
@@ -88,9 +35,9 @@ namespace Utilities
 		typedef std::vector<Tet> TetData;
 		typedef std::vector<Face> FaceData;
 		typedef std::vector<Edge> Edges;
-		typedef std::vector<VertexTets> VerticesTets;
-		typedef std::vector<VertexFaces> VerticesFaces;
-		typedef std::vector<VertexEdges> VerticesEdges;
+		typedef std::vector<std::vector<unsigned int>> VerticesTets;
+		typedef std::vector<std::vector<unsigned int>> VerticesFaces;
+		typedef std::vector<std::vector<unsigned int>> VerticesEdges;
 
 	protected:
 		unsigned int m_numPoints;

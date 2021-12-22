@@ -45,7 +45,7 @@ add_library(Simulation
 ############################################################
 # Discregrid
 ############################################################
-include_directories(${Discregrid_INCLUDE_DIR})
+target_include_directories(Simulation PUBLIC ${Discregrid_INCLUDE_DIR})
 if (TARGET Ext_Discregrid)
 	add_dependencies(Simulation Ext_Discregrid)
 endif()
@@ -54,15 +54,15 @@ endif()
 ############################################################
 # GenericParameters
 ############################################################
-include_directories(${GenericParameters_INCLUDE_DIR})
+target_include_directories(Simulation PUBLIC ${GenericParameters_INCLUDE_DIR})
 if(TARGET Ext_GenericParameters)
 	add_dependencies(Simulation Ext_GenericParameters)
 endif()
 
 find_package( Eigen3 REQUIRED )
-include_directories( ${EIGEN3_INCLUDE_DIR} )
+target_include_directories(Simulation PUBLIC ${EIGEN3_INCLUDE_DIR} )
 
-target_link_libraries(Simulation PositionBasedDynamics)
+target_link_libraries(Simulation PUBLIC PositionBasedDynamics)
 
 
 install(TARGETS Simulation

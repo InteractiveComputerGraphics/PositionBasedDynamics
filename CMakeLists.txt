@@ -13,8 +13,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(${PROJECT_PATH}/CMake/Common.cmake)
 
-add_definitions(-DPBD_DATA_PATH="../data")
-
 if (NOT WIN32)
 	message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 endif()
@@ -42,13 +40,12 @@ if ((DEFINED Discregrid_INCLUDE_DIR) AND (DEFINED Discregrid_DEBUG_LIB) AND (DEF
 else()
 	ExternalProject_Add(
 	   Ext_Discregrid
-	   PREFIX "${ExternalInstallDir}/Discregrid"
+	   PREFIX "${CMAKE_BINARY_DIR}/extern/Discregrid"
 	   GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
 	   GIT_TAG "0b69062ff9c56fbb6dcecd296652028bedbacf0e"
 	   INSTALL_DIR ${ExternalInstallDir}/Discregrid
 	   CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=${EXT_CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid
-	   -DBUILD_AS_SHARED_LIBS:BOOL=0
-	   -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR}
+	   -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR} -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
 	) 
 	ExternalProject_Get_Property(Ext_Discregrid INSTALL_DIR)
 	set(Discregrid_INCLUDE_DIR ${INSTALL_DIR}/include)
@@ -78,11 +75,16 @@ endif()
 add_subdirectory(PositionBasedDynamics)
 add_subdirectory(Simulation)
 add_subdirectory(Utils)
-if (NOT PBD_NO_DEMOS)
+if (NOT PBD_LIBS_ONLY)
+	include(DataCopyTargets)
 	add_subdirectory(extern/glfw)
 	add_subdirectory(extern/AntTweakBar)
 	add_subdirectory(extern/md5)
 	add_subdirectory(Demos)
+	if (USE_PYTHON_BINDINGS)
+		add_subdirectory(extern/pybind)
+		add_subdirectory(pyPBD)
+	endif ()
 endif()
 
 

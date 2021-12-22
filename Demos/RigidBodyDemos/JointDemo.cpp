@@ -238,7 +238,7 @@ void createBodyModel()
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
 
-	string fileName = FileSystem::normalizePath(base->getDataPath() + "/models/cube.obj");
+	string fileName = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
 	loadObj(fileName, vd, mesh, Vector3r(width, height, depth));

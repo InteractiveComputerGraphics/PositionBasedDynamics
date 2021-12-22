@@ -120,6 +120,10 @@ void TetMeshBSH::init(const Vector3r *vertices, const unsigned int numVertices, 
 	}
 }
 
+void TetMeshBSH::updateVertices(const Vector3r* vertices)
+{
+	m_vertices = vertices;
+}
 
 
 void BVHTest::traverse(PointCloudBSH const& b1, TetMeshBSH const& b2, TraversalCallback func)

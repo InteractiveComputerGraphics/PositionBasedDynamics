@@ -5,6 +5,7 @@
 #define _USE_MATH_DEFINES
 #include "math.h"
 #include <vector>
+#include <array>
 #include <list>
 #include <memory>
 #include "PositionBasedDynamics/DirectPositionBasedSolverForStiffRodsInterface.h"
@@ -16,17 +17,16 @@ namespace PBD
 	class Constraint
 	{
 	public: 
-		unsigned int m_numberOfBodies;
 		/** indices of the linked bodies */
-		unsigned int *m_bodies;
+		std::vector<unsigned int> m_bodies;
 
 		Constraint(const unsigned int numberOfBodies) 
 		{
-			m_numberOfBodies = numberOfBodies; 
-			m_bodies = new unsigned int[numberOfBodies]; 
+			m_bodies.resize(numberOfBodies); 
 		}
 
-		virtual ~Constraint() { delete[] m_bodies; };
+		unsigned int numberOfBodies() const { return static_cast<unsigned int>(m_bodies.size()); }
+		virtual ~Constraint() {};
 		virtual int &getTypeId() const = 0;
 
 		virtual bool initConstraintBeforeProjection(SimulationModel &model) { return true; };
@@ -257,11 +257,12 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Real m_restLength;
+		Real m_stiffness;
 
 		DistanceConstraint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2);
+		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -271,11 +272,12 @@ namespace PBD
 		static int TYPE_ID;
 		Real m_restLength;
 		Real m_lambda;
+		Real m_stiffness;
 
 		DistanceConstraint_XPBD() : Constraint(2) {}
 		virtual int& getTypeId() const { return TYPE_ID; }
 
-		virtual bool initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2);
+		virtual bool initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel& model, const unsigned int iter);
 	};
 
@@ -284,12 +286,13 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Real m_restAngle;
+		Real m_stiffness;
 
 		DihedralConstraint() : Constraint(4) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
+									const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 	
@@ -297,13 +300,14 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
+		Real m_stiffness;
 		Matrix4r m_Q;
 
 		IsometricBendingConstraint() : Constraint(4) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
+									const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -311,6 +315,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
+		Real m_stiffness;
 		Matrix4r m_Q;
 		Real m_lambda;
 
@@ -318,7 +323,7 @@ namespace PBD
 		virtual int& getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2,
-			const unsigned int particle3, const unsigned int particle4);
+					const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel& model, const unsigned int iter);
 	};
 
@@ -328,12 +333,18 @@ namespace PBD
 		static int TYPE_ID;
 		Real m_area;
 		Matrix2r m_invRestMat;
+		Real m_xxStiffness;
+		Real m_xyStiffness;
+		Real m_yyStiffness;
+		Real m_xyPoissonRatio;
+		Real m_yxPoissonRatio;
 
 		FEMTriangleConstraint() : Constraint(3) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-			const unsigned int particle3);
+			const unsigned int particle3, const Real xxStiffness, const Real yyStiffness, const Real xyStiffness, 
+			const Real xyPoissonRatio, const Real yxPoissonRatio);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -342,12 +353,18 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Matrix2r m_invRestMat;
+		Real m_xxStiffness;
+		Real m_xyStiffness;
+		Real m_yyStiffness;
+		bool m_normalizeStretch;
+		bool m_normalizeShear;
 
 		StrainTriangleConstraint() : Constraint(3) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-			const unsigned int particle3);
+			const unsigned int particle3, const Real xxStiffness, const Real yyStiffness, const Real xyStiffness, 
+			const bool normalizeStretch, const bool normalizeShear);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -355,13 +372,14 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
+		Real m_stiffness;
 		Real m_restVolume;
 
 		VolumeConstraint() : Constraint(4) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-								const unsigned int particle3, const unsigned int particle4);
+								const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -369,6 +387,7 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
+		Real m_stiffness;
 		Real m_restVolume;
 		Real m_lambda;
 
@@ -376,7 +395,7 @@ namespace PBD
 		virtual int& getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel& model, const unsigned int particle1, const unsigned int particle2,
-			const unsigned int particle3, const unsigned int particle4);
+			const unsigned int particle3, const unsigned int particle4, const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel& model, const unsigned int iter);
 	};
 
@@ -384,6 +403,8 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
+		Real m_stiffness;
+		Real m_poissonRatio;
 		Real m_volume;
 		Matrix3r m_invRestMat;
 
@@ -391,7 +412,8 @@ namespace PBD
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-									const unsigned int particle3, const unsigned int particle4);
+									const unsigned int particle3, const unsigned int particle4, 
+									const Real stiffness, const Real poissonRatio);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -399,13 +421,19 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
+		Real m_stretchStiffness;
+		Real m_shearStiffness;
 		Matrix3r m_invRestMat;
+		bool m_normalizeStretch;
+		bool m_normalizeShear;
 
 		StrainTetConstraint() : Constraint(4) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
 		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-			const unsigned int particle3, const unsigned int particle4);
+			const unsigned int particle3, const unsigned int particle4, 
+			const Real stretchStiffness, const Real shearStiffness, 
+			const bool normalizeStretch, const bool normalizeShear);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -413,8 +441,8 @@ namespace PBD
 	{
 	public:
 		static int TYPE_ID;
+		Real m_stiffness;
 		Vector3r m_restCm;
-		Matrix3r m_invRestMat;
 		Real *m_w;
 		Vector3r *m_x0;
 		Vector3r *m_x;
@@ -439,7 +467,7 @@ namespace PBD
 		}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		virtual bool initConstraint(SimulationModel &model, const unsigned int particleIndices[], const unsigned int numClusters[]);
+		virtual bool initConstraint(SimulationModel &model, const unsigned int particleIndices[], const unsigned int numClusters[], const Real stiffness);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -448,7 +476,7 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		/** indices of the linked bodies */
-		unsigned int m_bodies[2];
+		std::array<unsigned int, 2> m_bodies;
 		Real m_stiffness; 
 		Real m_frictionCoeff;
 		Real m_sum_impulses;
@@ -470,7 +498,7 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		/** indices of the linked bodies */
-		unsigned int m_bodies[2];
+		std::array<unsigned int, 2> m_bodies;
 		Real m_stiffness;
 		Real m_frictionCoeff;
 		Real m_sum_impulses;
@@ -492,7 +520,7 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		/** indices of the linked bodies */
-		unsigned int m_bodies[2];
+		std::array<unsigned int, 2> m_bodies;
 		unsigned int m_solidIndex;
 		unsigned int m_tetIndex; 
 		Vector3r m_bary;
@@ -500,8 +528,8 @@ namespace PBD
 		Real m_frictionCoeff;
 		Eigen::Matrix<Real, 3, 3, Eigen::DontAlign> m_constraintInfo;
 		Real m_invMasses[4];
-		Vector3r m_x[4];
-		Vector3r m_v[4];
+		std::array<Vector3r, 4> m_x;
+		std::array<Vector3r, 4> m_v;
 
 		ParticleTetContactConstraint() { }
 		~ParticleTetContactConstraint() {}
@@ -521,11 +549,16 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Real m_restLength;
+		Real m_shearingStiffness1;
+		Real m_shearingStiffness2;
+		Real m_stretchingStiffness;
 
 		StretchShearConstraint() : Constraint(3) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const unsigned int quaternion1);
+		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, 
+			const unsigned int quaternion1, const Real stretchingStiffness, 
+			const Real shearingStiffness1, const Real shearingStiffness2);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
@@ -534,11 +567,16 @@ namespace PBD
 	public:
 		static int TYPE_ID;
 		Quaternionr m_restDarbouxVector;
+		Real m_bendingStiffness1;
+		Real m_bendingStiffness2;
+		Real m_twistingStiffness;
 
 		BendTwistConstraint() : Constraint(2) {}
 		virtual int &getTypeId() const { return TYPE_ID; }
 
-		virtual bool initConstraint(SimulationModel &model, const unsigned int quaternion1, const unsigned int quaternion2);
+		virtual bool initConstraint(SimulationModel &model, const unsigned int quaternion1, 
+			const unsigned int quaternion2, const Real twistingStiffness,
+			const Real bendingStiffness1, const Real bendingStiffness2);
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 

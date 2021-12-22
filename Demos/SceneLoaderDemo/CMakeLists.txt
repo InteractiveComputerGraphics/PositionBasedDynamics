@@ -1,5 +1,5 @@
 set(SIMULATION_LINK_LIBRARIES AntTweakBar glfw MD5 PositionBasedDynamics Simulation Utils)
-set(SIMULATION_DEPENDENCIES AntTweakBar glfw MD5 PositionBasedDynamics Simulation Utils)
+set(SIMULATION_DEPENDENCIES AntTweakBar glfw MD5 PositionBasedDynamics Simulation Utils CopyPBDShaders)
 
 if(WIN32)
   set(SIMULATION_LINK_LIBRARIES opengl32.lib glu32.lib ${SIMULATION_LINK_LIBRARIES})

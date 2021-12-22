@@ -14,20 +14,20 @@ GenericConstraintsModel::~GenericConstraintsModel(void)
 {
 }
 
-bool GenericConstraintsModel::addGenericDistanceConstraint(const unsigned int particle1, const unsigned int particle2)
+bool GenericConstraintsModel::addGenericDistanceConstraint(const unsigned int particle1, const unsigned int particle2, const Real stiffness)
 {
 	GenericDistanceConstraint *c = new GenericDistanceConstraint();
-	const bool res = c->initConstraint(*this, particle1, particle2);
+	const bool res = c->initConstraint(*this, particle1, particle2, stiffness);
 	if (res)
 		m_constraints.push_back(c);
 	return res;
 }
 
 bool GenericConstraintsModel::addGenericIsometricBendingConstraint(const unsigned int particle1, const unsigned int particle2,
-				const unsigned int particle3, const unsigned int particle4)
+				const unsigned int particle3, const unsigned int particle4, const Real stiffness)
 {
 	GenericIsometricBendingConstraint *c = new GenericIsometricBendingConstraint();
-	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4);
+	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4, stiffness);
 	if (res)
 		m_constraints.push_back(c);
 	return res;

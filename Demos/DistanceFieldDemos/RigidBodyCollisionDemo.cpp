@@ -204,29 +204,29 @@ void createBodyModel()
 	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model->getConstraints();
 
-	string fileNameBox = FileSystem::normalizePath(base->getDataPath() + "/models/cube.obj");
+	string fileNameBox = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube.obj");
 	IndexedFaceMesh meshBox;
 	VertexData vdBox;
 	loadObj(fileNameBox, vdBox, meshBox, Vector3r::Ones());
 	meshBox.setFlatShading(true);
 
-	string fileNameCylinder = FileSystem::normalizePath(base->getDataPath() + "/models/cylinder.obj");
+	string fileNameCylinder = FileSystem::normalizePath(base->getExePath() + "/resources/models/cylinder.obj");
 	IndexedFaceMesh meshCylinder;
 	VertexData vdCylinder;
 	loadObj(fileNameCylinder, vdCylinder, meshCylinder, Vector3r::Ones());
 
-	string fileNameTorus = FileSystem::normalizePath(base->getDataPath() + "/models/torus.obj");
+	string fileNameTorus = FileSystem::normalizePath(base->getExePath() + "/resources/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
 	loadObj(fileNameTorus, vdTorus, meshTorus, Vector3r::Ones());
 
-	string fileNameCube = FileSystem::normalizePath(base->getDataPath() + "/models/cube_5.obj");
+	string fileNameCube = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube_5.obj");
 	IndexedFaceMesh meshCube;
 	VertexData vdCube;
 	loadObj(fileNameCube, vdCube, meshCube, Vector3r::Ones());
 	meshCube.setFlatShading(true);
 
-	string fileNameSphere = FileSystem::normalizePath(base->getDataPath() + "/models/sphere.obj");
+	string fileNameSphere = FileSystem::normalizePath(base->getExePath() + "/resources/models/sphere.obj");
 	IndexedFaceMesh meshSphere;
 	VertexData vdSphere;
 	loadObj(fileNameSphere, vdSphere, meshSphere, 2.0*Vector3r::Ones());
@@ -260,10 +260,10 @@ void createBodyModel()
 		vdBox, meshBox, Vector3r(100.0, 1.0, 100.0));
 	rb[rbIndex]->setMass(0.0);
 
-	const std::vector<Vector3r> *vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
-	const unsigned int nVert = static_cast<unsigned int>(vertices->size());
+	const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
+	const unsigned int nVert = static_cast<unsigned int>(vertices.size());
 
-	cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, Vector3r(100.0, 1.0, 100.0));
+	cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector3r(100.0, 1.0, 100.0));
 	rbIndex++;
 
 	Real current_z = startz_piles;
@@ -280,9 +280,9 @@ void createBodyModel()
 				Vector3r(0.5, 10.0, 0.5));
 			rb[rbIndex]->setMass(0.0);
 
-			const std::vector<Vector3r> *vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
-			const unsigned int nVert = static_cast<unsigned int>(vertices->size());
-			cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, Vector2r(0.5, 10.0));
+			const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
+			const unsigned int nVert = static_cast<unsigned int>(vertices.size());
+			cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(0.5, 10.0));
 			current_x += dx_piles;
 			rbIndex++;
 		}
@@ -319,9 +319,9 @@ void createBodyModel()
 						vdTorus, meshTorus,
 						Vector3r(2.0, 2.0, 2.0));
 					
-					const std::vector<Vector3r> *vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
-					const unsigned int nVert = static_cast<unsigned int>(vertices->size());
-					cd.addCollisionTorus(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, Vector2r(2.0, 1.0));
+					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
+					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
+					cd.addCollisionTorus(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(2.0, 1.0));
 				}
 				else if (currentType == 1)
 				{
@@ -331,9 +331,9 @@ void createBodyModel()
 						vdCube, meshCube, 
 						Vector3r(4.0, 1.0, 1.0));
 
-					const std::vector<Vector3r> *vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
-					const unsigned int nVert = static_cast<unsigned int>(vertices->size());
-					cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, Vector3r(4.0, 1.0, 1.0));
+					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
+					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
+					cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector3r(4.0, 1.0, 1.0));
 				}
 				else if (currentType == 2)
 				{
@@ -342,9 +342,9 @@ void createBodyModel()
 						q, //Quaternionr(1.0, 0.0, 0.0, 0.0),
 						vdSphere, meshSphere);
 
-					const std::vector<Vector3r> *vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
-					const unsigned int nVert = static_cast<unsigned int>(vertices->size());
-					cd.addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, 2.0);
+					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
+					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
+					cd.addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, 2.0);
 				}
 				else if (currentType == 3)
 				{
@@ -354,9 +354,9 @@ void createBodyModel()
 						vdCylinder, meshCylinder, 
 						Vector3r(0.75, 5.0, 0.75));
 
-					const std::vector<Vector3r> *vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
-					const unsigned int nVert = static_cast<unsigned int>(vertices->size());
-					cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, &(*vertices)[0], nVert, Vector2r(0.75, 5.0));
+					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
+					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
+					cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(0.75, 5.0));
 			}
 				currentType = (currentType + 1) % 4;
 				current_z += dz_bodies;

@@ -16,7 +16,6 @@ namespace PBD
 	protected:
 		unsigned int m_numberOfStepsPerRenderUpdate;
 		std::string m_exePath;
-		std::string m_dataPath;
 		std::string m_outputPath;
 		std::string m_sceneFile;
 		std::string m_sceneName;
@@ -87,6 +86,8 @@ namespace PBD
 
 		void init(int argc, char **argv, const char *demoName);
 
+		void createParameterGUI();
+
 		void render();
 		void cleanup();
 
@@ -98,7 +99,6 @@ namespace PBD
 		void setSceneLoader(Utilities::SceneLoader *sceneLoader) { m_sceneLoader = sceneLoader; }
 
 		const std::string& getExePath() const { return m_exePath; }
-		const std::string& getDataPath() const { return m_dataPath; }
 		const std::string& getSceneFile() const { return m_sceneFile; }
 		const std::string& getSceneName() const { return m_sceneName; }
 

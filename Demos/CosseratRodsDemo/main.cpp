@@ -51,6 +51,13 @@ const Real helixHeight = -5.0;
 const Real helixTotalAngle = static_cast<Real>(10.0*M_PI);
 const Matrix3r helixOrientation = AngleAxisr(-static_cast<Real>(0.5 * M_PI), Vector3r(0,1,0)).toRotationMatrix();
 bool drawFrames = false;
+Real shearingStiffness1 = 1.0;
+Real shearingStiffness2 = 1.0;
+Real stretchingStiffness = 1.0;
+Real bendingStiffness1 = 0.5;
+Real bendingStiffness2 = 0.5;
+Real twistingStiffness = 0.5;
+
 
 // main 
 int main( int argc, char **argv )
@@ -280,7 +287,7 @@ void createHelix(const Vector3r &position, const Matrix3r &orientation, Real rad
 		const unsigned int v1 = edges[i].m_vert[0] + offset;
 		const unsigned int v2 = edges[i].m_vert[1] + offset;
 		const unsigned int q1 = edges[i].m_quat + offsetQuaternions;
-		model->addStretchShearConstraint(v1, v2, q1);
+		model->addStretchShearConstraint(v1, v2, q1, stretchingStiffness, shearingStiffness1, shearingStiffness2);
 	}
 
 	//bendTwist constraints
@@ -288,7 +295,7 @@ void createHelix(const Vector3r &position, const Matrix3r &orientation, Real rad
 	{
 		const unsigned int q1 = edges[i].m_quat + offsetQuaternions;
 		const unsigned int q2 = edges[i + 1].m_quat + offsetQuaternions;
-		model->addBendTwistConstraint(q1, q2);
+		model->addBendTwistConstraint(q1, q2, twistingStiffness, bendingStiffness1, bendingStiffness2);
 	}
 	
 // 	LOG_INFO << "Number of particles: " << nPoints;
@@ -297,66 +304,66 @@ void createHelix(const Vector3r &position, const Matrix3r &orientation, Real rad
 
 void TW_CALL setStretchingStiffness(const void *value, void *clientData)
 {
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setRodStretchingStiffness(val);
+	stretchingStiffness = *(const Real *)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StretchShearConstraint, Real, &StretchShearConstraint::m_stretchingStiffness>(stretchingStiffness);
 }
 
 void TW_CALL getStretchingStiffness(void *value, void *clientData)
 {
-	*(Real *)(value) = ((SimulationModel*)clientData)->getRodStretchingStiffness();
+	*(Real *)(value) = stretchingStiffness;
 }
 
 void TW_CALL setShearingStiffness1(const void *value, void *clientData)
 {
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setRodShearingStiffness1(val);
+	shearingStiffness1 = *(const Real *)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StretchShearConstraint, Real, &StretchShearConstraint::m_shearingStiffness1>(shearingStiffness1);
 }
 
 void TW_CALL getShearingStiffness1(void *value, void *clientData)
 {
-	*(Real *)(value) = ((SimulationModel*)clientData)->getRodShearingStiffness1();
+	*(Real *)(value) = shearingStiffness1;
 }
 
 void TW_CALL setShearingStiffness2(const void *value, void *clientData)
 {
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setRodShearingStiffness2(val);
+	shearingStiffness2 = *(const Real *)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StretchShearConstraint, Real, &StretchShearConstraint::m_shearingStiffness2>(shearingStiffness2);
 }
 
 void TW_CALL getShearingStiffness2(void *value, void *clientData)
 {
-	*(Real *)(value) = ((SimulationModel*)clientData)->getRodShearingStiffness2();
+	*(Real *)(value) = shearingStiffness2;
 }
 
 void TW_CALL setBendingStiffness1(const void *value, void *clientData)
 {
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setRodBendingStiffness1(val);
+	bendingStiffness1 = *(const Real *)(value);
+	((SimulationModel*)clientData)->setConstraintValue<BendTwistConstraint, Real, &BendTwistConstraint::m_bendingStiffness1>(bendingStiffness1);
 }
 
 void TW_CALL getBendingStiffness1(void *value, void *clientData)
 {
-	*(Real *)(value) = ((SimulationModel*)clientData)->getRodBendingStiffness1();
+	*(Real *)(value) = bendingStiffness1;
 }
 
 void TW_CALL setBendingStiffness2(const void *value, void *clientData)
 {
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setRodBendingStiffness2(val);
+	bendingStiffness2 = *(const Real *)(value);
+	((SimulationModel*)clientData)->setConstraintValue<BendTwistConstraint, Real, &BendTwistConstraint::m_bendingStiffness2>(bendingStiffness2);
 }
 
 void TW_CALL getBendingStiffness2(void *value, void *clientData)
 {
-	*(Real *)(value) = ((SimulationModel*)clientData)->getRodBendingStiffness2();
+	*(Real *)(value) = bendingStiffness2;
 }
 
 void TW_CALL setTwistingStiffness(const void *value, void *clientData)
 {
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setRodTwistingStiffness(val);
+	twistingStiffness = *(const Real *)(value);
+	((SimulationModel*)clientData)->setConstraintValue<BendTwistConstraint, Real, &BendTwistConstraint::m_twistingStiffness>(twistingStiffness);
 }
 
 void TW_CALL getTwistingStiffness(void *value, void *clientData)
 {
-	*(Real *)(value) = ((SimulationModel*)clientData)->getRodTwistingStiffness();
+	*(Real *)(value) = twistingStiffness;
 }

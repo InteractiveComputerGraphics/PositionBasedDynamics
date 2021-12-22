@@ -5,10 +5,16 @@ using namespace PBD;
 using namespace Utilities;
 
 int CollisionDetection::CollisionObjectWithoutGeometry::TYPE_ID = IDFactory::getId();
+const unsigned int CollisionDetection::RigidBodyContactType = 0;
+const unsigned int CollisionDetection::ParticleContactType = 1;
+const unsigned int CollisionDetection::ParticleRigidBodyContactType = 2;
+const unsigned int CollisionDetection::ParticleSolidContactType = 3;
 
+const unsigned int CollisionDetection::CollisionObject::RigidBodyCollisionObjectType = 0;
+const unsigned int CollisionDetection::CollisionObject::TriangleModelCollisionObjectType = 1;
+const unsigned int CollisionDetection::CollisionObject::TetModelCollisionObjectType = 2;
 
-CollisionDetection::CollisionDetection() :
-	m_collisionObjects()
+CollisionDetection::CollisionDetection() : m_collisionObjects()
 {
 	m_collisionObjects.reserve(1000);
 	m_contactCB = NULL;
@@ -29,31 +35,30 @@ void CollisionDetection::cleanup()
 }
 
 void CollisionDetection::addRigidBodyContact(const unsigned int rbIndex1, const unsigned int rbIndex2,
-	const Vector3r &cp1, const Vector3r &cp2, 
-	const Vector3r &normal, const Real dist, 
-	const Real restitutionCoeff, const Real frictionCoeff)
+											 const Vector3r &cp1, const Vector3r &cp2,
+											 const Vector3r &normal, const Real dist,
+											 const Real restitutionCoeff, const Real frictionCoeff)
 {
 	if (m_contactCB)
 		m_contactCB(RigidBodyContactType, rbIndex1, rbIndex2, cp1, cp2, normal, dist, restitutionCoeff, frictionCoeff, m_contactCBUserData);
 }
 
 void CollisionDetection::addParticleRigidBodyContact(const unsigned int particleIndex, const unsigned int rbIndex,
-	const Vector3r &cp1, const Vector3r &cp2,
-	const Vector3r &normal, const Real dist, 
-	const Real restitutionCoeff, const Real frictionCoeff)
+													 const Vector3r &cp1, const Vector3r &cp2,
+													 const Vector3r &normal, const Real dist,
+													 const Real restitutionCoeff, const Real frictionCoeff)
 {
 	if (m_contactCB)
 		m_contactCB(ParticleRigidBodyContactType, particleIndex, rbIndex, cp1, cp2, normal, dist, restitutionCoeff, frictionCoeff, m_contactCBUserData);
 }
 
-void CollisionDetection::addParticleSolidContact(const unsigned int particleIndex, const unsigned int solidIndex, 
-	const unsigned int tetIndex, const Vector3r &bary, const Vector3r &cp1, const Vector3r &cp2, 
-	const Vector3r &normal, const Real dist, const Real restitutionCoeff, const Real frictionCoeff)
+void CollisionDetection::addParticleSolidContact(const unsigned int particleIndex, const unsigned int solidIndex,
+												 const unsigned int tetIndex, const Vector3r &bary, const Vector3r &cp1, const Vector3r &cp2,
+												 const Vector3r &normal, const Real dist, const Real restitutionCoeff, const Real frictionCoeff)
 {
 	if (m_solidContactCB)
 		m_solidContactCB(ParticleSolidContactType, particleIndex, solidIndex, tetIndex, bary, cp1, cp2, normal, dist, restitutionCoeff, frictionCoeff, m_contactCBUserData);
 }
-
 
 void CollisionDetection::addCollisionObject(const unsigned int bodyIndex, const unsigned int bodyType)
 {
@@ -163,4 +168,3 @@ void CollisionDetection::updateAABB(const Vector3r &p, AABB &aabb)
 	if (aabb.m_p[1][2] < p[2])
 		aabb.m_p[1][2] = p[2];
 }
-

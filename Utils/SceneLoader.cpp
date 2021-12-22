@@ -203,6 +203,9 @@ void SceneLoader::readSimulation(const nlohmann::json &j, const std::string &key
 	// normalize
 	readValue(child, "solid_normalizeStretch", sceneData.m_solid_normalizeStretch);
 	readValue(child, "solid_normalizeShear", sceneData.m_solid_normalizeShear);
+
+	// volume stiffness
+	readValue(child, "volume_stiffness", sceneData.m_volume_stiffness);
 }
 
 void SceneLoader::readRigidBodies(const nlohmann::json &j, const std::string &key, const std::string &basePath, SceneData &sceneData)

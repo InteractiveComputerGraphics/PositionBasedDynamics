@@ -43,8 +43,9 @@ void GenericDistanceConstraint::gradientFct(
 	jacobian = n.transpose();
 }
 
-bool GenericDistanceConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2)
+bool GenericDistanceConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_bodies[0] = particle1;
 	m_bodies[1] = particle2;
 	ParticleData &pd = model.getParticles();
@@ -81,7 +82,7 @@ bool GenericDistanceConstraint::solvePositionConstraint(SimulationModel &model, 
 
 	if (res)
 	{
-		const Real stiffness = model.getValue<Real>(SimulationModel::CLOTH_STIFFNESS);
+		const Real stiffness = m_stiffness;
 		if (invMass1 != 0.0)
 			x1 += stiffness * corr[0];
 		if (invMass2 != 0.0)
@@ -114,8 +115,9 @@ void GenericIsometricBendingConstraint::constraintFct(
 }
 
 bool GenericIsometricBendingConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
-						const unsigned int particle3, const unsigned int particle4)
+						const unsigned int particle3, const unsigned int particle4, const Real stiffness)
 {
+	m_stiffness = stiffness;
 	m_bodies[0] = particle3;
 	m_bodies[1] = particle4;
 	m_bodies[2] = particle1;
@@ -191,15 +193,14 @@ bool GenericIsometricBendingConstraint::solvePositionConstraint(SimulationModel 
 
 	if (res)
 	{
-		const Real stiffness = model.getValue<Real>(SimulationModel::CLOTH_BENDING_STIFFNESS);
 		if (invMass0 != 0.0)
-			x0 += stiffness*corr[0];
+			x0 += m_stiffness*corr[0];
 		if (invMass1 != 0.0)
-			x1 += stiffness*corr[1];
+			x1 += m_stiffness *corr[1];
 		if (invMass2 != 0.0)
-			x2 += stiffness*corr[2];
+			x2 += m_stiffness *corr[2];
 		if (invMass3 != 0.0)
-			x3 += stiffness*corr[3];
+			x3 += m_stiffness *corr[3];
 	}
 	return res;
 }

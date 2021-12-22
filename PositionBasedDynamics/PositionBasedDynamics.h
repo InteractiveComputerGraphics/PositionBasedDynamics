@@ -21,8 +21,7 @@ namespace PBD
 		* @param p1 position of second particle
 		* @param invMass1 inverse mass of second particle
 		* @param restLength rest length of distance constraint
-		* @param compressionStiffness stiffness coefficient for compression
-		* @param stretchStiffness stiffness coefficient for stretching
+		* @param stiffness stiffness coefficient 
 		* @param corr0 position correction of first particle
 		* @param corr1 position correction of second particle
 		*/
@@ -30,8 +29,7 @@ namespace PBD
 			const Vector3r &p0, Real invMass0,
 			const Vector3r &p1, Real invMass1,
 			const Real restLength,
-			const Real compressionStiffness,
-			const Real stretchStiffness,
+			const Real stiffness,
 			Vector3r &corr0, Vector3r &corr1);
 
 
@@ -99,8 +97,7 @@ namespace PBD
 		* @param p3 position of fourth particle
 		* @param invMass3 inverse mass of fourth particle
 		* @param restVolume rest angle \f$V_0\f$
-		* @param negVolumeStiffness stiffness coefficient for compression
-		* @param posVolumeStiffness stiffness coefficient for stretching
+		* @param stiffness stiffness coefficient 
 		* @param corr0 position correction of first particle
 		* @param corr1 position correction of second particle
 		* @param corr2 position correction of third particle
@@ -112,8 +109,7 @@ namespace PBD
 			const Vector3r &p2, Real invMass2,
 			const Vector3r &p3, Real invMass3,
 			const Real restVolume,
-			const Real negVolumeStiffness,
-			const Real posVolumeStiffness,
+			const Real stiffness,
 			Vector3r &corr0, Vector3r &corr1, Vector3r &corr2, Vector3r &corr3);
 
 		/** Determine the position corrections for a constraint that preserves a 
@@ -261,11 +257,10 @@ namespace PBD
 		 * @param  invMasses inverse masses of all particles in the cluster
 		 * @param  numPoints number of particles in the cluster
 		 * @param  restCm returns the center of mass of the rest configuration
-		 * @param  invRestMat returns a matrix required by the solver
 		 */	
 		static bool init_ShapeMatchingConstraint(
 			const Vector3r x0[], const Real invMasses[], const int numPoints,
-			Vector3r &restCm, Matrix3r &invRestMat);
+			Vector3r &restCm);
 
 		/** Determine the position corrections for a shape matching constraint.\n\n
 		 * More information can be found in: \cite BMM2015, \cite BMOT2013, \cite BMOTM2014, 
@@ -276,7 +271,6 @@ namespace PBD
 		 * @param  invMasses	invMasses inverse masses of all particles in the cluster
 		 * @param  numPoints	number of particles in the cluster
 		 * @param  restCm		center of mass of the rest configuration
-		 * @param  invRestMat	matrix precomputed by init_ShapeMatchingConstraint()
 		 * @param  stiffness	stiffness coefficient 
 		 * @param  allowStretch allow stretching
 		 * @param  corr			position corrections for all particles in the cluster
@@ -285,7 +279,6 @@ namespace PBD
 		static bool solve_ShapeMatchingConstraint(
 			const Vector3r x0[], const Vector3r x[], const Real invMasses[], const int numPoints,
 			const Vector3r &restCm, 
-			const Matrix3r &invRestMat,
 			const Real stiffness,
 			const bool allowStretch,		// default false
 			Vector3r corr[], Matrix3r *rot = NULL);

@@ -25,28 +25,35 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
-void initParameters();
 void timeStep ();
 void buildModel ();
 void createMesh();
 void render ();
 void reset();
-void TW_CALL setStiffness(const void *value, void *clientData);
-void TW_CALL getStiffness(void *value, void *clientData);
-void TW_CALL setPoissonRatio(const void *value, void *clientData);
-void TW_CALL getPoissonRatio(void *value, void *clientData);
-void TW_CALL setNormalizeStretch(const void *value, void *clientData);
-void TW_CALL getNormalizeStretch(void *value, void *clientData);
-void TW_CALL setNormalizeShear(const void *value, void *clientData);
-void TW_CALL getNormalizeShear(void *value, void *clientData);
 void TW_CALL setSimulationMethod(const void *value, void *clientData);
 void TW_CALL getSimulationMethod(void *value, void *clientData);
+void TW_CALL setStiffness(const void* value, void* clientData);
+void TW_CALL getStiffness(void* value, void* clientData);
+void TW_CALL setPoissonRatio(const void* value, void* clientData);
+void TW_CALL getPoissonRatio(void* value, void* clientData);
+void TW_CALL setVolumeStiffness(const void* value, void* clientData);
+void TW_CALL getVolumeStiffness(void* value, void* clientData);
+void TW_CALL setNormalizeStretch(const void* value, void* clientData);
+void TW_CALL getNormalizeStretch(void* value, void* clientData);
+void TW_CALL setNormalizeShear(const void* value, void* clientData);
+void TW_CALL getNormalizeShear(void* value, void* clientData);
+
 
 DemoBase *base;
 const unsigned int width = 30;
 const unsigned int depth = 5;
 const unsigned int height = 5; 
 short simulationMethod = 2;
+Real stiffness = 1.0;
+Real poissonRatio = 0.3;
+bool normalizeStretch = false;
+bool normalizeShear = false;
+Real volumeStiffness = 1.0;
 
 // main 
 int main( int argc, char **argv )
@@ -62,7 +69,7 @@ int main( int argc, char **argv )
 
 	buildModel();
 
-	initParameters();
+	base->createParameterGUI();
 
 	// OpenGL
 	MiniGL::setClientIdleFunc (timeStep);		
@@ -73,12 +80,13 @@ int main( int argc, char **argv )
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod,
 			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}, 5 {XPBD volume constraints}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "Stiffness", TW_TYPE_REAL, setStiffness, getStiffness, model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Simulation' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "PoissonRatio", TW_TYPE_REAL, setPoissonRatio, getPoissonRatio, model, " label='Poisson ratio XY'  min=0.0 step=0.1 precision=4 group='Simulation' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Strain based dynamics' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "NormalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, model, " label='Normalize shear' group='Strain based dynamics' ");
-
+	TwAddVarCB(MiniGL::getTweakBar(), "stiffness", TW_TYPE_REAL, setStiffness, getStiffness, model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "poissonRatio", TW_TYPE_REAL, setPoissonRatio, getPoissonRatio, model, " label='Poisson ratio'  min=0.0 step=0.1 precision=4 group='Solid' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "normalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Solid' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "normalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, model, " label='Normalize shear' group='Solid' ");
+	TwAddVarCB(MiniGL::getTweakBar(), "volumeStiffness", TW_TYPE_REAL, setVolumeStiffness, getVolumeStiffness, model, " label='Volume stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
 	MiniGL::mainLoop();
+	base->cleanup();
 
 	Utilities::Timing::printAverageTimes();
 	Utilities::Timing::printTimeSums();
@@ -88,20 +96,6 @@ int main( int argc, char **argv )
 	delete model;
 
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -157,71 +151,11 @@ void render ()
 
 void createMesh()
 {
-	Vector3r points[width*height*depth];
-	for (unsigned int i = 0; i < width; i++)
-	{
-		for (unsigned int j = 0; j < height; j++)
-		{
-			for (unsigned int k = 0; k < depth; k++)
-			{
-				points[i*height*depth + j*depth + k] = 0.3*Vector3r((Real)i, (Real)j, (Real)k);
-			}
-		}
-	}
+	SimulationModel* model = Simulation::getCurrent()->getModel();
+	model->addRegularTetModel(width, height, depth,
+		Vector3r(5, 0, 0), Matrix3r::Identity(), Vector3r(10.0, 1.5, 1.5));
 
-	vector<unsigned int> indices;
-	for (unsigned int i = 0; i < width - 1; i++)
-	{
-		for (unsigned int j = 0; j < height - 1; j++)
-		{
-			for (unsigned int k = 0; k < depth - 1; k++)
-			{
-				// For each block, the 8 corners are numerated as:
-				//     4*-----*7
-				//     /|    /|
-				//    / |   / |
-				//  5*-----*6 |
-				//   | 0*--|--*3
-				//   | /   | /
-				//   |/    |/
-				//  1*-----*2
-				unsigned int p0 = i*height*depth + j*depth + k;
-				unsigned int p1 = p0 + 1;
-				unsigned int p3 = (i + 1)*height*depth + j*depth + k;
-				unsigned int p2 = p3 + 1;
-				unsigned int p7 = (i + 1)*height*depth + (j + 1)*depth + k;
-				unsigned int p6 = p7 + 1;
-				unsigned int p4 = i*height*depth + (j + 1)*depth + k;
-				unsigned int p5 = p4 + 1;
-
-				// Ensure that neighboring tetras are sharing faces
-				if ((i + j + k) % 2 == 1)
-				{
-					indices.push_back(p2); indices.push_back(p1); indices.push_back(p6); indices.push_back(p3);
-					indices.push_back(p6); indices.push_back(p3); indices.push_back(p4); indices.push_back(p7);
-					indices.push_back(p4); indices.push_back(p1); indices.push_back(p6); indices.push_back(p5);
-					indices.push_back(p3); indices.push_back(p1); indices.push_back(p4); indices.push_back(p0);
-					indices.push_back(p6); indices.push_back(p1); indices.push_back(p4); indices.push_back(p3);
-				}
-				else
-				{
-					indices.push_back(p0); indices.push_back(p2); indices.push_back(p5); indices.push_back(p1);
-					indices.push_back(p7); indices.push_back(p2); indices.push_back(p0); indices.push_back(p3);
-					indices.push_back(p5); indices.push_back(p2); indices.push_back(p7); indices.push_back(p6);
-					indices.push_back(p7); indices.push_back(p0); indices.push_back(p5); indices.push_back(p4);
-					indices.push_back(p0); indices.push_back(p2); indices.push_back(p7); indices.push_back(p5);
-				}
-			}
-		}
-	}
-	SimulationModel *model = Simulation::getCurrent()->getModel();
-	model->addTetModel(width*height*depth, (unsigned int)indices.size() / 4u, points, indices.data());
-
-	ParticleData &pd = model->getParticles();
-	for (unsigned int i = 0; i < pd.getNumberOfParticles(); i++)
-	{
-		pd.setMass(i, 1.0);
-	}
+	ParticleData& pd = model->getParticles();
 	for (unsigned int i = 0; i < 1; i++)
 	{
 		for (unsigned int j = 0; j < height; j++)
@@ -232,149 +166,23 @@ void createMesh()
 	}
 
 	// init constraints
-	model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 1.0);
-	model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 1.0);
+	stiffness = 1.0;
+	if (simulationMethod == 5)
+		stiffness = 100000;
+
+	volumeStiffness = 1.0;
+	if (simulationMethod == 5)
+		volumeStiffness = 100000;
 	for (unsigned int cm = 0; cm < model->getTetModels().size(); cm++)
 	{
-		const unsigned int nTets = model->getTetModels()[cm]->getParticleMesh().numTets();
-		const unsigned int *tets = model->getTetModels()[cm]->getParticleMesh().getTets().data();
-		const IndexedTetMesh::VertexTets *vTets = model->getTetModels()[cm]->getParticleMesh().getVertexTets().data();
-		if (simulationMethod == 1)
-		{
-			const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model->getTetModels()[cm]->getParticleMesh().numEdges();
-			const IndexedTetMesh::Edge *edges = model->getTetModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
+		model->addSolidConstraints(model->getTetModels()[cm], simulationMethod, stiffness, 
+			poissonRatio, volumeStiffness, normalizeStretch, normalizeShear);
 
-				model->addDistanceConstraint(v1, v2);
-			}
-			
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i];
-				const unsigned int v2 = tets[4 * i + 1];
-				const unsigned int v3 = tets[4 * i + 2];
-				const unsigned int v4 = tets[4 * i + 3];
-
-				model->addVolumeConstraint(v1, v2, v3, v4);
-			}
-		}
-		else if (simulationMethod == 2)
-		{
-			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i];
-				const unsigned int v2 = tets[4 * i + 1];
-				const unsigned int v3 = tets[4 * i + 2];
-				const unsigned int v4 = tets[4 * i + 3];
-
-				model->addFEMTetConstraint(v1, v2, v3, v4);
-			}
-		}
-		else if (simulationMethod == 3)
-		{
-			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i];
-				const unsigned int v2 = tets[4 * i + 1];
-				const unsigned int v3 = tets[4 * i + 2];
-				const unsigned int v4 = tets[4 * i + 3];
-
-				model->addStrainTetConstraint(v1, v2, v3, v4);
-			}
-		}
-		else if (simulationMethod == 4)
-		{
-			TetModel::ParticleMesh &mesh = model->getTetModels()[cm]->getParticleMesh();
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v[4] = { tets[4 * i], tets[4 * i + 1], tets[4 * i + 2], tets[4 * i + 3] };
-				// Important: Divide position correction by the number of clusters 
-				// which contain the vertex.
-				const unsigned int nc[4] = { vTets[v[0]].m_numTets, vTets[v[1]].m_numTets, vTets[v[2]].m_numTets, vTets[v[3]].m_numTets };
-				model->addShapeMatchingConstraint(4, v, nc);
-			}
-		}
-		else if (simulationMethod == 5)
-		{
-			model->setValue<Real>(SimulationModel::CLOTH_STIFFNESS, 100000);
-			model->setValue<Real>(SimulationModel::SOLID_STIFFNESS, 100000);
-			const unsigned int offset = model->getTetModels()[cm]->getIndexOffset();
-			const unsigned int nEdges = model->getTetModels()[cm]->getParticleMesh().numEdges();
-			const IndexedTetMesh::Edge* edges = model->getTetModels()[cm]->getParticleMesh().getEdges().data();
-			for (unsigned int i = 0; i < nEdges; i++)
-			{
-				const unsigned int v1 = edges[i].m_vert[0] + offset;
-				const unsigned int v2 = edges[i].m_vert[1] + offset;
-
-				model->addDistanceConstraint_XPBD(v1, v2);
-			}
-
-			for (unsigned int i = 0; i < nTets; i++)
-			{
-				const unsigned int v1 = tets[4 * i];
-				const unsigned int v2 = tets[4 * i + 1];
-				const unsigned int v3 = tets[4 * i + 2];
-				const unsigned int v4 = tets[4 * i + 3];
-
-				model->addVolumeConstraint_XPBD(v1, v2, v3, v4);
-			}
-		}
 		model->getTetModels()[cm]->updateMeshNormals(pd);
+
+		LOG_INFO << "Number of tets: " << model->getTetModels()[cm]->getParticleMesh().numTets();
+		LOG_INFO << "Number of vertices: " << width * height * depth;
 	}
-
-	LOG_INFO << "Number of tets: " << indices.size() / 4;
-	LOG_INFO << "Number of vertices: " << width*height*depth;
-
-}
-
-void TW_CALL setStiffness(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*) clientData)->setValue<Real>(SimulationModel::SOLID_STIFFNESS, val);
-}
-
-void TW_CALL getStiffness(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getValue<Real>(SimulationModel::SOLID_STIFFNESS);
-}
-
-void TW_CALL setPoissonRatio(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setValue<Real>(SimulationModel::SOLID_POISSON_RATIO, val);
-}
-
-void TW_CALL getPoissonRatio(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getValue<Real>(SimulationModel::SOLID_POISSON_RATIO);
-}
-
-void TW_CALL setNormalizeStretch(const void *value, void *clientData)
-{
-	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setValue<bool>(SimulationModel::SOLID_NORMALIZE_STRETCH, val);
-}
-
-void TW_CALL getNormalizeStretch(void *value, void *clientData)
-{
-	*(bool *)(value) = ((SimulationModel*)clientData)->getValue<bool>(SimulationModel::SOLID_NORMALIZE_STRETCH);
-}
-
-void TW_CALL setNormalizeShear(const void *value, void *clientData)
-{
-	const bool val = *(const bool *)(value);
-	((SimulationModel*)clientData)->setValue<bool>(SimulationModel::SOLID_NORMALIZE_SHEAR, val);
-}
-
-void TW_CALL getNormalizeShear(void *value, void *clientData)
-{
-	*(bool *)(value) = ((SimulationModel*)clientData)->getValue<bool>(SimulationModel::SOLID_NORMALIZE_SHEAR);
 }
 
 void TW_CALL setSimulationMethod(const void *value, void *clientData)
@@ -387,4 +195,65 @@ void TW_CALL setSimulationMethod(const void *value, void *clientData)
 void TW_CALL getSimulationMethod(void *value, void *clientData)
 {
 	*(short *)(value) = *((short*)clientData);
+}
+
+void TW_CALL setStiffness(const void* value, void* clientData)
+{
+	stiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_stiffness>(stiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_stretchStiffness>(stiffness);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_shearStiffness>(stiffness);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(stiffness);
+	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(stiffness);
+	((SimulationModel*)clientData)->setConstraintValue<ShapeMatchingConstraint, Real, &ShapeMatchingConstraint::m_stiffness>(stiffness);
+}
+
+void TW_CALL getStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = stiffness;
+}
+
+void TW_CALL setVolumeStiffness(const void* value, void* clientData)
+{
+	volumeStiffness = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<VolumeConstraint, Real, &VolumeConstraint::m_stiffness>(volumeStiffness);
+	((SimulationModel*)clientData)->setConstraintValue<VolumeConstraint_XPBD, Real, &VolumeConstraint_XPBD::m_stiffness>(volumeStiffness);
+}
+
+void TW_CALL getVolumeStiffness(void* value, void* clientData)
+{
+	*(Real*)(value) = volumeStiffness;
+}
+
+void TW_CALL getPoissonRatio(void* value, void* clientData)
+{
+	*(Real*)(value) = poissonRatio;
+}
+
+void TW_CALL setPoissonRatio(const void* value, void* clientData)
+{
+	poissonRatio = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_poissonRatio>(poissonRatio);
+}
+
+void TW_CALL getNormalizeStretch(void* value, void* clientData)
+{
+	*(bool*)(value) = normalizeStretch;
+}
+
+void TW_CALL setNormalizeStretch(const void* value, void* clientData)
+{
+	normalizeStretch = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeStretch>(normalizeStretch);
+}
+
+void TW_CALL getNormalizeShear(void* value, void* clientData)
+{
+	*(bool*)(value) = normalizeShear;
+}
+
+void TW_CALL setNormalizeShear(const void* value, void* clientData)
+{
+	normalizeShear = *(const Real*)(value);
+	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeShear>(normalizeShear);
 }
