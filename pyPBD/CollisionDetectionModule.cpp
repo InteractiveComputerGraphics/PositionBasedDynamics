@@ -168,7 +168,7 @@ void CollisionDetectionModule(py::module m_sub)
                         doubleVec[3 * i + j] = vd.getPosition(i)[j];
                 Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vd.size(), nFaces);
 #endif
-                Discregrid::MeshDistance md(sdfMesh);
+                Discregrid::TriangleMeshDistance md(sdfMesh);
                 Eigen::AlignedBox3d domain;
                 for (auto const& x : sdfMesh.vertices())
                 {
@@ -181,7 +181,7 @@ void CollisionDetectionModule(py::module m_sub)
                 //PBD::CubicSDFCollisionDetection::Grid *sdf = new PBD::CubicSDFCollisionDetection::Grid(domain, std::array<unsigned int, 3>({ resolution[0], resolution[1], resolution[2] }));
                 auto sdf = std::make_shared<PBD::CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ resolution[0], resolution[1], resolution[2] }));
                 auto func = Discregrid::DiscreteGrid::ContinuousFunction{};
-                func = [&md](Eigen::Vector3d const& xi) {return md.signedDistanceCached(xi); };
+                func = [&md](Eigen::Vector3d const& xi) {return md.signed_distance(xi).distance; };
                 std::cout << "Generate SDF\n";
                 sdf->addFunction(func, true);
                 return sdf;
