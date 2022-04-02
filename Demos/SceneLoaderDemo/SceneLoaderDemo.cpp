@@ -462,7 +462,7 @@ CubicSDFCollisionDetection::GridPtr generateSDF(const std::string &modelFile, co
 					doubleVec[3 * i + j] = vd.getPosition(i)[j];
 			Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vd.size(), nFaces);
 #endif
-			Discregrid::MeshDistance md(sdfMesh);
+			Discregrid::TriangleMeshDistance md(sdfMesh);
 			Eigen::AlignedBox3d domain;
 			for (auto const& x : sdfMesh.vertices())
 			{
@@ -474,7 +474,7 @@ CubicSDFCollisionDetection::GridPtr generateSDF(const std::string &modelFile, co
 			LOG_INFO << "Set SDF resolution: " << resolutionSDF[0] << ", " << resolutionSDF[1] << ", " << resolutionSDF[2];
 			distanceField = std::make_shared<CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ resolutionSDF[0], resolutionSDF[1], resolutionSDF[2] }));
 			auto func = Discregrid::DiscreteGrid::ContinuousFunction{};
-			func = [&md](Eigen::Vector3d const& xi) {return md.signedDistanceCached(xi); };
+			func = [&md](Eigen::Vector3d const& xi) {return md.signed_distance(xi).distance; };
 			LOG_INFO << "Generate SDF for " << modelFile;
 			distanceField->addFunction(func, true);
 			if (FileSystem::makeDir(cachePath) == 0)
@@ -620,7 +620,7 @@ void readScene(const bool readFile)
 								doubleVec[3 * i + j] = vd.getPosition(i)[j];
 						Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vd.size(), nFaces);
 #endif
-						Discregrid::MeshDistance md(sdfMesh);
+						Discregrid::TriangleMeshDistance md(sdfMesh);
 						Eigen::AlignedBox3d domain;
 						for (auto const& x : sdfMesh.vertices())
 						{
@@ -632,7 +632,7 @@ void readScene(const bool readFile)
 						LOG_INFO << "Set SDF resolution: " << rbd.m_resolutionSDF[0] << ", " << rbd.m_resolutionSDF[1] << ", " << rbd.m_resolutionSDF[2];
 						distanceFields[sdfFileName] = std::make_shared<CubicSDFCollisionDetection::Grid>(domain, std::array<unsigned int, 3>({ rbd.m_resolutionSDF[0], rbd.m_resolutionSDF[1], rbd.m_resolutionSDF[2] }));
 						auto func = Discregrid::DiscreteGrid::ContinuousFunction{};
-						func = [&md](Eigen::Vector3d const& xi) {return md.signedDistanceCached(xi); };
+						func = [&md](Eigen::Vector3d const& xi) {return md.signed_distance(xi).distance; };
 						LOG_INFO << "Generate SDF for " << rbd.m_modelFile;
 						distanceFields[sdfFileName]->addFunction(func, true);
 						if (FileSystem::makeDir(cachePath) == 0)
