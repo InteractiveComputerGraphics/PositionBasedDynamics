@@ -1,0 +1,76 @@
+{
+	"Name": "ClothCollisionScene1",
+	"Simulation": 
+	{
+		"timeStepSize": 0.005,
+		"maxIterations" : 1,
+		"subSteps": 2, 
+		"maxIterVel" : 5,
+		"velocityUpdateMethod" : 0,
+		"contactTolerance": 0.1,
+		"triangleModelSimulationMethod": 2,
+		"triangleModelBendingMethod": 2,
+		"contactStiffnessRigidBody" : 1.0,
+		"contactStiffnessParticleRigidBody": 100.0,
+		"cloth_stiffness": 1.0,
+		"cloth_bendingStiffness": 0.1,
+		"cloth_xxStiffness": 1.0,
+		"cloth_yyStiffness": 1.0,
+		"cloth_xyStiffness": 1.0,
+		"cloth_xyPoissonRatio": 0.3,
+		"cloth_yxPoissonRatio": 0.3,
+		"cloth_normalizeStretch": 0,
+		"cloth_normalizeShear": 0
+	},	
+	"TriangleModels": [
+		{
+			"id": 0,
+			"geometryFile": "../models/plane_50x50.obj",
+			"translation": [5,8,0],
+			"rotationAxis": [1, 0, 0],
+			"rotationAngle": 0.0,
+			"scale": [10, 10, 10],
+			"restitution" : 0.1,
+			"friction" : 0.1
+		}
+	],
+	"RigidBodies": [
+		{
+			"id": 1,
+			"geometryFile": "../models/cube.obj",
+			"flatShading": true,
+			"isDynamic": 0, 
+			"density": 500, 
+			"translation": [0,0,0],
+			"rotationAxis": [1, 0, 0],
+			"rotationAngle": 0.0,
+			"scale": [100, 1, 100],
+			"restitution" : 0.6,
+			"friction" : 0.0,
+			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
+			"collisionObjectType": 2,
+			"collisionObjectScale": [100, 1, 100]	
+		}, 
+		{
+			"id": 2,
+			"geometryFile": "../models/bunny_10k.obj",
+			"comment": "collisionObjectFileName can contain the path of an SDF file or if it is empty, the simulator will generate an SDF using the mesh in the geometryFile",
+			"collisionObjectFileName": "",
+			"resolutionSDF": [40,40,40],
+			"isDynamic": 1, 
+			"density": 500, 
+			"translation": [5,1,0],
+			"rotationAxis": [1, 0, 0],
+			"rotationAngle": 0.0,
+			"scale": [4, 4, 4],
+			"velocity": [0,0,0],
+			"restitution" : 0.6,
+			"friction" : 0.2,
+			"comment": "collisionObjectType = 1: Sphere, 2: Box, 3: Cylinder, 4: Torus, 5: SDF, 6: HollowSphere, 7: HollowBox", 
+			"collisionObjectType": 5,
+			"collisionObjectScale": [4, 4, 4]
+		}
+	]
+}
+
+
