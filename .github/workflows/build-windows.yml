@@ -15,7 +15,7 @@ jobs:
     steps:
     # Checkout repo
     - uses: actions/checkout@v1
-	# Configure, build and test
+    # Configure, build and test
     - name: configure
       run: mkdir build-release;cd build-release;cmake ..
       shell: pwsh
