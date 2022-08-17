@@ -1,6 +1,8 @@
 name: build-windows
 
-on: [push]
+on:
+  push:
+    branches: [ master ]
 
 jobs:
   build-windows:
@@ -8,10 +10,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, windows-2016]
+        os: [windows-latest]
 
     steps:
+    # Checkout repo
     - uses: actions/checkout@v1
+	# Configure, build and test
     - name: configure
       run: mkdir build-release;cd build-release;cmake ..
       shell: pwsh
@@ -25,7 +29,7 @@ jobs:
     strategy:
       matrix:
         # python-version: [3.7]
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10']
 
     steps:
     # Checkout repo
@@ -33,7 +37,7 @@ jobs:
 
     # Set up python
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
