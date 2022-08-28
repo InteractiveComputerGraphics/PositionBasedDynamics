@@ -106,14 +106,6 @@ f = open("version.txt", "r")
 pbd_version = f.readline().strip()
 f.close() 
 
-max_numpy_version = "1.19.3"
-install_requires = [f"numpy<={max_numpy_version}"]
-if platform.machine() == "arm64":
-    if platform.system() == "Darwin":
-        install_requires = ["numpy>=1.21.0"]
-    else:
-        install_requires = [f"numpy>=1.19.0,<={max_numpy_version}"]
-
 setup(
     name=name,
     version=pbd_version,
@@ -129,5 +121,5 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     packages=find_packages(),
     zip_safe=False,
-    install_requires=install_requires
+    install_requires=['numpy']
 )
