@@ -126,6 +126,27 @@ namespace PBD
 			const Real dt,
 			Real& lambda,
 			Vector3r& corr0, Vector3r& corr1, Vector3r& corr2, Vector3r& corr3);
+
+
+		/** XPBD implementation of the finite element method described in \n\n
+		* Jan Bender, Dan Koschier, Patrick Charrier and Daniel Weber, \n
+		* "Position-Based Simulation of Continuous Materials", \n
+		* Computers & Graphics 44, 2014\n\n
+		* Solve the continuum mechanical constraint defined for a tetrahedron.
+		*/
+		static bool solve_FEMTetraConstraint(
+			const Vector3r& p0, Real invMass0,
+			const Vector3r& p1, Real invMass1,
+			const Vector3r& p2, Real invMass2,
+			const Vector3r& p3, Real invMass3,
+			const Real restVolume,
+			const Matrix3r& invRestMat,
+			const Real youngsModulus,
+			const Real poissonRatio,
+			const bool  handleInversion,
+			const Real dt,
+			Real& lambda,
+			Vector3r& corr0, Vector3r& corr1, Vector3r& corr2, Vector3r& corr3);
 	};
 }
 

@@ -1,3 +1,7 @@
+2.1.0
+	- added XPBD FEM constraint for deformable solids
+	- updated to Eigen 3.4.0
+
 2.0.1
 	- extended and modified Python interface
 	- more Python examples

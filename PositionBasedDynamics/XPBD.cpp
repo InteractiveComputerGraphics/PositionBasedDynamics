@@ -1,4 +1,5 @@
 #include "XPBD.h"
+#include "PositionBasedDynamics.h"
 #include "MathFunctions.h"
 #include <cfloat>
 
@@ -211,3 +212,75 @@ bool XPBD::solve_IsometricBendingConstraint(
 	return false;
 }
 
+
+// ----------------------------------------------------------------------------------------------
+bool XPBD::solve_FEMTetraConstraint(
+	const Vector3r& p0, Real invMass0,
+	const Vector3r& p1, Real invMass1,
+	const Vector3r& p2, Real invMass2,
+	const Vector3r& p3, Real invMass3,
+	const Real restVolume,
+	const Matrix3r& invRestMat,
+	const Real youngsModulus,
+	const Real poissonRatio,
+	const bool  handleInversion,
+	const Real dt,
+	Real& multiplier,
+	Vector3r& corr0, Vector3r& corr1, Vector3r& corr2, Vector3r& corr3)
+{
+	corr0.setZero();
+	corr1.setZero();
+	corr2.setZero();
+	corr3.setZero();
+
+	if (youngsModulus <= 0.0)
+		return true;
+
+	if (poissonRatio < 0.0 || poissonRatio > 0.49)
+		return false;
+
+
+	Real C = 0.0;
+	Vector3r gradC[4];
+	Matrix3r epsilon, sigma;
+	Real volume = (p1 - p0).cross(p2 - p0).dot(p3 - p0) / static_cast<Real>(6.0);
+
+	Real mu = 1.0 / static_cast<Real>(2.0) / (static_cast<Real>(1.0) + poissonRatio);
+	Real lambda = 1.0 * poissonRatio / (static_cast<Real>(1.0) + poissonRatio) / (static_cast<Real>(1.0) - static_cast<Real>(2.0) * poissonRatio);
+
+	if (!handleInversion || volume > 0.0)
+	{
+		PositionBasedDynamics::computeGreenStrainAndPiolaStress(p0, p1, p2, p3, invRestMat, restVolume, mu, lambda, epsilon, sigma, C);
+		PositionBasedDynamics::computeGradCGreen(restVolume, invRestMat, sigma, gradC);
+	}
+	else
+	{
+		PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(p0, p1, p2, p3, invRestMat, restVolume, mu, lambda, epsilon, sigma, C);
+		PositionBasedDynamics::computeGradCGreen(restVolume, invRestMat, sigma, gradC);
+	}
+
+	C = sqrt(2.0 * C);
+
+	Real sum_normGradC =
+		invMass0 * gradC[0].squaredNorm() +
+		invMass1 * gradC[1].squaredNorm() +
+		invMass2 * gradC[2].squaredNorm() +
+		invMass3 * gradC[3].squaredNorm();
+
+	Real alpha = static_cast<Real>(1.0) / (youngsModulus * dt * dt);
+	sum_normGradC += C * C * alpha;
+
+	if (sum_normGradC < eps)
+		return false;
+
+	// compute scaling factor
+	//const Real s = C / sum_normGradC;
+	const Real s = (C * C + C * alpha * multiplier) / sum_normGradC;
+
+	corr0 = -s * invMass0 * gradC[0];
+	corr1 = -s * invMass1 * gradC[1];
+	corr2 = -s * invMass2 * gradC[2];
+	corr3 = -s * invMass3 * gradC[3];
+
+	return true;
+}

@@ -367,7 +367,6 @@ namespace PBD
 
 
 		// -------------- FEM Based PBD  -----------------------------------------------------
-	private:
 		static void computeGradCGreen(
 			Real restVolume, 
 			const Matrix3r &invRestMat, 
@@ -390,7 +389,11 @@ namespace PBD
 
 
 	public:
-		/** Initialize rest configuration infos which are required by the solver step.
+		/** Implementation of the finite element method described in \n\n
+		* Jan Bender, Dan Koschier, Patrick Charrier and Daniel Weber, \n
+		* "Position-Based Simulation of Continuous Materials", \n
+		* Computers & Graphics 44, 2014\n\n
+		* Initialize rest configuration infos which are required by the solver step.
 		* Recomputation is only necessary when rest shape changes.
 		*/
 		static bool init_FEMTriangleConstraint(		
@@ -401,6 +404,12 @@ namespace PBD
 			Matrix2r &invRestMat
 			);
 
+		/** Implementation of the finite element method described in \n\n
+		* Jan Bender, Dan Koschier, Patrick Charrier and Daniel Weber, \n
+		* "Position-Based Simulation of Continuous Materials", \n
+		* Computers & Graphics 44, 2014\n\n
+		* Solve the continuum mechanical constraint defined for a triangle.
+		*/
 		static bool solve_FEMTriangleConstraint(
 			const Vector3r &p0, Real invMass0,
 			const Vector3r &p1, Real invMass1,
@@ -414,7 +423,11 @@ namespace PBD
 			const Real poissonRatioYX,
 			Vector3r &corr0, Vector3r &corr1, Vector3r &corr2);
 
-		/** Initialize rest configuration infos which are required by the solver step.
+		/** Implementation of the finite element method described in \n\n
+		* Jan Bender, Dan Koschier, Patrick Charrier and Daniel Weber, \n
+		* "Position-Based Simulation of Continuous Materials", \n
+		* Computers & Graphics 44, 2014\n\n
+		* Initialize rest configuration infos which are required by the solver step.
 		* Recomputation is only necessary when rest shape changes.
 		*/
 		static bool init_FEMTetraConstraint(			
@@ -426,6 +439,12 @@ namespace PBD
 			Matrix3r &invRestMat
 			);
 
+		/** Implementation of the finite element method described in \n\n
+		* Jan Bender, Dan Koschier, Patrick Charrier and Daniel Weber, \n
+		* "Position-Based Simulation of Continuous Materials", \n
+		* Computers & Graphics 44, 2014\n\n
+		* Solve the continuum mechanical constraint defined for a tetrahedron.
+		*/
 		static bool solve_FEMTetraConstraint(
 			const Vector3r &p0, Real invMass0,
 			const Vector3r &p1, Real invMass1,
@@ -437,6 +456,7 @@ namespace PBD
 			const Real poissonRatio,
 			const bool  handleInversion,
 			Vector3r &corr0, Vector3r &corr1, Vector3r &corr2, Vector3r &corr3);
+
 
 		/** Initialize contact between a particle and a tetrahedron and return
 		* info which is required by the solver step.

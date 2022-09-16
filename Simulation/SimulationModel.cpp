@@ -478,6 +478,20 @@ bool SimulationModel::addFEMTetConstraint(const unsigned int particle1, const un
 	return res;
 }
 
+bool SimulationModel::addFEMTetConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
+										const unsigned int particle3, const unsigned int particle4, 
+										const Real stiffness, const Real poissonRatio)
+{
+	XPBD_FEMTetConstraint *c = new XPBD_FEMTetConstraint();
+	const bool res = c->initConstraint(*this, particle1, particle2, particle3, particle4, stiffness, poissonRatio);
+	if (res)
+	{
+		m_constraints.push_back(c);
+		m_groupsInitialized = false;
+	}
+	return res;
+}
+
 bool SimulationModel::addStrainTetConstraint(const unsigned int particle1, const unsigned int particle2,
 										const unsigned int particle3, const unsigned int particle4,
 										const Real stretchStiffness, const Real shearStiffness, 
@@ -1039,10 +1053,23 @@ void SimulationModel::addSolidConstraints(const TetModel* tm, const unsigned int
 			const unsigned int v3 = tets[4 * i + 2] + offset;
 			const unsigned int v4 = tets[4 * i + 3] + offset;
 
-			addStrainTetConstraint(v1, v2, v3, v4, stiffness, stiffness, normalizeStretch, normalizeStretch);
+			addFEMTetConstraint_XPBD(v1, v2, v3, v4, stiffness, poissonRatio);
 		}
 	}
 	else if (solidMethod == 4)
+	{
+		const TetModel::ParticleMesh& mesh = tm->getParticleMesh();
+		for (unsigned int i = 0; i < nTets; i++)
+		{
+			const unsigned int v1 = tets[4 * i] + offset;
+			const unsigned int v2 = tets[4 * i + 1] + offset;
+			const unsigned int v3 = tets[4 * i + 2] + offset;
+			const unsigned int v4 = tets[4 * i + 3] + offset;
+
+			addStrainTetConstraint(v1, v2, v3, v4, stiffness, stiffness, normalizeStretch, normalizeStretch);
+		}
+	}
+	else if (solidMethod == 5)
 	{
 		const TetModel::ParticleMesh& mesh = tm->getParticleMesh();
 		for (unsigned int i = 0; i < nTets; i++)
@@ -1055,18 +1082,9 @@ void SimulationModel::addSolidConstraints(const TetModel* tm, const unsigned int
 			// which contain the vertex.
 			const unsigned int nc[4] = { (unsigned int)vTets[v[0]-offset].size(), (unsigned int)vTets[v[1] - offset].size(), (unsigned int)vTets[v[2] - offset].size(), (unsigned int)vTets[v[3] - offset].size() };
 			addShapeMatchingConstraint(4, v, nc, stiffness);
-
-			if (v[0] == 1005)
-				std::cout << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "chk\n";
-			if (v[1] == 1005)
-				std::cout << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "chk\n";
-			if (v[2] == 1005)
-				std::cout << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "chk\n";
-			if (v[3] == 1005)
-				std::cout << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "chk\n";
 		}
 	}
-	else if (solidMethod == 5)
+	else if (solidMethod == 6)
 	{
 		const unsigned int offset = tm->getIndexOffset();
 		const unsigned int nEdges = tm->getParticleMesh().numEdges();

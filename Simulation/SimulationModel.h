@@ -153,6 +153,9 @@ namespace PBD
 			bool addFEMTetConstraint(const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4, 
 									const Real stiffness, const Real poissonRatio);
+			bool addFEMTetConstraint_XPBD(const unsigned int particle1, const unsigned int particle2,
+									const unsigned int particle3, const unsigned int particle4, 
+									const Real stiffness, const Real poissonRatio);
 			bool addStrainTetConstraint(const unsigned int particle1, const unsigned int particle2,
 									const unsigned int particle3, const unsigned int particle4, 
 									const Real stretchStiffness, const Real shearStiffness,
