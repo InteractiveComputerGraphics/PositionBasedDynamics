@@ -25,8 +25,12 @@ void UtilitiesModule(py::module m_sub)
         .def("release", &Utilities::IndexedFaceMesh::release)
         .def("isClosed", &Utilities::IndexedFaceMesh::isClosed)
         .def("initMesh", &Utilities::IndexedFaceMesh::initMesh)
-        .def("addFace", overload_cast_<const unsigned int* const>()(&Utilities::IndexedFaceMesh::addFace))
-        .def("addFace", overload_cast_<const int* const>()(&Utilities::IndexedFaceMesh::addFace))
+        .def("addFace", [](Utilities::IndexedFaceMesh& mesh, std::vector<int> data) {
+            mesh.addFace(data.data());
+        })
+        .def("addFace", [](Utilities::IndexedFaceMesh& mesh, std::vector<unsigned int> data) {
+            mesh.addFace(data.data());
+        })
         .def("addUV", &Utilities::IndexedFaceMesh::addUV)
         .def("addUVIndex", &Utilities::IndexedFaceMesh::addUVIndex)
 

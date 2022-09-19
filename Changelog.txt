@@ -1,3 +1,6 @@
+2.1.1
+	- fixed Python interface for function addFace
+
 2.1.0
 	- added XPBD FEM constraint for deformable solids
 	- updated to Eigen 3.4.0
