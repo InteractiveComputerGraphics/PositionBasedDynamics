@@ -121,5 +121,5 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     packages=find_packages(),
     zip_safe=False,
-    install_requires=['numpy']
+    install_requires=['numpy', 'pygame', 'pyopengl']
 )
