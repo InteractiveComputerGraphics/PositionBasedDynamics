@@ -1,3 +1,9 @@
+2.2.2	
+	- added documentation files
+	- moved build directory for lib files
+	- fixed encoding of some source files
+	- updated numpy version
+
 2.1.1
 	- fixed Python interface for function addFace
 

@@ -38,9 +38,9 @@ add_executable(RigidBodyClothCouplingDemo
 )
 
 set_target_properties(RigidBodyClothCouplingDemo PROPERTIES FOLDER "Demos")
-set_target_properties(RigidBodyClothCouplingDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
-set_target_properties(RigidBodyClothCouplingDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
-set_target_properties(RigidBodyClothCouplingDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
+set_target_properties(RigidBodyClothCouplingDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(RigidBodyClothCouplingDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(RigidBodyClothCouplingDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(RigidBodyClothCouplingDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(RigidBodyClothCouplingDemo ${SIMULATION_LINK_LIBRARIES})
 
