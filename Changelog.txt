@@ -1,3 +1,16 @@
+2.2.2	
+	- added documentation files
+	- moved build directory for lib files
+	- fixed encoding of some source files
+	- updated numpy version
+
+2.1.1
+	- fixed Python interface for function addFace
+
+2.1.0
+	- added XPBD FEM constraint for deformable solids
+	- updated to Eigen 3.4.0
+
 2.0.1
 	- extended and modified Python interface
 	- more Python examples

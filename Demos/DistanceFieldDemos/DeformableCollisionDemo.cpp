@@ -88,8 +88,8 @@ int main( int argc, char **argv )
 
 	TwType enumType2 = TwDefineEnum("SimulationMethodType", NULL, 0);
 	TwAddVarCB(MiniGL::getTweakBar(), "SimulationMethod", enumType2, setSimulationMethod, getSimulationMethod, &simulationMethod,
-			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics (no inversion handling)}, 4 {Shape matching (no inversion handling)}, 5 {XPBD volume constraints}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "stiffness", TW_TYPE_REAL, setStiffness, getStiffness, model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
+			" label='Simulation method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {FEM based XPBD}, \
+			4 {Strain based dynamics (no inversion handling)}, 5 {Shape matching (no inversion handling)}, 6 {XPBD volume constraints}' group=Simulation");	TwAddVarCB(MiniGL::getTweakBar(), "stiffness", TW_TYPE_REAL, setStiffness, getStiffness, model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "poissonRatio", TW_TYPE_REAL, setPoissonRatio, getPoissonRatio, model, " label='Poisson ratio'  min=0.0 step=0.1 precision=4 group='Solid' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "normalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Solid' ");
 	TwAddVarCB(MiniGL::getTweakBar(), "normalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, model, " label='Normalize shear' group='Solid' ");
@@ -276,11 +276,13 @@ void createMesh()
 
 	// init constraints
 	stiffness = 1.0;
-	if (simulationMethod == 5)
+	if (simulationMethod == 3)
+		stiffness = 1000000;
+	if (simulationMethod == 6)
 		stiffness = 100000;
 
 	volumeStiffness = 1.0;
-	if (simulationMethod == 5)
+	if (simulationMethod == 6)
 		volumeStiffness = 100000;
 
 	ParticleData& pd = model->getParticles();
@@ -301,6 +303,7 @@ void TW_CALL setStiffness(const void* value, void* clientData)
 {
 	stiffness = *(const Real*)(value);
 	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_stiffness>(stiffness);
+	((SimulationModel*)clientData)->setConstraintValue<XPBD_FEMTetConstraint, Real, &XPBD_FEMTetConstraint::m_stiffness>(stiffness);
 	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_stretchStiffness>(stiffness);
 	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_shearStiffness>(stiffness);
 	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(stiffness);
@@ -334,6 +337,7 @@ void TW_CALL setPoissonRatio(const void* value, void* clientData)
 {
 	poissonRatio = *(const Real*)(value);
 	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_poissonRatio>(poissonRatio);
+	((SimulationModel*)clientData)->setConstraintValue<XPBD_FEMTetConstraint, Real, &XPBD_FEMTetConstraint::m_poissonRatio>(poissonRatio);
 }
 
 void TW_CALL getNormalizeStretch(void* value, void* clientData)

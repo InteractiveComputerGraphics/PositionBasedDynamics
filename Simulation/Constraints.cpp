@@ -31,6 +31,7 @@ int StrainTriangleConstraint::TYPE_ID = IDFactory::getId();
 int VolumeConstraint::TYPE_ID = IDFactory::getId();
 int VolumeConstraint_XPBD::TYPE_ID = IDFactory::getId();
 int FEMTetConstraint::TYPE_ID = IDFactory::getId();
+int XPBD_FEMTetConstraint::TYPE_ID = IDFactory::getId();
 int StrainTetConstraint::TYPE_ID = IDFactory::getId();
 int ShapeMatchingConstraint::TYPE_ID = IDFactory::getId();
 int TargetAngleMotorHingeJoint::TYPE_ID = IDFactory::getId();
@@ -1807,6 +1808,87 @@ bool FEMTetConstraint::solvePositionConstraint(SimulationModel &model, const uns
 		m_invRestMat,
 		m_stiffness,
 		m_poissonRatio, handleInversion,
+		corr1, corr2, corr3, corr4);
+
+	if (res)
+	{
+		if (invMass1 != 0.0)
+			x1 += corr1;
+		if (invMass2 != 0.0)
+			x2 += corr2;
+		if (invMass3 != 0.0)
+			x3 += corr3;
+		if (invMass4 != 0.0)
+			x4 += corr4;
+	}
+	return res;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// XPBD_FEMTetConstraint
+//////////////////////////////////////////////////////////////////////////
+bool XPBD_FEMTetConstraint::initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
+									const unsigned int particle3, const unsigned int particle4, 
+									const Real stiffness, const Real poissonRatio)
+{
+	m_stiffness = stiffness;
+	m_poissonRatio = poissonRatio;
+	m_bodies[0] = particle1;
+	m_bodies[1] = particle2;
+	m_bodies[2] = particle3;
+	m_bodies[3] = particle4;
+
+	ParticleData &pd = model.getParticles();
+
+	Vector3r &x1 = pd.getPosition0(particle1);
+	Vector3r &x2 = pd.getPosition0(particle2);
+	Vector3r &x3 = pd.getPosition0(particle3);
+	Vector3r &x4 = pd.getPosition0(particle4);
+
+	return PositionBasedDynamics::init_FEMTetraConstraint(x1, x2, x3, x4, m_volume, m_invRestMat);
+}
+
+bool XPBD_FEMTetConstraint::solvePositionConstraint(SimulationModel &model, const unsigned int iter)
+{
+	ParticleData &pd = model.getParticles();
+
+	const unsigned i1 = m_bodies[0];
+	const unsigned i2 = m_bodies[1];
+	const unsigned i3 = m_bodies[2];
+	const unsigned i4 = m_bodies[3];
+
+	Vector3r &x1 = pd.getPosition(i1);
+	Vector3r &x2 = pd.getPosition(i2);
+	Vector3r &x3 = pd.getPosition(i3);
+	Vector3r &x4 = pd.getPosition(i4);
+
+	const Real invMass1 = pd.getInvMass(i1);
+	const Real invMass2 = pd.getInvMass(i2);
+	const Real invMass3 = pd.getInvMass(i3);
+	const Real invMass4 = pd.getInvMass(i4);
+
+	Real currentVolume = -static_cast<Real>(1.0 / 6.0) * (x4 - x1).dot((x3 - x1).cross(x2 - x1));
+	bool handleInversion = false;
+	if (currentVolume / m_volume < 0.2)		// Only 20% of initial volume left
+		handleInversion = true;
+
+	const Real dt = TimeManager::getCurrent()->getTimeStepSize();
+
+	if (iter == 0)
+		m_lambda = 0.0;
+
+	Vector3r corr1, corr2, corr3, corr4;
+	const bool res = XPBD::solve_FEMTetraConstraint(
+		x1, invMass1,
+		x2, invMass2,
+		x3, invMass3,
+		x4, invMass4,
+		m_volume,
+		m_invRestMat,
+		m_stiffness,
+		m_poissonRatio, handleInversion,
+		dt,
+		m_lambda,
 		corr1, corr2, corr3, corr4);
 
 	if (res)

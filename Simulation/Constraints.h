@@ -417,6 +417,25 @@ namespace PBD
 		virtual bool solvePositionConstraint(SimulationModel &model, const unsigned int iter);
 	};
 
+	class XPBD_FEMTetConstraint : public Constraint
+	{
+	public:
+		static int TYPE_ID;
+		Real m_stiffness;
+		Real m_poissonRatio;
+		Real m_volume;
+		Matrix3r m_invRestMat;
+		Real m_lambda;
+
+		XPBD_FEMTetConstraint() : Constraint(4) {}
+		virtual int& getTypeId() const { return TYPE_ID; }
+
+		virtual bool initConstraint(SimulationModel &model, const unsigned int particle1, const unsigned int particle2,
+									const unsigned int particle3, const unsigned int particle4, 
+									const Real stiffness, const Real poissonRatio);
+		virtual bool solvePositionConstraint(SimulationModel& model, const unsigned int iter);
+	};
+
 	class StrainTetConstraint : public Constraint
 	{
 	public:

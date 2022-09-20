@@ -1,6 +1,6 @@
 # PositionBasedDynamics
 
-<p align=center><img src="https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/workflows/build-linux/badge.svg">&nbsp;&nbsp; <img src="https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/workflows/build-windows/badge.svg"></p>
+<p align=center><img src="https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/workflows/build-linux/badge.svg">&nbsp;&nbsp; <img src="https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/workflows/build-windows/badge.svg">&nbsp;&nbsp; <a href='https://positionbaseddynamics.readthedocs.io/en/latest/?badge=latest'><img src='https://readthedocs.org/projects/positionbaseddynamics/badge/?version=latest' alt='Documentation Status' /></a></p>
 
 This library supports the physically-based simulation of mechanical effects. In the last years position-based simulation methods have become popular in the graphics community. In contrast to classical simulation approaches these methods compute the position changes in each simulation step directly, based on the solution of a quasi-static problem. Therefore, position-based approaches are fast, stable and controllable which make them well-suited for use in interactive environments. However, these methods are generally not as accurate as force-based methods but still provide visual plausibility. Hence, the main application areas of position-based simulation are virtual reality, computer games and special effects in movies and commercials.
 
@@ -20,6 +20,12 @@ Furthermore we use our own library:
 * SPlisHSPlasH is our new open-source fluid simulator which uses the PositionBasedDynamics library to handle rigid-fluid coupling. It can be downloaded here:
 [https://github.com/InteractiveComputerGraphics/SPlisHSPlasH](https://github.com/InteractiveComputerGraphics/SPlisHSPlasH)
 * Our new [paper](http://interactive-graphics.de/index.php/research/98-hierarchical-hp-adaptive-signed-distance-fields) about adaptive signed distance fields uses the PositionBasedDynamics library. You can watch the video  [here](https://www.youtube.com/watch?v=x_Iq2yM4FcA).
+
+## Documentation
+
+The documentation can be found here: 
+
+* [Documentation](https://positionbaseddynamics.readthedocs.io)
 
 ## Forum
 
@@ -43,11 +49,6 @@ pip install pypbd
 
 These are available for different Python Versions. See also here: [pyPBD](https://pypi.org/project/pyPBD/).
 
-## Documentation
-
-The API documentation can be found here: 
-
-http://www.interactive-graphics.de/PositionBasedDynamics/doc/html
 
 ## Latest Important Changes
 

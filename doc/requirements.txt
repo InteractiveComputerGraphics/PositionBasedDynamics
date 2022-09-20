@@ -1,0 +1,5 @@
+exhale
+recommonmark
+sphinx==4.2.0
+sphinxcontrib.bibtex < 2.0.0
+docutils==0.16

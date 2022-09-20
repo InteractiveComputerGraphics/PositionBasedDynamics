@@ -48,9 +48,9 @@ add_executable(SceneLoaderDemo
 )
 
 set_target_properties(SceneLoaderDemo PROPERTIES FOLDER "Demos")
-set_target_properties(SceneLoaderDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
-set_target_properties(SceneLoaderDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
-set_target_properties(SceneLoaderDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
+set_target_properties(SceneLoaderDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(SceneLoaderDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(SceneLoaderDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(SceneLoaderDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(SceneLoaderDemo ${SIMULATION_LINK_LIBRARIES})
 

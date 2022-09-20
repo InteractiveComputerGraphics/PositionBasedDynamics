@@ -18,7 +18,7 @@ namespace PBD
 	//
 	//	Crispin Deul
 	//	Graduate School CE
-	//	Technische Universit‰t Darmstadt
+	//	Technische Universit√§t Darmstadt
 	//
 	//  deul[at] gsc.tu-darmstadt.de
 	//

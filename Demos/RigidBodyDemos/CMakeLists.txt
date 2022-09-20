@@ -38,9 +38,9 @@ add_executable(ChainDemo
 )
 
 set_target_properties(ChainDemo PROPERTIES FOLDER "Demos")
-set_target_properties(ChainDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
-set_target_properties(ChainDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
-set_target_properties(ChainDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
+set_target_properties(ChainDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(ChainDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(ChainDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(ChainDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(ChainDemo ${SIMULATION_LINK_LIBRARIES})
 
@@ -60,9 +60,9 @@ add_executable(JointDemo
 )
 
 set_target_properties(JointDemo PROPERTIES FOLDER "Demos")
-set_target_properties(JointDemo PROPERTIES DEBUG_POSTFIX ${PBD_BINARY_DEBUG_POSTFIX})
-set_target_properties(JointDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${PBD_BINARY_RELWITHDEBINFO_POSTFIX})
-set_target_properties(JointDemo PROPERTIES MINSIZEREL_POSTFIX ${PBD_BINARY_MINSIZEREL_POSTFIX})
+set_target_properties(JointDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(JointDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(JointDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 add_dependencies(JointDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(JointDemo ${SIMULATION_LINK_LIBRARIES})
 
