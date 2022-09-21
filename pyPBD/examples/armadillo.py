@@ -13,10 +13,11 @@ import numpy as np
 
 # 1 = distance constraints (PBD)
 # 2 = FEM tet constraints (PBD)
-# 3 = strain tet constraints (PBD)
-# 4 = shape matching
-# 5 = distance constraints (XPBD)
-simModel = 2
+# 3 = FEM tet constraints (XPBD)
+# 4 = strain tet constraints (PBD)
+# 5 = shape matching
+# 6 = distance constraints (XPBD)
+simModel = 3
 
 
 def buildModel():   
@@ -76,7 +77,9 @@ def createMesh(simModel):
 
     # init constraints
     stiffness = 1.0
-    if (simModel == 5):
+    if (simModel == 3):
+        stiffness = 1000000
+    if (simModel == 6):
         stiffness = 100000
     poissonRatio = 0.3
     
