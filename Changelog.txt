@@ -1,4 +1,7 @@
-2.2.2	
+2.1.3
+	- fixed compilation on macOS thanks to Robin Rademacher
+
+2.1.2	
 	- updated Python examples
 	- added documentation files
 	- moved build directory for lib files
