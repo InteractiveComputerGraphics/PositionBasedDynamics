@@ -451,6 +451,7 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 
+	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_FALSE);
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -499,7 +500,9 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 		fprintf(stderr, "AntTweakBar initialization failed: %s\n", TwGetLastError());
 		exit(1);
 	}
-	TwWindowSize(width, height);
+	int w, h;
+	glfwGetWindowSize(m_glfw_window, &w, &h);
+	TwWindowSize(w, h);
 	initTweakBar();
 
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);

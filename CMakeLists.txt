@@ -6,7 +6,11 @@ cmake_minimum_required(VERSION 3.1)
 project(PositionBasedDynamics)
 
 set(PROJECT_PATH ${PROJECT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR})
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	add_compile_options(-idirafter${PROJECT_SOURCE_DIR})
+else()
+	include_directories(${PROJECT_SOURCE_DIR})
+endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -27,6 +31,9 @@ include(ExternalProject)
 
 ## Eigen3 is used by most of the libraries that follow
 find_package(Eigen3 REQUIRED)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -idirafter${EIGEN3_INCLUDE_DIR}")
+endif()
 
 set(EXT_CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -42,7 +49,7 @@ else()
 	   Ext_Discregrid
 	   PREFIX "${CMAKE_BINARY_DIR}/extern/Discregrid"
 	   GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
-	   GIT_TAG "0b69062ff9c56fbb6dcecd296652028bedbacf0e"
+	   GIT_TAG "4c27e1cc88be828c6ac5b8a05759ac7e01cf79e9"
 	   INSTALL_DIR ${ExternalInstallDir}/Discregrid
 	   CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=${EXT_CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/Discregrid
 	   -DBUILD_CMD_EXECUTABLE:BOOL=0 -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR} -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
