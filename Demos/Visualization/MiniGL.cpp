@@ -74,6 +74,7 @@ GLFWwindow* MiniGL::m_glfw_window = nullptr;
 std::vector<MiniGL::Triangle> MiniGL::m_drawTriangle;
 std::vector<MiniGL::Line> MiniGL::m_drawLines;
 std::vector<MiniGL::Point> MiniGL::m_drawPoints;
+double MiniGL::m_lastTime;
 
 
 
@@ -506,6 +507,8 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	initTweakBar();
 
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+
+	m_lastTime = glfwGetTime();
 }
 
 void MiniGL::initTexture()
@@ -1023,23 +1026,28 @@ void MiniGL::mainLoop()
 {
 	while (!glfwWindowShouldClose(m_glfw_window))
 	{
-		glfwPollEvents();
-
 		if (idlefunc != nullptr)
 			idlefunc();
 
-		glPolygonMode(GL_FRONT_AND_BACK, drawMode);
-		viewport();
+		double currentTime = glfwGetTime();
+		if (currentTime - m_lastTime >= 1.0 / 60.0)  // render at maximum at 60 fps
+		{
+			glfwPollEvents();
 
-		drawElements();
+			glPolygonMode(GL_FRONT_AND_BACK, drawMode);
+			viewport();
 
-		if (scenefunc != nullptr)
-			scenefunc();
+			drawElements();
 
-		TwDraw();  // draw the tweak bar(s)
+			if (scenefunc != nullptr)
+				scenefunc();
 
-		glfwSwapBuffers(m_glfw_window);
-		//glFlush();
+			TwDraw();  // draw the tweak bar(s)
+
+			glfwSwapBuffers(m_glfw_window);
+			//glFlush();
+			m_lastTime = currentTime;
+		}
 	}
 
 	if (destroyfunc != nullptr)

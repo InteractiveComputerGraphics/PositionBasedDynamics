@@ -174,15 +174,14 @@ void loadObj(const std::string &filename, VertexData &vd, IndexedFaceMesh &mesh,
 	}
 	for (unsigned int i = 0; i < nFaces; i++)
 	{
-		// Reduce the indices by one
 		int posIndices[3];
 		int texIndices[3];
 		for (int j = 0; j < 3; j++)
 		{
-			posIndices[j] = faces[i].posIndices[j] - 1;
+			posIndices[j] = faces[i].posIndices[j];
 			if (nTexCoords > 0)
 			{
-				texIndices[j] = faces[i].texIndices[j] - 1;
+				texIndices[j] = faces[i].texIndices[j];
 				mesh.addUVIndex(texIndices[j]);
 			}
 		}

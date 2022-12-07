@@ -1,3 +1,7 @@
+2.1.4 
+	- cleanup some code
+	- glfw fps limit
+
 2.1.3
 	- fixed compilation on macOS thanks to Robin Rademacher
 

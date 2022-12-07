@@ -128,6 +128,7 @@ namespace PBD
 		static std::vector<Triangle> m_drawTriangle;
 		static GLUquadricObj* m_sphereQuadric;
 		static GLFWwindow* m_glfw_window;
+		static double m_lastTime;
 
 		static void reshape (GLFWwindow* glfw_window, int w, int h);
 		static void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods);		

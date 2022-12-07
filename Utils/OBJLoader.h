@@ -12,9 +12,9 @@ namespace Utilities
 	*/
 	struct MeshFaceIndices
 	{
-		std::array<int, 3> posIndices;
-		std::array<int, 3> texIndices;
-		std::array<int, 3> normalIndices;
+		int posIndices[3];
+		int texIndices[3];
+		int normalIndices[3];
 	};
 
 	/** \brief Read for OBJ files. 
@@ -107,9 +107,9 @@ namespace Utilities
 						{
 							pos_buffer.clear();
 							StringTools::tokenize(f_buffer[i], pos_buffer, "/");
-							faceIndex.posIndices[i] = stoi(pos_buffer[0]);
-							faceIndex.texIndices[i] = stoi(pos_buffer[1]);
-							faceIndex.normalIndices[i] = stoi(pos_buffer[2]);
+							faceIndex.posIndices[i] = stoi(pos_buffer[0]) - 1;
+							faceIndex.texIndices[i] = stoi(pos_buffer[1]) - 1;
+							faceIndex.normalIndices[i] = stoi(pos_buffer[2]) - 1;
 						}
 					}
 					else if (vn)
@@ -121,8 +121,8 @@ namespace Utilities
 						{
 							pos_buffer.clear();
 							StringTools::tokenize(f_buffer[i], pos_buffer, "/");
-							faceIndex.posIndices[i] = stoi(pos_buffer[0]);
-							faceIndex.normalIndices[i] = stoi(pos_buffer[1]);
+							faceIndex.posIndices[i] = stoi(pos_buffer[0]) - 1;
+							faceIndex.normalIndices[i] = stoi(pos_buffer[1]) - 1;
 						}
 					}
 					else if (vt)
@@ -134,8 +134,8 @@ namespace Utilities
 						{
 							pos_buffer.clear();
 							StringTools::tokenize(f_buffer[i], pos_buffer, "/");
-							faceIndex.posIndices[i] = stoi(pos_buffer[0]);
-							faceIndex.texIndices[i] = stoi(pos_buffer[1]);
+							faceIndex.posIndices[i] = stoi(pos_buffer[0]) - 1;
+							faceIndex.texIndices[i] = stoi(pos_buffer[1]) - 1;
 						}
 					}
 					else
@@ -145,7 +145,7 @@ namespace Utilities
 						StringTools::tokenize(parse_str, f_buffer);
 						for (int i = 0; i < 3; ++i)
 						{
-							faceIndex.posIndices[i] = stoi(f_buffer[i]);
+							faceIndex.posIndices[i] = stoi(f_buffer[i]) - 1;
 						}
 					}
 					faces->push_back(faceIndex);
