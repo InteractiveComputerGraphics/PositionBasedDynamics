@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: apt-get update
       run: sudo apt-get update --fix-missing
     - name: Install packages
@@ -29,11 +29,11 @@ jobs:
         python-version: [cp36-cp36m, cp37-cp37m, cp38-cp38, cp39-cp39, cp310-cp310]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     # Set up python
     - name: Set up Python 3.8
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: 3.8
 
