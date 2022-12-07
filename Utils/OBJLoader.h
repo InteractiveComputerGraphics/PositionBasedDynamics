@@ -12,9 +12,9 @@ namespace Utilities
 	*/
 	struct MeshFaceIndices
 	{
-		int posIndices[3];
-		int texIndices[3];
-		int normalIndices[3];
+		std::array<int, 3> posIndices;
+		std::array<int, 3> texIndices;
+		std::array<int, 3> normalIndices;
 	};
 
 	/** \brief Read for OBJ files. 
