@@ -6,7 +6,6 @@
 #include "Simulation/SimulationModel.h"
 #include "Simulation/TimeStepController.h"
 #include <iostream>
-#include "Utils/OBJLoader.h"
 #include "Demos/Visualization/Visualization.h"
 #include "Simulation/DistanceFieldCollisionDetection.h"
 #include "Utils/Logger.h"
@@ -147,54 +146,6 @@ void render ()
 	base->render();
 }
 
-void loadObj(const std::string &filename, VertexData &vd, IndexedFaceMesh &mesh, const Vector3r &scale)
-{
-	std::vector<OBJLoader::Vec3f> x;
-	std::vector<OBJLoader::Vec3f> normals;
-	std::vector<OBJLoader::Vec2f> texCoords;
-	std::vector<MeshFaceIndices> faces;
-	OBJLoader::Vec3f s = { (float)scale[0], (float)scale[1], (float)scale[2] };
-	OBJLoader::loadObj(filename, &x, &faces, &normals, &texCoords, s);
-
-	mesh.release();
-	const unsigned int nPoints = (unsigned int)x.size();
-	const unsigned int nFaces = (unsigned int)faces.size();
-	const unsigned int nTexCoords = (unsigned int)texCoords.size();
-	mesh.initMesh(nPoints, nFaces * 2, nFaces);
-	vd.reserve(nPoints);
-	for (unsigned int i = 0; i < nPoints; i++)
-	{
-		vd.addVertex(Vector3r(x[i][0], x[i][1], x[i][2]));
-	}
-	for (unsigned int i = 0; i < nTexCoords; i++)
-	{
-		mesh.addUV(texCoords[i][0], texCoords[i][1]);
-	}
-	for (unsigned int i = 0; i < nFaces; i++)
-	{
-		int posIndices[3];
-		int texIndices[3];
-		for (int j = 0; j < 3; j++)
-		{
-			posIndices[j] = faces[i].posIndices[j];
-			if (nTexCoords > 0)
-			{
-				texIndices[j] = faces[i].texIndices[j];
-				mesh.addUVIndex(texIndices[j]);
-			}
-		}
-
-		mesh.addFace(&posIndices[0]);
-	}
-	mesh.buildNeighbors();
-
-	mesh.updateNormals(vd, 0);
-	mesh.updateVertexNormals(vd);
-
-	LOG_INFO << "Number of triangles: " << nFaces;
-	LOG_INFO << "Number of vertices: " << nPoints;
-}
-
 /** Create the rigid body model
 */
 void createBodyModel()
@@ -206,29 +157,29 @@ void createBodyModel()
 	string fileNameBox = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube.obj");
 	IndexedFaceMesh meshBox;
 	VertexData vdBox;
-	loadObj(fileNameBox, vdBox, meshBox, Vector3r::Ones());
+	DemoBase::loadMesh(fileNameBox, vdBox, meshBox, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 	meshBox.setFlatShading(true);
 
 	string fileNameCylinder = FileSystem::normalizePath(base->getExePath() + "/resources/models/cylinder.obj");
 	IndexedFaceMesh meshCylinder;
 	VertexData vdCylinder;
-	loadObj(fileNameCylinder, vdCylinder, meshCylinder, Vector3r::Ones());
+	DemoBase::loadMesh(fileNameCylinder, vdCylinder, meshCylinder, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 
 	string fileNameTorus = FileSystem::normalizePath(base->getExePath() + "/resources/models/torus.obj");
 	IndexedFaceMesh meshTorus;
 	VertexData vdTorus;
-	loadObj(fileNameTorus, vdTorus, meshTorus, Vector3r::Ones());
+	DemoBase::loadMesh(fileNameTorus, vdTorus, meshTorus, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 
 	string fileNameCube = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube_5.obj");
 	IndexedFaceMesh meshCube;
 	VertexData vdCube;
-	loadObj(fileNameCube, vdCube, meshCube, Vector3r::Ones());
+	DemoBase::loadMesh(fileNameCube, vdCube, meshCube, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 	meshCube.setFlatShading(true);
 
 	string fileNameSphere = FileSystem::normalizePath(base->getExePath() + "/resources/models/sphere.obj");
 	IndexedFaceMesh meshSphere;
 	VertexData vdSphere;
-	loadObj(fileNameSphere, vdSphere, meshSphere, 2.0*Vector3r::Ones());
+	DemoBase::loadMesh(fileNameSphere, vdSphere, meshSphere, Vector3r::Zero(), Matrix3r::Identity(), 2.0*Vector3r::Ones());
 
 
 	const unsigned int num_piles_x = 5;

@@ -102,7 +102,7 @@ with open(os.path.join(cur_dir, "README.md"), 'r') as f:
     long_description = f.read()
 	
 # read version	
-f = open("version", "r")
+f = open("version.txt", "r")
 pbd_version = f.readline().strip()
 f.close() 
 

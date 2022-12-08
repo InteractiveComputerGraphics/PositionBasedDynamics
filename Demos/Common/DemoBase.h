@@ -121,6 +121,9 @@ namespace PBD
 		std::string getOutputPath() const { return m_outputPath; }
 
 		Utilities::SceneLoader::SceneData& getSceneData() { return m_scene; }
+
+		static void loadMesh(const std::string& filename, VertexData& vd, Utilities::IndexedFaceMesh& mesh, const Vector3r& translation = Vector3r::Zero(),
+			const Matrix3r& rotation = Matrix3r::Identity(), const Vector3r& scale = Vector3r::Ones());
 	};
 }
  

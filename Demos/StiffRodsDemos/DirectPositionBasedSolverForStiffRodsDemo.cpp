@@ -6,7 +6,6 @@
 #include "Simulation/TimeStepController.h"
 #include "Utils/FileSystem.h"
 #include "Utils/Logger.h"
-#include "Utils/OBJLoader.h"
 #include "Utils/TetGenLoader.h"
 #include "Utils/Timing.h"
 #include "Demos/Visualization/MiniGL.h"
@@ -314,54 +313,6 @@ void initTetModelConstraints()
 	}
 }
 
-void loadObj(const std::string &filename, VertexData &vd, IndexedFaceMesh &mesh, const Vector3r &scale)
-{
-	std::vector<OBJLoader::Vec3f> x;
-	std::vector<OBJLoader::Vec3f> normals;
-	std::vector<OBJLoader::Vec2f> texCoords;
-	std::vector<MeshFaceIndices> faces;
-	OBJLoader::Vec3f s = { (float)scale[0], (float)scale[1], (float)scale[2] };
-	OBJLoader::loadObj(filename, &x, &faces, &normals, &texCoords, s);
-
-	mesh.release();
-	const unsigned int nPoints = (unsigned int)x.size();
-	const unsigned int nFaces = (unsigned int)faces.size();
-	const unsigned int nTexCoords = (unsigned int)texCoords.size();
-	mesh.initMesh(nPoints, nFaces * 2, nFaces);
-	vd.reserve(nPoints);
-	for (unsigned int i = 0; i < nPoints; i++)
-	{
-		vd.addVertex(Vector3r(x[i][0], x[i][1], x[i][2]));
-	}
-	for (unsigned int i = 0; i < nTexCoords; i++)
-	{
-		mesh.addUV(texCoords[i][0], texCoords[i][1]);
-	}
-	for (unsigned int i = 0; i < nFaces; i++)
-	{
-		int posIndices[3];
-		int texIndices[3];
-		for (int j = 0; j < 3; j++)
-		{
-			posIndices[j] = faces[i].posIndices[j];
-			if (nTexCoords > 0)
-			{
-				texIndices[j] = faces[i].texIndices[j];
-				mesh.addUVIndex(texIndices[j]);
-			}
-		}
-
-		mesh.addFace(&posIndices[0]);
-	}
-	mesh.buildNeighbors();
-
-	mesh.updateNormals(vd, 0);
-	mesh.updateVertexNormals(vd);
-
-	LOG_INFO << "Number of triangles: " << nFaces;
-	LOG_INFO << "Number of vertices: " << nPoints;
-}
-
 CubicSDFCollisionDetection::GridPtr generateSDF(const std::string &modelFile, const std::string &collisionObjectFileName, const Eigen::Matrix<unsigned int, 3, 1> &resolutionSDF,
 	VertexData &vd, IndexedFaceMesh &mesh)
 {
@@ -505,7 +456,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			loadObj(rbd.m_modelFile, vd, mesh, Vector3r::Ones());
+			DemoBase::loadMesh(rbd.m_modelFile, vd, mesh, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 			objFiles[rbd.m_modelFile] = { vd, mesh };
 		}
 
@@ -609,7 +560,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			loadObj(FileSystem::normalizePath(tmd.m_modelFileVis), vd, mesh, Vector3r::Ones());
+			DemoBase::loadMesh(FileSystem::normalizePath(tmd.m_modelFileVis), vd, mesh, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 			objFiles[tmd.m_modelFileVis] = { vd, mesh };
 		}
 	}
@@ -632,7 +583,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			loadObj(FileSystem::normalizePath(tmd.m_modelFileVis), vd, mesh, Vector3r::Ones());
+			DemoBase::loadMesh(FileSystem::normalizePath(tmd.m_modelFileVis), vd, mesh, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 			objFiles[tmd.m_modelFileVis] = { vd, mesh };
 		}
 
@@ -915,7 +866,7 @@ void readScene()
 		{
 			IndexedFaceMesh mesh;
 			VertexData vd;
-			loadObj(FileSystem::normalizePath(tmd.m_modelFile), vd, mesh, Vector3r::Ones());
+			DemoBase::loadMesh(FileSystem::normalizePath(tmd.m_modelFile), vd, mesh, Vector3r::Zero(), Matrix3r::Identity(), Vector3r::Ones());
 			triFiles[tmd.m_modelFile] = { vd, mesh };
 		}
 	}

@@ -3,6 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <Utils/IndexedFaceMesh.h>
 #include <Utils/OBJLoader.h>
+#include <Utils/PLYLoader.h>
 #include <Utils/TetGenLoader.h>
 #include <Utils/Timing.h>
 #include <Utils/Logger.h>
@@ -162,15 +163,14 @@ void UtilitiesModule(py::module m_sub)
                 }
                 for (unsigned int i = 0; i < nFaces; i++)
                 {
-                    // Reduce the indices by one
                     int posIndices[3];
                     int texIndices[3];
                     for (int j = 0; j < 3; j++)
                     {
-                        posIndices[j] = faces[i].posIndices[j] - 1;
+                        posIndices[j] = faces[i].posIndices[j];
                         if (nTexCoords > 0)
                         {
-                            texIndices[j] = faces[i].texIndices[j] - 1;
+                            texIndices[j] = faces[i].texIndices[j];
                             mesh.addUVIndex(texIndices[j]);
                         }
                     }
@@ -183,6 +183,10 @@ void UtilitiesModule(py::module m_sub)
                 mesh.updateVertexNormals(vd);
                 return py::make_tuple(vd, mesh);
             });
+
+    py::class_<Utilities::PLYLoader>(m_sub, "PLYLoader")
+        .def(py::init<>())
+        .def_static("loadPly", &Utilities::PLYLoader::loadPly);
 
     py::class_<Utilities::TetGenLoader>(m_sub, "TetGenLoader")
         .def(py::init<>())

@@ -6,7 +6,6 @@
 #include "Simulation/SimulationModel.h"
 #include "Simulation/TimeStepController.h"
 #include <iostream>
-#include "Utils/OBJLoader.h"
 #include "Demos/Visualization/Visualization.h"
 #include "Utils/Logger.h"
 #include "Utils/Timing.h"
@@ -182,54 +181,6 @@ Vector3r computeInertiaTensorBox(const Real mass, const Real width, const Real h
 	return Vector3r(Ix, Iy, Iz);
 }
 
-void loadObj(const std::string &filename, VertexData &vd, IndexedFaceMesh &mesh, const Vector3r &scale)
-{
-	std::vector<OBJLoader::Vec3f> x;
-	std::vector<OBJLoader::Vec3f> normals;
-	std::vector<OBJLoader::Vec2f> texCoords;
-	std::vector<MeshFaceIndices> faces;
-	OBJLoader::Vec3f s = { (float)scale[0], (float)scale[1], (float)scale[2] };
-	OBJLoader::loadObj(filename, &x, &faces, &normals, &texCoords, s);
-
-	mesh.release();
-	const unsigned int nPoints = (unsigned int)x.size();
-	const unsigned int nFaces = (unsigned int)faces.size();
-	const unsigned int nTexCoords = (unsigned int)texCoords.size();
-	mesh.initMesh(nPoints, nFaces * 2, nFaces);
-	vd.reserve(nPoints);
-	for (unsigned int i = 0; i < nPoints; i++)
-	{
-		vd.addVertex(Vector3r(x[i][0], x[i][1], x[i][2]));
-	}
-	for (unsigned int i = 0; i < nTexCoords; i++)
-	{
-		mesh.addUV(texCoords[i][0], texCoords[i][1]);
-	}
-	for (unsigned int i = 0; i < nFaces; i++)
-	{
-		int posIndices[3];
-		int texIndices[3];
-		for (int j = 0; j < 3; j++)
-		{
-			posIndices[j] = faces[i].posIndices[j];
-			if (nTexCoords > 0)
-			{
-				texIndices[j] = faces[i].texIndices[j];
-				mesh.addUVIndex(texIndices[j]);
-			}
-		}
-
-		mesh.addFace(&posIndices[0]);
-	}
-	mesh.buildNeighbors();
-
-	mesh.updateNormals(vd, 0);
-	mesh.updateVertexNormals(vd);
-
-	LOG_INFO << "Number of triangles: " << nFaces;
-	LOG_INFO << "Number of vertices: " << nPoints;
-}
-
 /** Create the rigid body model
 */
 void createBodyModel()
@@ -240,11 +191,11 @@ void createBodyModel()
 	string fileName = FileSystem::normalizePath(base->getExePath() + "/resources/models/cube.obj");
 	IndexedFaceMesh mesh;
 	VertexData vd;
-	loadObj(fileName, vd, mesh, Vector3r(width, height, depth));
+	DemoBase::loadMesh(fileName, vd, mesh, Vector3r::Zero(), Matrix3r::Identity(), Vector3r(width, height, depth));
 	mesh.setFlatShading(true);
 	IndexedFaceMesh meshStatic;
 	VertexData vdStatic;
-	loadObj(fileName, vdStatic, meshStatic, Vector3r(0.5, 0.5, 0.5));
+	DemoBase::loadMesh(fileName, vdStatic, meshStatic, Vector3r::Zero(), Matrix3r::Identity(), Vector3r(0.5, 0.5, 0.5));
 	meshStatic.setFlatShading(true);
 
 	// static body
