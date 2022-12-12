@@ -7,14 +7,21 @@ on:
 jobs:
   build-windows:
 
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     strategy:
       matrix:
-        os: [windows-latest]
+        python-version: [3.7]
 
     steps:
     # Checkout repo
     - uses: actions/checkout@v3
+      
+    # Set up python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
     # Configure, build and test
     - name: configure
       run: mkdir build-release;cd build-release;cmake ..
@@ -29,7 +36,7 @@ jobs:
     strategy:
       matrix:
         # python-version: [3.7]
-        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
 
     steps:
     # Checkout repo
