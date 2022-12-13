@@ -11,7 +11,6 @@
 #include "Utils/Timing.h"
 #include "Utils/FileSystem.h"
 #include "Demos/Common/DemoBase.h"
-#include "Demos/Common/TweakBarParameters.h"
 #include "Simulation/Simulation.h"
 
 // Enable memory leak detection
@@ -24,7 +23,6 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
-void initParameters();
 void timeStep ();
 void buildModel ();
 void createBodyModel();
@@ -52,7 +50,7 @@ int main( int argc, char **argv )
 
 	buildModel();
 
-	initParameters();
+	base->createParameterGUI();
 
 	// OpenGL
 	MiniGL::setClientIdleFunc (timeStep);		
@@ -70,20 +68,6 @@ int main( int argc, char **argv )
 	delete model;
 
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -112,6 +96,8 @@ void timeStep ()
 		START_TIMING("SimStep");
 		Simulation::getCurrent()->getTimeStep()->step(*model);
 		STOP_TIMING_AVG;
+
+		base->step();
 	}
 }
 

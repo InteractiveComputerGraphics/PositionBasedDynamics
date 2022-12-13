@@ -5,16 +5,91 @@
 using namespace PBD;
 using namespace GenParam;
 
+int SimulationModel::CLOTH_SIMULATION_METHOD = -1;
+int SimulationModel::ENUM_CLOTHSIM_NONE = -1;
+int SimulationModel::ENUM_CLOTHSIM_DISTANCE_CONSTRAINTS = -1;
+int SimulationModel::ENUM_CLOTHSIM_FEM_PBD = -1;
+int SimulationModel::ENUM_CLOTHSIM_SBD = -1;
+int SimulationModel::ENUM_CLOTHSIM_DISTANCE_CONSTRAINTS_XPBD = -1;
+int SimulationModel::CLOTH_BENDING_METHOD = -1;
+int SimulationModel::ENUM_CLOTH_BENDING_NONE = -1;
+int SimulationModel::ENUM_CLOTH_BENDING_DIHEDRAL_ANGLE = -1;
+int SimulationModel::ENUM_CLOTH_BENDING_ISOMETRIC = -1;
+int SimulationModel::ENUM_CLOTH_BENDING_ISOMETRIX_XPBD = -1;
+int SimulationModel::CLOTH_STIFFNESS = -1;
+int SimulationModel::CLOTH_STIFFNESS_XX = -1;
+int SimulationModel::CLOTH_STIFFNESS_YY = -1;
+int SimulationModel::CLOTH_STIFFNESS_XY = -1;
+int SimulationModel::CLOTH_POISSON_RATIO_XY = -1;
+int SimulationModel::CLOTH_POISSON_RATIO_YX = -1;
+int SimulationModel::CLOTH_BENDING_STIFFNESS = -1;
+int SimulationModel::CLOTH_NORMALIZE_STRETCH = -1;
+int SimulationModel::CLOTH_NORMALIZE_SHEAR = -1;
+
+int SimulationModel::SOLID_SIMULATION_METHOD = -1;
+int SimulationModel::ENUM_SOLIDSIM_NONE = -1;
+int SimulationModel::ENUM_SOLIDSIM_DISTANCE_CONSTRAINTS = -1;
+int SimulationModel::ENUM_SOLIDSIM_FEM_PBD = -1;
+int SimulationModel::ENUM_SOLIDSIM_FEM_XPBD = -1;
+int SimulationModel::ENUM_SOLIDSIM_SBD = -1;
+int SimulationModel::ENUM_SOLIDSIM_SHAPE_MATCHING = -1;
+int SimulationModel::ENUM_SOLIDSIM_DISTANCE_CONSTRAINTS_XPBD = -1;
+int SimulationModel::SOLID_STIFFNESS = -1;
+int SimulationModel::SOLID_POISSON_RATIO = -1;
+int SimulationModel::SOLID_VOLUME_STIFFNESS = -1;
+int SimulationModel::SOLID_NORMALIZE_STRETCH = -1;
+int SimulationModel::SOLID_NORMALIZE_SHEAR = -1;
+
+int SimulationModel::ROD_STRETCHING_STIFFNESS = -1;
+int SimulationModel::ROD_SHEARING_STIFFNESS_X = -1;
+int SimulationModel::ROD_SHEARING_STIFFNESS_Y = -1;
+int SimulationModel::ROD_BENDING_STIFFNESS_X = -1;
+int SimulationModel::ROD_BENDING_STIFFNESS_Y = -1;
+int SimulationModel::ROD_TWISTING_STIFFNESS = -1;
+
+int SimulationModel::CONTACT_STIFFNESS_RB = -1;
+int SimulationModel::CONTACT_STIFFNESS_PARTICLE_RB = -1;
+
+
 SimulationModel::SimulationModel()
 {
 	m_contactStiffnessRigidBody = 1.0;
 	m_contactStiffnessParticleRigidBody = 100.0;
+
+	m_clothSimulationMethod = 2;
+	m_clothBendingMethod = 2;
+	m_cloth_stiffness = static_cast<Real>(1.0);
+	m_cloth_bendingStiffness = static_cast<Real>(0.01);
+	m_cloth_xxStiffness = static_cast<Real>(1.0);
+	m_cloth_yyStiffness = static_cast<Real>(1.0);
+	m_cloth_xyStiffness = static_cast<Real>(1.0);
+	m_cloth_xyPoissonRatio = static_cast<Real>(0.3);
+	m_cloth_yxPoissonRatio = static_cast<Real>(0.3);
+	m_cloth_normalizeShear = false;
+	m_cloth_normalizeStretch = false;
+
+	m_solidSimulationMethod = 2;
+	m_solid_stiffness = static_cast<Real>(1.0);
+	m_solid_poissonRatio = static_cast<Real>(0.3);
+	m_solid_volumeStiffness = static_cast<Real>(1.0);
+	m_solid_normalizeShear = false;
+	m_solid_normalizeStretch = false;
+
+	m_rod_stretchingStiffness = static_cast<Real>(1.0);
+	m_rod_shearingStiffnessX = static_cast<Real>(1.0);
+	m_rod_shearingStiffnessY = static_cast<Real>(1.0);
+	m_rod_bendingStiffnessX = static_cast<Real>(0.5);
+	m_rod_bendingStiffnessY = static_cast<Real>(0.5);
+	m_rod_twistingStiffness = static_cast<Real>(0.5);
 
 	m_groupsInitialized = false;
 
 	m_rigidBodyContactConstraints.reserve(10000);
 	m_particleRigidBodyContactConstraints.reserve(10000);
 	m_particleSolidContactConstraints.reserve(10000);
+
+	m_clothSimMethodChanged = nullptr;
+	m_solidSimMethodChanged = nullptr;
 }
 
 SimulationModel::~SimulationModel(void)
@@ -48,6 +123,148 @@ void SimulationModel::cleanup()
 	m_particles.release();
 	m_orientations.release();
 	m_groupsInitialized = false;
+}
+
+void SimulationModel::initParameters()
+{
+	ParameterObject::initParameters();
+
+	CLOTH_SIMULATION_METHOD = createEnumParameter("clothSimulationMethod", "Simulation method", std::bind(&SimulationModel::getClothSimulationMethod, this), std::bind(static_cast<void (SimulationModel::*)(const int)>(&SimulationModel::setClothSimulationMethod), this, std::placeholders::_1));
+	setGroup(CLOTH_SIMULATION_METHOD, "Cloth|General");
+	setDescription(CLOTH_SIMULATION_METHOD, "Cloth simulation method");
+	EnumParameter* enumParam = static_cast<EnumParameter*>(getParameter(CLOTH_SIMULATION_METHOD));
+	enumParam->addEnumValue("None", ENUM_CLOTHSIM_NONE);
+	enumParam->addEnumValue("Distance constraints", ENUM_CLOTHSIM_DISTANCE_CONSTRAINTS);
+	enumParam->addEnumValue("FEM based PBD", ENUM_CLOTHSIM_FEM_PBD);
+	enumParam->addEnumValue("Strain based dynamics", ENUM_CLOTHSIM_SBD);
+	enumParam->addEnumValue("XPBD distance constraints", ENUM_CLOTHSIM_DISTANCE_CONSTRAINTS_XPBD);
+
+	CLOTH_BENDING_METHOD = createEnumParameter("clothBendingMethod", "Bending method", std::bind(&SimulationModel::getClothBendingMethod, this), std::bind(static_cast<void (SimulationModel::*)(const int)>(&SimulationModel::setClothBendingMethod), this, std::placeholders::_1));
+	setGroup(CLOTH_BENDING_METHOD, "Cloth|General");
+	setDescription(CLOTH_BENDING_METHOD, "Cloth bending method");
+	enumParam = static_cast<EnumParameter*>(getParameter(CLOTH_BENDING_METHOD));
+	enumParam->addEnumValue("None", ENUM_CLOTH_BENDING_NONE);
+	enumParam->addEnumValue("Dihedral angle", ENUM_CLOTH_BENDING_DIHEDRAL_ANGLE);
+	enumParam->addEnumValue("Isometric bending", ENUM_CLOTH_BENDING_ISOMETRIC);
+	enumParam->addEnumValue("Isometric bending (XPBD)", ENUM_CLOTH_BENDING_ISOMETRIX_XPBD);
+
+	CLOTH_STIFFNESS = createNumericParameter<Real>("cloth_stiffness", "Distance constraint stiffness", std::bind(&SimulationModel::getClothStiffness, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setClothStiffness), this, std::placeholders::_1));
+	setGroup(CLOTH_STIFFNESS, "Cloth|Distance constraints");
+	setDescription(CLOTH_STIFFNESS, "Distance constraint stiffness");
+	static_cast<NumericParameter<Real>*>(getParameter(CLOTH_STIFFNESS))->setMinValue(0.0);
+
+	CLOTH_STIFFNESS_XX = createNumericParameter<Real>("cloth_xxStiffness", "Youngs modulus XX", std::bind(&SimulationModel::getClothStiffnessXX, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setClothStiffnessXX), this, std::placeholders::_1));
+	setGroup(CLOTH_STIFFNESS_XX, "Cloth|FEM");
+	setDescription(CLOTH_STIFFNESS_XX, "XX stiffness of orthotropic cloth models.");
+	static_cast<NumericParameter<Real>*>(getParameter(CLOTH_STIFFNESS_XX))->setMinValue(0.0);
+
+	CLOTH_STIFFNESS_YY = createNumericParameter<Real>("cloth_yyStiffness", "Youngs modulus YY", std::bind(&SimulationModel::getClothStiffnessYY, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setClothStiffnessYY), this, std::placeholders::_1));
+	setGroup(CLOTH_STIFFNESS_YY, "Cloth|FEM");
+	setDescription(CLOTH_STIFFNESS_YY, "YY stiffness of orthotropic cloth models.");
+	static_cast<NumericParameter<Real>*>(getParameter(CLOTH_STIFFNESS_YY))->setMinValue(0.0);
+
+	CLOTH_STIFFNESS_XY = createNumericParameter<Real>("cloth_xyStiffness", "Youngs modulus XY", std::bind(&SimulationModel::getClothStiffnessXY, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setClothStiffnessXY), this, std::placeholders::_1));
+	setGroup(CLOTH_STIFFNESS_XY, "Cloth|FEM");
+	setDescription(CLOTH_STIFFNESS_XY, "XY stiffness of orthotropic cloth models.");
+	static_cast<NumericParameter<Real>*>(getParameter(CLOTH_STIFFNESS_XY))->setMinValue(0.0);
+
+	CLOTH_POISSON_RATIO_XY = createNumericParameter<Real>("cloth_xyPoissonRatio", "Poisson ratio XY", std::bind(&SimulationModel::getClothPoissonRatioXY, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setClothPoissonRatioXY), this, std::placeholders::_1));
+	setGroup(CLOTH_POISSON_RATIO_XY, "Cloth|FEM");
+	setDescription(CLOTH_POISSON_RATIO_XY, "XY Poisson ratio of orthotropic cloth models.");
+	static_cast<NumericParameter<Real>*>(getParameter(CLOTH_POISSON_RATIO_XY))->setMinValue(0.0);
+
+	CLOTH_POISSON_RATIO_YX = createNumericParameter<Real>("cloth_yxPoissonRatio", "Poisson ratio YX", std::bind(&SimulationModel::getClothPoissonRatioYX, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setClothPoissonRatioYX), this, std::placeholders::_1));
+	setGroup(CLOTH_POISSON_RATIO_YX, "Cloth|FEM");
+	setDescription(CLOTH_POISSON_RATIO_YX, "YX Poisson ratio of orthotropic cloth models.");
+	static_cast<NumericParameter<Real>*>(getParameter(CLOTH_POISSON_RATIO_YX))->setMinValue(0.0);
+
+	CLOTH_BENDING_STIFFNESS = createNumericParameter<Real>("cloth_bendingStiffness", "Bending stiffness", std::bind(&SimulationModel::getClothBendingStiffness, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setClothBendingStiffness), this, std::placeholders::_1));
+	setGroup(CLOTH_BENDING_STIFFNESS, "Cloth|Bending");
+	setDescription(CLOTH_BENDING_STIFFNESS, "Bending stiffness of cloth models.");
+	static_cast<NumericParameter<Real>*>(getParameter(CLOTH_BENDING_STIFFNESS))->setMinValue(0.0);
+
+	CLOTH_NORMALIZE_STRETCH = createBoolParameter("cloth_normalizeStretch", "Normalize stretch", std::bind(&SimulationModel::getClothNormalizeStretch, this), std::bind(static_cast<void (SimulationModel::*)(const bool)>(&SimulationModel::setClothNormalizeStretch), this, std::placeholders::_1));
+	setGroup(CLOTH_NORMALIZE_STRETCH, "Cloth|Strain Based Dynamics");
+	setDescription(CLOTH_NORMALIZE_STRETCH, "Normalize stretch (strain based dynamics)");
+
+	CLOTH_NORMALIZE_SHEAR = createBoolParameter("cloth_normalizeShear", "Normalize shear", std::bind(&SimulationModel::getClothNormalizeShear, this), std::bind(static_cast<void (SimulationModel::*)(const bool)>(&SimulationModel::setClothNormalizeShear), this, std::placeholders::_1));
+	setGroup(CLOTH_NORMALIZE_SHEAR, "Cloth|Strain Based Dynamics");
+	setDescription(CLOTH_NORMALIZE_SHEAR, "Normalize shear (strain based dynamics)");
+
+	SOLID_SIMULATION_METHOD = createEnumParameter("solidSimulationMethod", "Simulation method", std::bind(&SimulationModel::getSolidSimulationMethod, this), std::bind(static_cast<void (SimulationModel::*)(const int)>(&SimulationModel::setSolidSimulationMethod), this, std::placeholders::_1));
+	setGroup(SOLID_SIMULATION_METHOD, "Solid|General");
+	setDescription(SOLID_SIMULATION_METHOD, "Solid simulation method");
+	enumParam = static_cast<EnumParameter*>(getParameter(SOLID_SIMULATION_METHOD));
+	enumParam->addEnumValue("None", ENUM_SOLIDSIM_NONE);
+	enumParam->addEnumValue("Distance constraints", ENUM_SOLIDSIM_DISTANCE_CONSTRAINTS);
+	enumParam->addEnumValue("FEM based PBD", ENUM_SOLIDSIM_FEM_PBD);
+	enumParam->addEnumValue("FEM based XPBD", ENUM_SOLIDSIM_FEM_XPBD);
+	enumParam->addEnumValue("Strain based dynamics (no inversion handling)", ENUM_SOLIDSIM_SBD);
+	enumParam->addEnumValue("Shape Matching (no inversion handling)", ENUM_SOLIDSIM_SHAPE_MATCHING);
+	enumParam->addEnumValue("XPBD distance constraints", ENUM_SOLIDSIM_DISTANCE_CONSTRAINTS_XPBD);
+
+	SOLID_STIFFNESS = createNumericParameter<Real>("solid_stiffness", "Stiffness/Youngs modulus", std::bind(&SimulationModel::getSolidStiffness, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setSolidStiffness), this, std::placeholders::_1));
+	setGroup(SOLID_STIFFNESS, "Solid|General");
+	setDescription(SOLID_STIFFNESS, "Stiffness/Young's modulus of solid models.");
+	static_cast<NumericParameter<Real>*>(getParameter(SOLID_STIFFNESS))->setMinValue(0.0);
+
+	SOLID_POISSON_RATIO = createNumericParameter<Real>("solid_poissonRatio", "Poisson ratio", std::bind(&SimulationModel::getSolidPoissonRatio, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setSolidPoissonRatio), this, std::placeholders::_1));
+	setGroup(SOLID_POISSON_RATIO, "Solid|FEM");
+	setDescription(SOLID_POISSON_RATIO, "Poisson ratio of solid models.");
+	static_cast<NumericParameter<Real>*>(getParameter(SOLID_POISSON_RATIO))->setMinValue(0.0);
+
+	SOLID_VOLUME_STIFFNESS = createNumericParameter<Real>("solid_volumeStiffness", "Volume stiffness", std::bind(&SimulationModel::getSolidVolumeStiffness, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setSolidVolumeStiffness), this, std::placeholders::_1));
+	setGroup(SOLID_VOLUME_STIFFNESS, "Solid|Volume constraints");
+	setDescription(SOLID_VOLUME_STIFFNESS, "Volume stiffness of solid models.");
+	static_cast<NumericParameter<Real>*>(getParameter(SOLID_VOLUME_STIFFNESS))->setMinValue(0.0);
+
+	SOLID_NORMALIZE_STRETCH = createBoolParameter("solid_normalizeStretch", "Normalize stretch", std::bind(&SimulationModel::getSolidNormalizeStretch, this), std::bind(static_cast<void (SimulationModel::*)(const bool)>(&SimulationModel::setSolidNormalizeStretch), this, std::placeholders::_1));
+	setGroup(SOLID_NORMALIZE_STRETCH, "Solid|Strain Based Dynamics");
+	setDescription(SOLID_NORMALIZE_STRETCH, "Normalize stretch (strain based dynamics)");
+
+	SOLID_NORMALIZE_SHEAR = createBoolParameter("solid_normalizeShear", "Normalize shear", std::bind(&SimulationModel::getSolidNormalizeShear, this), std::bind(static_cast<void (SimulationModel::*)(const bool)>(&SimulationModel::setSolidNormalizeShear), this, std::placeholders::_1));
+	setGroup(SOLID_NORMALIZE_SHEAR, "Solid|Strain Based Dynamics");
+	setDescription(SOLID_NORMALIZE_SHEAR, "Normalize shear (strain based dynamics)");
+
+	ROD_STRETCHING_STIFFNESS = createNumericParameter<Real>("rod_stretchingStiffness", "Stretching stiffness/Youngs modulus", std::bind(&SimulationModel::getRodStretchingStiffness, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setRodStretchingStiffness), this, std::placeholders::_1));
+	setGroup(ROD_STRETCHING_STIFFNESS, "Elastic Rod|Parameters");
+	setDescription(ROD_STRETCHING_STIFFNESS, "Stretching stiffness/Youngs modulus of elastic rod models.");
+	static_cast<NumericParameter<Real>*>(getParameter(ROD_STRETCHING_STIFFNESS))->setMinValue(0.0);
+
+	ROD_SHEARING_STIFFNESS_X = createNumericParameter<Real>("rod_shearingStiffnessX", "Shearing stiffness x", std::bind(&SimulationModel::getRodShearingStiffnessX, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setRodShearingStiffnessX), this, std::placeholders::_1));
+	setGroup(ROD_SHEARING_STIFFNESS_X, "Elastic Rod|Parameters");
+	setDescription(ROD_SHEARING_STIFFNESS_X, "Shearing stiffness of elastic rod models.");
+	static_cast<NumericParameter<Real>*>(getParameter(ROD_SHEARING_STIFFNESS_X))->setMinValue(0.0);
+
+	ROD_SHEARING_STIFFNESS_Y = createNumericParameter<Real>("rod_shearingStiffnessY", "Shearing stiffness y", std::bind(&SimulationModel::getRodShearingStiffnessY, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setRodShearingStiffnessY), this, std::placeholders::_1));
+	setGroup(ROD_SHEARING_STIFFNESS_Y, "Elastic Rod|Parameters");
+	setDescription(ROD_SHEARING_STIFFNESS_Y, "Shearing stiffness of elastic rod models.");
+	static_cast<NumericParameter<Real>*>(getParameter(ROD_SHEARING_STIFFNESS_Y))->setMinValue(0.0);
+
+	ROD_BENDING_STIFFNESS_X  = createNumericParameter<Real>("rod_bendingStiffnessX", "Bending stiffness x", std::bind(&SimulationModel::getRodBendingStiffnessX, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setRodBendingStiffnessX), this, std::placeholders::_1));
+	setGroup(ROD_BENDING_STIFFNESS_X, "Elastic Rod|Parameters");
+	setDescription(ROD_BENDING_STIFFNESS_X, "Bending stiffness of elastic rod models.");
+	static_cast<NumericParameter<Real>*>(getParameter(ROD_BENDING_STIFFNESS_X))->setMinValue(0.0);
+
+	ROD_BENDING_STIFFNESS_Y = createNumericParameter<Real>("rod_bendingStiffnessY", "Bending stiffness y", std::bind(&SimulationModel::getRodBendingStiffnessY, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setRodBendingStiffnessY), this, std::placeholders::_1));
+	setGroup(ROD_BENDING_STIFFNESS_Y, "Elastic Rod|Parameters");
+	setDescription(ROD_BENDING_STIFFNESS_Y, "Bending stiffness of elastic rod models.");
+	static_cast<NumericParameter<Real>*>(getParameter(ROD_BENDING_STIFFNESS_Y))->setMinValue(0.0);
+
+	ROD_TWISTING_STIFFNESS = createNumericParameter<Real>("rod_twistingStiffness", "Twisting stiffness", std::bind(&SimulationModel::getRodTwistingStiffness, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setRodTwistingStiffness), this, std::placeholders::_1));
+	setGroup(ROD_TWISTING_STIFFNESS, "Elastic Rod|Parameters");
+	setDescription(ROD_TWISTING_STIFFNESS, "Twisting stiffness of elastic rod models.");
+	static_cast<NumericParameter<Real>*>(getParameter(ROD_TWISTING_STIFFNESS))->setMinValue(0.0);
+
+	CONTACT_STIFFNESS_RB = createNumericParameter<Real>("contactStiffnessRigidBody", "Contact stiffness RB", std::bind(&SimulationModel::getContactStiffnessRigidBody, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setContactStiffnessRigidBody), this, std::placeholders::_1));
+	setGroup(CONTACT_STIFFNESS_RB, "Simulation|Contact");
+	setDescription(CONTACT_STIFFNESS_RB, "Stiffness coefficient for rigid-rigid contact resolution.");
+	static_cast<NumericParameter<Real>*>(getParameter(CONTACT_STIFFNESS_RB))->setMinValue(0.0);
+
+	CONTACT_STIFFNESS_PARTICLE_RB = createNumericParameter<Real>("contactStiffnessParticleRigidBody", "Contact stiffness Particle-RB", std::bind(&SimulationModel::getContactStiffnessParticleRigidBody, this), std::bind(static_cast<void (SimulationModel::*)(const Real)>(&SimulationModel::setContactStiffnessParticleRigidBody), this, std::placeholders::_1));
+	setGroup(CONTACT_STIFFNESS_PARTICLE_RB, "Simulation|Contact");
+	setDescription(CONTACT_STIFFNESS_PARTICLE_RB, "Stiffness coefficient for particle-rigid contact resolution.");
+	static_cast<NumericParameter<Real>*>(getParameter(CONTACT_STIFFNESS_PARTICLE_RB))->setMinValue(0.0);
 }
 
 void SimulationModel::reset()
@@ -876,6 +1093,28 @@ void SimulationModel::initConstraintGroups()
 	m_groupsInitialized = true;
 }
 
+void PBD::SimulationModel::setClothSimulationMethod(int val) 
+{ 
+	m_clothSimulationMethod = val;
+	if (m_clothSimMethodChanged != nullptr)
+		m_clothSimMethodChanged();
+}
+
+void PBD::SimulationModel::setClothBendingMethod(int val)
+{
+	m_clothBendingMethod = val;
+	if (m_clothBendingMethodChanged != nullptr)
+		m_clothBendingMethodChanged();
+}
+
+void PBD::SimulationModel::setSolidSimulationMethod(int val)
+{
+	m_solidSimulationMethod = val;
+	if (m_solidSimMethodChanged != nullptr)
+		m_solidSimMethodChanged();
+}
+
+
 void SimulationModel::resetContacts()
 {
 	m_rigidBodyContactConstraints.clear();
@@ -1109,3 +1348,138 @@ void SimulationModel::addSolidConstraints(const TetModel* tm, const unsigned int
 	}
 }
 
+void PBD::SimulationModel::setClothStiffness(Real val)
+{
+	m_cloth_stiffness = val;
+	setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(m_cloth_stiffness);
+	setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(m_cloth_stiffness);
+}
+
+void PBD::SimulationModel::setClothStiffnessXX(Real val)
+{
+	m_cloth_xxStiffness = val;
+	setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xxStiffness>(val);
+	setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xxStiffness>(val);
+}
+
+void PBD::SimulationModel::setClothStiffnessYY(Real val)
+{
+	m_cloth_yyStiffness = val;
+	setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xxStiffness>(val);
+	setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xxStiffness>(val);
+}
+
+void PBD::SimulationModel::setClothStiffnessXY(Real val)
+{
+	m_cloth_xyStiffness = val;
+	setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xxStiffness>(val);
+	setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xxStiffness>(val);
+}
+
+void PBD::SimulationModel::setClothPoissonRatioXY(Real val)
+{
+	m_cloth_xyPoissonRatio = val;
+	setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xyPoissonRatio>(val);
+}
+
+void PBD::SimulationModel::setClothPoissonRatioYX(Real val)
+{
+	m_cloth_yxPoissonRatio = val;
+	setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_yxPoissonRatio>(val);
+}
+
+void PBD::SimulationModel::setClothBendingStiffness(Real val)
+{
+	m_cloth_bendingStiffness = val;
+	setConstraintValue<DihedralConstraint, Real, &DihedralConstraint::m_stiffness>(val);
+	setConstraintValue<IsometricBendingConstraint, Real, &IsometricBendingConstraint::m_stiffness>(val);
+	setConstraintValue<IsometricBendingConstraint_XPBD, Real, &IsometricBendingConstraint_XPBD::m_stiffness>(val);
+}
+
+void PBD::SimulationModel::setClothNormalizeStretch(bool val)
+{
+	m_cloth_normalizeStretch = val;
+	setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeStretch>(val);
+}
+
+void PBD::SimulationModel::setClothNormalizeShear(bool val)
+{
+	m_cloth_normalizeShear = val;
+	setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeShear>(val);
+}
+
+void PBD::SimulationModel::setSolidStiffness(Real val)
+{
+	m_solid_stiffness = val;
+	setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_stiffness>(val);
+	setConstraintValue<XPBD_FEMTetConstraint, Real, &XPBD_FEMTetConstraint::m_stiffness>(val);
+	setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_stretchStiffness>(val);
+	setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_shearStiffness>(val);
+	setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(val);
+	setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(val);
+	setConstraintValue<ShapeMatchingConstraint, Real, &ShapeMatchingConstraint::m_stiffness>(val);
+}
+
+void PBD::SimulationModel::setSolidPoissonRatio(Real val)
+{
+	m_solid_poissonRatio = val;
+	setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_poissonRatio>(val);
+	setConstraintValue<XPBD_FEMTetConstraint, Real, &XPBD_FEMTetConstraint::m_poissonRatio>(val);
+}
+
+void PBD::SimulationModel::setSolidVolumeStiffness(Real val)
+{
+	m_solid_volumeStiffness = val;
+	setConstraintValue<VolumeConstraint, Real, &VolumeConstraint::m_stiffness>(val);
+	setConstraintValue<VolumeConstraint_XPBD, Real, &VolumeConstraint_XPBD::m_stiffness>(val);
+}
+
+void PBD::SimulationModel::setSolidNormalizeStretch(bool val)
+{
+	m_solid_normalizeStretch = val;
+	setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeStretch>(val);
+}
+
+void PBD::SimulationModel::setSolidNormalizeShear(bool val)
+{
+	m_solid_normalizeShear = val;
+	setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeShear>(val);
+}
+
+void PBD::SimulationModel::setRodStretchingStiffness(Real val)
+{
+	m_rod_stretchingStiffness = val;
+	setConstraintValue<StretchShearConstraint, Real, &StretchShearConstraint::m_stretchingStiffness>(val);
+	setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(val);
+	setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(val);
+}
+
+void PBD::SimulationModel::setRodShearingStiffnessX(Real val)
+{
+	m_rod_shearingStiffnessX = val;
+	setConstraintValue<StretchShearConstraint, Real, &StretchShearConstraint::m_shearingStiffness1>(val);
+}
+
+void PBD::SimulationModel::setRodShearingStiffnessY(Real val)
+{
+	m_rod_shearingStiffnessY = val;
+	setConstraintValue<StretchShearConstraint, Real, &StretchShearConstraint::m_shearingStiffness2>(val);
+}
+
+void PBD::SimulationModel::setRodBendingStiffnessX(Real val)
+{
+	m_rod_bendingStiffnessX = val;
+	setConstraintValue<BendTwistConstraint, Real, &BendTwistConstraint::m_bendingStiffness1>(val);
+}
+
+void PBD::SimulationModel::setRodBendingStiffnessY(Real val)
+{
+	m_rod_bendingStiffnessY = val;
+	setConstraintValue<BendTwistConstraint, Real, &BendTwistConstraint::m_bendingStiffness2>(val);
+}
+
+void PBD::SimulationModel::setRodTwistingStiffness(Real val)
+{
+	m_rod_twistingStiffness = val;
+	setConstraintValue<BendTwistConstraint, Real, &BendTwistConstraint::m_twistingStiffness>(val);
+}

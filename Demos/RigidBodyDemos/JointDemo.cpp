@@ -11,7 +11,6 @@
 #include "Utils/Timing.h"
 #include "Utils/FileSystem.h"
 #include "Demos/Common/DemoBase.h"
-#include "Demos/Common/TweakBarParameters.h"
 #include "Simulation/Simulation.h"
 
 #define _USE_MATH_DEFINES
@@ -27,7 +26,6 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
-void initParameters();
 void timeStep ();
 void buildModel ();
 void createBodyModel();
@@ -55,7 +53,7 @@ int main( int argc, char **argv )
 
 	buildModel ();
 
-	initParameters();
+	base->createParameterGUI();
 
 	Simulation::getCurrent()->getTimeStep()->setValue<unsigned int>(TimeStepController::NUM_SUB_STEPS, 1);
 	Simulation::getCurrent()->getTimeStep()->setValue<unsigned int>(TimeStepController::MAX_ITERATIONS, 5);
@@ -76,20 +74,6 @@ int main( int argc, char **argv )
 	delete model;
 	
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -136,6 +120,8 @@ void timeStep()
 		START_TIMING("SimStep");
 		Simulation::getCurrent()->getTimeStep()->step(*model);
 		STOP_TIMING_AVG;
+
+		base->step();
 	}
 }
 
@@ -144,32 +130,16 @@ void buildModel ()
 	TimeManager::getCurrent ()->setTimeStepSize (static_cast<Real>(0.005));
 	createBodyModel();
 
-	std::cout << "Joint types in simulation: \n";
-	std::cout << "--------------------------\n\n";
-	std::cout << "row 1:    ball joint,                  ball-on-line joint,             hinge joint,               universal joint\n";
-	std::cout << "row 2:    target angle hinge motor,    target velocity hinge motor,    target position motor,     target velocity motor\n";
-	std::cout << "row 3:    spring,                      distance joint,                 slider joint\n";
+	LOG_INFO << "\nJoint types in simulation:";
+	LOG_INFO << "--------------------------\n";
+	LOG_INFO << "row 1:    ball joint,                  ball-on-line joint,             hinge joint,               universal joint";
+	LOG_INFO << "row 2:    target angle hinge motor,    target velocity hinge motor,    target position motor,     target velocity motor";
+	LOG_INFO << "row 3:    spring,                      distance joint,                 slider joint";
 }
 
 void render ()
 {
 	base->render();
-
-	//float textColor[4] = { 0.0, .2f, .4f, 1 };
-	//MiniGL::drawStrokeText(-0.5, 1.5, 1.0, 0.002f, "ball joint", 11, textColor);
-	//MiniGL::drawStrokeText(3.0, 1.5, 1.0, 0.002f, "ball-on-line joint", 19, textColor);
-	//MiniGL::drawStrokeText(7.3f, 1.5, 1.0, 0.002f, "hinge joint", 12, textColor);
-	//MiniGL::drawStrokeText(11.2f, 1.5, 1.0, 0.002f, "universal joint", 15, textColor);
-
-	//MiniGL::drawStrokeText(-1.0, -4.0, 1.0, 0.002f, "motor hinge joint", 17, textColor);
-	//MiniGL::drawStrokeText(3.4f, -4.0, 1.0, 0.002f, "slider joint", 12, textColor);
-	//MiniGL::drawStrokeText(6.6f, -4.0, 1.0, 0.002f, "target position motor", 21, textColor);
-	//MiniGL::drawStrokeText(10.6f, -4.0, 1.0, 0.002f, "target velocity motor", 21, textColor);
-
-	//MiniGL::drawStrokeText(-0.25, -9.5, 1.0, 0.002f, "spring", 6, textColor);
-	//MiniGL::drawStrokeText(3.3, -9.5, 1.0, 0.002f, "distance joint", 14, textColor);
-
-	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
 }
 
 // Compute diagonal inertia tensor

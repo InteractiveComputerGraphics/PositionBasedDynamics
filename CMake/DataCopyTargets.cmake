@@ -21,3 +21,11 @@ add_custom_target(CopyPBDScenes
 	COMMENT "Copying PBD scenes"
 )
 set_target_properties(CopyPBDScenes PROPERTIES FOLDER "Data copy")
+
+add_custom_target(CopyImguiFonts
+	${CMAKE_COMMAND} -E copy_directory
+	${PROJECT_SOURCE_DIR}/extern/imgui/misc/fonts
+	${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/fonts
+	COMMENT "Copying fonts"
+)
+set_target_properties(CopyImguiFonts PROPERTIES FOLDER "Data copy")

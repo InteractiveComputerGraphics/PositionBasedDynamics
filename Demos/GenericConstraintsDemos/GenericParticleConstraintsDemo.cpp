@@ -11,7 +11,6 @@
 #include "Utils/Timing.h"
 #include "Utils/FileSystem.h"
 #include "Demos/Common/DemoBase.h"
-#include "Demos/Common/TweakBarParameters.h"
 #include "Simulation/Simulation.h"
 #include "GenericConstraints.h"
 
@@ -30,10 +29,6 @@ void buildModel ();
 void createMesh();
 void render ();
 void reset();
-void TW_CALL setBendingStiffness(const void* value, void* clientData);
-void TW_CALL getBendingStiffness(void* value, void* clientData);
-void TW_CALL setDistanceStiffness(const void* value, void* clientData);
-void TW_CALL getDistanceStiffness(void* value, void* clientData);
 
 DemoBase *base;
 
@@ -60,15 +55,15 @@ int main( int argc, char **argv )
 
 	base->createParameterGUI();
 
+	// reset simulation when cloth simulation/bending method has changed
+	model->setClothSimulationMethodChangedCallback([&]() { reset(); });
+	model->setClothBendingMethodChangedCallback([&]() { reset(); });
+
 	// OpenGL
 	MiniGL::setClientIdleFunc (timeStep);		
 	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0f, Vector3r (5.0, 10.0, 30.0), Vector3r (5.0, 0.0, 0.0));
-
-	TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, model, " label='Bending stiffness'  min=0.0 step=0.1 precision=4 group='Bending' ");
-	TwAddVarCB(MiniGL::getTweakBar(), "DistanceStiffness", TW_TYPE_REAL, setDistanceStiffness, getDistanceStiffness, model, " label='Distance constraint stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
-
 	MiniGL::mainLoop();
 
 	Utilities::Timing::printAverageTimes();
@@ -107,6 +102,8 @@ void timeStep ()
 		START_TIMING("SimStep");
 		Simulation::getCurrent()->getTimeStep()->step(*model);
 		STOP_TIMING_AVG;
+
+		base->step();
 	}
 
 	for (unsigned int i = 0; i < model->getTriangleModels().size(); i++)
@@ -200,26 +197,4 @@ void createMesh()
 	LOG_INFO << "Number of triangles: " << model->getTriangleModels()[0]->getParticleMesh().numFaces();
 	LOG_INFO << "Number of vertices: " << nRows*nCols;
 
-}
-
-void TW_CALL setBendingStiffness(const void* value, void* clientData)
-{
-	bendingStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<GenericIsometricBendingConstraint, Real, &GenericIsometricBendingConstraint::m_stiffness>(bendingStiffness);
-}
-
-void TW_CALL getBendingStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = bendingStiffness;
-}
-
-void TW_CALL setDistanceStiffness(const void* value, void* clientData)
-{
-	distanceStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<GenericDistanceConstraint, Real, &GenericDistanceConstraint::m_stiffness>(distanceStiffness);
-}
-
-void TW_CALL getDistanceStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = distanceStiffness;
 }

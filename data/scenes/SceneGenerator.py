@@ -4,7 +4,7 @@ import math
 ######################################################
 # add parameters
 ######################################################
-def addParameters(scene, h=0.005, maxIter=5, maxIterVel=5, subSteps=5, velocityUpdateMethod=0, contactTolerance=0.05, triangleModelSimulationMethod=2, triangleModelBendingMethod=2, 
+def addParameters(scene, h=0.005, maxIter=5, maxIterVel=5, subSteps=5, velocityUpdateMethod=0, contactTolerance=0.05, clothSimulationMethod=2, clothBendingMethod=2, 
                   contactStiffnessRigidBody=1.0, contactStiffnessParticleRigidBody=100.0, 
                   cloth_stiffness=1.0, cloth_bendingStiffness=0.005, cloth_xxStiffness=1.0, cloth_yyStiffness=1.0, cloth_xyStiffness=1.0,
                   cloth_xyPoissonRatio=0.3, cloth_yxPoissonRatio=0.3, cloth_normalizeStretch=0, cloth_normalizeShear=0, gravity=[0,-9.81,0], numberOfStepsPerRenderUpdate=4):
@@ -16,8 +16,8 @@ def addParameters(scene, h=0.005, maxIter=5, maxIterVel=5, subSteps=5, velocityU
 					'numberOfStepsPerRenderUpdate': numberOfStepsPerRenderUpdate,
 				    'velocityUpdateMethod' : velocityUpdateMethod,
 				    'contactTolerance': contactTolerance,
-				    'triangleModelSimulationMethod': triangleModelSimulationMethod,
-				    'triangleModelBendingMethod': triangleModelBendingMethod,
+				    'clothSimulationMethod': clothSimulationMethod,
+				    'clothBendingMethod': clothBendingMethod,
 				    'contactStiffnessRigidBody' : contactStiffnessRigidBody,
 				    'contactStiffnessParticleRigidBody': contactStiffnessParticleRigidBody,
 				    'cloth_stiffness': cloth_stiffness,

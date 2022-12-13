@@ -48,9 +48,6 @@ double MiniGL::mouse_pos_x_old = 0;
 double MiniGL::mouse_pos_y_old = 0;
 std::vector<MiniGL::KeyFunction> MiniGL::keyfunc;
 int MiniGL::drawMode = GL_FILL;
-TwBar *MiniGL::m_tweakBar = NULL;
-Real MiniGL::m_time = 0.0;
-Real MiniGL::m_quat[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 unsigned char MiniGL::texData[IMAGE_ROWS][IMAGE_COLS][3];
 unsigned int MiniGL::m_texId = 0;
 void(*MiniGL::selectionfunc)(const Vector2i&, const Vector2i&, void*) = NULL;
@@ -74,15 +71,9 @@ GLFWwindow* MiniGL::m_glfw_window = nullptr;
 std::vector<MiniGL::Triangle> MiniGL::m_drawTriangle;
 std::vector<MiniGL::Line> MiniGL::m_drawLines;
 std::vector<MiniGL::Point> MiniGL::m_drawPoints;
+bool MiniGL::m_vsync = false;
 double MiniGL::m_lastTime;
 
-
-
-void MiniGL::drawTime( const Real time )
-{
-	m_time = (Real) time;
-	TwRefreshBar(m_tweakBar);
-}
 
 void MiniGL::bindTexture()
 {
@@ -436,7 +427,7 @@ void MiniGL::setClientSceneFunc (SceneFct func)
 	scenefunc = func;
 }
 
-void MiniGL::init(int argc, char **argv, const int width, const int height, const char *name)
+void MiniGL::init(int argc, char **argv, const int width, const int height, const char *name, const bool vsync, const bool maximized)
 {
 	fovy = 60;
 	znear = 0.5f;
@@ -444,6 +435,7 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 
 	m_width = width;
 	m_height = height;
+	m_vsync = vsync;
 
 	scenefunc = nullptr;
 
@@ -457,7 +449,14 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	//glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
+	if (maximized)
+		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+
+	if (m_vsync)
+		glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+	else
+		glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
+
 	m_glfw_window = glfwCreateWindow(width, height, name, NULL, NULL);
 	if (!m_glfw_window)
 	{
@@ -493,18 +492,8 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	glfwSetCursorPosCallback(m_glfw_window, mouseMove);
 	glfwSetScrollCallback(m_glfw_window, mouseWheel);
 
-	// Initialize AntTweakBar
-	// (note that AntTweakBar could also be initialized after GLFW, no matter)
-	if (!TwInit(TW_OPENGL, NULL))
-	{
-		// A fatal error occured    
-		fprintf(stderr, "AntTweakBar initialization failed: %s\n", TwGetLastError());
-		exit(1);
-	}
 	int w, h;
 	glfwGetWindowSize(m_glfw_window, &w, &h);
-	TwWindowSize(w, h);
-	initTweakBar();
 
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
@@ -547,62 +536,6 @@ void MiniGL::initTexture()
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
-void MiniGL::initTweakBar()
-{
-	// Create a tweak bar
-	m_tweakBar = TwNewBar("TweakBar");
-	TwDefine(" GLOBAL help='MiniGL TweakBar.' "); // Message added to the help bar.
-	//TwDefine(" TweakBar size='300 900' valueswidth=120 position='5 5' color='96 200 224' text=dark "); // change default tweak bar size and color
-	TwDefine(" TweakBar size='300 900' valueswidth=120 position='5 5'"); // change default tweak bar size and color
-}
-
-void MiniGL::initTweakBarParameters()
-{
-	TwAddVarRO(m_tweakBar, "Time", TW_TYPE_REAL, &m_time, " label='Time' precision=5");
-
-	TwAddVarCB(m_tweakBar, "Rotation", TW_TYPE_QUAT4F, setRotationCB, getRotationCB, &m_quat,
-		" label='Rotation' open help='Change the rotation.' ");
-
-	// Add callback to toggle auto-rotate mode (callback functions are defined above).
-	TwAddVarCB(m_tweakBar, "Wireframe", TW_TYPE_BOOL32, setWireframeCB, getWireframeCB, NULL,
-		" label='Wireframe' key=w help='Toggle wireframe mode.' ");
-
-}
-
-void TW_CALL MiniGL::setWireframeCB(const void *value, void *clientData)
-{
-	const int val = *(const int *)(value);
-	if (val == 0) 
-		drawMode = GL_FILL;
-	else 
-		drawMode = GL_LINE;
-}
-
-void TW_CALL MiniGL::getWireframeCB(void *value, void *clientData)
-{
-	*(int *)(value) = drawMode == GL_LINE;
-}
-
-void TW_CALL MiniGL::setRotationCB(const void *value, void *clientData)
-{
-	const float *val = (const float *)(value);
-	m_rotation.x() = (Real) val[0];
-	m_rotation.y() = (Real) val[1];
-	m_rotation.z() = (Real) val[2];
-	m_rotation.w() = -(Real) val[3];
-
-}
-
-void TW_CALL MiniGL::getRotationCB(void *value, void *clientData)
-{
-	float *val = (float*)(value);
-	val[0] = (float)m_rotation.x();
-	val[1] = (float)m_rotation.y();
-	val[2] = (float)m_rotation.z();
-	val[3] = -(float)m_rotation.w();
-}
-
 void MiniGL::setMouseMoveFunc(int button, void(*func) (int, int, void*))
 {
 	mousefunc = func;
@@ -614,12 +547,6 @@ void MiniGL::setSelectionFunc(void(*func) (const Vector2i&, const Vector2i&, voi
 {
 	selectionfunc = func;
 	selectionfuncClientData = clientData;
-}
-
-
-void MiniGL::cleanupTweakBar()
-{
-
 }
 
 void MiniGL::destroy ()
@@ -936,11 +863,6 @@ float MiniGL::getZFar()
 	return zfar;
 }
 
-TwBar * MiniGL::getTweakBar()
-{
-	return m_tweakBar;
-}
-
 void MiniGL::hsvToRgb(float h, float s, float v, float *rgb)
 {
 	int i = (int)floor(h * 6);
@@ -1042,10 +964,10 @@ void MiniGL::mainLoop()
 			if (scenefunc != nullptr)
 				scenefunc();
 
-			TwDraw();  // draw the tweak bar(s)
-
-			glfwSwapBuffers(m_glfw_window);
-			//glFlush();
+			if (m_vsync)
+				glfwSwapBuffers(m_glfw_window);
+			else
+				glFlush();
 			m_lastTime = currentTime;
 		}
 	}
@@ -1055,7 +977,6 @@ void MiniGL::mainLoop()
 
 	glfwDestroyWindow(m_glfw_window);
 
-	TwTerminate();
 	glfwTerminate();
 
 	destroy();
@@ -1068,8 +989,43 @@ void MiniGL::leaveMainLoop()
 
 void MiniGL::swapBuffers()
 {
-	glfwSwapBuffers(m_glfw_window);
-	//glFlush();
+	if (m_vsync)
+		glfwSwapBuffers(m_glfw_window);
+	else
+		glFlush();
+}
+
+void MiniGL::getWindowPos(int& x, int& y)
+{
+	glfwGetWindowPos(m_glfw_window, &x, &y);
+}
+
+void MiniGL::getWindowSize(int& w, int& h)
+{
+	glfwGetWindowSize(m_glfw_window, &w, &h);
+}
+
+void MiniGL::setWindowPos(int x, int y)
+{
+	glfwSetWindowPos(m_glfw_window, x, y);
+}
+
+void MiniGL::setWindowSize(int w, int h)
+{
+	glfwSetWindowSize(m_glfw_window, w, h);
+}
+
+bool MiniGL::getWindowMaximized()
+{
+	return glfwGetWindowAttrib(m_glfw_window, GLFW_MAXIMIZED);
+}
+
+void MiniGL::setWindowMaximized(const bool b)
+{
+	if (b)
+		glfwRestoreWindow(m_glfw_window);
+	else
+		glfwRestoreWindow(m_glfw_window);
 }
 
 void MiniGL::breakPointMainLoop()
@@ -1085,8 +1041,10 @@ void MiniGL::breakPointMainLoop()
 			if (scenefunc != nullptr)
 				scenefunc();
 
-			glfwSwapBuffers(m_glfw_window);
-			//glFlush();
+			if (m_vsync)
+				glfwSwapBuffers(m_glfw_window);
+			else
+				glFlush();
 			glfwPollEvents();
 		}
 	}

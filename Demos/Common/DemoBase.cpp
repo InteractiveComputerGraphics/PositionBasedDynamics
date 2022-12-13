@@ -12,9 +12,9 @@
 #include "Utils/SystemInfo.h"
 #include "../Visualization/Visualization.h"
 #include "Simulation/DistanceFieldCollisionDetection.h"
-#include "Demos/Common/TweakBarParameters.h"
 #include "Utils/OBJLoader.h"
 #include "Utils/PLYLoader.h"
+
 
 INIT_LOGGING
 INIT_TIMING
@@ -34,11 +34,15 @@ int DemoBase::RENDER_AABB = -1;
 int DemoBase::RENDER_SDF = -1;
 int DemoBase::RENDER_BVH = -1;
 int DemoBase::RENDER_BVH_TETS = -1;
+int DemoBase::EXPORT_OBJ = -1;
+int DemoBase::EXPORT_PLY = -1;
+int DemoBase::EXPORT_FPS = -1;
 
  
 DemoBase::DemoBase()
 {
 	Utilities::logger.addSink(unique_ptr<Utilities::ConsoleSink>(new Utilities::ConsoleSink(Utilities::LogLevel::INFO)));
+	Utilities::logger.addSink(shared_ptr<Utilities::BufferSink>(new Utilities::BufferSink(Utilities::LogLevel::DEBUG)));
 
 	m_sceneLoader = nullptr;
 	m_numberOfStepsPerRenderUpdate = 8;
@@ -55,11 +59,19 @@ DemoBase::DemoBase()
 	m_pauseAt = -1.0;
 	m_useCache = true;
 	m_oldMousePos.setZero();
+	m_enableExportOBJ = false;
+	m_enableExportPLY = false;
+	m_exportFPS = 25;
+	m_nextFrameTime = 0.0;
+	m_frameCounter = 1;
+
+	m_gui = new Simulator_GUI_imgui(this);
 }
 
 DemoBase::~DemoBase()
 {
 	delete m_sceneLoader;
+	delete m_gui;
 }
 
 void DemoBase::initParameters()
@@ -67,63 +79,66 @@ void DemoBase::initParameters()
 	ParameterObject::initParameters();
 
 	PAUSE = createBoolParameter("pause", "Pause", &m_doPause);
-	setGroup(PAUSE, "Simulation");
+	setGroup(PAUSE, "Simulation|General");
 	setDescription(PAUSE, "Pause simulation.");
 	setHotKey(PAUSE, "space");
 
 	PAUSE_AT = createNumericParameter("pauseAt", "Pause simulation at", &m_pauseAt);
-	setGroup(PAUSE_AT, "Simulation");
+	setGroup(PAUSE_AT, "Simulation|General");
 	setDescription(PAUSE_AT, "Pause simulation at the given time. When the value is negative, the simulation is not paused.");
 
 	NUM_STEPS_PER_RENDER = createNumericParameter("numberOfStepsPerRenderUpdate", "# time steps / update", &m_numberOfStepsPerRenderUpdate);
-	setGroup(NUM_STEPS_PER_RENDER, "Visualization");
+	setGroup(NUM_STEPS_PER_RENDER, "Visualization|General");
 	setDescription(NUM_STEPS_PER_RENDER, "Pause simulation at the given time. When the value is negative, the simulation is not paused.");
 	static_cast<NumericParameter<unsigned int>*>(getParameter(NUM_STEPS_PER_RENDER))->setMinValue(1);
 
 	RENDER_TETS = createBoolParameter("renderTets", "Render tet model", &m_renderTets);
-	setGroup(RENDER_TETS, "Visualization");
+	setGroup(RENDER_TETS, "Visualization|Solids");
 	setDescription(RENDER_TETS, "Render tet model.");
 
 	RENDER_TETS0 = createBoolParameter("renderTets0", "Render ref. tet model", &m_renderRefTets);
-	setGroup(RENDER_TETS0, "Visualization");
+	setGroup(RENDER_TETS0, "Visualization|Solids");
 	setDescription(RENDER_TETS0, "Render ref. tet model.");
 
 	RENDER_CONTACTS = createBoolParameter("renderContacts", "Render contacts", &m_renderContacts);
-	setGroup(RENDER_CONTACTS, "Visualization");
+	setGroup(RENDER_CONTACTS, "Visualization|Contact");
 	setDescription(RENDER_CONTACTS, "Render contact points and normals.");
 
 	RENDER_AABB = createBoolParameter("renderAABB", "Render AABBs", &m_renderAABB);
-	setGroup(RENDER_AABB, "Visualization");
+	setGroup(RENDER_AABB, "Visualization|Contact");
 	setDescription(RENDER_AABB, "Render AABBs.");
 
 	RENDER_SDF = createBoolParameter("renderSDF", "Render SDFs", &m_renderSDF);
-	setGroup(RENDER_SDF, "Visualization");
+	setGroup(RENDER_SDF, "Visualization|Contact");
 	setDescription(RENDER_SDF, "Render SDFs.");
 
 	RENDER_BVH = createNumericParameter("renderBVHDepth", "Render BVH depth", &m_renderBVHDepth);
-	setGroup(RENDER_BVH, "Visualization");
+	setGroup(RENDER_BVH, "Visualization|Contact");
 	setDescription(RENDER_BVH, "Render BVH until given depth.");
 	static_cast<NumericParameter<int>*>(getParameter(RENDER_BVH))->setMinValue(-1);
 
 	RENDER_BVH_TETS = createNumericParameter("renderBVHDepthTets", "Render BVH depth (tets)", &m_renderBVHDepthTets);
-	setGroup(RENDER_BVH_TETS, "Visualization");
+	setGroup(RENDER_BVH_TETS, "Visualization|Contact");
 	setDescription(RENDER_BVH_TETS, "Render BVH (tets) until given depth.");
 	static_cast<NumericParameter<int>*>(getParameter(RENDER_BVH_TETS))->setMinValue(-1);
 
+	EXPORT_OBJ = createBoolParameter("exportOBJ", "Export OBJ", &m_enableExportOBJ);
+	setGroup(EXPORT_OBJ, "Simulation|Export");
+	setDescription(EXPORT_OBJ, "Export meshes in OBJ files.");
+
+	EXPORT_PLY = createBoolParameter("exportPLY", "Export PLY", &m_enableExportPLY);
+	setGroup(EXPORT_PLY, "Simulation|Export");
+	setDescription(EXPORT_PLY, "Export meshes in PLY files.");
+
+	EXPORT_FPS = createNumericParameter("exportFPS", "Export FPS", &m_exportFPS);
+	setGroup(EXPORT_FPS, "Simulation|Export");
+	setDescription(EXPORT_FPS, "Frame rate for export.");
+	static_cast<NumericParameter<int>*>(getParameter(EXPORT_FPS))->setMinValue(0);
 }
 
 void DemoBase::createParameterGUI()
 {
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(this);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
+	m_gui->initSimulationParameterGUI();
 }
 
 void DemoBase::cleanup()
@@ -167,7 +182,10 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 		}
 	}
 
-	m_outputPath = FileSystem::normalizePath(getExePath() + "/output/" + FileSystem::getFileName(m_sceneFile));
+	if (m_sceneFile != "")
+		m_outputPath = FileSystem::normalizePath(getExePath() + "/output/" + FileSystem::getFileName(m_sceneFile));
+	else
+		m_outputPath = FileSystem::normalizePath(getExePath() + "/output/" + std::string(demoName));
 
 #ifdef DL_OUTPUT
 	std::string sceneFilePath = FileSystem::normalizePath(m_outputPath + "/scene");
@@ -181,7 +199,7 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 
 	std::string logPath = FileSystem::normalizePath(m_outputPath + "/log");
 	FileSystem::makeDirs(logPath);
-	Utilities::logger.addSink(unique_ptr<Utilities::FileSink>(new Utilities::FileSink(Utilities::LogLevel::DEBUG, logPath + "/info.log")));
+	Utilities::logger.addSink(unique_ptr<Utilities::FileSink>(new Utilities::FileSink(Utilities::LogLevel::DEBUG, logPath + "/PBD_log.txt")));
 
 	LOG_DEBUG << "Git refspec: " << GIT_REFSPEC;
 	LOG_DEBUG << "Git SHA1:    " << GIT_SHA1;
@@ -189,8 +207,10 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 	LOG_DEBUG << "Host name:   " << SystemInfo::getHostName();
 	LOG_INFO << "PositionBasedDynamics " << PBD_VERSION;
 
+	m_gui->init();
+
 	// OpenGL
-	MiniGL::init(argc, argv, 1280, 1024, demoName);
+	MiniGL::init(argc, argv, 1280, 1024, demoName, m_gui->getVSync(), m_gui->getMaximized());
 	MiniGL::initLights();
 	MiniGL::initTexture();
 	MiniGL::getOpenGLVersion(m_context_major_version, m_context_minor_version);
@@ -200,12 +220,7 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 	if (MiniGL::checkOpenGLVersion(3, 3))
 		initShaders();
 
-	MiniGL::addReshapeFunc([](int width, int height) { TwWindowSize(width, height); });
-	MiniGL::addKeyboardFunc([](int key, int scancode, int action, int mods) -> bool { return TwEventKeyGLFW(key, action); });
-	MiniGL::addCharFunc([](int key, int action) -> bool { return TwEventCharGLFW(key, action); });
-	MiniGL::addMousePressFunc([](int button, int action, int mods) -> bool { return TwEventMouseButtonGLFW(button, action); });
-	MiniGL::addMouseMoveFunc([](int x, int y) -> bool { return TwEventMousePosGLFW(x, y); });
-	MiniGL::addMouseWheelFunc([](int pos, double xoffset, double yoffset) -> bool { return TwEventMouseWheelGLFW(pos); });
+	m_gui->initImgui();
 }
 
 void DemoBase::readScene()
@@ -327,10 +342,13 @@ void DemoBase::shaderFlatEnd()
 
 void DemoBase::readParameters()
 {
+	Simulation* sim = Simulation::getCurrent();
 	m_sceneLoader->readParameterObject(this);
-	m_sceneLoader->readParameterObject(Simulation::getCurrent());
-	m_sceneLoader->readParameterObject(Simulation::getCurrent()->getModel());
-	m_sceneLoader->readParameterObject(Simulation::getCurrent()->getTimeStep());
+	m_sceneLoader->readParameterObject(sim);
+	m_sceneLoader->readParameterObject(sim->getModel());
+	m_sceneLoader->readParameterObject(sim->getTimeStep());
+	if (sim->getTimeStep()->getCollisionDetection() != nullptr)
+		m_sceneLoader->readParameterObject(sim->getTimeStep()->getCollisionDetection());
 }
 
 void DemoBase::render()
@@ -342,6 +360,11 @@ void DemoBase::render()
 
 	// Draw sim model	
 	SimulationModel *model = Simulation::getCurrent()->getModel();
+	if (model == nullptr)
+	{
+		m_gui->update();
+		return;
+	}
 	SimulationModel::RigidBodyVector &rb = model->getRigidBodies();
 	SimulationModel::ConstraintVector &constraints = model->getConstraints();
 	SimulationModel::RigidBodyContactConstraintVector &rigidBodyContacts = model->getRigidBodyContactConstraints();
@@ -578,8 +601,7 @@ void DemoBase::render()
 		MiniGL::drawSphere(pd.getPosition(m_selectedParticles[j]), 0.08f, red);
 	}
 
-	MiniGL::drawTime(TimeManager::getCurrent()->getTime());
-
+	m_gui->update();
 }
 
 void DemoBase::renderTriangleModels()
@@ -900,6 +922,8 @@ void DemoBase::selection(const Vector2i &start, const Vector2i &end, void *clien
 
 void DemoBase::reset()
 {
+	m_nextFrameTime = 0.0;
+	m_frameCounter = 1;
 }
 
 void DemoBase::loadMesh(const std::string& filename, VertexData& vd, Utilities::IndexedFaceMesh& mesh, const Vector3r& translation,
@@ -987,4 +1011,227 @@ void DemoBase::loadMesh(const std::string& filename, VertexData& vd, Utilities::
 		LOG_ERR << "File " << filename << " has a unknown file type.";
 }
 
+void DemoBase::exportMeshOBJ(const std::string& exportFileName, const unsigned int nVert, const Vector3r* pos, const unsigned int nTri, const unsigned int* faces)
+{
+	// Open the file
+	std::ofstream outfile(exportFileName);
+	if (!outfile)
+	{
+		LOG_WARN << "Cannot open a file to save OBJ mesh.";
+		return;
+	}
+
+	// Header
+	outfile << "# Created by the PositionBasedDynamics library\n";
+	outfile << "g default\n";
+
+	// Vertices
+	{
+		for (auto j = 0u; j < nVert; j++)
+		{
+			const Vector3r& x = pos[j];
+			outfile << "v " << x[0] << " " << x[1] << " " << x[2] << "\n";
+		}
+	}
+
+	// faces
+	{
+		for (auto j = 0u; j < nTri; j++)
+		{
+			outfile << "f " << faces[3 * j + 0] + 1 << " " << faces[3 * j + 1] + 1 << " " << faces[3 * j + 2] + 1 << "\n";
+		}
+	}
+	outfile.close();
+}
+
+
+void DemoBase::exportOBJ()
+{
+	if (!m_enableExportOBJ)
+		return;
+
+	if (TimeManager::getCurrent()->getTime() < m_nextFrameTime)
+		return;
+
+	m_nextFrameTime += 1.0 / (Real)m_exportFPS;
+
+	//////////////////////////////////////////////////////////////////////////
+	// rigid bodies
+	//////////////////////////////////////////////////////////////////////////
+
+	std::string exportPath = getOutputPath() + "/export";
+	FileSystem::makeDirs(exportPath);
+
+	SimulationModel* model = Simulation::getCurrent()->getModel();
+	const ParticleData& pd = model->getParticles();
+	for (unsigned int i = 0; i < model->getTriangleModels().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getTriangleModels()[i]->getParticleMesh();
+		const unsigned int offset = model->getTriangleModels()[i]->getIndexOffset();
+		const Vector3r* x = model->getParticles().getVertices().data();
+
+		std::string fileName = "triangle_model";
+		fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".obj";
+		std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+		exportMeshOBJ(exportFileName, mesh.numVertices(), &x[offset], mesh.numFaces(), mesh.getFaces().data());
+	}
+
+	for (unsigned int i = 0; i < model->getTetModels().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getTetModels()[i]->getVisMesh();
+		// has a vis mesh
+		if (mesh.numVertices() > 0)
+		{
+			const Vector3r* x = model->getTetModels()[i]->getVisVertices().getVertices().data();
+
+			std::string fileName = "tet_model";
+			fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".obj";
+			std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+			exportMeshOBJ(exportFileName, mesh.numVertices(), x, mesh.numFaces(), mesh.getFaces().data());
+		}
+		else
+		{
+			const IndexedFaceMesh& mesh = model->getTetModels()[i]->getSurfaceMesh();
+			const unsigned int offset = model->getTetModels()[i]->getIndexOffset();
+			const Vector3r* x = model->getParticles().getVertices().data();
+
+			std::string fileName = "tet_model";
+			fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".obj";
+			std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+			exportMeshOBJ(exportFileName, mesh.numVertices(), &x[offset], mesh.numFaces(), mesh.getFaces().data());
+		}
+	}
+
+	for (unsigned int i = 0; i < model->getRigidBodies().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getRigidBodies()[i]->getGeometry().getMesh();
+		const Vector3r* x = model->getRigidBodies()[i]->getGeometry().getVertexData().getVertices().data();
+
+		std::string fileName = "rigid_body";
+		fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".obj";
+		std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+		exportMeshOBJ(exportFileName, mesh.numVertices(), x, mesh.numFaces(), mesh.getFaces().data());
+	}
+
+
+	m_frameCounter++;
+}
+
+void DemoBase::exportMeshPLY(const std::string& exportFileName, const unsigned int nVert, const Vector3r* pos, const unsigned int nTri, const unsigned int* faces)
+{
+	// Suppose these hold your data
+	std::vector<std::array<double, 3>> meshVertexPositions;
+	std::vector<std::vector<size_t>> meshFaceIndices;
+
+	// vertices
+	meshVertexPositions.resize(nVert);
+	for (auto j = 0u; j < nVert; j++)
+		meshVertexPositions[j] = { pos[j][0], pos[j][1], pos[j][2] };
+
+	// faces
+	meshFaceIndices.resize(nTri);
+	for (auto j = 0u; j < nTri; j++)
+	{
+		meshFaceIndices[j].resize(3);
+		meshFaceIndices[j] = { faces[3 * j], faces[3 * j + 1], faces[3 * j + 2] };
+	}
+
+	// Create an empty object
+	happly::PLYData plyOut;
+
+	// Add mesh data (elements are created automatically)
+	plyOut.addVertexPositions(meshVertexPositions);
+	plyOut.addFaceIndices(meshFaceIndices);
+
+
+	// Write the object to file
+	plyOut.write(exportFileName, happly::DataFormat::Binary);
+}
+
+void DemoBase::exportPLY()
+{
+	if (!m_enableExportPLY)
+		return;
+
+	if (TimeManager::getCurrent()->getTime() < m_nextFrameTime)
+		return;
+
+	m_nextFrameTime += 1.0 / (Real)m_exportFPS;
+
+	//////////////////////////////////////////////////////////////////////////
+	// rigid bodies
+	//////////////////////////////////////////////////////////////////////////
+
+	std::string exportPath = getOutputPath() + "/export";
+	FileSystem::makeDirs(exportPath);
+
+	SimulationModel* model = Simulation::getCurrent()->getModel();
+	const ParticleData& pd = model->getParticles();
+	for (unsigned int i = 0; i < model->getTriangleModels().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getTriangleModels()[i]->getParticleMesh();
+		const unsigned int offset = model->getTriangleModels()[i]->getIndexOffset();
+		const Vector3r* x = model->getParticles().getVertices().data();
+
+		std::string fileName = "triangle_model";
+		fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".ply";
+		std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+		exportMeshPLY(exportFileName, mesh.numVertices(), &x[offset], mesh.numFaces(), mesh.getFaces().data());
+	}
+
+	for (unsigned int i = 0; i < model->getTetModels().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getTetModels()[i]->getVisMesh();
+		// has a vis mesh
+		if (mesh.numVertices() > 0)
+		{
+			const Vector3r* x = model->getTetModels()[i]->getVisVertices().getVertices().data();
+
+			std::string fileName = "tet_model";
+			fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".ply";
+			std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+			exportMeshPLY(exportFileName, mesh.numVertices(), x, mesh.numFaces(), mesh.getFaces().data());
+		}
+		else
+		{
+			const IndexedFaceMesh& mesh = model->getTetModels()[i]->getSurfaceMesh();
+			const unsigned int offset = model->getTetModels()[i]->getIndexOffset();
+			const Vector3r* x = model->getParticles().getVertices().data();
+
+			std::string fileName = "tet_model";
+			fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".ply";
+			std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+			exportMeshPLY(exportFileName, mesh.numVertices(), &x[offset], mesh.numFaces(), mesh.getFaces().data());
+		}
+	}
+
+	for (unsigned int i = 0; i < model->getRigidBodies().size(); i++)
+	{
+		const IndexedFaceMesh& mesh = model->getRigidBodies()[i]->getGeometry().getMesh();
+		const Vector3r* x = model->getRigidBodies()[i]->getGeometry().getVertexData().getVertices().data();
+
+		std::string fileName = "rigid_body";
+		fileName = fileName + std::to_string(i) + "_" + std::to_string(m_frameCounter) + ".ply";
+		std::string exportFileName = FileSystem::normalizePath(exportPath + "/" + fileName);
+
+		exportMeshPLY(exportFileName, mesh.numVertices(), x, mesh.numFaces(), mesh.getFaces().data());
+	}
+
+
+	m_frameCounter++;
+}
+
+
+void DemoBase::step()
+{
+	exportOBJ();
+	exportPLY();
+}
 

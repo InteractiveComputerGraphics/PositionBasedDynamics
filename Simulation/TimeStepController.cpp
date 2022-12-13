@@ -40,32 +40,32 @@ void TimeStepController::initParameters()
 	TimeStep::initParameters();
 
 // 	SOLVER_ITERATIONS = createNumericParameter("iterations", "Iterations", &m_iterations);
-// 	setGroup(SOLVER_ITERATIONS, "PBD");
+// 	setGroup(SOLVER_ITERATIONS, "Simulation|PBD");
 // 	setDescription(SOLVER_ITERATIONS, "Iterations required by the solver.");
 // 	getParameter(SOLVER_ITERATIONS)->setReadOnly(true);
 
 	NUM_SUB_STEPS = createNumericParameter("subSteps", "# sub steps", &m_subSteps);
-	setGroup(NUM_SUB_STEPS, "PBD");
+	setGroup(NUM_SUB_STEPS, "Simulation|PBD");
 	setDescription(NUM_SUB_STEPS, "Number of sub steps of the solver.");
 	static_cast<NumericParameter<unsigned int>*>(getParameter(NUM_SUB_STEPS))->setMinValue(1);
 
 	MAX_ITERATIONS = createNumericParameter("maxIterations", "Max. iterations", &m_maxIterations);
-	setGroup(MAX_ITERATIONS, "PBD");
+	setGroup(MAX_ITERATIONS, "Simulation|PBD");
 	setDescription(MAX_ITERATIONS, "Maximal number of iterations of the solver.");
 	static_cast<NumericParameter<unsigned int>*>(getParameter(MAX_ITERATIONS))->setMinValue(1);
 
 // 	SOLVER_ITERATIONS_V = createNumericParameter("iterationsV", "Velocity iterations", &m_iterationsV);
-// 	setGroup(SOLVER_ITERATIONS_V, "PBD");
+// 	setGroup(SOLVER_ITERATIONS_V, "Simulation|PBD");
 // 	setDescription(SOLVER_ITERATIONS_V, "Iterations required by the velocity solver.");
 // 	getParameter(SOLVER_ITERATIONS_V)->setReadOnly(true);
 
 	MAX_ITERATIONS_V = createNumericParameter("maxIterationsV", "Max. velocity iterations", &m_maxIterationsV);
-	setGroup(MAX_ITERATIONS_V, "PBD");
+	setGroup(MAX_ITERATIONS_V, "Simulation|PBD");
 	setDescription(MAX_ITERATIONS_V, "Maximal number of iterations of the velocity solver.");
 	static_cast<NumericParameter<unsigned int>*>(getParameter(MAX_ITERATIONS_V))->setMinValue(0);
 
 	VELOCITY_UPDATE_METHOD = createEnumParameter("velocityUpdateMethod", "Velocity update method", &m_velocityUpdateMethod);
-	setGroup(VELOCITY_UPDATE_METHOD, "PBD");
+	setGroup(VELOCITY_UPDATE_METHOD, "Simulation|PBD");
 	setDescription(VELOCITY_UPDATE_METHOD, "Velocity method.");
 	EnumParameter* enumParam = static_cast<EnumParameter*>(getParameter(VELOCITY_UPDATE_METHOD));
 	enumParam->addEnumValue("First Order Update", ENUM_VUPDATE_FIRST_ORDER);

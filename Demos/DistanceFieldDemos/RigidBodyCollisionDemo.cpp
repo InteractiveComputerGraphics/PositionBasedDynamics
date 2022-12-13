@@ -12,7 +12,6 @@
 #include "Utils/Timing.h"
 #include "Utils/FileSystem.h"
 #include "Demos/Common/DemoBase.h"
-#include "Demos/Common/TweakBarParameters.h"
 #include "Simulation/Simulation.h"
 
 #define _USE_MATH_DEFINES
@@ -28,22 +27,14 @@ using namespace Eigen;
 using namespace std;
 using namespace Utilities;
 
-void initParameters();
 void timeStep ();
 void buildModel ();
 void createBodyModel();
 void render ();
 void reset();
-void TW_CALL setContactTolerance(const void *value, void *clientData);
-void TW_CALL getContactTolerance(void *value, void *clientData);
-void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData);
-void TW_CALL getContactStiffnessRigidBody(void *value, void *clientData);
-void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clientData);
-void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData);
-
 
 DemoBase *base;
-DistanceFieldCollisionDetection cd;
+DistanceFieldCollisionDetection *cd;
 
 
 // main 
@@ -51,28 +42,25 @@ int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-		base = new DemoBase();
+	base = new DemoBase();
 	base->init(argc, argv, "Rigid body collision demo");
 
 	SimulationModel *model = new SimulationModel();
 	model->init();
 	Simulation::getCurrent()->setModel(model);
 
+	cd = new DistanceFieldCollisionDetection();
+	cd->init();
+
 	buildModel();
 
-	initParameters();
+	base->createParameterGUI();
 
 	// OpenGL
 	MiniGL::setClientIdleFunc (timeStep);		
 	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);			
 	MiniGL::setViewport (40.0f, 0.1f, 500.0, Vector3r (5.0, 30.0, 70.0), Vector3r (5.0, 0.0, 0.0));
-
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactTolerance", TW_TYPE_REAL, setContactTolerance, getContactTolerance, &cd, " label='Contact tolerance'  min=0.0 step=0.001 precision=3 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessRigidBody", TW_TYPE_REAL, setContactStiffnessRigidBody, getContactStiffnessRigidBody, model, " label='Contact stiffness RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessParticleRigidBody", TW_TYPE_REAL, setContactStiffnessParticleRigidBody, getContactStiffnessParticleRigidBody, model, " label='Contact stiffness Particle-RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
-
-
 	MiniGL::mainLoop();
 
 	base->cleanup();
@@ -83,22 +71,9 @@ int main( int argc, char **argv )
 	delete Simulation::getCurrent();
 	delete base;
 	delete model;
+	delete cd;
 	
 	return 0;
-}
-
-void initParameters()
-{
-	TwRemoveAllVars(MiniGL::getTweakBar());
-	TweakBarParameters::cleanup();
-
-	MiniGL::initTweakBarParameters();
-
-	TweakBarParameters::createParameterGUI();
-	TweakBarParameters::createParameterObjectGUI(base);
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getModel());
-	TweakBarParameters::createParameterObjectGUI(Simulation::getCurrent()->getTimeStep());
 }
 
 void reset()
@@ -128,6 +103,8 @@ void timeStep ()
 		START_TIMING("SimStep");
 		Simulation::getCurrent()->getTimeStep()->step(*model);
 		STOP_TIMING_AVG;
+
+		base->step();
 	}
 }
 
@@ -136,7 +113,7 @@ void buildModel ()
 	TimeManager::getCurrent ()->setTimeStepSize (static_cast<Real>(0.005));
 
 	SimulationModel *model = Simulation::getCurrent()->getModel();
-	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, &cd);
+	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, cd);
 
 	createBodyModel();
 }
@@ -213,7 +190,7 @@ void createBodyModel()
 	const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
 	const unsigned int nVert = static_cast<unsigned int>(vertices.size());
 
-	cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector3r(100.0, 1.0, 100.0));
+	cd->addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector3r(100.0, 1.0, 100.0));
 	rbIndex++;
 
 	Real current_z = startz_piles;
@@ -232,7 +209,7 @@ void createBodyModel()
 
 			const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
 			const unsigned int nVert = static_cast<unsigned int>(vertices.size());
-			cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(0.5, 10.0));
+			cd->addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(0.5, 10.0));
 			current_x += dx_piles;
 			rbIndex++;
 		}
@@ -271,7 +248,7 @@ void createBodyModel()
 					
 					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
 					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
-					cd.addCollisionTorus(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(2.0, 1.0));
+					cd->addCollisionTorus(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(2.0, 1.0));
 				}
 				else if (currentType == 1)
 				{
@@ -283,7 +260,7 @@ void createBodyModel()
 
 					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
 					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
-					cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector3r(4.0, 1.0, 1.0));
+					cd->addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector3r(4.0, 1.0, 1.0));
 				}
 				else if (currentType == 2)
 				{
@@ -294,7 +271,7 @@ void createBodyModel()
 
 					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
 					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
-					cd.addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, 2.0);
+					cd->addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, 2.0);
 				}
 				else if (currentType == 3)
 				{
@@ -306,7 +283,7 @@ void createBodyModel()
 
 					const std::vector<Vector3r> &vertices = rb[rbIndex]->getGeometry().getVertexDataLocal().getVertices();
 					const unsigned int nVert = static_cast<unsigned int>(vertices.size());
-					cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(0.75, 5.0));
+					cd->addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, Vector2r(0.75, 5.0));
 			}
 				currentType = (currentType + 1) % 4;
 				current_z += dz_bodies;
@@ -316,38 +293,5 @@ void createBodyModel()
 		}
 		current_y += dy_bodies;
 	}
-}
-
-void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setContactStiffnessRigidBody(val);
-}
-
-void TW_CALL getContactStiffnessRigidBody(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getContactStiffnessRigidBody();
-}
-
-void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setContactStiffnessParticleRigidBody(val);
-}
-
-void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getContactStiffnessParticleRigidBody();
-}
-
-void TW_CALL setContactTolerance(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((DistanceFieldCollisionDetection*)clientData)->setTolerance(val);
-}
-
-void TW_CALL getContactTolerance(void *value, void *clientData)
-{
-	*(Real *)(value) = ((DistanceFieldCollisionDetection*)clientData)->getTolerance();
 }
 

@@ -2,23 +2,24 @@
 #include "Demos/Visualization/MiniGL.h"
 #include "Demos/Visualization/Selection.h"
 #include "Simulation/TimeManager.h"
+#include "Demos/Common/DemoBase.h"
 #include <Eigen/Dense>
 #include "FluidModel.h"
 #include "TimeStepFluidModel.h"
+#include "Simulation/Simulation.h"
 #include <iostream>
 #include "Utils/Logger.h"
 #include "Utils/Timing.h"
 #include "Utils/FileSystem.h"
+#include "../Common/imguiParameters.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
+
 
 // Enable memory leak detection
 #if defined(_DEBUG) && !defined(EIGEN_ALIGN)
 	#define new DEBUG_NEW 
 #endif
-
-INIT_TIMING
-INIT_LOGGING
 
 using namespace PBD;
 using namespace std;
@@ -36,17 +37,11 @@ void selection(const Vector2i &start, const Vector2i &end, void *clientData);
 void createSphereBuffers(Real radius, int resolution);
 void renderSphere(const Vector3r &x, const float color[]);
 void releaseSphereBuffers();
-void TW_CALL setTimeStep(const void *value, void *clientData);
-void TW_CALL getTimeStep(void *value, void *clientData);
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData);
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData);
-void TW_CALL setViscosity(const void *value, void *clientData);
-void TW_CALL getViscosity(void *value, void *clientData);
-
 
 
 FluidModel model;
 TimeStepFluidModel simulation;
+DemoBase* base;
 
 const Real particleRadius = static_cast<Real>(0.025);
 const unsigned int width = 15;
@@ -73,50 +68,54 @@ int main( int argc, char **argv )
 {
 	REPORT_MEMORY_LEAKS
 
-	std::string logPath = FileSystem::normalizePath(FileSystem::getProgramPath() + "/log");
-	FileSystem::makeDirs(logPath);
-	logger.addSink(unique_ptr<ConsoleSink>(new ConsoleSink(LogLevel::INFO)));
-	logger.addSink(unique_ptr<FileSink>(new FileSink(LogLevel::DEBUG, logPath + "/PBD.log")));
+	base = new DemoBase();
+	base->init(argc, argv, "Fluid demo");
 
-	exePath = FileSystem::getProgramPath();
+	// we use an own time step controller
+	delete PBD::Simulation::getCurrent()->getTimeStep();
+	PBD::Simulation::getCurrent()->setTimeStep(nullptr);
 
-	// OpenGL
-	MiniGL::init (argc, argv, 1280, 1024, "Fluid demo");
-	MiniGL::initLights ();
-	MiniGL::setClientIdleFunc (timeStep);		
-	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setSelectionFunc(selection, nullptr);
-
-	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
-
-	MiniGL::addReshapeFunc([](int width, int height) { TwWindowSize(width, height); });
-	MiniGL::addKeyboardFunc([](int key, int scancode, int action, int mods) -> bool { return TwEventKeyGLFW(key, action); });
-	MiniGL::addCharFunc([](int key, int action) -> bool { return TwEventCharGLFW(key, action); });
-	MiniGL::addMousePressFunc([](int button, int action, int mods) -> bool { return TwEventMouseButtonGLFW(button, action); });
-	MiniGL::addMouseMoveFunc([](int x, int y) -> bool { return TwEventMousePosGLFW(x, y); });
-	MiniGL::addMouseWheelFunc([](int pos, double xoffset, double yoffset) -> bool { return TwEventMouseWheelGLFW(pos); });
-
-
-	MiniGL::setClientSceneFunc(render);			
+	MiniGL::setClientIdleFunc(timeStep);
+	MiniGL::addKeyFunc('r', reset);
+	MiniGL::setClientSceneFunc(render);
 	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 3.0, 8.0), Vector3r (0.0, 0.0, 0.0));
-
-	TwAddVarRW(MiniGL::getTweakBar(), "Pause", TW_TYPE_BOOLCPP, &doPause, " label='Pause' group=Simulation key=SPACE ");
-	TwAddVarCB(MiniGL::getTweakBar(), "TimeStepSize", TW_TYPE_REAL, setTimeStep, getTimeStep, &model, " label='Time step size'  min=0.0 max = 0.1 step=0.001 precision=4 group=Simulation ");
-	TwType enumType = TwDefineEnum("VelocityUpdateMethodType", NULL, 0);
-	TwAddVarCB(MiniGL::getTweakBar(), "VelocityUpdateMethod", enumType, setVelocityUpdateMethod, getVelocityUpdateMethod, &simulation, " label='Velocity update method' enum='0 {First Order Update}, 1 {Second Order Update}' group=Simulation");
-	TwAddVarCB(MiniGL::getTweakBar(), "Viscosity", TW_TYPE_REAL, setViscosity, getViscosity, &model, " label='Viscosity'  min=0.0 max = 0.5 step=0.001 precision=4 group=Simulation ");
 
 	buildModel();
 
+	base->createParameterGUI();
+
+	// add additional parameter just for this demo
+	imguiParameters::imguiEnumParameter* eparam = new imguiParameters::imguiEnumParameter();
+	eparam->description = "Velocity update method";
+	eparam->label = "Velocity update method";
+	eparam->getFct = [&]() -> int { return simulation.getVelocityUpdateMethod(); };
+	eparam->setFct = [&](int i) -> void { simulation.setVelocityUpdateMethod(i); };
+	eparam->items.push_back("First Order Update");
+	eparam->items.push_back("Second Order Update");
+	imguiParameters::addParam("Simulation", "PBD", eparam);
+
+	imguiParameters::imguiNumericParameter<Real>* param = new imguiParameters::imguiNumericParameter<Real>();
+	param->description = "Viscosity coefficient";
+	param->label = "Viscosity";
+	param->getFct = [&]() -> Real { return model.getViscosity(); };
+	param->setFct = [&](Real v) -> void { model.setViscosity(v); };
+	imguiParameters::addParam("Simulation", "PBD", param);
+
+	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
 	if (context_major_version >= 3)
 		createSphereBuffers((Real)particleRadius, 8);
 
 	MiniGL::mainLoop();	
 
 	cleanup ();
+	base->cleanup();
 
-	Timing::printAverageTimes();
-	
+	Utilities::Timing::printAverageTimes();
+	Utilities::Timing::printTimeSums();
+	delete base;
+	delete Simulation::getCurrent();
+
 	return 0;
 }
 
@@ -170,12 +169,23 @@ void selection(const Vector2i &start, const Vector2i &end, void *clientData)
 
 void timeStep ()
 {
-	if (doPause)
+	const Real pauseAt = base->getValue<Real>(DemoBase::PAUSE_AT);
+	if ((pauseAt > 0.0) && (pauseAt < TimeManager::getCurrent()->getTime()))
+		base->setValue(DemoBase::PAUSE, true);
+
+	if (base->getValue<bool>(DemoBase::PAUSE))
 		return;
 
 	// Simulation code
-	for (unsigned int i = 0; i < 8; i++)
+	const unsigned int numSteps = base->getValue<unsigned int>(DemoBase::NUM_STEPS_PER_RENDER);
+	for (unsigned int i = 0; i < numSteps; i++)
+	{
+		START_TIMING("SimStep");
 		simulation.step(model);
+		STOP_TIMING_AVG;
+
+		base->step();
+	}
 }
 
 void buildModel ()
@@ -187,11 +197,6 @@ void buildModel ()
 
 void render ()
 {
-	float gridColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	MiniGL::drawGrid_xz(gridColor);
-
-	MiniGL::coordinateSystem();
-
 	// Draw simulation model
 	
 	const ParticleData &pd = model.getParticles();
@@ -262,7 +267,8 @@ void render ()
 		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
 	}
 
-	MiniGL::drawTime( TimeManager::getCurrent ()->getTime ());
+	base->render();
+
 }
 
 
@@ -497,38 +503,3 @@ void releaseSphereBuffers()
 		vertexbuffer = 0;
 	}
 }
-
-
-void TW_CALL setTimeStep(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	TimeManager::getCurrent()->setTimeStepSize(val);
-}
-
-void TW_CALL getTimeStep(void *value, void *clientData)
-{
-	*(Real *)(value) = TimeManager::getCurrent()->getTimeStepSize();
-}
-
-void TW_CALL setVelocityUpdateMethod(const void *value, void *clientData)
-{
-	const short val = *(const short *)(value);
-	((TimeStepFluidModel*)clientData)->setVelocityUpdateMethod((unsigned int)val);
-}
-
-void TW_CALL getVelocityUpdateMethod(void *value, void *clientData)
-{
-	*(short *)(value) = (short)((TimeStepFluidModel*)clientData)->getVelocityUpdateMethod();
-}
-
-void TW_CALL setViscosity(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((FluidModel*)clientData)->setViscosity(val);
-}
-
-void TW_CALL getViscosity(void *value, void *clientData)
-{
-	*(Real *)(value) = ((FluidModel*)clientData)->getViscosity();
-}
-

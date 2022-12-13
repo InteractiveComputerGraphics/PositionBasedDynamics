@@ -70,7 +70,7 @@ else()
 	   Ext_GenericParameters
 	   PREFIX "${ExternalInstallDir}/GenericParameters"
 	   GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/GenericParameters.git
-	   GIT_TAG "9f1570aad21017c0116adf6a42bc4a19547df6ec"
+	   GIT_TAG "50b87678b19221eb7cb12a75fd1f5fa0a3cc0fc6"
 	   INSTALL_DIR ${ExternalInstallDir}/GenericParameters
 	   CMAKE_ARGS -DCMAKE_BUILD_TYPE=${EXT_CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/GenericParameters -DGENERICPARAMETERS_NO_TESTS:BOOL=1		
 	) 
@@ -85,7 +85,7 @@ add_subdirectory(Utils)
 if (NOT PBD_LIBS_ONLY)
 	include(DataCopyTargets)
 	add_subdirectory(extern/glfw)
-	add_subdirectory(extern/AntTweakBar)
+	add_subdirectory(extern/imgui)
 	add_subdirectory(extern/md5)
 	add_subdirectory(Demos)
 	if (USE_PYTHON_BINDINGS)

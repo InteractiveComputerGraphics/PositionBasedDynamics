@@ -8,7 +8,7 @@ namespace PBD
 	class TimeStepFluidModel 
 	{
 	protected:
-		unsigned int m_velocityUpdateMethod;
+		int m_velocityUpdateMethod;
 
 		void clearAccelerations(FluidModel &model);
 		void computeXSPHViscosity(FluidModel &model);
@@ -23,8 +23,8 @@ namespace PBD
 		void step(FluidModel &model);
 		void reset();
 
-		unsigned int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
-		void setVelocityUpdateMethod(unsigned int val) { m_velocityUpdateMethod = val; }
+		int getVelocityUpdateMethod() const { return m_velocityUpdateMethod; }
+		void setVelocityUpdateMethod(int val) { m_velocityUpdateMethod = val; }
 	};
 }
 

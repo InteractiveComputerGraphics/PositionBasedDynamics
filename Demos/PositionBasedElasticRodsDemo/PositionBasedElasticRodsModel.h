@@ -12,6 +12,8 @@ namespace PBD
 	class PositionBasedElasticRodsModel : public SimulationModel
 	{
 		public:
+			static int REST_DARBOUX_VECTOR;
+
 			PositionBasedElasticRodsModel();
 			virtual ~PositionBasedElasticRodsModel();
 
@@ -23,6 +25,7 @@ namespace PBD
 		public:
 			virtual void reset();
 			virtual void cleanup();
+			virtual void initParameters();
 
 			ParticleData &getGhostParticles();
 			void addElasticRodModel(
@@ -39,6 +42,13 @@ namespace PBD
 			Vector3r &getRestDarbouxVector() { return m_restDarbouxVector; }
 			void setBendingAndTwistingStiffness(const Vector3r &val) { m_stiffness = val; }
 			Vector3r &getBendingAndTwistingStiffness() { return m_stiffness; }
+
+			virtual Real getRodBendingStiffnessX() { return m_stiffness[0]; }
+			virtual void setRodBendingStiffnessX(Real val);
+			virtual Real getRodBendingStiffnessY() { return m_stiffness[1]; }
+			virtual void setRodBendingStiffnessY(Real val);
+			virtual Real getRodTwistingStiffness() { return m_stiffness[2]; }
+			virtual void setRodTwistingStiffness(Real val);
 
 	};
 }

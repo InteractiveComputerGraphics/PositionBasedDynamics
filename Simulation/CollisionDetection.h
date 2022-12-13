@@ -4,12 +4,15 @@
 #include "Common/Common.h"
 #include "SimulationModel.h"
 #include "AABB.h"
+#include "ParameterObject.h"
 
 namespace PBD
 {
-	class CollisionDetection
+	class CollisionDetection : public GenParam::ParameterObject
 	{
 	public:
+		static int CONTACT_TOLERANCE;
+
 		static const unsigned int RigidBodyContactType;			// = 0;
 		static const unsigned int ParticleContactType;			// = 1;
 		static const unsigned int ParticleRigidBodyContactType; // = 2;
@@ -56,10 +59,13 @@ namespace PBD
 		std::vector<CollisionObject *> m_collisionObjects;
 
 		void updateAABB(const Vector3r &p, AABB &aabb);
+		virtual void initParameters();
 
 	public:
 		CollisionDetection();
 		virtual ~CollisionDetection();
+
+		void init();
 
 		void cleanup();
 

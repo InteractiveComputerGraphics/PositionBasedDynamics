@@ -12,7 +12,6 @@
 #include "Demos/Visualization/Selection.h"
 #include "Demos/Visualization/Visualization.h"
 #include "Demos/Common/DemoBase.h"
-#include "Demos/Common/TweakBarParameters.h"
 #include "Simulation/Simulation.h"
 #include <Eigen/Dense>
 #include <iostream>
@@ -39,70 +38,11 @@ void readScene();
 void render();
 void reset();
 
-void TW_CALL setContactTolerance(const void *value, void *clientData);
-void TW_CALL getContactTolerance(void *value, void *clientData);
-void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData);
-void TW_CALL getContactStiffnessRigidBody(void *value, void *clientData);
-void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clientData);
-void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData);
-void TW_CALL setBendingMethod(const void *value, void *clientData);
-void TW_CALL getBendingMethod(void *value, void *clientData);
-void TW_CALL setClothSimulationMethod(const void *value, void *clientData);
-void TW_CALL getClothSimulationMethod(void *value, void *clientData);
-void TW_CALL setSolidSimulationMethod(const void *value, void *clientData);
-void TW_CALL getSolidSimulationMethod(void *value, void *clientData);
-void TW_CALL setBendingStiffness(const void* value, void* clientData);
-void TW_CALL getBendingStiffness(void* value, void* clientData);
-void TW_CALL setDistanceStiffness(const void* value, void* clientData);
-void TW_CALL getDistanceStiffness(void* value, void* clientData);
-void TW_CALL setXXStiffness(const void* value, void* clientData);
-void TW_CALL getXXStiffness(void* value, void* clientData);
-void TW_CALL setYYStiffness(const void* value, void* clientData);
-void TW_CALL getYYStiffness(void* value, void* clientData);
-void TW_CALL setXYStiffness(const void* value, void* clientData);
-void TW_CALL getXYStiffness(void* value, void* clientData);
-void TW_CALL setXYPoissonRatio(const void* value, void* clientData);
-void TW_CALL getXYPoissonRatio(void* value, void* clientData);
-void TW_CALL setYXPoissonRatio(const void* value, void* clientData);
-void TW_CALL getYXPoissonRatio(void* value, void* clientData);
-void TW_CALL setNormalizeStretch(const void* value, void* clientData);
-void TW_CALL getNormalizeStretch(void* value, void* clientData);
-void TW_CALL setNormalizeShear(const void* value, void* clientData);
-void TW_CALL getNormalizeShear(void* value, void* clientData);
-void TW_CALL setSolidStiffness(const void* value, void* clientData);
-void TW_CALL getSolidStiffness(void* value, void* clientData);
-void TW_CALL setSolidPoissonRatio(const void* value, void* clientData);
-void TW_CALL getSolidPoissonRatio(void* value, void* clientData);
-void TW_CALL setVolumeStiffness(const void* value, void* clientData);
-void TW_CALL getVolumeStiffness(void* value, void* clientData);
-void TW_CALL setSolidNormalizeStretch(const void* value, void* clientData);
-void TW_CALL getSolidNormalizeStretch(void* value, void* clientData);
-void TW_CALL setSolidNormalizeShear(const void* value, void* clientData);
-void TW_CALL getSolidNormalizeShear(void* value, void* clientData);
-
 void singleStep();
 
 
 DemoBase *base;
-CubicSDFCollisionDetection cd;
-
-short clothSimulationMethod = 2;
-short solidSimulationMethod = 2;
-short bendingMethod = 2;
-Real distanceStiffness = 1.0;
-Real xxStiffness = 1.0;
-Real yyStiffness = 1.0;
-Real xyStiffness = 1.0;
-Real xyPoissonRatio = 0.3;
-Real yxPoissonRatio = 0.3;
-bool normalizeStretch = false;
-bool normalizeShear = false;
-Real bendingStiffness = 0.01;
-Real solidStiffness = 1.0;
-Real solidPoissonRatio = 0.3;
-bool solidNormalizeStretch = false;
-bool solidNormalizeShear = false;
-Real volumeStiffness = 1.0;
+CubicSDFCollisionDetection *cd;
 
 string sceneFileName = "/scenes/Wilberforce_scene.json";
 string sceneName;
@@ -130,9 +70,18 @@ int main(int argc, char **argv)
 	model->init();
 	Simulation::getCurrent()->setModel(model);
 
+	cd = new CubicSDFCollisionDetection();
+	cd->init();
+
 	buildModel();
 
 	base->createParameterGUI();
+
+	// reset simulation when cloth simulation/bending method has changed
+	model->setClothSimulationMethodChangedCallback([&]() { reset(); });
+	model->setClothBendingMethodChangedCallback([&]() { reset(); });
+	model->setSolidSimulationMethodChangedCallback([&]() { reset(); });
+
 	base->readParameters();
 
 	// OpenGL
@@ -142,43 +91,7 @@ int main(int argc, char **argv)
 	MiniGL::setClientSceneFunc(render);
 	MiniGL::setViewport(40.0f, 0.1f, 500.0f, camPos, camLookat);
 
-	SimulationModel::TriangleModelVector &triModels = model->getTriangleModels();
-	SimulationModel::TetModelVector &tetModels = model->getTetModels();
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactTolerance", TW_TYPE_REAL, setContactTolerance, getContactTolerance, &cd, " label='Contact tolerance'  min=0.0 step=0.001 precision=3 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessRigidBody", TW_TYPE_REAL, setContactStiffnessRigidBody, getContactStiffnessRigidBody, &model, " label='Contact stiffness RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
-	TwAddVarCB(MiniGL::getTweakBar(), "ContactStiffnessParticleRigidBody", TW_TYPE_REAL, setContactStiffnessParticleRigidBody, getContactStiffnessParticleRigidBody, &model, " label='Contact stiffness Particle-RB'  min=0.0 step=0.1 precision=2 group=Simulation ");
-	if (triModels.size() > 0)
-	{
-		TwType enumType2 = TwDefineEnum("ClothSimulationMethodType", NULL, 0);
-		TwAddVarCB(MiniGL::getTweakBar(), "ClothSimulationMethod", enumType2, setClothSimulationMethod, getClothSimulationMethod, &clothSimulationMethod, 
-			" label='Cloth sim. method' enum='0 {None}, 1 {Distance constraints}, 2 {FEM based PBD}, 3 {Strain based dynamics}, 4 {XPBD distance constraints}' group=Simulation");
-		TwAddVarCB(MiniGL::getTweakBar(), "DistanceStiffness", TW_TYPE_REAL, setDistanceStiffness, getDistanceStiffness, model, " label='Distance constraint stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "xxStiffness", TW_TYPE_REAL, setXXStiffness, getXXStiffness, model, " label='xx stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "yyStiffness", TW_TYPE_REAL, setYYStiffness, getYYStiffness, model, " label='yy stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "xyStiffness", TW_TYPE_REAL, setXYStiffness, getXYStiffness, model, " label='xy stiffness'  min=0.0 step=0.1 precision=4 group='Cloth' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "xyPoissonRatio", TW_TYPE_REAL, setXYPoissonRatio, getXYPoissonRatio, model, " label='xy Poisson ratio'  min=0.0 step=0.1 precision=4 group='Cloth' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "yxPoissonRatio", TW_TYPE_REAL, setYXPoissonRatio, getYXPoissonRatio, model, " label='yx Poisson ratio'  min=0.0 step=0.1 precision=4 group='Cloth' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "normalizeStretch", TW_TYPE_BOOL32, setNormalizeStretch, getNormalizeStretch, model, " label='Normalize stretch' group='Cloth' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "normalizeShear", TW_TYPE_BOOL32, setNormalizeShear, getNormalizeShear, model, " label='Normalize shear' group='Cloth' ");
-	}
-	if (tetModels.size() > 0)
-	{
-		TwType enumType3 = TwDefineEnum("SolidSimulationMethodType", NULL, 0);
-		TwAddVarCB(MiniGL::getTweakBar(), "SolidSimulationMethod", enumType3, setSolidSimulationMethod, getSolidSimulationMethod, &solidSimulationMethod,
-			" label='Solid sim. method' enum='0 {None}, 1 {Volume constraints}, 2 {FEM based PBD}, 3 {FEM based XPBD}, \
-			4 {Strain based dynamics (no inversion handling)}, 5 {Shape matching (no inversion handling)}, 6 {XPBD volume constraints}' group=Simulation");
-		TwAddVarCB(MiniGL::getTweakBar(), "stiffness", TW_TYPE_REAL, setSolidStiffness, getSolidStiffness, model, " label='Stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "poissonRatio", TW_TYPE_REAL, setSolidPoissonRatio, getSolidPoissonRatio, model, " label='Poisson ratio'  min=0.0 step=0.1 precision=4 group='Solid' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "normalizeStretch", TW_TYPE_BOOL32, setSolidNormalizeStretch, getSolidNormalizeStretch, model, " label='Normalize stretch' group='Solid' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "normalizeShear", TW_TYPE_BOOL32, setSolidNormalizeShear, getSolidNormalizeShear, model, " label='Normalize shear' group='Solid' ");
-		TwAddVarCB(MiniGL::getTweakBar(), "volumeStiffness", TW_TYPE_REAL, setVolumeStiffness, getVolumeStiffness, model, " label='Volume stiffness'  min=0.0 step=0.1 precision=4 group='Solid' ");
-	}
-	if (triModels.size() > 0)
-	{
-		TwType enumType4 = TwDefineEnum("BendingMethodType", NULL, 0);
-		TwAddVarCB(MiniGL::getTweakBar(), "BendingMethod", enumType4, setBendingMethod, getBendingMethod, &bendingMethod, " label='Bending method' enum='0 {None}, 1 {Dihedral angle}, 2 {Isometric bending}, 3 {XPBD isometric bending}' group=Bending");
-		TwAddVarCB(MiniGL::getTweakBar(), "BendingStiffness", TW_TYPE_REAL, setBendingStiffness, getBendingStiffness, model, " label='Bending stiffness'  min=0.0 step=0.1 precision=4 group='Bending' ");
-	}
+	base->createParameterGUI();
 
 	MiniGL::mainLoop();
 
@@ -190,6 +103,7 @@ int main(int argc, char **argv)
 	delete Simulation::getCurrent();
 	delete base;
 	delete model;
+	delete cd;
 
 	return 0;
 }
@@ -213,6 +127,8 @@ void singleStep()
 	// Simulation code
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	Simulation::getCurrent()->getTimeStep()->step(*model);
+
+	base->step();
 
 	// Update visualization models
 	const ParticleData &pd = model->getParticles();
@@ -244,6 +160,8 @@ void timeStep()
 		START_TIMING("SimStep");
 		Simulation::getCurrent()->getTimeStep()->step(*model);
 		STOP_TIMING_AVG;
+
+		base->step();
 	}
 
 	// Update visualization models
@@ -269,7 +187,7 @@ void buildModel()
 	TimeManager::getCurrent()->setTimeStepSize(static_cast<Real>(0.005));
 
 	SimulationModel *model = Simulation::getCurrent()->getModel();
-	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, &cd);
+	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, cd);
 
 	readScene();
 }
@@ -280,16 +198,17 @@ void initTriangleModelConstraints()
 	SimulationModel *model = Simulation::getCurrent()->getModel();
 	for (unsigned int cm = 0; cm < model->getTriangleModels().size(); cm++)
 	{
-		distanceStiffness = 1.0;
-		if (clothSimulationMethod == 4)
-			distanceStiffness = 100000;
-		model->addClothConstraints(model->getTriangleModels()[cm], clothSimulationMethod, distanceStiffness, xxStiffness,
-			yyStiffness, xyStiffness, xyPoissonRatio, yxPoissonRatio, normalizeStretch, normalizeShear);
+		model->setClothStiffness(1.0);
+		if (model->getClothSimulationMethod() == 4)
+			model->setClothStiffness(100000);
+		model->addClothConstraints(model->getTriangleModels()[cm], model->getClothSimulationMethod(), model->getClothStiffness(), model->getClothStiffnessXX(),
+			model->getClothStiffnessYY(), model->getClothStiffnessXY(), model->getClothPoissonRatioXY(), model->getClothPoissonRatioYX(),
+			model->getClothNormalizeStretch(), model->getClothNormalizeShear());
 
-		bendingStiffness = 0.01;
-		if (bendingMethod == 3)
-			bendingStiffness = 100.0;
-		model->addBendingConstraints(model->getTriangleModels()[cm], bendingMethod, bendingStiffness);
+		model->setClothBendingStiffness(0.01);
+		if (model->getClothBendingMethod() == 3)
+			model->setClothBendingStiffness(100.0);
+		model->addBendingConstraints(model->getTriangleModels()[cm], model->getClothBendingMethod(), model->getClothBendingStiffness());
 	}
 }
 
@@ -297,19 +216,19 @@ void initTetModelConstraints()
 {
 	// init constraints
 	SimulationModel* model = Simulation::getCurrent()->getModel();
-	solidStiffness = 1.0;
-	if (solidSimulationMethod == 3)
-		solidStiffness = 1000000;
-	if (solidSimulationMethod == 6)
-		solidStiffness = 100000;
+	model->setSolidStiffness(1.0);
+	if (model->getSolidSimulationMethod() == 3)
+		model->setSolidStiffness(1000000);
+	if (model->getSolidSimulationMethod() == 6)
+		model->setSolidStiffness(100000);
 
-	volumeStiffness = 1.0;
-	if (solidSimulationMethod == 6)
-		volumeStiffness = 100000;
+	model->setSolidVolumeStiffness(1.0);
+	if (model->getSolidSimulationMethod() == 6)
+		model->setSolidVolumeStiffness(100000);
 	for (unsigned int cm = 0; cm < model->getTetModels().size(); cm++)
 	{
-		model->addSolidConstraints(model->getTetModels()[cm], solidSimulationMethod, solidStiffness,
-			solidPoissonRatio, volumeStiffness, solidNormalizeStretch, solidNormalizeShear);
+		model->addSolidConstraints(model->getTetModels()[cm], model->getSolidSimulationMethod(), model->getSolidStiffness(),
+			model->getSolidPoissonRatio(), model->getSolidVolumeStiffness(), model->getSolidNormalizeStretch(), model->getSolidNormalizeShear());
 	}
 }
 
@@ -412,32 +331,6 @@ void readScene()
 	TimeManager::getCurrent()->setTimeStepSize(data.m_timeStepSize);
 
 	sceneName = data.m_sceneName;
-
-	if (data.m_triangleModelSimulationMethod != -1)
-		clothSimulationMethod = data.m_triangleModelSimulationMethod;
-	if (data.m_tetModelSimulationMethod != -1)
-		solidSimulationMethod = data.m_tetModelSimulationMethod;
-	if (data.m_triangleModelBendingMethod != -1)
-		bendingMethod = data.m_triangleModelBendingMethod;
-	cd.setTolerance(data.m_contactTolerance);
-	model->setContactStiffnessRigidBody(data.m_contactStiffnessRigidBody);
-	model->setContactStiffnessParticleRigidBody(data.m_contactStiffnessParticleRigidBody);
-
-
-	bendingStiffness = data.m_cloth_bendingStiffness;
-	xxStiffness = data.m_cloth_xxStiffness;
-	yyStiffness = data.m_cloth_yyStiffness;
-	xyStiffness = data.m_cloth_xyStiffness;
-	xyPoissonRatio = data.m_cloth_xyPoissonRatio;
-	yxPoissonRatio = data.m_cloth_yxPoissonRatio;
-	normalizeStretch = data.m_cloth_normalizeStretch;
-	normalizeShear = data.m_cloth_normalizeShear;
-
-	solidStiffness = data.m_solid_stiffness;
-	solidPoissonRatio = data.m_solid_poissonRatio;
-	solidNormalizeStretch = data.m_solid_normalizeStretch;
-	solidNormalizeShear = data.m_solid_normalizeShear;
-	volumeStiffness = data.m_volume_stiffness;
 
 	//////////////////////////////////////////////////////////////////////////
 	// rigid bodies
@@ -661,22 +554,22 @@ void readScene()
 		{
 		case SceneLoader::No_Collision_Object: break;
 		case SceneLoader::Sphere:
-			cd.addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale[0], rbd.m_testMesh, rbd.m_invertSDF);
+			cd->addCollisionSphere(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale[0], rbd.m_testMesh, rbd.m_invertSDF);
 			break;
 		case SceneLoader::Box:
-			cd.addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+			cd->addCollisionBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
 			break;
 		case SceneLoader::Cylinder:
-			cd.addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
+			cd->addCollisionCylinder(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
 			break;
 		case SceneLoader::Torus:
-			cd.addCollisionTorus(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
+			cd->addCollisionTorus(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale.head<2>(), rbd.m_testMesh, rbd.m_invertSDF);
 			break;
 		case SceneLoader::HollowSphere:
-			cd.addCollisionHollowSphere(rbIndex, PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale[0], rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
+			cd->addCollisionHollowSphere(rbIndex, PBD::CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale[0], rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
 			break;
 		case SceneLoader::HollowBox:
-			cd.addCollisionHollowBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale, rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
+			cd->addCollisionHollowBox(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, rbd.m_collisionObjectScale, rbd.m_thicknessSDF, rbd.m_testMesh, rbd.m_invertSDF);
 			break;
 		case SceneLoader::SDF:
 		{
@@ -687,10 +580,10 @@ void readScene()
 				const string resStr = to_string(rbd.m_resolutionSDF[0]) + "_" + to_string(rbd.m_resolutionSDF[1]) + "_" + to_string(rbd.m_resolutionSDF[2]);
 				const std::string modelFileName = FileSystem::getFileNameWithExt(rbd.m_modelFile);
 				const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
-				cd.addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, distanceFields[sdfFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+				cd->addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, distanceFields[sdfFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
 			}
 			else
-				cd.addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, distanceFields[rbd.m_collisionObjectFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
+				cd->addCubicSDFCollisionObject(rbIndex, CollisionDetection::CollisionObject::RigidBodyCollisionObjectType, vertices.data(), nVert, distanceFields[rbd.m_collisionObjectFileName], rbd.m_collisionObjectScale, rbd.m_testMesh, rbd.m_invertSDF);
 			break;
 		}
 		}
@@ -1002,7 +895,7 @@ void readScene()
 		TriangleModel *tm = triModels[i];
 		unsigned int offset = tm->getIndexOffset();
 		const unsigned int nVert = tm->getParticleMesh().numVertices();
-		cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
+		cd->addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TriangleModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
 
 	}
 	for (unsigned int i = 0; i < data.m_tetModelData.size(); i++)
@@ -1017,25 +910,25 @@ void readScene()
 		switch (tmd.m_collisionObjectType)
 		{
 		case SceneLoader::No_Collision_Object:
-			cd.addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
+			cd->addCollisionObjectWithoutGeometry(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, true);
 			break;
 		case SceneLoader::Sphere:
-			cd.addCollisionSphere(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale[0], tmd.m_testMesh, tmd.m_invertSDF);
+			cd->addCollisionSphere(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale[0], tmd.m_testMesh, tmd.m_invertSDF);
 			break;
 		case SceneLoader::Box:
-			cd.addCollisionBox(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
+			cd->addCollisionBox(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
 			break;
 		case SceneLoader::Cylinder:
-			cd.addCollisionCylinder(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale.head<2>(), tmd.m_testMesh, tmd.m_invertSDF);
+			cd->addCollisionCylinder(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale.head<2>(), tmd.m_testMesh, tmd.m_invertSDF);
 			break;
 		case SceneLoader::Torus:
-			cd.addCollisionTorus(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale.head<2>(), tmd.m_testMesh, tmd.m_invertSDF);
+			cd->addCollisionTorus(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale.head<2>(), tmd.m_testMesh, tmd.m_invertSDF);
 			break;
 		case SceneLoader::HollowSphere:
-			cd.addCollisionHollowSphere(i, PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale[0], tmd.m_thicknessSDF, tmd.m_testMesh, tmd.m_invertSDF);
+			cd->addCollisionHollowSphere(i, PBD::CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale[0], tmd.m_thicknessSDF, tmd.m_testMesh, tmd.m_invertSDF);
 			break;
 		case SceneLoader::HollowBox:
-			cd.addCollisionHollowBox(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale, tmd.m_thicknessSDF, tmd.m_testMesh, tmd.m_invertSDF);
+			cd->addCollisionHollowBox(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, tmd.m_collisionObjectScale, tmd.m_thicknessSDF, tmd.m_testMesh, tmd.m_invertSDF);
 			break;
 		case SceneLoader::SDF:
 		{
@@ -1046,10 +939,10 @@ void readScene()
 				const string resStr = to_string(tmd.m_resolutionSDF[0]) + "_" + to_string(tmd.m_resolutionSDF[1]) + "_" + to_string(tmd.m_resolutionSDF[2]);
 				const std::string modelFileName = FileSystem::getFileNameWithExt(tmd.m_modelFileVis);
 				const string sdfFileName = FileSystem::normalizePath(cachePath + "/" + modelFileName + "_" + resStr + ".csdf");
-				cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, distanceFields[sdfFileName], tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
+				cd->addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, distanceFields[sdfFileName], tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
 			}
 			else
-				cd.addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, distanceFields[tmd.m_collisionObjectFileName], tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
+				cd->addCubicSDFCollisionObject(i, CollisionDetection::CollisionObject::TetModelCollisionObjectType, &pd.getPosition(offset), nVert, distanceFields[tmd.m_collisionObjectFileName], tmd.m_collisionObjectScale, tmd.m_testMesh, tmd.m_invertSDF);
 			break;
 		}
 		}
@@ -1148,241 +1041,4 @@ void readScene()
 		const SceneLoader::DistanceJointData &jd = data.m_distanceJointData[i];
 		model->addDistanceJoint(id_index[jd.m_bodyID[0]], id_index[jd.m_bodyID[1]], jd.m_position1, jd.m_position2);
 	}
-}
-
-void TW_CALL setContactTolerance(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((DistanceFieldCollisionDetection*)clientData)->setTolerance(val);
-}
-
-void TW_CALL getContactTolerance(void *value, void *clientData)
-{
-	*(Real *)(value) = ((DistanceFieldCollisionDetection*)clientData)->getTolerance();
-}
-
-void TW_CALL setContactStiffnessRigidBody(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setContactStiffnessRigidBody(val);
-}
-
-void TW_CALL getContactStiffnessRigidBody(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getContactStiffnessRigidBody();
-}
-
-void TW_CALL setContactStiffnessParticleRigidBody(const void *value, void *clientData)
-{
-	const Real val = *(const Real *)(value);
-	((SimulationModel*)clientData)->setContactStiffnessParticleRigidBody(val);
-}
-
-void TW_CALL getContactStiffnessParticleRigidBody(void *value, void *clientData)
-{
-	*(Real *)(value) = ((SimulationModel*)clientData)->getContactStiffnessParticleRigidBody();
-}
-
-void TW_CALL setBendingMethod(const void *value, void *clientData)
-{
-	const short val = *(const short *)(value);
-	*((short*)clientData) = val;
-	reset();
-}
-
-void TW_CALL getBendingMethod(void *value, void *clientData)
-{
-	*(short *)(value) = *((short*)clientData);
-}
-
-void TW_CALL setClothSimulationMethod(const void *value, void *clientData)
-{
-	const short val = *(const short *)(value);
-	*((short*)clientData) = val;
-	reset();
-}
-
-void TW_CALL getClothSimulationMethod(void *value, void *clientData)
-{
-	*(short *)(value) = *((short*)clientData);
-}
-
-void TW_CALL setSolidSimulationMethod(const void *value, void *clientData)
-{
-	const short val = *(const short *)(value);
-	*((short*)clientData) = val;
-	reset();
-}
-
-void TW_CALL getSolidSimulationMethod(void *value, void *clientData)
-{
-	*(short *)(value) = *((short*)clientData);
-}
-
-void TW_CALL setBendingStiffness(const void* value, void* clientData)
-{
-	bendingStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<DihedralConstraint, Real, &DihedralConstraint::m_stiffness>(bendingStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<IsometricBendingConstraint, Real, &IsometricBendingConstraint::m_stiffness>(bendingStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<IsometricBendingConstraint_XPBD, Real, &IsometricBendingConstraint_XPBD::m_stiffness>(bendingStiffness);
-}
-
-void TW_CALL getBendingStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = bendingStiffness;
-}
-
-void TW_CALL setDistanceStiffness(const void* value, void* clientData)
-{
-	distanceStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(distanceStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(distanceStiffness);
-}
-
-void TW_CALL getDistanceStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = distanceStiffness;
-}
-
-void TW_CALL setXXStiffness(const void* value, void* clientData)
-{
-	xxStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xxStiffness>(xxStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xxStiffness>(xxStiffness);
-}
-
-void TW_CALL getXXStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = xxStiffness;
-}
-
-void TW_CALL getYYStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = yyStiffness;
-}
-
-void TW_CALL setYYStiffness(const void* value, void* clientData)
-{
-	yyStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_yyStiffness>(yyStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_yyStiffness>(yyStiffness);
-}
-
-void TW_CALL getXYStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = xyStiffness;
-}
-
-void TW_CALL setXYStiffness(const void* value, void* clientData)
-{
-	xyStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xyStiffness>(xyStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, Real, &StrainTriangleConstraint::m_xyStiffness>(xyStiffness);
-}
-
-void TW_CALL getXYPoissonRatio(void* value, void* clientData)
-{
-	*(Real*)(value) = xyPoissonRatio;
-}
-
-void TW_CALL setXYPoissonRatio(const void* value, void* clientData)
-{
-	xyPoissonRatio = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_xyPoissonRatio>(xyPoissonRatio);
-}
-
-void TW_CALL getYXPoissonRatio(void* value, void* clientData)
-{
-	*(Real*)(value) = yxPoissonRatio;
-}
-
-void TW_CALL setYXPoissonRatio(const void* value, void* clientData)
-{
-	yxPoissonRatio = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<FEMTriangleConstraint, Real, &FEMTriangleConstraint::m_yxPoissonRatio>(yxPoissonRatio);
-}
-
-void TW_CALL getNormalizeStretch(void* value, void* clientData)
-{
-	*(bool*)(value) = normalizeStretch;
-}
-
-void TW_CALL setNormalizeStretch(const void* value, void* clientData)
-{
-	normalizeStretch = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeStretch>(normalizeStretch);
-}
-
-void TW_CALL getNormalizeShear(void* value, void* clientData)
-{
-	*(bool*)(value) = normalizeShear;
-}
-
-void TW_CALL setNormalizeShear(const void* value, void* clientData)
-{
-	normalizeShear = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTriangleConstraint, bool, &StrainTriangleConstraint::m_normalizeShear>(normalizeShear);
-}
-
-void TW_CALL setSolidStiffness(const void* value, void* clientData)
-{
-	solidStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_stiffness>(solidStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<XPBD_FEMTetConstraint, Real, &XPBD_FEMTetConstraint::m_stiffness>(solidStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_stretchStiffness>(solidStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, Real, &StrainTetConstraint::m_shearStiffness>(solidStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint, Real, &DistanceConstraint::m_stiffness>(solidStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<DistanceConstraint_XPBD, Real, &DistanceConstraint_XPBD::m_stiffness>(solidStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<ShapeMatchingConstraint, Real, &ShapeMatchingConstraint::m_stiffness>(solidStiffness);
-}
-
-void TW_CALL getSolidStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = solidStiffness;
-}
-
-void TW_CALL setVolumeStiffness(const void* value, void* clientData)
-{
-	volumeStiffness = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<VolumeConstraint, Real, &VolumeConstraint::m_stiffness>(volumeStiffness);
-	((SimulationModel*)clientData)->setConstraintValue<VolumeConstraint_XPBD, Real, &VolumeConstraint_XPBD::m_stiffness>(volumeStiffness);
-}
-
-void TW_CALL getVolumeStiffness(void* value, void* clientData)
-{
-	*(Real*)(value) = volumeStiffness;
-}
-
-void TW_CALL getSolidPoissonRatio(void* value, void* clientData)
-{
-	*(Real*)(value) = solidPoissonRatio;
-}
-
-void TW_CALL setSolidPoissonRatio(const void* value, void* clientData)
-{
-	solidPoissonRatio = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<FEMTetConstraint, Real, &FEMTetConstraint::m_poissonRatio>(solidPoissonRatio);
-	((SimulationModel*)clientData)->setConstraintValue<XPBD_FEMTetConstraint, Real, &XPBD_FEMTetConstraint::m_poissonRatio>(solidPoissonRatio);
-}
-
-void TW_CALL getSolidNormalizeStretch(void* value, void* clientData)
-{
-	*(bool*)(value) = solidNormalizeStretch;
-}
-
-void TW_CALL setSolidNormalizeStretch(const void* value, void* clientData)
-{
-	solidNormalizeStretch = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeStretch>(solidNormalizeStretch);
-}
-
-void TW_CALL getSolidNormalizeShear(void* value, void* clientData)
-{
-	*(bool*)(value) = solidNormalizeShear;
-}
-
-void TW_CALL setSolidNormalizeShear(const void* value, void* clientData)
-{
-	solidNormalizeShear = *(const Real*)(value);
-	((SimulationModel*)clientData)->setConstraintValue<StrainTetConstraint, bool, &StrainTetConstraint::m_normalizeShear>(solidNormalizeShear);
 }

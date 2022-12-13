@@ -240,47 +240,54 @@ bool XPBD::solve_FEMTetraConstraint(
 		return false;
 
 
-	Real C = 0.0;
-	Vector3r gradC[4];
+	Vector3r gradU_[4];
 	Matrix3r epsilon, sigma;
 	Real volume = (p1 - p0).cross(p2 - p0).dot(p3 - p0) / static_cast<Real>(6.0);
 
-	Real mu = 1.0 / static_cast<Real>(2.0) / (static_cast<Real>(1.0) + poissonRatio);
-	Real lambda = 1.0 * poissonRatio / (static_cast<Real>(1.0) + poissonRatio) / (static_cast<Real>(1.0) - static_cast<Real>(2.0) * poissonRatio);
+	// compute the Lame coefficients mu and lambda divided by Young's modulus E
+	// since we use Young's modulus as compliance factor alpha = 1/E.
+	Real mu_ = 1.0 / static_cast<Real>(2.0) / (static_cast<Real>(1.0) + poissonRatio);
+	Real lambda_ = 1.0 * poissonRatio / (static_cast<Real>(1.0) + poissonRatio) / (static_cast<Real>(1.0) - static_cast<Real>(2.0) * poissonRatio);
 
+	// compute value U' which is the potential energy of the elastic solid U divided by Young's modulus E
+	// U = E * U'
+	Real U_ = 0.0;
 	if (!handleInversion || volume > 0.0)
 	{
-		PositionBasedDynamics::computeGreenStrainAndPiolaStress(p0, p1, p2, p3, invRestMat, restVolume, mu, lambda, epsilon, sigma, C);
-		PositionBasedDynamics::computeGradCGreen(restVolume, invRestMat, sigma, gradC);
+		PositionBasedDynamics::computeGreenStrainAndPiolaStress(p0, p1, p2, p3, invRestMat, restVolume, mu_, lambda_, epsilon, sigma, U_);
+		PositionBasedDynamics::computeGradCGreen(restVolume, invRestMat, sigma, gradU_);
 	}
 	else
 	{
-		PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(p0, p1, p2, p3, invRestMat, restVolume, mu, lambda, epsilon, sigma, C);
-		PositionBasedDynamics::computeGradCGreen(restVolume, invRestMat, sigma, gradC);
+		PositionBasedDynamics::computeGreenStrainAndPiolaStressInversion(p0, p1, p2, p3, invRestMat, restVolume, mu_, lambda_, epsilon, sigma, U_);
+		PositionBasedDynamics::computeGradCGreen(restVolume, invRestMat, sigma, gradU_);
 	}
 
-	C = sqrt(2.0 * C);
+	// By choosing the constraint function as sqrt(2 U'), the potential energy used in XPBD: 
+	// U = 0.5 * alpha^-1 * C^2
+	// gives us exactly the required potential energy of the elastic solid. 
+	const Real C = sqrt(2.0 * U_);
 
-	Real sum_normGradC =
-		invMass0 * gradC[0].squaredNorm() +
-		invMass1 * gradC[1].squaredNorm() +
-		invMass2 * gradC[2].squaredNorm() +
-		invMass3 * gradC[3].squaredNorm();
+	Real sum_normGradU_ =
+		invMass0 * gradU_[0].squaredNorm() +
+		invMass1 * gradU_[1].squaredNorm() +
+		invMass2 * gradU_[2].squaredNorm() +
+		invMass3 * gradU_[3].squaredNorm();
 
 	Real alpha = static_cast<Real>(1.0) / (youngsModulus * dt * dt);
-	sum_normGradC += C * C * alpha;
+	// Note that grad C = 1/C grad U'
+	sum_normGradU_ += C * C * alpha;
 
-	if (sum_normGradC < eps)
+	if (sum_normGradU_ < eps)
 		return false;
 
 	// compute scaling factor
-	//const Real s = C / sum_normGradC;
-	const Real s = (C * C + C * alpha * multiplier) / sum_normGradC;
+	const Real s = (C * C + C * alpha * multiplier) / sum_normGradU_;
 
-	corr0 = -s * invMass0 * gradC[0];
-	corr1 = -s * invMass1 * gradC[1];
-	corr2 = -s * invMass2 * gradC[2];
-	corr3 = -s * invMass3 * gradC[3];
+	corr0 = -s * invMass0 * gradU_[0];
+	corr1 = -s * invMass1 * gradU_[1];
+	corr2 = -s * invMass2 * gradU_[2];
+	corr3 = -s * invMass3 * gradU_[3];
 
 	return true;
 }

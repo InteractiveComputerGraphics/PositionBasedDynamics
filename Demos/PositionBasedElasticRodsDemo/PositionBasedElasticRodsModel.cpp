@@ -4,6 +4,8 @@
 
 using namespace PBD;
 
+int PositionBasedElasticRodsModel::REST_DARBOUX_VECTOR = -1;
+
 PositionBasedElasticRodsModel::PositionBasedElasticRodsModel() :
 	SimulationModel()
 {
@@ -18,6 +20,15 @@ void PositionBasedElasticRodsModel::cleanup()
 {
 	SimulationModel::cleanup();
 	m_ghostParticles.release();
+}
+
+void PositionBasedElasticRodsModel::initParameters()
+{
+	SimulationModel::initParameters();
+
+	REST_DARBOUX_VECTOR = createVectorParameter("restDarbouxVector", "Rest Darboux vector", 3u, m_restDarbouxVector.data());
+	setGroup(REST_DARBOUX_VECTOR, "Elastic Rod|Parameters");
+	setDescription(REST_DARBOUX_VECTOR, "Initial Darboux vector.");
 }
 
 void PositionBasedElasticRodsModel::reset()
@@ -74,5 +85,23 @@ void PBD::PositionBasedElasticRodsModel::addElasticRodModel(
 {
 
 
+}
+
+void PBD::PositionBasedElasticRodsModel::setRodBendingStiffnessX(Real val)
+{
+	SimulationModel::setRodBendingStiffnessX(val);
+	m_stiffness[0] = val;
+}
+
+void PBD::PositionBasedElasticRodsModel::setRodBendingStiffnessY(Real val)
+{
+	SimulationModel::setRodBendingStiffnessY(val);
+	m_stiffness[1] = val;
+}
+
+void PBD::PositionBasedElasticRodsModel::setRodTwistingStiffness(Real val)
+{
+	SimulationModel::setRodTwistingStiffness(val);
+	m_stiffness[2] = val;
 }
 

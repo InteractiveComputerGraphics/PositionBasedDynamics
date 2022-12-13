@@ -45,6 +45,7 @@ IndexedFaceMesh::IndexedFaceMesh()
 {
 	m_closed=false;
 	m_flatShading = false;
+	m_numPoints = 0;
 }
 
 IndexedFaceMesh::~IndexedFaceMesh()

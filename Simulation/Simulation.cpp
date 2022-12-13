@@ -16,6 +16,7 @@ Simulation::Simulation ()
 	m_gravitation = Vector3r(0.0, -9.81, 0.0);
 
 	m_timeStep = nullptr;
+	m_model = nullptr;
 }
 
 Simulation::~Simulation () 
@@ -60,7 +61,7 @@ void Simulation::initParameters()
 	ParameterObject::initParameters();
 
  	GRAVITATION = createVectorParameter("gravitation", "Gravitation", 3u, m_gravitation.data());
- 	setGroup(GRAVITATION, "Simulation");
+ 	setGroup(GRAVITATION, "Simulation|General");
  	setDescription(GRAVITATION, "Vector to define the gravitational acceleration.");
 }
 

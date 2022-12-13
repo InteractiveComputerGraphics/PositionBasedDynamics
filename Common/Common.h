@@ -14,6 +14,7 @@ typedef double Real;
 #define REAL_MIN DBL_MIN
 #define RealParameter DoubleParameter
 #define RealParameterType ParameterBase::DOUBLE
+#define RealVectorParameter DoubleVectorParameter
 #define RealVectorParameterType ParameterBase::VEC_DOUBLE
 #else
 typedef float Real;
@@ -22,6 +23,7 @@ typedef float Real;
 #define REAL_MIN FLT_MIN
 #define RealParameter FloatParameter
 #define RealParameterType ParameterBase::FLOAT
+#define RealVectorParameter FloatVectorParameter
 #define RealVectorParameterType ParameterBase::VEC_FLOAT
 #endif
 

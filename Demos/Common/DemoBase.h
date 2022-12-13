@@ -6,8 +6,8 @@
 #include "Demos/Visualization/Shader.h"
 #include "Simulation/TimeStep.h"
 #include "Simulation/SimulationModel.h"
-#include "extern/AntTweakBar/include/AntTweakBar.h"
 #include "ParameterObject.h"
+#include "Simulator_GUI_imgui.h"
 
 namespace PBD
 {
@@ -40,6 +40,12 @@ namespace PBD
 		Utilities::SceneLoader *m_sceneLoader;	
 		Utilities::SceneLoader::SceneData m_scene;
 		float m_jointColor[4] = { 0.0f, 0.6f, 0.2f, 1 };
+		Simulator_GUI_imgui *m_gui;
+		bool m_enableExportOBJ;
+		bool m_enableExportPLY;
+		unsigned int m_exportFPS;
+		Real m_nextFrameTime;
+		unsigned int m_frameCounter;
 
 
 		virtual void initParameters();
@@ -69,6 +75,11 @@ namespace PBD
 		void renderDistanceJoint(DistanceJoint &j);
 		void renderDamperJoint(DamperJoint &j);
 
+		void exportMeshOBJ(const std::string& exportFileName, const unsigned int nVert, const Vector3r* pos, const unsigned int nTri, const unsigned int* faces);
+		void exportMeshPLY(const std::string& exportFileName, const unsigned int nVert, const Vector3r* pos, const unsigned int nTri, const unsigned int* faces);
+		void exportOBJ();
+		void exportPLY();
+
 	public:
 		static int PAUSE;
 		static int PAUSE_AT;
@@ -80,6 +91,9 @@ namespace PBD
 		static int RENDER_SDF;
 		static int RENDER_BVH;
 		static int RENDER_BVH_TETS;
+		static int EXPORT_OBJ;
+		static int EXPORT_PLY;
+		static int EXPORT_FPS;
 
 		DemoBase();
 		virtual ~DemoBase();
@@ -94,6 +108,7 @@ namespace PBD
 		void readParameters();
 		void readScene();
 		void reset();
+		void step();
 
 		Utilities::SceneLoader *getSceneLoader() { return m_sceneLoader; }
 		void setSceneLoader(Utilities::SceneLoader *sceneLoader) { m_sceneLoader = sceneLoader; }

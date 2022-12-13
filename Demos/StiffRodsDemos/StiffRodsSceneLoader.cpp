@@ -524,26 +524,6 @@ void PBD::StiffRodsSceneLoader::readStiffRodsScene(const std::string &fileName, 
 		//////////////////////////////////////////////////////////////////////////
 		sceneData.m_timeStepSize = static_cast<Real>(0.005);
 		sceneData.m_gravity = Vector3r(0, -static_cast<Real>(9.81), 0);
-		sceneData.m_velocityUpdateMethod = 0;
-		sceneData.m_triangleModelSimulationMethod = -1;
-		sceneData.m_triangleModelBendingMethod = -1;
-		sceneData.m_tetModelSimulationMethod = -1;
-		sceneData.m_contactTolerance = 0.0;
-		sceneData.m_contactStiffnessRigidBody = 1.0;
-		sceneData.m_contactStiffnessParticleRigidBody = 100.0;
-		sceneData.m_cloth_stiffness = 1.0;
-		sceneData.m_cloth_bendingStiffness = static_cast<Real>(0.01);
-		sceneData.m_cloth_xxStiffness = 1.0;
-		sceneData.m_cloth_yyStiffness = 1.0;
-		sceneData.m_cloth_xyStiffness = 1.0;
-		sceneData.m_cloth_xyPoissonRatio = static_cast<Real>(0.3);
-		sceneData.m_cloth_yxPoissonRatio = static_cast<Real>(0.3);
-		sceneData.m_cloth_normalizeStretch = false;
-		sceneData.m_cloth_normalizeShear = false;
-		sceneData.m_cloth_stiffness = 1.0;
-		sceneData.m_cloth_stiffness = static_cast<Real>(0.3);
-		sceneData.m_solid_normalizeStretch = false;
-		sceneData.m_solid_normalizeShear = false;
 		if (m_json.find("Simulation") != m_json.end())
 			readSimulation(m_json, "Simulation", sceneData);
 

@@ -3,6 +3,7 @@
 #include "PositionBasedDynamics/PositionBasedFluids.h"
 #include "PositionBasedDynamics/TimeIntegration.h"
 #include "PositionBasedDynamics/SPHKernels.h"
+#include "Simulation/Simulation.h"
 #include "Utils/Timing.h"
 
 using namespace PBD;
@@ -72,7 +73,8 @@ void TimeStepFluidModel::clearAccelerations(FluidModel &model)
 {
 	ParticleData &pd = model.getParticles();
 	const unsigned int count = pd.size();
-	const Vector3r grav(0.0, -static_cast<Real>(9.81), 0.0);
+	Simulation* sim = Simulation::getCurrent();
+	const Vector3r grav(sim->getVecValue<Real>(Simulation::GRAVITATION));
 	for (unsigned int i=0; i < count; i++)
 	{
 		// Clear accelerations of dynamic particles

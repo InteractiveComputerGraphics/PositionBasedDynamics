@@ -179,41 +179,12 @@ namespace Utilities
 
 		struct SceneData
 		{
-			enum TriangleModelSimulationMethodTypes { No_Simulation_Method = 0, Distance_Constraints, FEM_Based_PBD, Strain_Based_Dynamics };
-			enum TriangleModelBendingMethodTypes { No_Bending_Method = 0, Dihedral_Angle, Isometric_Bending };
-			enum VelocityUpdateMethodTypes { First_Order_Update = 0, Second_Order_Update };
-
 			std::string m_sceneName;
 			Vector3r m_camPosition;
 			Vector3r m_camLookat;
 
 			Real m_timeStepSize;
 			Vector3r m_gravity;
-			Real m_contactTolerance;
-			int m_triangleModelSimulationMethod;
-			int m_triangleModelBendingMethod;
-			int m_tetModelSimulationMethod;
-			Real m_contactStiffnessRigidBody;
-			Real m_contactStiffnessParticleRigidBody;
-
-			int m_velocityUpdateMethod;
-
-			Real m_cloth_stiffness;
-			Real m_cloth_bendingStiffness;
-			Real m_cloth_xxStiffness;
-			Real m_cloth_yyStiffness;
-			Real m_cloth_xyStiffness;
-			Real m_cloth_xyPoissonRatio;
-			Real m_cloth_yxPoissonRatio;
-			bool  m_cloth_normalizeStretch;
-			bool  m_cloth_normalizeShear;
-
-			Real m_solid_stiffness;
-			Real m_solid_poissonRatio;
-			bool m_solid_normalizeStretch;
-			bool m_solid_normalizeShear;
-
-			bool m_volume_stiffness;
 
 			std::vector<RigidBodyData> m_rigidBodyData;			
 			std::vector<TriangleModelData> m_triangleModelData;

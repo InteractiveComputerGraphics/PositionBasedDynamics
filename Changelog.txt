@@ -1,3 +1,9 @@
+2.2.0
+	- removed AntTweakBar GUI
+	- added imgui 
+	- added PLY export
+	- added documentation of scene file format
+
 2.1.5
 	- updated pybind11
 	- cleanup mesh loading code

@@ -4,6 +4,7 @@
    
    about
    getting_started
+   file_format
 
 .. toctree::
    :maxdepth: 2

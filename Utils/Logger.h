@@ -12,7 +12,7 @@
 
 namespace Utilities
 {
-	enum class LogLevel { DEBUG=0, INFO, WARN, ERR };
+	enum LogLevel { DEBUG=0, INFO, WARN, ERR };
 
 	class LogSink
 	{
@@ -22,6 +22,7 @@ namespace Utilities
 		LogSink(const LogLevel minLevel) : m_minLevel(minLevel) {}
 		virtual ~LogSink() {}
 		virtual void write(const LogLevel level, const std::string &str) = 0;
+		void setMinLevel(LogLevel level) { m_minLevel = level; }
 	};
 
 	class ConsoleSink : public LogSink
@@ -100,31 +101,83 @@ namespace Utilities
 		}
 	};
 
+	class BufferSink : public Utilities::LogSink
+	{
+	protected:
+		std::vector<std::pair<Utilities::LogLevel, std::string>> m_buffer;
+
+	public:
+		BufferSink(const LogLevel minLevel) : LogSink(minLevel) 
+		{
+			m_buffer.reserve(10000);
+		}
+
+		virtual void write(const Utilities::LogLevel level, const std::string& str)
+		{
+			if (level < m_minLevel)
+				return;
+
+			m_buffer.push_back({ level, str });
+		}
+
+		std::vector<std::pair<Utilities::LogLevel, std::string>>& getBuffer()
+		{
+			return m_buffer;
+		}
+
+		void clearBuffer()
+		{
+			m_buffer.clear();
+		}
+	};
+
 	class Logger
 	{
 	public: 
-		Logger() {}
+		Logger() { m_active = true; }
 		~Logger() 
 		{ 
 			m_sinks.clear();  
 		}
 
 	protected:
-		std::vector<std::unique_ptr<LogSink>> m_sinks;
+		std::vector<std::shared_ptr<LogSink>> m_sinks;
+		bool m_active;
 
 	public:
 		// Todo: format
 
-		void addSink(std::unique_ptr<LogSink> sink)
+		void addSink(std::shared_ptr<LogSink> sink)
 		{
-			m_sinks.push_back(std::move(sink));
+			m_sinks.push_back(sink);
+		}
+
+		void removeSink(std::shared_ptr<LogSink> sink)
+		{
+			for (auto it = m_sinks.begin(); it != m_sinks.end(); it++)
+			{
+				if (*it == sink)
+				{
+					m_sinks.erase(it);
+					break;
+				}
+			}
+		}
+
+		std::vector<std::shared_ptr<LogSink>>& getSinks()
+		{
+			return m_sinks;
 		}
 
 		void write(const LogLevel level, const std::string &str)
 		{
+			if (!m_active)
+				return;
 			for (unsigned int i = 0; i < m_sinks.size(); i++)
 				m_sinks[i]->write(level, str);
 		}
+
+		void activate(const bool b) { m_active = b; }
 	};
 
 	class LogStream

@@ -3,6 +3,9 @@
 
 using namespace PBD;
 using namespace Utilities;
+using namespace GenParam;
+
+int CollisionDetection::CONTACT_TOLERANCE = -1;
 
 int CollisionDetection::CollisionObjectWithoutGeometry::TYPE_ID = IDFactory::getId();
 const unsigned int CollisionDetection::RigidBodyContactType = 0;
@@ -25,6 +28,22 @@ CollisionDetection::CollisionDetection() : m_collisionObjects()
 CollisionDetection::~CollisionDetection()
 {
 	cleanup();
+}
+
+
+void CollisionDetection::init()
+{
+	initParameters();
+}
+
+void CollisionDetection::initParameters()
+{
+	ParameterObject::initParameters();
+
+	CONTACT_TOLERANCE = createNumericParameter("contactTolerance", "Contact tolerance", &m_tolerance);
+	setGroup(CONTACT_TOLERANCE, "Simulation|Contact");
+	setDescription(CONTACT_TOLERANCE, "Tolerance of the collision detection");
+	static_cast<NumericParameter<Real>*>(getParameter(CONTACT_TOLERANCE))->setMinValue(0.0);
 }
 
 void CollisionDetection::cleanup()

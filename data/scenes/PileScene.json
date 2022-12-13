@@ -1456,8 +1456,8 @@
         "maxIter": 5,
         "maxIterVel": 5,
         "timeStepSize": 0.005,
-        "triangleModelBendingMethod": 2,
-        "triangleModelSimulationMethod": 2,
+        "clothBendingMethod": 2,
+        "clothSimulationMethod": 2,
         "velocityUpdateMethod": 0
     },
     "SliderJoints": [],

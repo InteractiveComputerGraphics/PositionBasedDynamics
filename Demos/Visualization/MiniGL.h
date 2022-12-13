@@ -4,7 +4,6 @@
 #include "Common/Common.h"
 #include <Eigen/Geometry> 
 #include "Shader.h"
-#include "extern/AntTweakBar/include/AntTweakBar.h"
 #include <vector>
 
 #ifdef USE_DOUBLE
@@ -115,9 +114,6 @@ namespace PBD
 		static void(*mousefunc)(int, int, void*);
 		static int mouseFuncButton;		
 		static Vector2i m_selectionStart;
-		static TwBar *m_tweakBar;
-		static Real m_time;
-		static Real m_quat[4];
 		static int m_context_major_version;
 		static int m_context_minor_version;
 		static int m_context_profile;
@@ -128,6 +124,7 @@ namespace PBD
 		static std::vector<Triangle> m_drawTriangle;
 		static GLUquadricObj* m_sphereQuadric;
 		static GLFWwindow* m_glfw_window;
+		static bool m_vsync;
 		static double m_lastTime;
 
 		static void reshape (GLFWwindow* glfw_window, int w, int h);
@@ -164,7 +161,7 @@ namespace PBD
 		static void setClientDestroyFunc(DestroyFct func);
 		static void addKeyFunc(unsigned char k, std::function<void()> const& func);
 		static std::vector<KeyFunction> &getKeyFunc() { return keyfunc; }
-		static void init(int argc, char **argv, const int width, const int height, const char *name);
+		static void init(int argc, char **argv, const int width, const int height, const char *name, const bool vsync, const bool maximized = false);
 		static void destroy ();
 		static void viewport ();
 		static void initLights ();
@@ -177,7 +174,6 @@ namespace PBD
 		static void rotateX (Real x);
 		static void rotateY (Real y);
 		static void setProjectionMatrix (int width, int height);
-		static void drawTime(const Real time);
 		static void setSelectionFunc(void(*func) (const Vector2i&, const Vector2i&, void*), void *clientData);
 		static void setMouseMoveFunc(int button, void(*func) (int, int, void*));
 		static void unproject(const int x, const int y, Vector3r &pos);
@@ -217,15 +213,12 @@ namespace PBD
 		static void swapBuffers();
 
 		static GLFWwindow* getWindow() { return m_glfw_window; }
-		
-		static void initTweakBar();
-		static void initTweakBarParameters();
-		static TwBar *getTweakBar();
-		static void cleanupTweakBar();
-		static void TW_CALL setWireframeCB(const void *value, void *clientData);
-		static void TW_CALL getWireframeCB(void *value, void *clientData);		
-		static void TW_CALL setRotationCB(const void *value, void *clientData);
-		static void TW_CALL getRotationCB(void *value, void *clientData);
+		static void getWindowPos(int& x, int& y);
+		static void getWindowSize(int& w, int& h);
+		static void setWindowPos(int x, int y);
+		static void setWindowSize(int w, int h);
+		static bool getWindowMaximized();
+		static void setWindowMaximized(const bool b);	
 	};
 }
 
