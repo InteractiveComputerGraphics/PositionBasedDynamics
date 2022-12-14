@@ -4,7 +4,7 @@
 
 This library supports the physically-based simulation of mechanical effects. In the last years position-based simulation methods have become popular in the graphics community. In contrast to classical simulation approaches these methods compute the position changes in each simulation step directly, based on the solution of a quasi-static problem. Therefore, position-based approaches are fast, stable and controllable which make them well-suited for use in interactive environments. However, these methods are generally not as accurate as force-based methods but still provide visual plausibility. Hence, the main application areas of position-based simulation are virtual reality, computer games and special effects in movies and commercials.
 
-The PositionBasedDynamics library allows the position-based handling of many types of constraints in a physically-based simulation. The library uses [CMake](http://www.cmake.org/), [Eigen](http://eigen.tuxfamily.org/), [json](https://github.com/nlohmann/json/), [pybind](https://github.com/pybind/pybind11), [glfw](https://www.glfw.org/), [hapPLY](https://github.com/nmwsharp/happly) and [AntTweakBar](http://anttweakbar.sourceforge.net/) (only for the demos). All external dependencies are included. 
+The PositionBasedDynamics library allows the position-based handling of many types of constraints in a physically-based simulation. The library uses [CMake](http://www.cmake.org/), [Eigen](http://eigen.tuxfamily.org/), [json](https://github.com/nlohmann/json/), [pybind](https://github.com/pybind/pybind11), [glfw](https://www.glfw.org/), [hapPLY](https://github.com/nmwsharp/happly) and [imgui](https://github.com/ocornut/imgui) (only for the demos). All external dependencies are included. 
 
 Furthermore we use our own library:
 - [Discregrid](https://github.com/InteractiveComputerGraphics/Discregrid/) to generate cubic signed distance fields for the collision detection
@@ -48,10 +48,12 @@ pip install pypbd
 ```
 
 These are available for different Python Versions. See also here: [pyPBD](https://pypi.org/project/pyPBD/).
-
+If you do not meet these conditions please refer to the build instructions and to the python binding 
+[Getting started guide](https://positionbaseddynamics.readthedocs.io/en/latest/py_getting_started.html).
 
 ## Latest Important Changes
 
+* GUI is now based on [imgui](https://github.com/ocornut/imgui)
 * added support of PLY files
 * added Python binding
 * added some XPBD constraints
@@ -78,7 +80,7 @@ These are available for different Python Versions. See also here: [pyPBD](https:
 
 ## Features
 
-* Physically-based simulation with position-based constraint handling.
+* Physically-based simulation with (eXtended) position-based constraint handling.
 * Simple interface
 * Demos 
 * Library is free even for commercial applications.
@@ -129,7 +131,8 @@ The following videos were generated using the PositionBasedDynamics library:
 
 ## Screenshots
 
-![Cloth demo](http://www.interactive-graphics.de/j_images/PositionBasedDynamics.jpg "Cloth demo")	
+|![](https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/master/doc/images/PBD1.jpg)|![](https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/master/doc/images/PBD2.jpg)|
+
 
 ## References
 
