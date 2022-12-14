@@ -1,3 +1,5 @@
+	- fixed meshes
+
 2.2.0
 	- removed AntTweakBar GUI
 	- added imgui 
