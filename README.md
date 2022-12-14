@@ -132,7 +132,7 @@ The following videos were generated using the PositionBasedDynamics library:
 ## Screenshots
 
 |![](https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/master/doc/images/PBD1.jpg)|![](https://raw.githubusercontent.com/InteractiveComputerGraphics/PositionBasedDynamics/master/doc/images/PBD2.jpg)|
-
+|--|--|
 
 ## References
 
