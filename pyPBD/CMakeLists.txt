@@ -27,5 +27,5 @@ add_dependencies(pypbd Simulation PositionBasedDynamics Utils Ext_GenericParamet
 add_custom_target(pypbd_install
         ${PYTHON_EXECUTABLE} setup.py bdist_wheel
         COMMAND ${PYTHON_EXECUTABLE} -m pip install -I build/dist/py*.whl
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 		

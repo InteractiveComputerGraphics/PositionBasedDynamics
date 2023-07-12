@@ -5,7 +5,7 @@ project(Eigen3)
 
 # guard against in-source builds
 
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+if(${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
 endif()
 
@@ -37,10 +37,10 @@ set(EIGEN_MINOR_VERSION "${CMAKE_MATCH_1}")
 set(EIGEN_VERSION_NUMBER ${EIGEN_WORLD_VERSION}.${EIGEN_MAJOR_VERSION}.${EIGEN_MINOR_VERSION})
 
 # if we are not in a git clone
-if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
+if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/.git)
   # if the git program is absent or this will leave the EIGEN_GIT_REVNUM string empty,
   # but won't stop CMake.
-  execute_process(COMMAND git ls-remote --refs -q ${CMAKE_SOURCE_DIR} HEAD OUTPUT_VARIABLE EIGEN_GIT_OUTPUT)
+  execute_process(COMMAND git ls-remote --refs -q ${PROJECT_SOURCE_DIR} HEAD OUTPUT_VARIABLE EIGEN_GIT_OUTPUT)
 endif()
 
 # extract the git rev number from the git output...

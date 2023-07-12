@@ -12,7 +12,7 @@ else()
 	include_directories(${PROJECT_SOURCE_DIR})
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(${PROJECT_PATH}/CMake/Common.cmake)
@@ -47,7 +47,7 @@ if ((DEFINED Discregrid_INCLUDE_DIR) AND (DEFINED Discregrid_DEBUG_LIB) AND (DEF
 else()
 	ExternalProject_Add(
 	   Ext_Discregrid
-	   PREFIX "${CMAKE_BINARY_DIR}/extern/Discregrid"
+	   PREFIX "${PROJECT_BINARY_DIR}/extern/Discregrid"
 	   GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/Discregrid.git
 	   GIT_TAG "4c27e1cc88be828c6ac5b8a05759ac7e01cf79e9"
 	   INSTALL_DIR ${ExternalInstallDir}/Discregrid
@@ -84,10 +84,10 @@ add_subdirectory(Simulation)
 add_subdirectory(Utils)
 if (NOT PBD_LIBS_ONLY)
 	include(DataCopyTargets)
-	add_subdirectory(extern/glfw)
-	add_subdirectory(extern/imgui)
+	# add_subdirectory(extern/glfw)
+	# add_subdirectory(extern/imgui)
 	add_subdirectory(extern/md5)
-	add_subdirectory(Demos)
+	# add_subdirectory(Demos)
 	if (USE_PYTHON_BINDINGS)
 		add_subdirectory(extern/pybind)
 		add_subdirectory(pyPBD)
