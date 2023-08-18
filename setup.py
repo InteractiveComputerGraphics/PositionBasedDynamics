@@ -106,6 +106,10 @@ f = open("version.txt", "r")
 pbd_version = f.readline().strip()
 f.close() 
 
+# create build directory
+if not os.path.isdir('build'):
+    os.mkdir('build')
+
 setup(
     name=name,
     version=pbd_version,
