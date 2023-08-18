@@ -70,7 +70,7 @@ else()
 	   Ext_GenericParameters
 	   PREFIX "${ExternalInstallDir}/GenericParameters"
 	   GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/GenericParameters.git
-	   GIT_TAG "50b87678b19221eb7cb12a75fd1f5fa0a3cc0fc6"
+	   GIT_TAG "a4e2744eea526270cfe38b826440d09f66473316"
 	   INSTALL_DIR ${ExternalInstallDir}/GenericParameters
 	   CMAKE_ARGS -DCMAKE_BUILD_TYPE=${EXT_CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=${ExternalInstallDir}/GenericParameters -DGENERICPARAMETERS_NO_TESTS:BOOL=1		
 	) 
