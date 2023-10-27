@@ -79,7 +79,7 @@ if(APPLE)
 	add_definitions(-DGL_SILENCE_DEPRECATION)
 endif()
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 
 if (MSVC)
 add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
