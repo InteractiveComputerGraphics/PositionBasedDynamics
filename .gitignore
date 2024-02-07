@@ -1,3 +1,4 @@
 lib/
 bin/
+data/scenes/Cache/
 !bin/*.bat
