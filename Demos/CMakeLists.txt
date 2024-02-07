@@ -8,6 +8,7 @@ set(PBD_DEMOS
 	CouplingDemos
 	DistanceFieldDemos
 	FluidDemo
+	FluidParticleSpatialTest
 	GenericConstraintsDemos
 	PositionBasedElasticRodsDemo
 	RigidBodyDemos

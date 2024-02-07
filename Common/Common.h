@@ -7,16 +7,16 @@
 //#define USE_DOUBLE
 #define MIN_PARALLEL_SIZE 64
 
-#ifdef USE_DOUBLE
-typedef double Real;
-
-#define REAL_MAX DBL_MAX
-#define REAL_MIN DBL_MIN
-#define RealParameter DoubleParameter
-#define RealParameterType ParameterBase::DOUBLE
-#define RealVectorParameter DoubleVectorParameter
-#define RealVectorParameterType ParameterBase::VEC_DOUBLE
-#else
+//#ifndef USE_DOUBLE
+//typedef double Real;
+//
+//#define REAL_MAX DBL_MAX
+//#define REAL_MIN DBL_MIN
+//#define RealParameter DoubleParameter
+//#define RealParameterType ParameterBase::DOUBLE
+//#define RealVectorParameter DoubleVectorParameter
+//#define RealVectorParameterType ParameterBase::VEC_DOUBLE
+//#else
 typedef float Real;
 
 #define REAL_MAX FLT_MAX
@@ -25,7 +25,7 @@ typedef float Real;
 #define RealParameterType ParameterBase::FLOAT
 #define RealVectorParameter FloatVectorParameter
 #define RealVectorParameterType ParameterBase::VEC_FLOAT
-#endif
+//#endif
 
 using Vector2r = Eigen::Matrix<Real, 2, 1, Eigen::DontAlign>;
 using Vector3r = Eigen::Matrix<Real, 3, 1, Eigen::DontAlign>;

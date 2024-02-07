@@ -240,9 +240,9 @@ CubicSDFCollisionDetection::GridPtr generateSDF(const std::string &modelFile, co
 			std::vector<unsigned int> &faces = mesh.getFaces();
 			const unsigned int nFaces = mesh.numFaces();
 
-#ifdef USE_DOUBLE
-			Discregrid::TriangleMesh sdfMesh(&vd.getPosition(0)[0], faces.data(), vd.size(), nFaces);
-#else
+//#ifdef USE_DOUBLE
+//			Discregrid::TriangleMesh sdfMesh(&vd.getPosition(0)[0], faces.data(), vd.size(), nFaces);
+//#else
 			// if type is float, copy vector to double vector
 			std::vector<double> doubleVec;
 			doubleVec.resize(3 * vd.size());
@@ -250,7 +250,7 @@ CubicSDFCollisionDetection::GridPtr generateSDF(const std::string &modelFile, co
 				for (unsigned int j = 0; j < 3; j++)
 					doubleVec[3 * i + j] = vd.getPosition(i)[j];
 			Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vd.size(), nFaces);
-#endif
+//#endif
 			Discregrid::TriangleMeshDistance md(sdfMesh);
 			Eigen::AlignedBox3d domain;
 			for (auto const& x : sdfMesh.vertices())
@@ -373,9 +373,9 @@ void readScene(const bool readFile)
 						std::vector<unsigned int> &faces = mesh.getFaces();
 						const unsigned int nFaces = mesh.numFaces();
 
-#ifdef USE_DOUBLE
-						Discregrid::TriangleMesh sdfMesh(&vd.getPosition(0)[0], faces.data(), vd.size(), nFaces);
-#else
+//#ifdef USE_DOUBLE
+//						Discregrid::TriangleMesh sdfMesh(&vd.getPosition(0)[0], faces.data(), vd.size(), nFaces);
+//#else
 						// if type is float, copy vector to double vector
 						std::vector<double> doubleVec;
 						doubleVec.resize(3 * vd.size());
@@ -383,7 +383,7 @@ void readScene(const bool readFile)
 							for (unsigned int j = 0; j < 3; j++)
 								doubleVec[3 * i + j] = vd.getPosition(i)[j];
 						Discregrid::TriangleMesh sdfMesh(&doubleVec[0], faces.data(), vd.size(), nFaces);
-#endif
+//#endif
 						Discregrid::TriangleMeshDistance md(sdfMesh);
 						Eigen::AlignedBox3d domain;
 						for (auto const& x : sdfMesh.vertices())

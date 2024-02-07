@@ -391,7 +391,7 @@ void DemoBase::render()
 			if (m_selectedBodies[j] == i)
 				selected = true;
 		}
-
+		std::cout << "AH" << std::endl;
 		const VertexData &vd = rb[i]->getGeometry().getVertexData();
 		const IndexedFaceMesh &mesh = rb[i]->getGeometry().getMesh();
 

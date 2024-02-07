@@ -6,18 +6,18 @@
 #include "Shader.h"
 #include <vector>
 
-#ifdef USE_DOUBLE
-#define glNormal3v glNormal3dv
-#define glVertex3v glVertex3dv
-#define glVertex3 glVertex3d
-#define glMultMatrix glMultMatrixd
-#define glGetRealv glGetDoublev
-#define glLoadMatrix glLoadMatrixd
-#define glTranslate glTranslated
-#define GL_REAL GL_DOUBLE
-#define TW_TYPE_REAL TW_TYPE_DOUBLE
-#define TW_TYPE_DIR3R TW_TYPE_DIR3D
-#else
+//#ifdef USE_DOUBLE
+//#define glNormal3v glNormal3dv
+//#define glVertex3v glVertex3dv
+//#define glVertex3 glVertex3d
+//#define glMultMatrix glMultMatrixd
+//#define glGetRealv glGetDoublev
+//#define glLoadMatrix glLoadMatrixd
+//#define glTranslate glTranslated
+//#define GL_REAL GL_DOUBLE
+//#define TW_TYPE_REAL TW_TYPE_DOUBLE
+//#define TW_TYPE_DIR3R TW_TYPE_DIR3D
+//#else
 #define glNormal3v glNormal3fv
 #define glVertex3v glVertex3fv
 #define glVertex3 glVertex3f
@@ -28,7 +28,7 @@
 #define GL_REAL GL_FLOAT
 #define TW_TYPE_REAL TW_TYPE_FLOAT
 #define TW_TYPE_DIR3R TW_TYPE_DIR3F
-#endif
+//#endif
 
 struct GLFWwindow;
 typedef class GLUquadric GLUquadricObj;

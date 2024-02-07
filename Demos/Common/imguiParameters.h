@@ -6,13 +6,13 @@
 #include "ParameterObject.h"
 #include "imgui.h"
 
-#ifdef USE_DOUBLE
-#define InputReal ImGui::InputDouble
-#define ImGuiDataType_Real ImGuiDataType_Double
-#else
+//#ifdef USE_DOUBLE
+//#define InputReal ImGui::InputDouble
+//#define ImGuiDataType_Real ImGuiDataType_Double
+//#else
 #define InputReal ImGui::InputFloat
 #define ImGuiDataType_Real ImGuiDataType_Float
-#endif
+//#endif
 
 namespace PBD
 {

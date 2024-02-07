@@ -122,8 +122,11 @@ namespace PBD
 			void initBody(const Real density, const Vector3r &x, const Quaternionr &rotation,
 				const VertexData &vertices, const Utilities::IndexedFaceMesh &mesh, const Vector3r &scale = Vector3r(1.0, 1.0, 1.0))
 			{
+				std::cout << "A01" << std::endl;
 				m_mass = 1.0;
+				std::cout << "A012" << std::endl;
 				m_inertiaTensor = Vector3r(1.0, 1.0, 1.0);
+				std::cout << "A013" << std::endl;
 				m_x = x;
 				m_x0 = x;
 				m_lastX = x;
@@ -137,16 +140,20 @@ namespace PBD
 				m_lastQ = rotation;
 				m_oldQ = rotation;
 				m_rot = m_q.matrix();
+				std::cout << "A014" << std::endl;
 				rotationUpdated();
+				std::cout << "A016" << std::endl;
 				m_omega.setZero();
 				m_omega0.setZero();
 				m_torque.setZero();
 
 				m_restitutionCoeff = static_cast<Real>(0.6);
 				m_frictionCoeff = static_cast<Real>(0.2);
-
+				std::cout << "A01" << std::endl;
 				getGeometry().initMesh(vertices.size(), mesh.numFaces(), &vertices.getPosition(0), mesh.getFaces().data(), mesh.getUVIndices(), mesh.getUVs(), scale, mesh.getFlatShading());
+				std::cout << "A02" << std::endl;
 				determineMassProperties(density);
+				std::cout << "A03" << std::endl;
 				getGeometry().updateMeshTransformation(getPosition(), getRotationMatrix());
 			}
 
