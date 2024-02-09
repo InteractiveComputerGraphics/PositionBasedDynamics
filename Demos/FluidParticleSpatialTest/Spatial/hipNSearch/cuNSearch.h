@@ -20,6 +20,8 @@ namespace cuNSearch
 		std::vector<PointSet> pointSets;
 
 	public:
+		// Implementation and cuda data are hidden in the cuNSearchDeviceData class to avoid unnecessary dependencies in public headers.
+		std::unique_ptr<cuNSearchDeviceData> deviceData;
 
 		/**
 		* Constructor.
@@ -181,13 +183,12 @@ namespace cuNSearch
 			return m_activation_table.is_active(i, j);
 		}
 
+		void sort(PointSet& pointSet);
+
 	private:
 		bool isInitialized = false;
 		Real searchRadius;
 		ActivationTable m_activation_table;
-
-		// Implementation and cuda data are hidden in the cuNSearchDeviceData class to avoid unnecessary dependencies in public headers.
-		std::unique_ptr<cuNSearchDeviceData> deviceData;
 
 		void updatePointSet(PointSet &pointSet);
 	};

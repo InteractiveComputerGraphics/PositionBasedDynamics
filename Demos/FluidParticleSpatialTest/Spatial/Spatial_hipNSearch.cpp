@@ -32,6 +32,14 @@ void Spatial_hipNSearch::update()
 	m_currentTimestamp++;
 }
 
+//void Spatial_hipNSearch::sort(int i)
+//{
+//	cuNSearch::PointSet& pointSet = nSearch.point_set(i);
+//	nSearch.deviceData->updateSort(pointSet);
+//	nSearch.z_sort();
+//	pointSet.sort_field((Vector3r*)pointSet.GetPoints());
+//}
+
 void Spatial_hipNSearch::addParticles(const unsigned int numParticles, Vector3r* boundryX, const unsigned int numBoundry)
 {
 	particles.insert(particles.begin(), numParticles, Vector3r(0.0f, 0.0f, 0.0f));
@@ -47,6 +55,7 @@ void Spatial_hipNSearch::addBoundry(Vector3r* x, const unsigned int numParticles
 	boundryIndex = nSearch.add_point_set(particles[0].data(), particles.size(), true, true);
 	nSearch.find_neighbors();
 	nSearch.point_set(boundryIndex).makeInv();
+	printf("AH\n");
 }
 
 void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numParticles, Vector3r* boundryX, const unsigned int numBoundry)
@@ -54,20 +63,19 @@ void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numP
 	std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
 	std::copy(boundryX, boundryX + numBoundry, particles.begin() + numParticles); //particles.insert(particles.begin() + numParticles, boundryX, boundryX + numBoundry);
 	//const float* tmp0 = particles[0].data();
-	nSearch.update_point_set(particleIndex);
-	nSearch.z_sort();
-	nSearch.point_set(particleIndex).sort_field((Vector3r*)nSearch.point_set(particleIndex).GetPoints());
+	nSearch.sort(nSearch.point_set(particleIndex));
 	//nSearch.point_set(particleIndex).makeInverse();
 	//const float* tmp1 = nSearch.point_set(particleIndex).GetPoints();
-	nSearch.find_neighbors(false);
+	nSearch.find_neighbors(true);
 }
 
 void Spatial_hipNSearch::neighborhoodSearchBoundry(Vector3r* x, const unsigned int numParticles)
 {
 	std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
-	nSearch.update_point_set(boundryIndex);
-	nSearch.z_sort();
-	nSearch.point_set(boundryIndex).sort_field((Vector3r*)nSearch.point_set(boundryIndex).GetPoints());
+	const float* tmp0 = particles[0].data();
+	nSearch.sort(nSearch.point_set(boundryIndex));
 	//nSearch.point_set(boundryIndex).makeInverse();
-	nSearch.find_neighbors(false);
+	const float* tmp1 = nSearch.point_set(boundryIndex).GetPoints();
+	nSearch.find_neighbors(true);
+	const float* tmp2 = nSearch.point_set(boundryIndex).GetPoints();
 }

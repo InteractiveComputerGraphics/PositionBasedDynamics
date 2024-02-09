@@ -166,6 +166,7 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 	printf("GPU version: \n");
 	Spatial_hipNSearch neighborhoodSearchSH(m_supportRadius, 0, nBoundaryParticles);
 	neighborhoodSearchSH.addBoundry(&m_boundaryX[0], nBoundaryParticles);
+	neighborhoodSearchSH.neighborhoodSearchBoundry(&m_boundaryX[0], nBoundaryParticles);
 
 	#pragma omp parallel default(shared)
 	{
@@ -177,7 +178,7 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 			if(sortIdx < 22) printf("%d (%d): ", sortIdx, neighborhoodSearchSH.n_neighborsBoundry(sortIdx));
 			for (unsigned int j = 0; j < neighborhoodSearchSH.n_neighborsBoundry(sortIdx); j++)
 			{
-				const unsigned int neighborIndex = neighborhoodSearchSH.invNeighborBoundry(sortIdx, j); //neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j));
+				const unsigned int neighborIndex = neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j)); //neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j)); neighborhoodSearchSH.neighborBoundry(sortIdx, j) neighborhoodSearchSH.invNeighborBoundry(sortIdx, j)
 				delta += CubicKernel::W(m_boundaryX[i] - m_boundaryX[neighborIndex]);
 				if (sortIdx < 22) printf("%d; ", neighborIndex);
 			}

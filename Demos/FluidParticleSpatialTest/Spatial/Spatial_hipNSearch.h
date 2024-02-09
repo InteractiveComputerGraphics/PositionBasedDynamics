@@ -53,7 +53,8 @@ namespace PBD
 		}
 		 unsigned int invNeighbor(unsigned int i, unsigned int k) const
 		{
-			return invSortIdx(neighbor(i, k));
+			//return invSortIdx(neighbor(i, k));
+			return sortIdx(neighbor(i, k));
 		}
 
 		 unsigned int n_neighborsBoundry(unsigned int i) const
@@ -83,5 +84,7 @@ namespace PBD
 		std::vector<Vector3r> particles;
 		unsigned int m_currentTimestamp;
 		cuNSearch::NeighborhoodSearch nSearch;
+
+		void Spatial_hipNSearch::sort(int i);
 	};
 }
