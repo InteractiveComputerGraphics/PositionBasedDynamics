@@ -2,6 +2,8 @@
 #include "PositionBasedDynamics/PositionBasedDynamics.h"
 #include "PositionBasedDynamics/SPHKernels.h"
 
+#include<set>
+
 using namespace PBD;
 
 FluidModel::FluidModel() :
@@ -132,38 +134,35 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 
 #elif defined(nSearch)
 	//TEST CPU
+	std::vector<Real> testBoundPsi(m_boundaryPsi);
+	printf("CPU version:\n");
+	NeighborhoodSearchSpatialHashing testNeight(nBoundaryParticles, m_supportRadius);
+	testNeight.neighborhoodSearch(&m_boundaryX[0]);
+
+	unsigned int** neighbors = testNeight.getNeighbors();
+	unsigned int* numNeighbors = testNeight.getNumNeighbors();
+
+	#pragma omp parallel default(shared)
 	{
-		printf("CPU version: \n");
-		std::vector<Real> testBoundPsi(m_boundaryPsi);
-		NeighborhoodSearchSpatialHashing testNeight(nBoundaryParticles, m_supportRadius);
-		testNeight.neighborhoodSearch(&m_boundaryX[0]);
-
-		unsigned int** neighbors = testNeight.getNeighbors();
-		unsigned int* numNeighbors = testNeight.getNumNeighbors();
-
-		#pragma omp parallel default(shared)
+		#pragma omp for schedule(static)  
+		for (int i = 0; i < (int)nBoundaryParticles; i++)
 		{
-			#pragma omp for schedule(static)  
-			//for (int i = 0; i < (int)nBoundaryParticles; i++)
-			for (int i = 0; i < 22; i++)
+			Real delta = CubicKernel::W_zero();
+			if (i < 22) printf("%d (%d): ", i, numNeighbors[i]);
+			for (unsigned int j = 0; j < numNeighbors[i]; j++)
 			{
-				Real delta = CubicKernel::W_zero();
-				printf("%d (%d): ", i, numNeighbors[i]);
-				for (unsigned int j = 0; j < numNeighbors[i]; j++)
-				{
-					const unsigned int neighborIndex = neighbors[i][j];
-					delta += CubicKernel::W(m_boundaryX[i] - m_boundaryX[neighborIndex]);
-					printf("%d; ", neighborIndex);
-				}
-				printf("\n");
-				const Real volume = static_cast<Real>(1.0) / delta;
-				testBoundPsi[i] = m_density0 * volume;
+				const unsigned int neighborIndex = neighbors[i][j];
+				delta += CubicKernel::W(m_boundaryX[i] - m_boundaryX[neighborIndex]);
+				if (i < 22) printf("%d; ", neighborIndex);
 			}
+			if (i < 22) printf("\n");
+			const Real volume = static_cast<Real>(1.0) / delta;
+			testBoundPsi[i] = m_density0 * volume;
 		}
-		printf("\n");
 	}
+	printf("\n");
 	
-	printf("GPU version: \n");
+	printf("GPU version:\n");
 	Spatial_hipNSearch neighborhoodSearchSH(m_supportRadius, 0, nBoundaryParticles);
 	neighborhoodSearchSH.addBoundry(&m_boundaryX[0], nBoundaryParticles);
 	neighborhoodSearchSH.neighborhoodSearchBoundry(&m_boundaryX[0], nBoundaryParticles);
@@ -173,21 +172,114 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 		#pragma omp for schedule(static)  
 		for (int i = 0; i < (int)nBoundaryParticles; i++)
 		{
-			const unsigned int sortIdx = neighborhoodSearchSH.sortIdxBoundry(i);
+			const unsigned int sortIdx = i;//neighborhoodSearchSH.sortIdxBoundry(i);
 			Real delta = CubicKernel::W_zero();
-			if(sortIdx < 22) printf("%d (%d): ", sortIdx, neighborhoodSearchSH.n_neighborsBoundry(sortIdx));
+			if(i < 22) printf("%d %d (%d): ", i, sortIdx,  neighborhoodSearchSH.n_neighborsBoundry(sortIdx));
 			for (unsigned int j = 0; j < neighborhoodSearchSH.n_neighborsBoundry(sortIdx); j++)
 			{
-				const unsigned int neighborIndex = neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j)); //neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j)); neighborhoodSearchSH.neighborBoundry(sortIdx, j) neighborhoodSearchSH.invNeighborBoundry(sortIdx, j)
+				const unsigned int neighborIndex = neighborhoodSearchSH.neighborBoundry(sortIdx, j); //neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j)); neighborhoodSearchSH.neighborBoundry(sortIdx, j) neighborhoodSearchSH.invNeighborBoundry(sortIdx, j)
 				delta += CubicKernel::W(m_boundaryX[i] - m_boundaryX[neighborIndex]);
-				if (sortIdx < 22) printf("%d; ", neighborIndex);
+				if (i < 22) printf("%d; ", neighborIndex);
 			}
-			if (sortIdx < 22) printf("\n");
+			if (i < 22) printf("\n");
 			const Real volume = static_cast<Real>(1.0) / delta;
 			m_boundaryPsi[i] = m_density0 * volume;
 		}
 	}
 	printf("\n");
+
+	printf("Testing pressure:\n");
+	int county = 0;
+	std::vector<unsigned int> tmpCPU;
+	tmpCPU.reserve(50);
+	std::vector<unsigned int> tmpGPU;
+	tmpGPU.reserve(50);
+	std::vector<unsigned int> difference;
+	difference.reserve(50);
+
+	std::set<unsigned int> missingParticles;
+	std::vector<unsigned int> wrongParticles;
+	std::set<unsigned int> foundParticles;
+	wrongParticles.reserve(1408);
+	bool same = true;
+	for (int i = 0; i < (int)nBoundaryParticles; i++)
+	{
+		bool subSame = true;
+		Real diff = m_boundaryPsi[i] - testBoundPsi[i];
+		if (diff > 0.000001)
+		{
+			wrongParticles.push_back(i);
+			tmpCPU.clear();
+			tmpGPU.clear();
+			difference.clear();
+			printf("## %d ##\n", i);
+			county++;
+			printf("\t%f - %f = %f\n", m_boundaryPsi[i], testBoundPsi[i], diff);
+ 
+			//printf("\tCPU (%d):", numNeighbors[i]);
+			for (unsigned int j = 0; j < numNeighbors[i]; j++)
+			{
+				const unsigned int neighborIndex = neighbors[i][j];
+				tmpCPU.push_back(neighborIndex);
+				//printf("\t%d; ", neighborIndex);
+			}
+			std::sort(tmpCPU.begin(), tmpCPU.end());
+			//printf("\n");
+
+			//printf("\tGPU (%d): ", neighborhoodSearchSH.n_neighborsBoundry(i));
+			for (unsigned int j = 0; j < neighborhoodSearchSH.n_neighborsBoundry(i); j++)
+			{
+				const unsigned int neighborIndex = neighborhoodSearchSH.neighborBoundry(i, j);
+				tmpGPU.push_back(neighborIndex);
+				foundParticles.insert(neighborIndex);
+				//printf("\t%d; ", neighborIndex);
+			}
+			std::sort(tmpGPU.begin(), tmpGPU.end());
+			//printf("\n");
+
+			std::set_difference(tmpCPU.begin(), tmpCPU.end(), tmpGPU.begin(), tmpGPU.end(),
+				std::inserter(difference, difference.begin()));
+			printf("\tDifference (%d): ", difference.size());
+			for (unsigned int d : difference)
+			{
+				printf("\t%d; ", d);
+				if (m_boundaryX[i] != m_boundaryX[d]) subSame = false;
+				missingParticles.insert(d);
+			}
+			printf("\n");
+		}
+		if (!subSame) same = false;
+	}
+	if(same) printf("They all have the same coordinates\n");
+
+	{
+		printf("Number of wrongs %d/%d: \n", missingParticles.size(), county);
+		bool cursed = true;
+		int i = 0;
+		for (unsigned int part : missingParticles)
+		{
+			printf("%d, ", part);
+			//if (part != wrongParticles[i]) cursed = false;
+			i++;
+		}
+		//if (cursed) printf("OH NO IT IS CURSED\n");
+		
+		std::vector<unsigned int> intersection;
+		intersection.reserve(1500);
+		std::set_intersection(foundParticles.begin(), foundParticles.end(), missingParticles.begin(), missingParticles.end(),
+			std::inserter(intersection, intersection.begin()));
+		printf("Intersection (%d): ", intersection.size());
+		for (unsigned int intersec : intersection)
+		{
+			printf("\t%d; ", intersec);
+		}
+	}
+	printf("\n");
+
+	printf("Positions: 0:(%f,%f,%f) 2754:(%f,%f,%f) 5508:(%f,%f,%f)",
+		m_boundaryX[0][0], m_boundaryX[0][1], m_boundaryX[0][2],
+		m_boundaryX[2754][0], m_boundaryX[2754][1], m_boundaryX[2754][2],
+		m_boundaryX[5508][0], m_boundaryX[5508][1], m_boundaryX[5508][2]);
 
 	// Initialize neighborhood search
 	if (m_neighborhoodSearch == NULL)

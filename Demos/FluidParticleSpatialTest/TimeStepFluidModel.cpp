@@ -115,7 +115,7 @@ void TimeStepFluidModel::computeDensities(FluidModel &model)
 #if defined(FSPH)
 
 #elif defined(nSearch)
-			int sortIdx = model.getNeighborhoodSearch()->sortIdx(i);
+			int sortIdx = i;//model.getNeighborhoodSearch()->sortIdx(i);
 			Real& density = model.getDensity(i);
 			Real density_err;
 
@@ -131,7 +131,8 @@ void TimeStepFluidModel::computeDensities(FluidModel &model)
 			density = mass[i] * CubicKernel::W_zero();
 			for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 			{
-				const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+				//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+				const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
 				if (neighborIndex < numParticles)		// Test if fluid particle
 				{
 					density += mass[neighborIndex] * CubicKernel::W(x[i] - x[neighborIndex]);
@@ -214,7 +215,7 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 		#pragma omp for schedule(static)
 		for (int i = 0; i < (int)numParticles; i++)
 		{
-			int sortIdx = model.getNeighborhoodSearch()->sortIdx(i);
+			int sortIdx = i;//model.getNeighborhoodSearch()->sortIdx(i);
 			const Vector3r& xi = pd.getPosition(i);
 			Vector3r& vi = pd.getVelocity(i);
 			const Real density_i = model.getDensity(i);
@@ -222,7 +223,8 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 
 			for (unsigned int j = 0; j < numNeighbors; j++)
 			{
-				const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+				//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+				const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
 				if (neighborIndex < numParticles)		// Test if fluid particle
 				{
 					// Viscosity
@@ -307,7 +309,7 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 #if defined(FSPH)
 				
 #elif defined(nSearch)
-				int sortIdx = model.getNeighborhoodSearch()->sortIdx(i);
+				int sortIdx = i;//model.getNeighborhoodSearch()->sortIdx(i);
 				/*PositionBasedFluids::computePBFDensity(corrIdx, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
 					&model.getBoundaryPsi(0), model.getNeighborhoodSearch()->n_neighbors(corrIdx), model.getNeighborhoodSearch()->neighbors(corrIdx),
 					model.getDensity0(), true, density_err, model.getDensity(corrIdx));*/
@@ -322,7 +324,8 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 				density = mass[i] * CubicKernel::W_zero();
 				for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 				{
-					const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+					//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+					const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
 					if (neighborIndex < nParticles)		// Test if fluid particle
 					{
 						density += mass[neighborIndex] * CubicKernel::W(x[i] - x[neighborIndex]);
@@ -354,7 +357,8 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 
 					for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 					{
-						const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+						//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+						const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
 						if (neighborIndex < nParticles)		// Test if fluid particle
 						{
 							const Vector3r gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[i] - x[neighborIndex]);
@@ -397,7 +401,7 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 #if defined(FSPH)
 
 #elif defined(nSearch)
-				int sortIdx = model.getNeighborhoodSearch()->sortIdx(i);
+				int sortIdx = i;//model.getNeighborhoodSearch()->sortIdx(i);
 				/*PositionBasedFluids::solveDensityConstraint(corrIdx, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0),
 					model.getNeighborhoodSearch()->n_neighbors(corrIdx), model.getNeighborhoodSearch()->neighbors(corrIdx), model.getDensity0(), true, &model.getLambda(0), corr);*/
 				const Real* mass = &pd.getMass(0);
@@ -411,7 +415,8 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 				corr.setZero();
 				for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 				{
-					const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+					//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+					const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
 					if (neighborIndex < nParticles)		// Test if fluid particle
 					{
 						const Vector3r gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[i] - x[neighborIndex]);

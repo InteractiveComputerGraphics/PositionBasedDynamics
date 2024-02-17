@@ -12,7 +12,8 @@ namespace PBD
 	public:
 		Spatial_hipNSearch(const Real radius = 0.1, const unsigned int numBoundry = 0, const unsigned int numParticle = 0) : nSearch(radius), m_currentTimestamp(0)
 		{
-			particles.reserve(numBoundry + numParticle);
+			numberOfParticles = numBoundry + numParticle;
+			particles.reserve(numberOfParticles);
 			printf("Real3: %d; Vector3r: %d\n", sizeof(Real3), sizeof(Vector3r));
 		};
 		~Spatial_hipNSearch();
@@ -53,8 +54,8 @@ namespace PBD
 		}
 		 unsigned int invNeighbor(unsigned int i, unsigned int k) const
 		{
-			//return invSortIdx(neighbor(i, k));
-			return sortIdx(neighbor(i, k));
+			return invSortIdx(neighbor(i, k));
+			//return sortIdx(neighbor(i, k));
 		}
 
 		 unsigned int n_neighborsBoundry(unsigned int i) const
@@ -84,6 +85,7 @@ namespace PBD
 		std::vector<Vector3r> particles;
 		unsigned int m_currentTimestamp;
 		cuNSearch::NeighborhoodSearch nSearch;
+		int numberOfParticles;
 
 		void Spatial_hipNSearch::sort(int i);
 	};

@@ -45,17 +45,19 @@ void Spatial_hipNSearch::addParticles(const unsigned int numParticles, Vector3r*
 	particles.insert(particles.begin(), numParticles, Vector3r(0.0f, 0.0f, 0.0f));
 	particles.insert(particles.begin() + numParticles, boundryX, boundryX + numBoundry);
 	particleIndex = nSearch.add_point_set(particles[0].data(), particles.size(), true, true);
-	nSearch.find_neighbors();
-	nSearch.point_set(particleIndex).makeInv();
+	//nSearch.find_neighbors();
+	//nSearch.point_set(particleIndex).makeInv();
+	
 }
 
 void Spatial_hipNSearch::addBoundry(Vector3r* x, const unsigned int numParticles)
 {
 	particles.insert(particles.begin(), x, x + numParticles);
 	boundryIndex = nSearch.add_point_set(particles[0].data(), particles.size(), true, true);
-	nSearch.find_neighbors();
-	nSearch.point_set(boundryIndex).makeInv();
-	printf("AH\n");
+	//nSearch.find_neighbors();
+	//nSearch.point_set(boundryIndex).makeInv();
+	//printf("AH\n");
+	assert(particles.size() == numberOfParticles);
 }
 
 void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numParticles, Vector3r* boundryX, const unsigned int numBoundry)
@@ -63,7 +65,7 @@ void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numP
 	std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
 	std::copy(boundryX, boundryX + numBoundry, particles.begin() + numParticles); //particles.insert(particles.begin() + numParticles, boundryX, boundryX + numBoundry);
 	//const float* tmp0 = particles[0].data();
-	nSearch.sort(nSearch.point_set(particleIndex));
+	//nSearch.sort(nSearch.point_set(particleIndex));
 	//nSearch.point_set(particleIndex).makeInverse();
 	//const float* tmp1 = nSearch.point_set(particleIndex).GetPoints();
 	nSearch.find_neighbors(true);
@@ -71,11 +73,16 @@ void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numP
 
 void Spatial_hipNSearch::neighborhoodSearchBoundry(Vector3r* x, const unsigned int numParticles)
 {
-	std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
-	const float* tmp0 = particles[0].data();
-	nSearch.sort(nSearch.point_set(boundryIndex));
+	//std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
+	//const float* tmp0 = particles[0].data();
+	//const unsigned int* tmp0 = nSearch.point_set(boundryIndex).sortIndices.data();
+	//nSearch.sort(nSearch.point_set(boundryIndex));
 	//nSearch.point_set(boundryIndex).makeInverse();
-	const float* tmp1 = nSearch.point_set(boundryIndex).GetPoints();
+	//const float* tmp1 = nSearch.point_set(boundryIndex).GetPoints();
+	//const unsigned int* tmp1 = nSearch.point_set(boundryIndex).sortIndices.data();
 	nSearch.find_neighbors(true);
-	const float* tmp2 = nSearch.point_set(boundryIndex).GetPoints();
+	//const float* tmp2 = nSearch.point_set(boundryIndex).GetPoints();
+	//const unsigned int* tmp2= nSearch.point_set(boundryIndex).sortIndices.data();
+	//int i = 0;
+	assert(particles.size() == numberOfParticles);
 }

@@ -160,23 +160,32 @@ private:
 	void PointSet::sort_field(T* lst)
 	{
 		std::vector<T> tmp(lst, lst + sortIndices.size());
-		//	std::transform(sortIndices.begin(), sortIndices.end(),
-		////#ifdef _MSC_VER
-		////		stdext::unchecked_array_iterator<T*>(lst),
-		////#else
-		//		lst,
-		////#endif
-		//		[&](int i)
-		//		{
-		//			invSortIndices[??] = i;
-		//			return tmp[i];
-		//		}
-		//	);
+		std::transform(sortIndices.begin(), sortIndices.end(),
+		//#ifdef _MSC_VER
+		//		stdext::unchecked_array_iterator<T*>(lst),
+		//#else
+			lst,
+		//#endif
+			[&](int i)
+			{
+				return tmp[i];
+			}
+		);
+		printf("\n");
+		for (uint i = 33; i < 33; i++)
+		{
+			printf("%f %f %f; ", lst[i][0], lst[i][1], lst[i][2]);
+		}
 		for (uint i = 0; i < sortIndices.size(); i++)
 		{
 			const uint idx = sortIndices[i];
 			invSortIndices.at(idx) = i;
 			lst[i] = tmp[idx];
+		}
+		printf("\n\n\n");
+		for (uint i = 33; i < 33; i++)
+		{
+			printf("%f %f %f; ", lst[i][0], lst[i][1], lst[i][2]);
 		}
 	}
 
