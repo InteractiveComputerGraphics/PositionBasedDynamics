@@ -40,6 +40,7 @@ extensions = [
     'recommonmark',
 	'sphinxcontrib.bibtex'
 ]
+bibtex_bibfiles = ['bibliography.bib']
 
 # Setup the breathe extension
 breathe_projects = {
@@ -89,9 +90,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
+html_theme = 'sphinx_rtd_theme'
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,
