@@ -275,19 +275,20 @@ bool XPBD::solve_FEMTetraConstraint(
 		invMass3 * gradU_[3].squaredNorm();
 
 	Real alpha = static_cast<Real>(1.0) / (youngsModulus * dt * dt);
-	// Note that grad C = 1/C grad U'
+	// Note that grad C = 1/C grad U', by multiplying C^2 to alpha, we now can add the factor C^2 to the nominator
 	sum_normGradU_ += C * C * alpha;
 
 	if (sum_normGradU_ < eps)
 		return false;
 
 	// compute scaling factor
-	const Real s = (C * C + C * alpha * multiplier) / sum_normGradU_;
+	const Real lambda = -C * (C + alpha * multiplier) / sum_normGradU_;		// since in the next step we use gradU instead of gradC, we only add the factor C instead of C^2
+	multiplier += lambda;
 
-	corr0 = -s * invMass0 * gradU_[0];
-	corr1 = -s * invMass1 * gradU_[1];
-	corr2 = -s * invMass2 * gradU_[2];
-	corr3 = -s * invMass3 * gradU_[3];
+	corr0 = lambda * invMass0 * gradU_[0];
+	corr1 = lambda * invMass1 * gradU_[1];
+	corr2 = lambda * invMass2 * gradU_[2];
+	corr3 = lambda * invMass3 * gradU_[3];
 
 	return true;
 }
