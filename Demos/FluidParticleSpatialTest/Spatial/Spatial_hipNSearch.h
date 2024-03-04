@@ -32,49 +32,49 @@ namespace PBD
 		void setRadius(const Real radius);
 		Real getRadius() const;
 
-		 unsigned int n_neighbors(unsigned int i) const
+		unsigned int n_neighbors(unsigned int i) const
 		{
 			return nSearch.point_set(particleIndex).n_neighbors(particleIndex, i);
 		}
-		 unsigned int* neighbors(unsigned int i) const
+		unsigned int* neighbors(unsigned int i) const
 		{
 			return nSearch.point_set(particleIndex).neighbor_list(particleIndex, i);
 		}
-		 unsigned int neighbor(unsigned int i, unsigned int k) const
+		unsigned int neighbor(unsigned int i, unsigned int k) const
 		{
 			return nSearch.point_set(particleIndex).neighbor(particleIndex, i, k);
 		}
-		 unsigned int sortIdx(unsigned int i) const
+		unsigned int sortIdx(unsigned int i) const
 		{
 			return nSearch.point_set(particleIndex).sortIndices[i];
 		}
-		 unsigned int invSortIdx(unsigned int i) const
+		unsigned int invSortIdx(unsigned int i) const
 		{
 			return nSearch.point_set(particleIndex).invSortIndices[i];
 		}
-		 unsigned int invNeighbor(unsigned int i, unsigned int k) const
+		unsigned int invNeighbor(unsigned int i, unsigned int k) const
 		{
 			return invSortIdx(neighbor(i, k));
 			//return sortIdx(neighbor(i, k));
 		}
 
-		 unsigned int n_neighborsBoundry(unsigned int i) const
+		unsigned int n_neighborsBoundry(unsigned int i) const
 		{
 			return nSearch.point_set(boundryIndex).n_neighbors(boundryIndex, i);
 		}
-		 unsigned int neighborBoundry(unsigned int i, unsigned int k) const
+		unsigned int neighborBoundry(unsigned int i, unsigned int k) const
 		{
 			return nSearch.point_set(boundryIndex).neighbor(boundryIndex, i, k);
 		}
-		 unsigned int sortIdxBoundry(unsigned int i) const
+		unsigned int sortIdxBoundry(unsigned int i) const
 		{
 			return nSearch.point_set(boundryIndex).sortIndices[i];
 		}
-		 unsigned int invSortIdxBoundry(unsigned int i) const
+		unsigned int invSortIdxBoundry(unsigned int i) const
 		{
 			return nSearch.point_set(boundryIndex).invSortIndices[i];
 		}
-		 unsigned int invNeighborBoundry(unsigned int i, unsigned int k) const
+		unsigned int invNeighborBoundry(unsigned int i, unsigned int k) const
 		{
 			return invSortIdxBoundry(neighborBoundry(i, k));
 		}

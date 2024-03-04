@@ -69,11 +69,12 @@ void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numP
 	//nSearch.point_set(particleIndex).makeInverse();
 	//const float* tmp1 = nSearch.point_set(particleIndex).GetPoints();
 	nSearch.find_neighbors(true);
+	assert(particles.size() == numberOfParticles);
 }
 
 void Spatial_hipNSearch::neighborhoodSearchBoundry(Vector3r* x, const unsigned int numParticles)
 {
-	//std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
+	std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
 	//const float* tmp0 = particles[0].data();
 	//const unsigned int* tmp0 = nSearch.point_set(boundryIndex).sortIndices.data();
 	//nSearch.sort(nSearch.point_set(boundryIndex));

@@ -4,10 +4,20 @@
 #include "Simulation/ParticleData.h"
 #include <vector>
 #include "Simulation/NeighborhoodSearchSpatialHashing.h"
-#include "Spatial/Spatial_hipNSearch.h"
 #include "Spatial/Spatial_FSPH.h"
+#include "Spatial/Spatial_hipNSearch.h"
 
-#define nSearch
+
+//#if defined(FSPH)
+//#include "Spatial/Spatial_FSPH.h"
+//#elif defined(nSearch)
+//#include "Spatial/Spatial_hipNSearch.h"
+//#else
+//
+//#endif
+
+//#define nSearch
+#define FSPH
 
 //#if defined(FSPH)
 //
@@ -37,7 +47,7 @@ namespace PBD
 			std::vector<Real> m_lambda;		
 			std::vector<Vector3r> m_deltaX;
 #if defined(FSPH)
-			
+			Spatial_FSPH* m_neighborhoodSearch;
 #elif defined(nSearch)
 			Spatial_hipNSearch* m_neighborhoodSearch;
 #else
@@ -65,14 +75,13 @@ namespace PBD
 			Real getParticleRadius() const { return m_particleRadius; }
 			void setParticleRadius(Real val) { m_particleRadius = val; m_supportRadius = static_cast<Real>(4.0)*m_particleRadius; }
 #if defined(FSPH)
-
+			Spatial_FSPH* getNeighborhoodSearch() { return m_neighborhoodSearch; }
 #elif defined(nSearch)
 			Spatial_hipNSearch* getNeighborhoodSearch() { return m_neighborhoodSearch; }
 #else
 			NeighborhoodSearchSpatialHashing* getNeighborhoodSearch() { return m_neighborhoodSearch; }
 #endif
 			
-
 			Real getViscosity() const { return viscosity; }
 			void setViscosity(Real val) { viscosity = val; }
 

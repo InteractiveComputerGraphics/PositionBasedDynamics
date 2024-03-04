@@ -206,6 +206,11 @@ namespace PBD
 				return m_v[i];
 			}
 
+			FORCE_INLINE std::vector<Vector3r>& getVelocities()
+			{
+				return m_v;
+			}
+
 			FORCE_INLINE void setVelocity(const unsigned int i, const Vector3r &vel)
 			{
 				m_v[i] = vel;

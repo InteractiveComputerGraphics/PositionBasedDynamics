@@ -6,6 +6,8 @@
 #include "Simulation/Simulation.h"
 #include "Utils/Timing.h"
 
+#include<set>
+
 using namespace PBD;
 using namespace std;
 
@@ -43,7 +45,7 @@ void TimeStepFluidModel::step(FluidModel &model)
 #if defined(FSPH)
 
 #elif defined(nSearch)
-	const float* tmp = model.getParticles().getPosition(0).data();
+	//const float* tmp = model.getParticles().getPosition(0).data();
 	model.getNeighborhoodSearch()->neighborhoodSearch(&model.getParticles().getPosition(0), model.getParticles().size(), &model.getBoundaryX(0), model.numBoundaryParticles());
 #else
 	model.getNeighborhoodSearch()->neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
@@ -206,12 +208,12 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 	const Real viscosity = model.getViscosity();
 	const Real h = TimeManager::getCurrent()->getTimeStepSize();
 
-	// Compute viscosity forces (XSPH)
-	#pragma omp parallel default(shared)
-	{
 #if defined(FSPH)
 
 #elif defined(nSearch)
+	// Compute viscosity forces (XSPH)
+	#pragma omp parallel default(shared)
+	{
 		#pragma omp for schedule(static)
 		for (int i = 0; i < (int)numParticles; i++)
 		{
@@ -220,7 +222,6 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 			Vector3r& vi = pd.getVelocity(i);
 			const Real density_i = model.getDensity(i);
 			const unsigned int numNeighbors = model.getNeighborhoodSearch()->n_neighbors(sortIdx);
-
 			for (unsigned int j = 0; j < numNeighbors; j++)
 			{
 				//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
@@ -232,33 +233,6 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 					const Vector3r& vj = pd.getVelocity(neighborIndex);
 					const Real density_j = model.getDensity(neighborIndex);
 					vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
-
-				}
-				// 				else 
-				// 				{
-				// 					const Vector3r &xj = model.getBoundaryX(neighborIndex - numParticles);
-				// 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
-				// 				}
-		}
-#else
-		#pragma omp for schedule(static)
-		for (int i = 0; i < (int)numParticles; i++)
-		{
-			const Vector3r& xi = pd.getPosition(i);
-			Vector3r& vi = pd.getVelocity(i);
-			const Real density_i = model.getDensity(i);
-
-			for (unsigned int j = 0; j < numNeighbors[i]; j++)
-			{
-				const unsigned int neighborIndex = neighbors[i][j];
-				if (neighborIndex < numParticles)		// Test if fluid particle
-				{
-					// Viscosity
-					const Vector3r& xj = pd.getPosition(neighborIndex);
-					const Vector3r& vj = pd.getVelocity(neighborIndex);
-					const Real density_j = model.getDensity(neighborIndex);
-					vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
-
 				}
 				// 				else 
 				// 				{
@@ -266,11 +240,41 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 				// 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
 				// 				}
 			}
-#endif
-			
-			
 		}
 	}
+
+#else
+	// Compute viscosity forces (XSPH)
+	#pragma omp parallel default(shared)
+	{
+		#pragma omp for schedule(static)
+		for (int i = 0; i < (int)numParticles; i++)
+		{
+				const Vector3r& xi = pd.getPosition(i);
+				Vector3r& vi = pd.getVelocity(i);
+				const Real density_i = model.getDensity(i);
+
+				for (unsigned int j = 0; j < numNeighbors[i]; j++)
+				{
+					const unsigned int neighborIndex = neighbors[i][j];
+					if (neighborIndex < numParticles)		// Test if fluid particle
+					{
+						// Viscosity
+						const Vector3r& xj = pd.getPosition(neighborIndex);
+						const Vector3r& vj = pd.getVelocity(neighborIndex);
+						const Real density_j = model.getDensity(neighborIndex);
+						vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
+
+					}
+					// 				else 
+					// 				{
+					// 					const Vector3r &xj = model.getBoundaryX(neighborIndex - numParticles);
+					// 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
+					// 				}
+				}
+		}
+	}
+#endif
 }
 
 void TimeStepFluidModel::reset()

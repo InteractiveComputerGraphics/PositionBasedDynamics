@@ -2,12 +2,16 @@
 
 #include "Common/Common.h"
 
+#include "sph_kernel.cuh.hip"
+#include "sph_arrangement.cuh.hip"
+#include "sph_particle.h.hip"
+
 namespace PBD
 {
 	class Spatial_FSPH
 	{
 	public:
-		Spatial_FSPH(const unsigned int numParticles = 0, const Real radius = 0.1, const unsigned int maxNeighbors = 60u, const unsigned int maxParticlesPerCell = 50u);
+		Spatial_FSPH(const Real radius = 0.1, const unsigned int numBoundry = 0, const unsigned int numParticles = 0);
 		~Spatial_FSPH();
 
 		void cleanup();
@@ -15,32 +19,51 @@ namespace PBD
 		void neighborhoodSearch(Vector3r* x, const unsigned int numBoundaryParticles, Vector3r* boundaryX);
 		void update();
 		unsigned int** getNeighbors() const;
-		unsigned int* getNumNeighbors() const;
-		const unsigned int getMaxNeighbors() const { return m_maxNeighbors; }
+		//const unsigned int getMaxNeighbors() const { return m_maxNeighbors; }
 
 		unsigned int getNumParticles() const;
 		void setRadius(const Real radius);
 		Real getRadius() const;
 
-		FORCE_INLINE unsigned int n_neighbors(unsigned int i) const
+		unsigned int n_neighbors(unsigned int i) const
 		{
-			return m_numNeighbors[i];
+			return neigh->counts[i];
 		}
-		FORCE_INLINE unsigned int neighbor(unsigned int i, unsigned int k) const
+
+		int* getNumNeighbors() const
 		{
-			return m_neighbors[i][k];
+			return neigh->counts;
+		}
+
+		/*unsigned int* neighbors(unsigned int i) const
+		{
+			return nSearch.point_set(particleIndex).neighbor_list(particleIndex, i);
+		}*/
+		unsigned int neighbor(unsigned int i, unsigned int k) const
+		{
+			return neigh->neighbors[neigh->offsets[i] + k];
 		}
 
 
 	private:
-		unsigned int m_numParticles;
-		unsigned int m_maxNeighbors;
-		unsigned int m_maxParticlesPerCell;
-		unsigned int** m_neighbors;
-		unsigned int* m_numNeighbors;
-		Real m_cellGridSize;
-		Real m_radius2;
 		unsigned int m_currentTimestamp;
+
+		Neighbours* neigh;
+
+		std::size_t const N = 120;
+
+		float const r_omega = static_cast<float>(0.15);
+		float const r_omega2 = r_omega * r_omega;
+		float const radius = static_cast<float>(2.0) * (static_cast<float>(2.0) * r_omega / static_cast<float>(N - 1));
+
+		uint buff_capacity_ = 881968;
+		uint nump_ = 0U;
+		sph::ParticleBufferObject host_buff_;
+		sph::ParticleBufferObject device_buff_;
+		sph::ParticleBufferObject device_buff_temp_;
+
+		sph::Arrangement* arrangement_;
+		sph::SystemParameter sysPara;
 	};
 }
 
