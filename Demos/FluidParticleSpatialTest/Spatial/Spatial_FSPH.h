@@ -16,7 +16,7 @@ namespace PBD
 
 		void cleanup();
 		void neighborhoodSearch(Vector3r* x);
-		void neighborhoodSearch(Vector3r* x, const unsigned int numBoundaryParticles, Vector3r* boundaryX);
+		void neighborhoodSearch(Vector3r* x, const unsigned int numParticles, const unsigned int numBoundaryParticles, Vector3r* boundaryX);
 		void update();
 		unsigned int** getNeighbors() const;
 		//const unsigned int getMaxNeighbors() const { return m_maxNeighbors; }
@@ -44,6 +44,19 @@ namespace PBD
 			return neigh->neighbors[neigh->offsets[i] + k];
 		}
 
+		unsigned int partIdx(unsigned int i) const
+		{
+			return idx2Part[i];
+		}
+		unsigned int idxIdx(unsigned int i) const
+		{
+			return part2Idx[i];
+		}
+		unsigned int invNeighbor(unsigned int i, unsigned int k) const
+		{
+			return idxIdx(neighbor(i, k));
+		}
+
 
 	private:
 		unsigned int m_currentTimestamp;
@@ -52,12 +65,16 @@ namespace PBD
 
 		std::size_t const N = 120;
 
-		float const r_omega = static_cast<float>(0.15);
+		int* idx2Part;
+		int* part2Idx;
+
+		/*float const r_omega = static_cast<float>(0.15);
 		float const r_omega2 = r_omega * r_omega;
-		float const radius = static_cast<float>(2.0) * (static_cast<float>(2.0) * r_omega / static_cast<float>(N - 1));
+		float const radius = static_cast<float>(2.0) * (static_cast<float>(2.0) * r_omega / static_cast<float>(N - 1));*/
 
 		uint buff_capacity_ = 881968;
 		uint nump_ = 0U;
+		uint nBoundry = 0U;
 		sph::ParticleBufferObject host_buff_;
 		sph::ParticleBufferObject device_buff_;
 		sph::ParticleBufferObject device_buff_temp_;

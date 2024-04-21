@@ -24,14 +24,17 @@ Spatial_FSPH::Spatial_FSPH(const Real radius, const unsigned int numBoundry, con
 
 	sysPara.cell_size = sysPara.kernel;
 	sysPara.grid_size = make_ushort3(
-		(ushort)ceil(4.01f / sysPara.cell_size),
-		(ushort)ceil(4.01f / sysPara.cell_size),
-		(ushort)ceil(0.81f / sysPara.cell_size)
+		(ushort)ceil(5.01f / sysPara.cell_size),
+		(ushort)ceil(5.01f / sysPara.cell_size),
+		(ushort)ceil(1.81f / sysPara.cell_size)
 	);
+	
+	CUDA_SAFE_CALL(hipHostMalloc(&part2Idx, nump_ * sizeof(int) * 64)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
+	CUDA_SAFE_CALL(hipHostMalloc(&idx2Part, nump_ * sizeof(int) * 64)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
 
 	transSysParaToDevice(&sysPara);
 	
-	BuffInit(device_buff_.get_buff_list(), nump_);
+	//BuffInit(device_buff_.get_buff_list(), nump_);
 	std::cout << "Number of particles: " << nump_ << std::endl;
 
 	arrangement_ = new sph::Arrangement(device_buff_, device_buff_temp_, nump_, buff_capacity_, sysPara.cell_size, sysPara.grid_size);
@@ -44,7 +47,14 @@ Spatial_FSPH::Spatial_FSPH(const Real radius, const unsigned int numBoundry, con
 
 Spatial_FSPH::~Spatial_FSPH()
 {
-
+	hipHostFree(part2Idx);
+	hipHostFree(idx2Part);
+	part2Idx = nullptr;
+	idx2Part = nullptr;
+	delete arrangement_;
+	delete neigh;
+	arrangement_ = nullptr;
+	neigh = nullptr;
 }
 
 void Spatial_FSPH::cleanup()
@@ -121,17 +131,22 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x)
 	printf("Computed neighbours\n");
 
 	//CUDA_SAFE_CALL(hipMemcpy(host_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d, nump_ * sizeof(float3), hipMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(hipMemcpy(part2Idx, arrangement_->part2Idx, nump_ * sizeof(int), hipMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(hipMemcpy(idx2Part, arrangement_->idx2Part, nump_ * sizeof(int), hipMemcpyDeviceToHost));
 }
 
-void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numBoundaryParticles, Vector3r* boundaryX)
+void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numParticles, const unsigned int numBoundaryParticles, Vector3r* boundaryX)
 {
 	//TODO Add points from the test data
 	void* tmp0 = &host_buff_.get_buff_list().position_d[0];
 	//void* tmp1 = host_buff_.get_buff_list().final_position;
-	std::copy(x[0].data(), x[0].data() + nump_ * 3, (float*)tmp0);
-	std::copy(boundaryX[0].data(), boundaryX[0].data() + numBoundaryParticles * 3, (float*)tmp0 + nump_ * 3);
+	std::copy(x[0].data(), x[0].data() + numParticles * 3, (float*)tmp0);
+	std::copy(boundaryX[0].data(), boundaryX[0].data() + numBoundaryParticles * 3, (float*)tmp0 + numParticles * 3);
 	/*std::copy(x[0].data(), x[0].data() + nump_ * 3, (float*)tmp1);
 	std::copy(boundaryX[0].data(), boundaryX[0].data() + numBoundaryParticles * 3, (float*)tmp1 + nump_ * 3);*/
+
+	host_buff_.transfer(device_buff_, 0, nump_, hipMemcpyHostToDevice);
+	printf("Host buffer transfer success\n");
 
 	int* d_index = arrangement_->getDevCellIndex();
 	int* offset_data = arrangement_->getDevOffsetData();
@@ -149,5 +164,7 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numBoundar
 	sph::computeNeighbours(cell_offsetM, tra_range, device_buff_.get_buff_list(), d_index, cell_offset, cell_nump, arrangement_->getBlockTasks(), arrangement_->getNumBlockSMSMode(), neigh);
 	printf("Computed neighbours\n");
 
-	CUDA_SAFE_CALL(hipMemcpy(host_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d, nump_ * sizeof(float3), hipMemcpyDeviceToHost));
+	//CUDA_SAFE_CALL(hipMemcpy(host_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d, nump_ * sizeof(float3), hipMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(hipMemcpy(part2Idx, arrangement_->part2Idx, nump_ * sizeof(int), hipMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(hipMemcpy(idx2Part, arrangement_->idx2Part, nump_ * sizeof(int), hipMemcpyDeviceToHost));
 }

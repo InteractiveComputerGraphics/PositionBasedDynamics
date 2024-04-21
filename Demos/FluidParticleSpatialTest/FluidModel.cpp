@@ -2,8 +2,9 @@
 #include "PositionBasedDynamics/PositionBasedDynamics.h"
 #include "PositionBasedDynamics/SPHKernels.h"
 
-#include<set>
+#include <set>
 #include <numeric>
+#include <algorithm>
 
 using namespace PBD;
 
@@ -185,6 +186,8 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 	printf("GPU version:\n");
 	std::vector<int> neighboursGPU;
 	neighboursGPU.reserve(200344);
+	//m_neighborhoodSearch = new Spatial_FSPH(m_supportRadius, nBoundaryParticles, m_particles.size());
+	//Spatial_FSPH& neighborhoodSearchSH = *m_neighborhoodSearch;
 	Spatial_FSPH neighborhoodSearchSH(m_supportRadius, 0, nBoundaryParticles);
 	neighborhoodSearchSH.neighborhoodSearch(&m_boundaryX[0]);
 
@@ -193,19 +196,32 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 		#pragma omp for schedule(static)  */
 		for (int i = 0; i < (int)nBoundaryParticles; i++)
 		{
-			const unsigned int sortIdx = i;
+			const unsigned int sortIdx = neighborhoodSearchSH.partIdx(i);
 			Real delta = CubicKernel::W_zero();
+			std::vector<int> tmp;
+			tmp.reserve(neighborhoodSearchSH.n_neighbors(sortIdx));
 			if (i < 22) printf("%d (%d): ", i, neighborhoodSearchSH.n_neighbors(sortIdx));
 			for (unsigned int j = 0; j < neighborhoodSearchSH.n_neighbors(sortIdx); j++)
 			{
-				const unsigned int neighborIndex = neighborhoodSearchSH.neighbor(sortIdx, j); //neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j)); neighborhoodSearchSH.neighborBoundry(sortIdx, j) neighborhoodSearchSH.invNeighborBoundry(sortIdx, j)
+				const unsigned int neighborIndex = neighborhoodSearchSH.invNeighbor(sortIdx, j); //neighborhoodSearchSH.sortIdxBoundry(neighborhoodSearchSH.neighborBoundry(sortIdx, j)); neighborhoodSearchSH.neighborBoundry(sortIdx, j) neighborhoodSearchSH.invNeighborBoundry(sortIdx, j)
 				delta += CubicKernel::W(m_boundaryX[i] - m_boundaryX[neighborIndex]);
 				if (i < 22) printf("%d; ", neighborIndex);
 				neighboursGPU.push_back(neighborIndex);
+				tmp.push_back(neighborIndex);
 			}
 			if (i < 22) printf("\n");
 			const Real volume = static_cast<Real>(1.0) / delta;
 			m_boundaryPsi[i] = m_density0 * volume;
+
+			std::sort(tmp.begin(), tmp.end());
+
+			auto point = tmp.begin();
+			while (point != tmp.end())
+			{
+				point = std::adjacent_find(point, tmp.end());
+				if (point == tmp.end()) break;
+				printf("(%d, %d) has duplicate neighbors with index %d\n", i, sortIdx, *point);
+			}
 		}
 	//}
 	std::sort(neighboursGPU.begin(), neighboursGPU.end());
@@ -218,17 +234,11 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 	std::set_difference(neighboursGPU.begin(), neighboursGPU.end(), neighboursCPU.begin(), neighboursCPU.end(),
 		std::inserter(neighDiff, neighDiff.begin()));
 	printf("Difference(% d) : ", neighDiff.size());
-	for (unsigned int d : neighDiff)
+	/*for (unsigned int d : neighDiff)
 	{
 		printf("\t%d; ", d);
-	}
+	}*/
 	printf("\n");
-	
-	/*unsigned int cpuNeighSum = std::accumulate(numNeighbors, numNeighbors + nBoundaryParticles, 0);
-	printf("CPU neighbour sum: %d\n", cpuNeighSum);
-	int gpuNeighSum = std::accumulate(neighborhoodSearchSH.getNumNeighbors(), neighborhoodSearchSH.getNumNeighbors() + (int)nBoundaryParticles, 0);
-	printf("GPU neighbour sum: %d\n", gpuNeighSum);
-	printf("\n");*/
 
 	printf("Testing pressure:\n");
 	int county = 0;
@@ -244,19 +254,20 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 	std::set<unsigned int> foundParticles;
 	wrongParticles.reserve(1408);
 	bool same = true;
-	for (int i = 0; i < 22 && (int)nBoundaryParticles; i++)
+	for (int i = 0; i < (int)nBoundaryParticles; i++)
 	{
 		bool subSame = true;
-		Real diff = testBoundPsi[i] - m_boundaryPsi[i];
-		if (false)//(diff > 0.000001)
+		int sortIdx = neighborhoodSearchSH.partIdx(i);
+		Real diff = m_boundaryPsi[i] - testBoundPsi[i];
+		if (diff > 0.000001 || neighborhoodSearchSH.n_neighbors(sortIdx) != numNeighbors[i])
 		{
 			wrongParticles.push_back(i);
 			tmpCPU.clear();
 			tmpGPU.clear();
 			difference.clear();
-			printf("## %d ##\n", i);
+			//printf("## %d ##\n", i);
 			county++;
-			printf("\t%f - %f = %f\n", m_boundaryPsi[i], testBoundPsi[i], diff);
+			//printf("\t%f - %f = %f\n", m_boundaryPsi[i], testBoundPsi[i], diff);
 
 			//printf("\tCPU (%d):", numNeighbors[i]);
 			for (unsigned int j = 0; j < numNeighbors[i]; j++)
@@ -268,10 +279,11 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 			std::sort(tmpCPU.begin(), tmpCPU.end());
 			//printf("\n");
 
-			//printf("\tGPU (%d): ", neighborhoodSearchSH.n_neighborsBoundry(i));
-			for (unsigned int j = 0; j < neighborhoodSearchSH.n_neighbors(i); j++)
+			const unsigned int sortIdx = neighborhoodSearchSH.partIdx(i);
+			//printf("\tGPU (%d): ", neighborhoodSearchSH.n_neighbors(sortIdx));
+			for (unsigned int j = 0; j < neighborhoodSearchSH.n_neighbors(sortIdx); j++)
 			{
-				const unsigned int neighborIndex = neighborhoodSearchSH.neighbor(i, j);
+				const unsigned int neighborIndex = neighborhoodSearchSH.invNeighbor(sortIdx, j);
 				tmpGPU.push_back(neighborIndex);
 				foundParticles.insert(neighborIndex);
 				//printf("\t%d; ", neighborIndex);
@@ -279,31 +291,77 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 			std::sort(tmpGPU.begin(), tmpGPU.end());
 			//printf("\n");
 
+			
+
 			std::set_difference(tmpGPU.begin(), tmpGPU.end(), tmpCPU.begin(), tmpCPU.end(),
 				std::inserter(difference, difference.begin()));
-			printf("\tDifference (%d): ", difference.size());
-			for (unsigned int d : difference)
+			if (difference.size() > 0)
 			{
-				//printf("\t%d; ", d);
-				if (m_boundaryX[i] != m_boundaryX[d]) subSame = false;
-				missingParticles.insert(d);
+				printf("## %d ##\n", i);
+				printf("\tDifference GPU/CPU (%d): ", difference.size());
+				for (unsigned int d : difference)
+				{
+					printf("\t%d; ", d);
+					if (m_boundaryX[i] != m_boundaryX[d]) subSame = false;
+					missingParticles.insert(d);
+				}
+				printf("\n");
 			}
-			printf("\n");
+
+			difference.clear();
+			std::set_difference(tmpCPU.begin(), tmpCPU.end(), tmpGPU.begin(), tmpGPU.end(),
+				std::inserter(difference, difference.begin()));
+			if (difference.size() > 0)
+			{
+				printf("## %d ##\n", i);
+				printf("\tDifference CPU/GPU (%d): ", difference.size());
+				for (unsigned int d : difference)
+				{
+					printf("\t%d; ", d);
+					if (m_boundaryX[i] != m_boundaryX[d]) subSame = false;
+					missingParticles.insert(d);
+				}
+				printf("\n");
+			}
+			
 		}
 		if (!subSame) same = false;
 	}
+
 	if (same) printf("They all have the same coordinates\n");
+
 	{
 		printf("Number of wrongs %d/%d: \n", missingParticles.size(), county);
 		bool cursed = true;
 		int i = 0;
 		for (unsigned int part : missingParticles)
 		{
-			//printf("%d, ", part);
-			//if (part != wrongParticles[i]) cursed = false;
+			/*printf("%d, ", part);
+			if (part != wrongParticles[i]) cursed = false;*/
+			printf("%d (%f, %f, %f); ", part, m_boundaryX[part][0], m_boundaryX[part][1], m_boundaryX[part][2]);
 			i++;
 		}
-		//if (cursed) printf("OH NO IT IS CURSED\n");
+		if (cursed) printf("OH NO IT IS CURSED\n");
+		printf("\n");
+		difference.clear();
+		std::set_difference(missingParticles.begin(), missingParticles.end(), wrongParticles.begin(), wrongParticles.end(),
+			std::inserter(difference, difference.begin()));
+		printf("\tDifference of missing/wrong particles (%d): ", difference.size());
+		/*for (unsigned int d : difference)
+		{
+			printf("\t%d; ", d);
+		}*/
+		printf("\n");
+
+		difference.clear();
+		std::set_difference(wrongParticles.begin(), wrongParticles.end(), missingParticles.begin(), missingParticles.end(),
+			std::inserter(difference, difference.begin()));
+		printf("\tDifference of wrong/missing particles (%d): ", difference.size());
+		/*for (unsigned int d : difference)
+		{
+			printf("\t%d; ", d);
+		}*/
+		printf("\n");
 
 		std::vector<unsigned int> intersection;
 		intersection.reserve(1500);
@@ -312,7 +370,7 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 		printf("Intersection (%d): ", intersection.size());
 		for (unsigned int intersec : intersection)
 		{
-			//printf("\t%d; ", intersec);
+			printf("\t(%d, [%f, %f, %f]]\n); ", intersec, m_boundaryX[intersec][0], m_boundaryX[intersec][1], m_boundaryX[intersec][2]);
 		}
 	}
 	printf("\n");
@@ -324,6 +382,7 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 	printf("\n");
 
 	// Initialize neighborhood search
+	neighborhoodSearchSH.~Spatial_FSPH();
 	if (m_neighborhoodSearch == NULL)
 		m_neighborhoodSearch = new Spatial_FSPH(m_supportRadius, nBoundaryParticles, m_particles.size());
 

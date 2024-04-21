@@ -126,15 +126,15 @@ void knFindHybridModeMiddleValue(int numc, int *mid_val, int *hash, unsigned int
 #define HASH2CELLIDX(X) (X & 0x3fffffff)
 #define HASH2BLOCKREQ(X) (X >> 30)
 
-__global__
-void countCellNum(int *hash, float3 *position, float cell_size, ushort3 grid_size, int *cell_num, unsigned int nump)
-{
-    unsigned int idx = threadIdx.x + __umul24(blockDim.x, blockIdx.x);
-    if (idx >= nump) return;
-    int hav = ParticlePos2CellIdx(position[idx], grid_size, cell_size);
-    hash[idx] = hav;
-    atomicAdd(cell_num + hav, 1);
-}
+//__global__
+//void countCellNum(int *hash, float3 *position, float cell_size, ushort3 grid_size, int *cell_num, unsigned int nump)
+//{
+//    unsigned int idx = threadIdx.x + __umul24(blockDim.x, blockIdx.x);
+//    if (idx >= nump) return;
+//    int hav = ParticlePos2CellIdx(position[idx], grid_size, cell_size);
+//    hash[idx] = hav;
+//    atomicAdd(cell_num + hav, 1);
+//}
 
 /****************************** Arrangement ******************************/
 
@@ -188,6 +188,11 @@ Arrangement::Arrangement(ParticleBufferObject &buff_list, ParticleBufferObject &
 	CUDA_SAFE_CALL(hipMalloc(&d_cell_offset_M, (numc_ * 64 + 1) * sizeof(int)));
 
 	CUDA_SAFE_CALL(hipMalloc(&d_cell_nump_M, (numc_ * 64 + 1) * sizeof(int)));
+
+
+	CUDA_SAFE_CALL(hipMalloc(&part2Idx, nump_ * sizeof(int)));
+	CUDA_SAFE_CALL(hipMalloc(&idx2Part, nump_ * sizeof(int)));
+
 
     preallocBlockSumsInt(numc_);
 
@@ -342,7 +347,7 @@ void Arrangement::arrangeBlockTasksFixedM(int *hash, int *celloff, int *cellnum,
 
 int xixi = 0;
 
-__global__ void CountingSort_Result_M(int *p_offset_p, int *p_offset, int *hash, int *hash_new, int *cell_offset, int num, ParticleBufferList old_data, ParticleBufferList new_data)
+__global__ void CountingSort_Result_M(int *p_offset_p, int *p_offset, int *hash, int *hash_new, int *cell_offset, int num, ParticleBufferList old_data, ParticleBufferList new_data, int* p2i, int* i2p)
 {
 	int id = __umul24(blockDim.x, blockIdx.x) + threadIdx.x;
 	if (id < num)
@@ -353,6 +358,9 @@ __global__ void CountingSort_Result_M(int *p_offset_p, int *p_offset, int *hash,
 		hash_new[p_id] = x_id;
 		int ici = (x_id & 0xffffffc0);
 		p_offset_p[p_id] = p_offset[id] + iStart - cell_offset[ici];
+
+		p2i[p_id] = id; //FIX reverse here, should hopefully work?
+		i2p[id] = p_id;
 
 		new_data.position_d[p_id] = old_data.position_d[id];
 		//new_data.velocity[p_id] = old_data.velocity[id];
@@ -383,8 +391,8 @@ __global__ void calculate_cell_info(int *cell_Numx, int *cell_Offset, int *cell_
 }
 void Arrangement::CountingSort_O_M()
 {
-	float3 f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("Beginning GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*float3 f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("Beginning GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 	int num_thread = 256;
 	int num_block = ceil_int(nump_, num_thread);
 	int numCN = (numc_ <<6);
@@ -393,29 +401,30 @@ void Arrangement::CountingSort_O_M()
 	hipMemset(d_cell_nump_M, 0x00, sizeof(int)* (numCN+1));
 	
 	CountingSort_Cell_SumM <<<num_block, num_thread >>>(d_p_offset_, d_hash_, d_cell_nump_M, nump_, buff_list_.get_buff_list().position_d, cell_size_, grid_size_);
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("CountingSort_Cell_SumM GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("CountingSort_Cell_SumM GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
 	thrust::exclusive_scan(thrust::device_ptr<int>(d_cell_nump_M), thrust::device_ptr<int>(d_cell_nump_M) +numCN + 1, thrust::device_ptr<int>(d_cell_offset_M));
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("exclusive_scan GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("exclusive_scan GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
-	CountingSort_Result_M <<<num_block, num_thread >>>(d_p_offset_p, d_p_offset_, d_hash_, hashp, d_cell_offset_M, nump_, buff_list_.get_buff_list(), buff_temp_.get_buff_list());
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	CountingSort_Result_M <<<num_block, num_thread >>>(d_p_offset_p, d_p_offset_, d_hash_, hashp, d_cell_offset_M, nump_, buff_list_.get_buff_list(), buff_temp_.get_buff_list(), part2Idx, idx2Part);
+	
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
 	printf("CountingSort_Result_M GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
 	f0 = thrust::reduce(thrust::device, buff_temp_.get_buff_list().position_d, buff_temp_.get_buff_list().position_d + nump_);
-	printf("\tCountingSort_Result_M TEMP GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	printf("\tCountingSort_Result_M TEMP GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
 	calculate_cell_info <<<ceil_int(numc_, num_thread), num_thread >>>(d_cell_nump_, d_cell_offset_, d_cell_offset_M, numc_);
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("calculate_cell_info GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("calculate_cell_info GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
 	int *p = d_hash_;
 	d_hash_ = hashp;
 	hashp = p;
 	buff_list_.swapObj(buff_temp_);
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("Buffer swap GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("Buffer swap GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 }
 
 void Arrangement::CountingSortCUDA_Two9_M()
@@ -438,28 +447,28 @@ void Arrangement::CountingSortCUDA_Two9_M()
 }
 
 int Arrangement::arrangeHybridMode9M(){
-	float3 f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("Beginning GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*float3 f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("Beginning GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
 	CountingSort_O_M();
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("CountingSort_O_M GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("CountingSort_O_M GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
 	gpu_model::calculateBlockRequirementHybridMode(cell_type, d_cell_nump_, d_block_reqs_, p_gpu_model_, d_cell_offset_, d_cell_nump_, grid_size_, 32);
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("calculateBlockRequirementHybridMode GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("calculateBlockRequirementHybridMode GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
 	CountingSortCUDA_Two9_M();
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("CountingSortCUDA_Two9_M GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("CountingSortCUDA_Two9_M GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
     
 	thrust::exclusive_scan(thrust::device_ptr<int>(d_block_reqs_), thrust::device_ptr<int>(d_block_reqs_) +numc_, thrust::device_ptr<int>(d_task_array_offset_32_));
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("exclusive_scan GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("exclusive_scan GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 	
 	arrangeBlockTasksFixedM(d_hash_, d_cell_offset_, d_cell_nump_, d_block_task_, d_block_reqs_, d_task_array_offset_32_, 32);
-	f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
-	printf("arrangeBlockTasksFixedM GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
+	printf("arrangeBlockTasksFixedM GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 	
 	return (middle_value_ > nump_ || middle_value_ < 0) ? nump_ : middle_value_;
 }

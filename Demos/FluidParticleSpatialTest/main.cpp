@@ -15,6 +15,8 @@
 #define _USE_MATH_DEFINES
 #include "math.h"
 
+#include <algorithm>
+
 #include <limits>
 #undef max
 #undef min
@@ -276,7 +278,7 @@ void render ()
 
 }
 
-
+const Real nudge = 0;// particleRadius * 2.1;
 /** Create a breaking dam scenario
 */
 void createBreakingDam()
@@ -286,9 +288,12 @@ void createBreakingDam()
 	/*const Real startX = -static_cast<Real>(0.5)*containerWidth + diam;
 	const Real startY = diam;
 	const Real startZ = -static_cast<Real>(0.5)*containerDepth + diam;*/
-	const Real startX = diam;
+	/*const Real startX = diam;
 	const Real startY = diam;
-	const Real startZ = diam;
+	const Real startZ = diam;*/
+	const Real startX = diam + nudge * 2;
+	const Real startY = diam + nudge * 2;
+	const Real startZ = diam + nudge * 2;
 	const Real yshift = sqrt(static_cast<Real>(3.0)) * particleRadius;
 
 	std::vector<Vector3r> fluidParticles;
@@ -351,6 +356,20 @@ void addWall(const Vector3r &minX, const Vector3r &maxX, std::vector<Vector3r> &
 	}
 }
 
+bool vec3Comp(Vector3r i, Vector3r j) {
+	if (i[0] < j[0]) return true;
+	else if (i[0] > j[0]) return false;
+	else
+	{
+		if (i[1] < j[1]) return true;
+		else if (i[1] > j[1]) return false;
+		else
+		{
+			return i[2] < j[2];
+		}
+	}
+}
+
 void initBoundaryData(std::vector<Vector3r> &boundaryParticles)
 {
 	/*const Real x1 = -containerWidth / 2.0;
@@ -359,27 +378,59 @@ void initBoundaryData(std::vector<Vector3r> &boundaryParticles)
 	const Real y2 = containerHeight;
 	const Real z1 = -containerDepth / 2.0;
 	const Real z2 = containerDepth / 2.0;*/
-	const Real x1 = 0.0;
-	const Real x2 = containerWidth;
-	const Real y1 = 0.0;
-	const Real y2 = containerHeight;
-	const Real z1 = 0.0;
-	const Real z2 = containerDepth;
+	const Real x1 = 0.0 + nudge * 2;// + 0.03125f;
+	const Real x2 = containerWidth + nudge * 2;// + 0.03125f;
+	const Real y1 = 0.0 + nudge * 2;// + 0.03125f;
+	const Real y2 = containerHeight + nudge * 2;// + 0.03125f;
+	const Real z1 = 0.0 + nudge * 2;// + 0.03125f;
+	const Real z2 = containerDepth + nudge * 2;// + 0.03125f;
 
-	const Real diam = 2.0*particleRadius;
+	const Real diam = 2.0 * particleRadius;
 
 	// Floor
-	addWall(Vector3r(x1, y1, z1), Vector3r(x2, y1, z2), boundaryParticles);
+	addWall(Vector3r(x1, y1 - nudge, z1), Vector3r(x2, y1 - nudge, z2), boundaryParticles);
 	// Top
-	addWall(Vector3r(x1, y2, z1), Vector3r(x2, y2, z2), boundaryParticles);
+	addWall(Vector3r(x1, y2 + nudge, z1), Vector3r(x2, y2 + nudge, z2), boundaryParticles);
 	// Left
-	addWall(Vector3r(x1, y1, z1), Vector3r(x1, y2, z2), boundaryParticles);
+	addWall(Vector3r(x1 - nudge, y1, z1), Vector3r(x1 - nudge, y2, z2), boundaryParticles);
 	// Right
-	addWall(Vector3r(x2, y1, z1), Vector3r(x2, y2, z2), boundaryParticles);
+	addWall(Vector3r(x2 + nudge, y1, z1), Vector3r(x2 + nudge, y2, z2), boundaryParticles);
 	// Back
-	addWall(Vector3r(x1, y1, z1), Vector3r(x2, y2, z1), boundaryParticles);
+	addWall(Vector3r(x1, y1, z1 - nudge), Vector3r(x2, y2, z1 - nudge), boundaryParticles);
 	// Front
-	addWall(Vector3r(x1, y1, z2), Vector3r(x2, y2, z2), boundaryParticles);
+	addWall(Vector3r(x1, y1, z2 + nudge), Vector3r(x2, y2, z2 + nudge), boundaryParticles);
+	
+	//// Floor
+	//addWall(Vector3r(x1, y1, z1), Vector3r(x2, y1, z2), boundaryParticles);
+	//// Top
+	//addWall(Vector3r(x1, y2, z1), Vector3r(x2, y2, z2), boundaryParticles);
+	//// Left
+	//addWall(Vector3r(x1, y1 + diam, z1), Vector3r(x1, y2 - diam, z2), boundaryParticles);
+	//// Right
+	//addWall(Vector3r(x2, y1 + diam, z1), Vector3r(x2, y2 - diam, z2), boundaryParticles);
+	//// Back												 
+	//addWall(Vector3r(x1 + diam, y1 + diam, z1), Vector3r(x2 - diam, y2 - diam, z1), boundaryParticles);
+	//// Front											 
+	//addWall(Vector3r(x1 + diam, y1 + diam, z2), Vector3r(x2 - diam, y2 - diam, z2), boundaryParticles);
+
+	/*std::sort(boundaryParticles.begin(), boundaryParticles.end(), vec3Comp);
+
+	for (Vector3r p : boundaryParticles)
+	{
+		printf("(%f, %f, %f)\n", p[0], p[1], p[2]);
+	}
+	printf("\n");
+
+	bool duplics = false;
+	auto point = boundaryParticles.begin();
+	while (point != boundaryParticles.end())
+	{
+		point = std::adjacent_find(point, boundaryParticles.end());
+		if (point == boundaryParticles.end()) break;
+		printf("There are duplicates of (%f, %f, %f)\n", (*point)[0], (*point)[1], (*point)[2]);
+		duplics = true;
+	}
+	if (!duplics) printf("There are no duplicates!\n");*/
 }
 
 

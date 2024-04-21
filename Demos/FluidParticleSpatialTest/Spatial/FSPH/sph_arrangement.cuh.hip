@@ -67,6 +67,10 @@ public:
 	void CountingSort_O_M();
 	void CountingSortCUDA_Two9_M();
 	int arrangeHybridMode9M();
+
+    int* part2Idx;
+    int* idx2Part;
+
 private:
     void calculateHash();
     void calculateHashWithBlockReq();
@@ -117,8 +121,8 @@ private:
     int *d_hash_;                   // [nump]
     int *d_index_;                  // [nump]
     
-    int *hashp;                   // [nump]
-	int *d_hash_p;                   // [nump]
+    int *hashp;                     // [nump]
+	int *d_hash_p;                  // [nump]
     int *cell_num_;
     int *cell_num_two;
     int *cell_type;
