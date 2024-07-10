@@ -109,7 +109,7 @@ Now run Configure and select the correct Visual Studio version. Ensure that you 
 Execute any demo in the folder "bin" to start the simulator. Alternatively, you can start the simulation by loading a json scene file in the command line:
 
 ```
-./SceneLoaderDemo ../data/Scenes/CarScene.json
+./SceneLoaderDemo ../data/scenes/CarScene.json
 ```
 
 The command loads the selected scene. To start the simulation disable the pause mode by clicking the checkbox or pressing [Space]. More hotkeys are listed [here](getting_started.md).
