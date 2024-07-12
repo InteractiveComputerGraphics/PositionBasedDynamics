@@ -7,8 +7,7 @@ set(IMGUI_HEADERS
 	imstb_truetype.h
 	
 	backends/imgui_impl_glfw.h
-	backends/imgui_impl_opengl3.h
-	backends/imgui_impl_opengl3_loader.h
+	backends/imgui_impl_opengl2.h
 )
 
 set(IMGUI_SOURCES
@@ -19,7 +18,7 @@ set(IMGUI_SOURCES
 	imgui_widgets.cpp
 	
 	backends/imgui_impl_glfw.cpp
-	backends/imgui_impl_opengl3.cpp
+	backends/imgui_impl_opengl2.cpp
 )
 
 add_library(imgui
