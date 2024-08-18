@@ -134,7 +134,7 @@ inline void knComputeCellNeighbourCountSMS64(int& count, const int& isSame, SimN
 
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (kDevSysPara.kernel_2 < dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2)
+        if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2)
             continue;
 
         count++;
@@ -154,7 +154,7 @@ inline void knComputeCellNeighbourSMS64(int& count, const int& isSame, SimNeighS
 
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (kDevSysPara.kernel_2 < dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2)
+        if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2)
             continue;
 
         neighbors[writeOffset + count] = sdata->getIndex(i);
@@ -235,7 +235,7 @@ hipEvent_t sms_force_event;
 void transSysParaToDevice(const SystemParameter *host_para)
 {
     CUDA_SAFE_CALL(hipMemcpyToSymbol(HIP_SYMBOL(kDevSysPara), host_para, sizeof(SystemParameter)));
-    printf("testing self_density %f\n", kDevSysPara.mass);
+    //printf("testing self_density %f\n", kDevSysPara.mass);
 }
 
 //void initializeKernel()
@@ -319,7 +319,7 @@ void knComputeCellNeighbourCountTRA9(int& count, ParticleBufferList& buff_list, 
         float3 rel_pos = cal_rePos(neighbor_pos, self_data->pos);
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (/*dis_2 < kFloatSmall ||*/ dis_2 > kDevSysPara.kernel_2 || self_idx == i) continue;
+        if (/*dis_2 < kFloatSmall ||*/ dis_2 >= kDevSysPara.kernel_2 || self_idx == i) continue;
 
         count++;
     }
@@ -337,7 +337,7 @@ void knComputeCellNeighbourTRA9(int& count, int self_idx, ParticleBufferList& bu
         float3 rel_pos = cal_rePos(neighbor_pos, self_data->pos);
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (/*dis_2 < kFloatSmall ||*/ dis_2 > kDevSysPara.kernel_2 || self_idx == i) continue;
+        if (/*dis_2 < kFloatSmall ||*/ dis_2 >= kDevSysPara.kernel_2 || self_idx == i) continue;
 
         neighbors[writeOffset + count] = i;
         count++;

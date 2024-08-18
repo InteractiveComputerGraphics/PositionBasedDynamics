@@ -404,6 +404,17 @@ void Arrangement::CountingSort_O_M()
 	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
 	printf("CountingSort_Cell_SumM GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/
 
+	int* tempHostHash = new int[nump_];
+	CUDA_SAFE_CALL(hipMemcpy(tempHostHash, d_hash_, sizeof(int)*nump_, hipMemcpyDeviceToHost));
+	for (int i = 0; i < nump_; i++)
+	{
+		if (tempHostHash[i] == kInvalidCellIdx)
+		{
+			printf("%d: Has an invalid index\n", i);
+		}
+	}
+	delete[] tempHostHash;
+
 	thrust::exclusive_scan(thrust::device_ptr<int>(d_cell_nump_M), thrust::device_ptr<int>(d_cell_nump_M) +numCN + 1, thrust::device_ptr<int>(d_cell_offset_M));
 	/*f0 = thrust::reduce(thrust::device, buff_list_.get_buff_list().position_d, buff_list_.get_buff_list().position_d + nump_);
 	printf("exclusive_scan GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);*/

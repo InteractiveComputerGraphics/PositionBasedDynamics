@@ -72,15 +72,15 @@ unsigned int Spatial_FSPH::getNumParticles() const
 	
 }
 
-void Spatial_FSPH::setRadius(const Real radius)
-{
-	
-}
+//void Spatial_FSPH::setRadius(const Real radius)
+//{
+//	
+//}
 
-Real Spatial_FSPH::getRadius() const
-{
-	
-}
+//Real Spatial_FSPH::getRadius() const
+//{
+//	
+//}
 
 void Spatial_FSPH::update()
 {
@@ -157,6 +157,14 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numParticl
 
 	middle = arrangement_->arrangeHybridMode9M();
 	printf("Arranged HybridMode success\n");
+
+	float3 f0 = thrust::reduce(thrust::device, device_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d + nump_);
+	printf("GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	float3 f2 = std::accumulate(host_buff_.get_buff_list().position_d, host_buff_.get_buff_list().position_d + nump_, make_float3(0.0f, 0.0f, 0.0f));
+	printf("CPUHost sum: (%f,%f,%f)\n", f2.x, f2.y, f2.z);
+	Vector3r f1x = std::accumulate(x, x + numParticles, Vector3r(0.0f, 0.0f, 0.0f));
+	Vector3r f1 = std::accumulate(boundaryX, boundaryX + numBoundaryParticles, f1x);
+	printf("CPUx sum: (%f,%f,%f)\n", f1[0], f1[1], f1[2]);
 
 	sph::ParticleIdxRange tra_range(0, middle);      // [0, middle)
 	printf("Gotten middle\n");

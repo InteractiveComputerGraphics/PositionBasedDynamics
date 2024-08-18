@@ -22,8 +22,8 @@ namespace PBD
 		//const unsigned int getMaxNeighbors() const { return m_maxNeighbors; }
 
 		unsigned int getNumParticles() const;
-		void setRadius(const Real radius);
-		Real getRadius() const;
+		/*void setRadius(const Real radius);
+		Real getRadius() const;*/
 
 		unsigned int n_neighbors(unsigned int i) const
 		{

@@ -17,65 +17,65 @@ namespace sph
 //sf SPH系统参数
 struct SystemParameter
 {
-    float3      world_size;
+    //float3      world_size;
     float       cell_size;
     ushort3        grid_size;
 
     float       kernel;
     float       kernel_2;
-    float       mass;
+ //   float       mass;
 
 
 
 
-    float       mass1;
-    float       mass2;
+ //   float       mass1;
+ //   float       mass2;
 
 
-    float       rest_density1;
-    float       rest_density2;
+ //   float       rest_density1;
+ //   float       rest_density2;
 
-    float       to;
-    float       limita;
-
-
-    float       viscosity1;
-    float       viscosity2;
+ //   float       to;
+ //   float       limita;
 
 
+ //   float       viscosity1;
+ //   float       viscosity2;
 
-    float3      gravity;
-    float       wall_damping;
-    float       rest_density;
-    float       gas_constant;
-    float       viscosity;
-    float       time_step;
-    float       surface_normal;
-    float       surface_coe;
 
-    float       poly6_value;
-    float       spiky_value;
-    float       visco_value;
 
-    float       grad_poly6;
-    float       lplc_poly6;
-    float       self_density;
-    float       self_lplc_color;
+ //   float3      gravity;
+ //   float       wall_damping;
+ //   float       rest_density;
+ //   float       gas_constant;
+ //   float       viscosity;
+ //   float       time_step;
+ //   float       surface_normal;
+ //   float       surface_coe;
 
-    float3      sim_ratio;
-    float3      sim_origin;
+ //   float       poly6_value;
+ //   float       spiky_value;
+ //   float       visco_value;
 
-    float       bound_interval;
-    float3      bound_min;
-    float3      bound_max;
+ //   float       grad_poly6;
+ //   float       lplc_poly6;
+ //   float       self_density;
+ //   float       self_lplc_color;
 
-	float		spacing_fluid;
+ //   float3      sim_ratio;
+ //   float3      sim_origin;
 
-	//sf pcisph自加=========================================
-	int			pcisph_min_loops;
-	int			pcisph_max_loops;
-	float		pcisph_max_density_error_allowed;
-	float		pcisph_density_error_factor;
+ //   float       bound_interval;
+ //   float3      bound_min;
+ //   float3      bound_max;
+
+	//float		spacing_fluid;
+
+	////sf pcisph自加=========================================
+	//int			pcisph_min_loops;
+	//int			pcisph_max_loops;
+	//float		pcisph_max_density_error_allowed;
+	//float		pcisph_density_error_factor;
 };
 
 }
