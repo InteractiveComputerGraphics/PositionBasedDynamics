@@ -134,7 +134,8 @@ inline void knComputeCellNeighbourCountSMS64(int& count, const int& isSame, SimN
 
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2)
+        //if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2) kDevSysPara.kernel_2
+        if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))
             continue;
 
         count++;
@@ -154,10 +155,11 @@ inline void knComputeCellNeighbourSMS64(int& count, const int& isSame, SimNeighS
 
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2)
+        //if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))// || kFloatSmall > dis_2)
+        if (kDevSysPara.kernel_2 <= dis_2 || self_idx == sdata->getIndex(i))
             continue;
 
-        neighbors[writeOffset + count] = sdata->getIndex(i);
+        neighbors[writeOffset - count - 1] = sdata->getIndex(i);
         count++;
     }
 }
@@ -319,7 +321,8 @@ void knComputeCellNeighbourCountTRA9(int& count, ParticleBufferList& buff_list, 
         float3 rel_pos = cal_rePos(neighbor_pos, self_data->pos);
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (/*dis_2 < kFloatSmall ||*/ dis_2 >= kDevSysPara.kernel_2 || self_idx == i) continue;
+        //if (/*dis_2 < kFloatSmall ||*/ dis_2 >= kDevSysPara.kernel_2 || self_idx == i) continue;
+        if (dis_2 >= kDevSysPara.kernel_2 || self_idx == i) continue;
 
         count++;
     }
@@ -337,9 +340,10 @@ void knComputeCellNeighbourTRA9(int& count, int self_idx, ParticleBufferList& bu
         float3 rel_pos = cal_rePos(neighbor_pos, self_data->pos);
         float dis_2 = rel_pos.x * rel_pos.x + rel_pos.y * rel_pos.y + rel_pos.z * rel_pos.z;
 
-        if (/*dis_2 < kFloatSmall ||*/ dis_2 >= kDevSysPara.kernel_2 || self_idx == i) continue;
+        //if (/*dis_2 < kFloatSmall ||*/ dis_2 >= kDevSysPara.kernel_2 || self_idx == i) continue;
+        if (dis_2>= kDevSysPara.kernel_2 || self_idx == i) continue;
 
-        neighbors[writeOffset + count] = i;
+        neighbors[writeOffset - count - 1] = i;
         count++;
     }
 }
@@ -615,7 +619,7 @@ ushort3 calCI(const ushort3& in){
 //}
 
 __global__
-void kncomputeNeighboursCount(int* cell_offset_M, ParticleIdxRange range, ParticleBufferList buff_list, int* cindex, int* cell_offset, int* cell_num, BlockTask* block_task, int bt_offset, int* neighborCounts)
+void kncomputeNeighboursCount(int* cell_offset_M, ParticleIdxRange range, ParticleBufferList buff_list, int* cindex, int* cell_offset, int* cell_num, BlockTask* block_task, int bt_offset, int* neighborCounts, int* touchedParticles)
 {
     if (blockIdx.x < bt_offset) {
         int self_idx = threadIdx.x + __umul24(blockIdx.x, blockDim.x) + range.begin;
@@ -663,7 +667,8 @@ void kncomputeNeighboursCount(int* cell_offset_M, ParticleIdxRange range, Partic
                 knComputeCellNeighbourCountTRA9(count, buff_list, &self_data, cell_offset_, cell_nump_, neighborCounts, self_idx);
             }
         }
-        neighborCounts[self_idx] = count;
+        atomicAdd(neighborCounts + self_idx, count);
+        atomicAdd(touchedParticles + self_idx, 1);
     }
     else {
         int t = blockIdx.x - bt_offset;
@@ -701,13 +706,16 @@ void kncomputeNeighboursCount(int* cell_offset_M, ParticleIdxRange range, Partic
                 knComputeCellNeighbourCountSMS64(count, isSame, &sdata, &self_data, r, self_idx);
             }
         }
-        neighborCounts[self_idx] = count;
+        /*neighborCounts[self_idx] += count;
+        touchedParticles[self_idx] += 1;*/
+        atomicAdd(neighborCounts + self_idx, count);
+        atomicAdd(touchedParticles + self_idx, 1);
     }
     //if (threadIdx.x + __umul24(blockIdx.x, blockDim.x) + range.begin == 18630 - 1) neighborCounts[threadIdx.x + __umul24(blockIdx.x, blockDim.x) + range.begin] = 22;
 }
 
 __global__ 
-void kncomputeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBufferList buff_list, int* cindex, int* cell_offset, int* cell_num, BlockTask* block_task, int bt_offset, int* neighbours, int* neighboursOffset)
+void kncomputeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBufferList buff_list, int* cindex, int* cell_offset, int* cell_num, BlockTask* block_task, int bt_offset, int* neighbours, int* neighboursOffset, int* neighborCounts)
 {
     if (blockIdx.x < bt_offset) {
         int self_idx = threadIdx.x + __umul24(blockIdx.x, blockDim.x) + range.begin;
@@ -715,7 +723,7 @@ void kncomputeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuf
         self_idx = cindex[self_idx];
 
         int count = 0;
-        const int writeOffset = neighboursOffset[self_idx];
+        const int writeOffset = neighboursOffset[self_idx] + neighborCounts[self_idx];
 
         CFData self_data;
         self_data.pos = buff_list.position_d[self_idx];
@@ -756,7 +764,8 @@ void kncomputeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuf
                 knComputeCellNeighbourTRA9(count, self_idx, buff_list, &self_data, cell_offset_, cell_nump_, neighbours, writeOffset);
             }
         }
-
+        //neighborCounts[self_idx] -= count;
+        atomicAdd(neighborCounts + self_idx, -count);
     }
     else {
         int t = blockIdx.x - bt_offset;
@@ -773,12 +782,12 @@ void kncomputeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuf
 
         CFData self_data;
         int count = 0;
-        int writeOffset = 0;
+        int writeOffset = neighborCounts[self_idx];
 
         if (self_idx < temp_cell_end)   // init self data
         {
             self_data.pos = buff_list.position_d[self_idx];
-            writeOffset = neighboursOffset[self_idx];
+            writeOffset = neighboursOffset[self_idx] + neighborCounts[self_idx];
         }
 
         __shared__ SimNeighSharedData128 sdata;
@@ -795,6 +804,8 @@ void kncomputeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuf
                 knComputeCellNeighbourSMS64(count, isSame, &sdata, &self_data, r, neighbours, writeOffset, self_idx);
             }
         }
+        //neighborCounts[self_idx] -= count;
+        atomicAdd(neighborCounts + self_idx, -count);
     }
 }
 
@@ -812,9 +823,29 @@ void computeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuffe
 
     neigh->dNeighborCounts.resize(neigh->particleCount);
 
-    kncomputeNeighboursCount <<<number_blocks, num_thread>>> (cell_offset_M, range, buff_list_n, cindex, cell_offset, cell_num, block_task, bt_offset, thrust::raw_pointer_cast(neigh->dNeighborCounts.data())); //thrust::raw_pointer_cast(&(neigh.dNeighborCounts)[0]));
+    int* touchedParticles;
+    CUDA_SAFE_CALL(hipMalloc(&touchedParticles, sizeof(int) * neigh->particleCount));
+    CUDA_SAFE_CALL(hipMemset(touchedParticles, 0, sizeof(int) * neigh->particleCount));
+    int* touchedParticlesCPU = new int[neigh->particleCount];
+
+    thrust::fill(neigh->dNeighborCounts.begin(), neigh->dNeighborCounts.end(), 0);
+    CUDA_SAFE_CALL(hipDeviceSynchronize());
+
+    kncomputeNeighboursCount <<<number_blocks, num_thread>>> (cell_offset_M, range, buff_list_n, cindex, cell_offset, cell_num, block_task, bt_offset, thrust::raw_pointer_cast(neigh->dNeighborCounts.data()), touchedParticles); //thrust::raw_pointer_cast(&(neigh.dNeighborCounts)[0]));
     CUDA_SAFE_CALL(hipDeviceSynchronize());
     neigh->dNeighborOffsets.resize(neigh->particleCount);
+
+    CUDA_SAFE_CALL(hipMemcpy(touchedParticlesCPU, touchedParticles, sizeof(int) * neigh->particleCount, hipMemcpyDeviceToHost));
+    printf("Number of times particles have been touched: ");
+    for (int i = 0; i < neigh->particleCount; i++)
+    {
+        //printf("%d, ", touchedParticlesCPU[i]);
+        if (touchedParticlesCPU[i] != 1)
+        {
+            printf("(%d: %d), ", i, touchedParticlesCPU[i]);
+        }
+    }
+    printf("\n");
 
     CUDA_SAFE_CALL(hipDeviceSynchronize());
 
@@ -835,9 +866,24 @@ void computeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuffe
     uint totalNeighborCount = lastOffset + lastParticleNeighborCount;
     neigh->dNeighbors.resize(totalNeighborCount);
 
-    CUDA_SAFE_CALL(hipDeviceSynchronize());
+    if (neigh->countsSize < sizeof(int) * neigh->particleCount)
+    {
+        if (neigh->countsSize != 0)
+        {
+            hipHostFree(neigh->offsets);
+            hipHostFree(neigh->counts);
+        }
 
-    kncomputeNeighbours <<<number_blocks, num_thread >>> (cell_offset_M, range, buff_list_n, cindex, cell_offset, cell_num, block_task, bt_offset, thrust::raw_pointer_cast(&neigh->dNeighbors[0]), thrust::raw_pointer_cast(&neigh->dNeighborOffsets[0]));
+        neigh->countsSize = sizeof(int) * static_cast<int>(neigh->particleCount * 1.5 * 64); //Increase allocation size to force hip to actually allocate. What the hell HIP?
+        hipHostMalloc(&neigh->offsets, neigh->countsSize);
+        hipHostMalloc(&neigh->counts, neigh->countsSize);
+    }
+
+    CUDA_SAFE_CALL(hipMemcpy(neigh->counts, thrust::raw_pointer_cast(&neigh->dNeighborCounts[0]), sizeof(int) * neigh->particleCount, hipMemcpyDeviceToHost));
+
+    CUDA_SAFE_CALL(hipDeviceSynchronize());
+    
+    kncomputeNeighbours <<<number_blocks, num_thread >>> (cell_offset_M, range, buff_list_n, cindex, cell_offset, cell_num, block_task, bt_offset, thrust::raw_pointer_cast(&neigh->dNeighbors[0]), thrust::raw_pointer_cast(&neigh->dNeighborOffsets[0]), thrust::raw_pointer_cast(neigh->dNeighborCounts.data()));
 
     CUDA_SAFE_CALL(hipDeviceSynchronize());
 
@@ -852,24 +898,11 @@ void computeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuffe
         neigh->neighborsSize = sizeof(int) * static_cast<int>(totalNeighborCount * increase); //Increase allocation size to force hip to actually allocate. What the hell HIP?
         hipHostMalloc(&neigh->neighbors, neigh->neighborsSize);
     }
-    if (neigh->countsSize < sizeof(int) * neigh->particleCount)
-    {
-        if (neigh->countsSize != 0)
-        {
-            hipHostFree(neigh->offsets);
-            hipHostFree(neigh->counts);
-        }
-
-        neigh->countsSize = sizeof(int) * static_cast<int>(neigh->particleCount * 1.5 * 64); //Increase allocation size to force hip to actually allocate. What the hell HIP?
-        hipHostMalloc(&neigh->offsets, neigh->countsSize);
-        hipHostMalloc(&neigh->counts, neigh->countsSize);
-    }
 
     printf("Number of GPU Neighbours: %d\n", totalNeighborCount);
 
     //Return host arrays neighbours per particle, number of neighbours per particle, offset for each particle
     CUDA_SAFE_CALL(hipMemcpy(neigh->neighbors, thrust::raw_pointer_cast(&neigh->dNeighbors[0]), sizeof(int) * totalNeighborCount, hipMemcpyDeviceToHost));
-    CUDA_SAFE_CALL(hipMemcpy(neigh->counts, thrust::raw_pointer_cast(&neigh->dNeighborCounts[0]), sizeof(int) * neigh->particleCount, hipMemcpyDeviceToHost));
     CUDA_SAFE_CALL(hipMemcpy(neigh->offsets, thrust::raw_pointer_cast(&neigh->dNeighborOffsets[0]), sizeof(int) * neigh->particleCount, hipMemcpyDeviceToHost));
 
     //Try to sum all the values on the gpu and see if it corresponds to the data we get from our CPU values.

@@ -12,7 +12,7 @@ namespace PBD
 
 		void clearAccelerations(FluidModel &model);
 		void computeXSPHViscosity(FluidModel &model);
-		void computeDensities(FluidModel &model);
+		//void computeDensities(FluidModel &model);
 		void updateTimeStepSizeCFL(FluidModel &model, const Real minTimeStepSize, const Real maxTimeStepSize);
 		void constraintProjection(FluidModel &model);
 

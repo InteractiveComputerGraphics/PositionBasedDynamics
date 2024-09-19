@@ -46,11 +46,15 @@ void TimeStepFluidModel::step(FluidModel &model)
 	START_TIMING("neighborhood search");
 #if defined(FSPH)
 	model.getNeighborhoodSearch()->neighborhoodSearch(&model.getParticles().getPosition(0), model.getParticles().size(), model.numBoundaryParticles(), &model.getBoundaryX(0));
+	//model.getNeighborhoodSearch()->neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
+
 #elif defined(nSearch)
 	//const float* tmp = model.getParticles().getPosition(0).data();
 	model.getNeighborhoodSearch()->neighborhoodSearch(&model.getParticles().getPosition(0), model.getParticles().size(), &model.getBoundaryX(0), model.numBoundaryParticles());
+
 #else
 	model.getNeighborhoodSearch()->neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
+
 #endif
 	STOP_TIMING_AVG;
 
@@ -97,69 +101,83 @@ void TimeStepFluidModel::clearAccelerations(FluidModel &model)
 	}
 }
 
-/** Determine densities of all fluid particles. 
-*/
-void TimeStepFluidModel::computeDensities(FluidModel &model)
-{
-	ParticleData &pd = model.getParticles();
-	const unsigned int numParticles = pd.size();
-#if defined(FSPH)
-
-#elif defined(nSearch)
-
-#else
-	unsigned int** neighbors = model.getNeighborhoodSearch()->getNeighbors();
-	unsigned int* numNeighbors = model.getNeighborhoodSearch()->getNumNeighbors();
-#endif
-	#pragma omp parallel default(shared)
-	{
-		#pragma omp for schedule(static)  
-		for (int i = 0; i < (int) numParticles; i++)
-		{
-#if defined(FSPH)
-
-#elif defined(nSearch)
-			int sortIdx = i;//model.getNeighborhoodSearch()->sortIdx(i);
-			Real& density = model.getDensity(i);
-			Real density_err;
-
-			/*PositionBasedFluids::computePBFDensity(corrIdx, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
-				&model.getBoundaryPsi(0), model.getNeighborhoodSearch()->n_neighbors(corrIdx), model.getNeighborhoodSearch()->neighbors(corrIdx),
-				model.getDensity0(), true, density_err, density);*/
-			const Real* mass = &pd.getMass(0);
-			const Vector3r* boundaryX = &model.getBoundaryX(0);
-			const Real* boundaryPsi = &model.getBoundaryPsi(0);
-			const Vector3r* x = &pd.getPosition(0);
-			const Real density0 = model.getDensity0();
-			// Compute current density for particle i
-			density = mass[i] * CubicKernel::W_zero();
-			for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
-			{
-				//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
-				const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
-				if (neighborIndex < numParticles)		// Test if fluid particle
-				{
-					density += mass[neighborIndex] * CubicKernel::W(x[i] - x[neighborIndex]);
-				}
-				else
-				{
-					// Boundary: Akinci2012
-					density += boundaryPsi[neighborIndex - numParticles] * CubicKernel::W(x[i] - boundaryX[neighborIndex - numParticles]);
-				}
-			}
-			density_err = std::max(density, density0) - density0;
-			
-#else
-			Real& density = model.getDensity(i);
-			Real density_err;
-			PositionBasedFluids::computePBFDensity(i, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), 
-				&model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, density);
-#endif
-
-			
-		}
-	}
-}
+///** Determine densities of all fluid particles. 
+//*/
+//void TimeStepFluidModel::computeDensities(FluidModel &model)
+//{
+//	ParticleData &pd = model.getParticles();
+//	const unsigned int numParticles = pd.size();
+//#if defined(FSPH)
+//	NeighborhoodSearchSpatialHashing testNeight(model.getParticles().size(), model.getSupportRadius());
+//	testNeight.neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
+//
+//	unsigned int** neighbors = testNeight.getNeighbors();
+//	unsigned int* numNeighbors = testNeight.getNumNeighbors();
+//
+//	/*unsigned int** neighbors = model.getNeighborhoodSearch()->getNeighbors();
+//	unsigned int* numNeighbors = model.getNeighborhoodSearch()->getNumNeighbors();*/
+//
+//#elif defined(nSearch)
+//
+//#else
+//	unsigned int** neighbors = model.getNeighborhoodSearch()->getNeighbors();
+//	unsigned int* numNeighbors = model.getNeighborhoodSearch()->getNumNeighbors();
+//
+//#endif
+//
+//	#pragma omp parallel default(shared)
+//	{
+//		#pragma omp for schedule(static)  
+//		for (int i = 0; i < (int) numParticles; i++)
+//		{
+//#if defined(FSPH)
+//			Real& density = model.getDensity(i);
+//			Real density_err;
+//			PositionBasedFluids::computePBFDensity(i, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
+//				&model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, density);
+//
+//#elif defined(nSearch)
+//			int sortIdx = i;//model.getNeighborhoodSearch()->sortIdx(i);
+//			Real& density = model.getDensity(i);
+//			Real density_err;
+//
+//			/*PositionBasedFluids::computePBFDensity(corrIdx, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
+//				&model.getBoundaryPsi(0), model.getNeighborhoodSearch()->n_neighbors(corrIdx), model.getNeighborhoodSearch()->neighbors(corrIdx),
+//				model.getDensity0(), true, density_err, density);*/
+//			const Real* mass = &pd.getMass(0);
+//			const Vector3r* boundaryX = &model.getBoundaryX(0);
+//			const Real* boundaryPsi = &model.getBoundaryPsi(0);
+//			const Vector3r* x = &pd.getPosition(0);
+//			const Real density0 = model.getDensity0();
+//			// Compute current density for particle i
+//			density = mass[i] * CubicKernel::W_zero();
+//			for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
+//			{
+//				//const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+//				const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
+//				if (neighborIndex < numParticles)		// Test if fluid particle
+//				{
+//					density += mass[neighborIndex] * CubicKernel::W(x[i] - x[neighborIndex]);
+//				}
+//				else
+//				{
+//					// Boundary: Akinci2012
+//					density += boundaryPsi[neighborIndex - numParticles] * CubicKernel::W(x[i] - boundaryX[neighborIndex - numParticles]);
+//				}
+//			}
+//			density_err = std::max(density, density0) - density0;
+//			
+//#else
+//			Real& density = model.getDensity(i);
+//			Real density_err;
+//			PositionBasedFluids::computePBFDensity(i, numParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), 
+//				&model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, density);
+//#endif
+//
+//			
+//		}
+//	}
+//}
 
 /** Update time step size by CFL condition.
 */
@@ -199,6 +217,14 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 	ParticleData &pd = model.getParticles();
 	const unsigned int numParticles = pd.size();	
 #if defined(FSPH)
+	/*NeighborhoodSearchSpatialHashing testNeight(model.getParticles().size(), model.getSupportRadius());
+	testNeight.neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
+
+	unsigned int** neighbors = testNeight.getNeighbors();
+	unsigned int* numNeighbors = testNeight.getNumNeighbors();*/
+
+	/*unsigned int** neighbors = model.getNeighborhoodSearch()->getNeighbors();
+	unsigned int* numNeighbors = model.getNeighborhoodSearch()->getNumNeighbors();*/
 
 #elif defined(nSearch)
 
@@ -212,42 +238,73 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 
 #if defined(FSPH)
 	// Compute viscosity forces (XSPH)
-	/*#pragma omp parallel default(shared)
-	{
-		#pragma omp for schedule(static)
-		for (int i = 0; i < (int)numParticles; i++)
-		{
-			int sortIdx = model.getNeighborhoodSearch()->partIdx(i);
-			const Vector3r& xi = pd.getPosition(i);
-			Vector3r& vi = pd.getVelocity(i);
-			const Real density_i = model.getDensity(i);
-			const unsigned int numNeighbors = model.getNeighborhoodSearch()->n_neighbors(sortIdx);
-			for (unsigned int j = 0; j < numNeighbors; j++)
-			{
-				const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
-				//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
-				if (neighborIndex < numParticles)		// Test if fluid particle
-				{
-					// Viscosity
-					const Vector3r& xj = pd.getPosition(neighborIndex);
-					const Vector3r& vj = pd.getVelocity(neighborIndex);
-					const Real density_j = model.getDensity(neighborIndex);
-					vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
-				}
-				// 				else 
-				// 				{
-				// 					const Vector3r &xj = model.getBoundaryX(neighborIndex - numParticles);
-				// 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
-				// 				}
-			}
-		}
-	}*/
+	//#pragma omp parallel default(shared)
+	//{
+	//	#pragma omp for schedule(static)
+	//	for (int i = 0; i < (int)numParticles; i++)
+	//	{
+	//		int sortIdx = model.getNeighborhoodSearch()->partIdx(i);
+	//		const Vector3r& xi = pd.getPosition(i);
+	//		Vector3r& vi = pd.getVelocity(i);
+	//		const Real density_i = model.getDensity(i);
+	//		const unsigned int numNeighbors = model.getNeighborhoodSearch()->n_neighbors(sortIdx);
+	//		for (unsigned int j = 0; j < numNeighbors; j++)
+	//		{
+	//			const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+	//			//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
+	//			if (neighborIndex < numParticles)		// Test if fluid particle
+	//			{
+	//				// Viscosity
+	//				const Vector3r& xj = pd.getPosition(neighborIndex);
+	//				const Vector3r& vj = pd.getVelocity(neighborIndex);
+	//				const Real density_j = model.getDensity(neighborIndex);
+	//				vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
+	//			}
+	//			// 				else 
+	//			// 				{
+	//			// 					const Vector3r &xj = model.getBoundaryX(neighborIndex - numParticles);
+	//			// 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
+	//			// 				}
+	//		}
+	//	}
+	//}
+	//#pragma omp parallel default(shared)
+	//{
+	//	#pragma omp for schedule(static)
+	//	for (int i = 0; i < (int)numParticles; i++)
+	//	{
+	//		const Vector3r& xi = pd.getPosition(i);
+	//		Vector3r& vi = pd.getVelocity(i);
+	//		const Real density_i = model.getDensity(i);
+
+	//		for (unsigned int j = 0; j < numNeighbors[i]; j++)
+	//		{
+	//			const unsigned int neighborIndex = neighbors[i][j];
+	//			if (neighborIndex < numParticles)		// Test if fluid particle
+	//			{
+	//				// Viscosity
+	//				const Vector3r& xj = pd.getPosition(neighborIndex);
+	//				const Vector3r& vj = pd.getVelocity(neighborIndex);
+	//				const Real density_j = model.getDensity(neighborIndex);
+	//				vi -= viscosity * (pd.getMass(neighborIndex) / density_j) * (vi - vj) * CubicKernel::W(xi - xj);
+
+	//			}
+	//			// 				else 
+	//			// 				{
+	//			// 					const Vector3r &xj = model.getBoundaryX(neighborIndex - numParticles);
+	//			// 					vi -= viscosity * (model.getBoundaryPsi(neighborIndex - numParticles) / density_i) * (vi)* CubicKernel::W(xi - xj);
+	//			// 				}
+	//		}
+	//	}
+	//}
+	//Vector3r cpuVelSum = std::accumulate(&pd.getVelocity(0), &pd.getVelocity(0) + pd.getNumberOfParticles(), Vector3r(0.0f, 0.0f, 0.0f));
+	//printf("CPU velocity sum: %f, %f, %f\n", cpuVelSum[0], cpuVelSum[1], cpuVelSum[2]);
 
 	unsigned int numCPUNeigh = 0;
 	unsigned int numGPUNeigh = 0;
 
 	//TEST CPU!
-	printf("CPU version:\n");
+	//printf("CPU version:\n");
 	std:vector<Vector3r> testVelocity(pd.getVelocities());
 	NeighborhoodSearchSpatialHashing testNeight(model.getParticles().size(), model.getSupportRadius());
 	testNeight.neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
@@ -265,9 +322,9 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 			Vector3r& vi = testVelocity[i];
 			const Real density_i = model.getDensity(i);
 			if (i < 22) printf("%d (%d): ", i, numNeighbors[i]);
+			numCPUNeigh += numNeighbors[i];
 			for (unsigned int j = 0; j < numNeighbors[i]; j++)
 			{
-				numCPUNeigh += numNeighbors[i];
 				const unsigned int neighborIndex = neighbors[i][j];
 				if (neighborIndex < numParticles)		// Test if fluid particle
 				{
@@ -291,7 +348,7 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 	printf("\n");
 
 	// Compute viscosity forces (XSPH)
-	printf("GPU version:\n");
+	//printf("GPU version:\n");
 	#pragma omp parallel default(shared)
 	{
 		#pragma omp for schedule(static)
@@ -303,9 +360,9 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 			const Real density_i = model.getDensity(i);
 			const unsigned int numNeighbors = model.getNeighborhoodSearch()->n_neighbors(sortIdx);
 			if (i < 22) printf("%d %d (%d): ", i, sortIdx, model.getNeighborhoodSearch()->n_neighbors(sortIdx));
+			numGPUNeigh += numNeighbors;
 			for (unsigned int j = 0; j < numNeighbors; j++)
 			{
-				numGPUNeigh += numNeighbors;
 				const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
 				if (neighborIndex < numParticles)		// Test if fluid particle
 				{
@@ -334,6 +391,7 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 
 	printf("Number of CPU neighbours: %d\nNumber of GPU neighbours: %d\n", numCPUNeigh, numGPUNeigh);
 	printf("Neighbour difference CPU-GPU=%d\n", numCPUNeigh - numGPUNeigh);
+
 	/*if (numCPUNeigh != numGPUNeigh && numCPUNeigh - numGPUNeigh != 22488)
 	{
 		printf("Oh shit boooys\n");
@@ -366,20 +424,25 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 			difference.clear();
 			if (i < numParticles)
 			{
-				printf("## %d ## Fluid (%f, %f, %f)\n", i, pd.getPosition(i)[0], pd.getPosition(i)[1], pd.getPosition(i)[2]);
+				//printf("## %d ## Fluid (%f, %f, %f)\n", i, pd.getPosition(i)[0], pd.getPosition(i)[1], pd.getPosition(i)[2]);
 			}
 			else
 			{
-				printf("## %d ## Boundry (%f, %f, %f)\n", i, model.getBoundaryX(i - numParticles)[0], model.getBoundaryX(i - numParticles)[1], model.getBoundaryX(i - numParticles)[2]);
+				//printf("## %d ## Boundry (%f, %f, %f)\n", i, model.getBoundaryX(i - numParticles)[0], model.getBoundaryX(i - numParticles)[1], model.getBoundaryX(i - numParticles)[2]);
 			}
 			county++;
-			printf("\t(%f, %f, %f){%f} - (%f, %f, %f){%f} = (%f, %f, %f){%f}\n",
+			/*printf("\t(%f, %f, %f){%f} - (%f, %f, %f){%f} = (%f, %f, %f){%f}\n",
 				pd.getVelocity(i)[0], pd.getVelocity(i)[1], pd.getVelocity(i)[2], pd.getVelocity(i).squaredNorm(),
 				testVelocity[i][0], testVelocity[i][1], testVelocity[i][2], testVelocity[i].squaredNorm(),
 				diff[0], diff[1], diff[2], diff.squaredNorm()
-			);
+			);*/
 
-			printf("\tCPU (%d):", numNeighbors[i]);
+			if (diff.squaredNorm() > 1.0f)
+			{
+				printf("WOAH! What are you particles doing? %d\n", i);
+			}
+
+			//printf("\tCPU (%d):", numNeighbors[i]);
 			bool hasBoundry = false;
 			for (unsigned int j = 0; j < numNeighbors[i]; j++)
 			{
@@ -396,13 +459,13 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 				}
 			}
 			std::sort(tmpCPU.begin(), tmpCPU.end());
-			if (!hasBoundry && model.getNeighborhoodSearch()->n_neighbors(sortIdx) == 0)
+			/*if (!hasBoundry && model.getNeighborhoodSearch()->n_neighbors(sortIdx) == 0)
 			{
 				printf(" Oh no, my theory is false");
-			}
-			printf("\n");
+			}*/
+			//printf("\n");
 
-			printf("\tGPU (%d): ", model.getNeighborhoodSearch()->n_neighbors(sortIdx));
+			//printf("\tGPU (%d): ", model.getNeighborhoodSearch()->n_neighbors(sortIdx));
 			for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 			{
 				const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
@@ -411,21 +474,34 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 				//printf("\t%d; ", neighborIndex);
 			}
 			std::sort(tmpGPU.begin(), tmpGPU.end());
-			printf("\n");
+			//printf("\n");
 
 
-			std::set_difference(tmpGPU.begin(), tmpGPU.end(), tmpCPU.begin(), tmpCPU.end(),
+			/*std::set_difference(tmpGPU.begin(), tmpGPU.end(), tmpCPU.begin(), tmpCPU.end(),
 				std::inserter(difference, difference.begin()));
 			if (difference.size() > 0)
 			{
 				printf("\tDifference GPU/CPU (%d): ", difference.size());
 				for (unsigned int d : difference)
 				{
-					printf("\t%d; ", d);
+					Vector3r diffNeighDist;
+					if (d < numParticles)
+					{
+						diffNeighDist = pd.getPosition(i) - pd.getPosition(d);
+					}
+					else
+					{
+						diffNeighDist = pd.getPosition(i) - model.getBoundaryX(d - numParticles);
+					}
+					printf("\t%d (%f, %f, %f){%f}; ", d, diffNeighDist[0], diffNeighDist[1], diffNeighDist[2], diffNeighDist.squaredNorm());
+					if (diffNeighDist.squaredNorm() > 0.0000001)
+					{
+						printf("HOLD ON. Why is the difference so big?\n");
+					}
 					missingParticles.insert(d);
 				}
 				printf("\n");
-			}
+			}*/
 
 			bool test0 = false;
 			difference.clear();
@@ -436,7 +512,20 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 				printf("\tDifference CPU/GPU (%d): ", difference.size());
 				for (unsigned int d : difference)
 				{
-					printf("\t%d; ", d);
+					Vector3r diffNeighDist;
+					if (d < numParticles)
+					{
+						diffNeighDist = pd.getPosition(i) - pd.getPosition(d);
+					}
+					else
+					{
+						diffNeighDist = pd.getPosition(i) - model.getBoundaryX(d - numParticles);
+					}
+					printf("\t%d (%f, %f, %f){%f}; ", d, diffNeighDist[0], diffNeighDist[1], diffNeighDist[2], diffNeighDist.squaredNorm());
+					if (diffNeighDist.squaredNorm() > 0.009)
+					{
+						printf("HOLD ON . Why is the difference so big?\n");
+					}
 					missingParticles.insert(d);
 					if (model.getNeighborhoodSearch()->n_neighbors(sortIdx) == 0 && d >= numParticles)
 					{
@@ -445,9 +534,9 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 				}
 				printf("\n");
 			}
-			if (model.getNeighborhoodSearch()->n_neighbors(sortIdx) == 0 && !test0)
+			if (model.getNeighborhoodSearch()->n_neighbors(sortIdx) == 0 /* && !test0*/)
 			{
-				printf("HOLD UP! SPICY!\n");
+				printf("HOLD UP! SPICY! %d\n", i);
 			}
 		}
 		//if (!subSame) same = false;
@@ -460,10 +549,11 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 		int i = 0;
 		for (unsigned int part : missingParticles)
 		{
-			//printf("%d, ", part);
+			printf("%d, ", part);
 			if (part < numParticles)
 			{
 				printf("Fluid: %d (%f, %f, %f); ", part, pd.getPosition(part)[0], pd.getPosition(part)[1], pd.getPosition(part)[2]);
+				
 				//auto it = find(&model.getBoundaryX(0), &model.getBoundaryX(0)+model.numBoundaryParticles(), pd.getPosition(part));
 				//if (it != &model.getBoundaryX(0) + model.numBoundaryParticles()) printf("OH SHIT! %d is a boundry particle!\n");
 				bool isBound = false;
@@ -491,29 +581,25 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 		difference.clear();
 		std::set_difference(wrongParticles.begin(), wrongParticles.end(), missingParticles.begin(), missingParticles.end(),
 			std::inserter(difference, difference.begin()));
-		printf("\tDifference of wrong/missing particles (%d): ", difference.size());
+		/*printf("\tDifference of wrong/missing particles (%d): ", difference.size());
 		for (unsigned int d : difference)
 		{
 			printf("\t%d; ", d);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		std::vector<unsigned int> intersection;
 		intersection.reserve(1500);
 		std::set_intersection(foundParticles.begin(), foundParticles.end(), missingParticles.begin(), missingParticles.end(),
 			std::inserter(intersection, intersection.begin()));
-		printf("Intersection between found and missing particles (%d): ", intersection.size());
+		/*printf("Intersection between found and missing particles (%d): ", intersection.size());
 		for (unsigned int intersec : intersection)
 		{
 			printf("\t%d; ", intersec);
 		}
+		printf("\n");*/
 	}
-	printf("\n");
-
-	/*{
-		fo
-	}
-	printf("\n");*/
+	//printf("\n");
 
 	Vector3r cpuVelSum = std::accumulate(testVelocity.begin(), testVelocity.end(), Vector3r(0.0f, 0.0f, 0.0f));
 	printf("CPU velocity sum: %f, %f, %f\n", cpuVelSum[0], cpuVelSum[1], cpuVelSum[2]);
@@ -597,6 +683,8 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 				}
 		}
 	}
+	Vector3r cpuVelSum = std::accumulate(&pd.getVelocity(0), &pd.getVelocity(0) + pd.getNumberOfParticles(), Vector3r(0.0f, 0.0f, 0.0f));
+	printf("CPU velocity sum: %f, %f, %f\n", cpuVelSum[0], cpuVelSum[1], cpuVelSum[2]);
 #endif
 }
 
@@ -615,12 +703,47 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 	ParticleData &pd = model.getParticles();
 	const unsigned int nParticles = pd.size();
 #if defined(FSPH)
+	/*NeighborhoodSearchSpatialHashing testNeight(model.getParticles().size(), model.getSupportRadius());
+	testNeight.neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
+
+	unsigned int** neighbors = testNeight.getNeighbors();
+	unsigned int* numNeighbors = testNeight.getNumNeighbors();*/
+
+	/*unsigned int** neighbors = model.getNeighborhoodSearch()->getNeighbors();
+	unsigned int* numNeighbors = model.getNeighborhoodSearch()->getNumNeighbors();*/
 
 #elif defined(nSearch)
 
 #else
 	unsigned int** neighbors = model.getNeighborhoodSearch()->getNeighbors();
 	unsigned int* numNeighbors = model.getNeighborhoodSearch()->getNumNeighbors();
+#endif
+
+#if defined(FSPH)
+	NeighborhoodSearchSpatialHashing testNeight(model.getParticles().size(), model.getSupportRadius());
+	testNeight.neighborhoodSearch(&model.getParticles().getPosition(0), model.numBoundaryParticles(), &model.getBoundaryX(0));
+
+	unsigned int** neighbors = testNeight.getNeighbors();
+	unsigned int* numNeighbors = testNeight.getNumNeighbors();
+
+	std:vector<Real> testDensities(model.getDensities());
+
+	Real GPUDensitySum = 0;
+	Real CPUDensitySum = 0;
+
+	/*unsigned int numCPUNeigh = 0;
+	unsigned int numGPUNeigh = 0;
+
+	for (int i = 0; i < nParticles; i++)
+	{
+		const int sortIdx = model.getNeighborhoodSearch()->partIdx(i);
+		numCPUNeigh += numNeighbors[i];
+		numGPUNeigh += model.getNeighborhoodSearch()->n_neighbors(sortIdx);
+	}
+
+	printf("Number of CPU neighbours: %d\nNumber of GPU neighbours: %d\n", numCPUNeigh, numGPUNeigh);
+	printf("Neighbour difference CPU-GPU=%d\n", numCPUNeigh - numGPUNeigh);*/
+
 #endif
 
 	while (iter < maxIter)
@@ -634,78 +757,136 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 			{
 				Real density_err;
 #if defined(FSPH)
-				int sortIdx = model.getNeighborhoodSearch()->partIdx(i);
+				Real density_err_CPU;
+				Real densityCPU = testDensities[i];
+				/*PositionBasedFluids::computePBFDensity(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
+					&model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err, model.getDensity(i));
+				PositionBasedFluids::computePBFLagrangeMultiplier(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
+					&model.getBoundaryPsi(0), model.getDensity(i), numNeighbors[i], neighbors[i], model.getDensity0(), true, model.getLambda(i));*/
+
+				//printf("Testing CPU:\n");
+				PositionBasedFluids::computePBFDensity(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
+					&model.getBoundaryPsi(0), numNeighbors[i], neighbors[i], model.getDensity0(), true, density_err_CPU, densityCPU);
+
+				//printf("Testing GPU:\n");
+				const int sortIdx = model.getNeighborhoodSearch()->partIdx(i);
+
 				/*PositionBasedFluids::computePBFDensity(corrIdx, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
 					&model.getBoundaryPsi(0), model.getNeighborhoodSearch()->n_neighbors(corrIdx), model.getNeighborhoodSearch()->neighbors(corrIdx),
 					model.getDensity0(), true, density_err, model.getDensity(corrIdx));*/
-				Real& density = model.getDensity(i);
-				const Real* mass = &pd.getMass(0);
-				const Vector3r* boundaryX = &model.getBoundaryX(0);
-				const Real* boundaryPsi = &model.getBoundaryPsi(0);
-				const Vector3r* x = &pd.getPosition(0);
-				const Real density0 = model.getDensity0();
-
-				// Compute current density for particle i
-				density = mass[i] * CubicKernel::W_zero();
-				for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 				{
-					const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
-					//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
-					if (neighborIndex < nParticles)		// Test if fluid particle
+					const unsigned int particleIndex = i;
+					const unsigned int numberOfParticles = nParticles;
+					const Vector3r* x = &pd.getPosition(0);
+					const Real* mass = &pd.getMass(0);
+					const Vector3r* boundaryX = &model.getBoundaryX(0);
+					const Real* boundaryPsi = &model.getBoundaryPsi(0);
+					const unsigned int numNeighbors = model.getNeighborhoodSearch()->n_neighbors(sortIdx);
+					//const unsigned int neighbors[];
+					const Real density0 = model.getDensity0();
+					const bool boundaryHandling = true;
+					Real& density_err_0 = density_err;
+					Real& density = model.getDensity(i);
+
+					// Compute current density for particle i
+					density = mass[particleIndex] * CubicKernel::W_zero();
+					for (unsigned int j = 0; j < numNeighbors; j++)
 					{
-						density += mass[neighborIndex] * CubicKernel::W(x[i] - x[neighborIndex]);
+						const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+						if (neighborIndex < numberOfParticles)		// Test if fluid particle
+						{
+							density += mass[neighborIndex] * CubicKernel::W(x[particleIndex] - x[neighborIndex]);
+						}
+						else if (boundaryHandling)
+						{
+							// Boundary: Akinci2012
+							density += boundaryPsi[neighborIndex - numberOfParticles] * CubicKernel::W(x[particleIndex] - boundaryX[neighborIndex - numberOfParticles]);
+						}
 					}
-					else
-					{
-						// Boundary: Akinci2012
-						density += boundaryPsi[neighborIndex - nParticles] * CubicKernel::W(x[i] - boundaryX[neighborIndex - nParticles]);
-					}
+
+					density_err_0 = std::max(density, density0) - density0;
+
+					//Real& density = model.getDensity(i);
+					//const Real* mass = &pd.getMass(0);
+					//const Vector3r* boundaryX = &model.getBoundaryX(0);
+					//const Real* boundaryPsi = &model.getBoundaryPsi(0);
+					//const Vector3r* x = &pd.getPosition(0);
+					//const Real density0 = model.getDensity0();
+
+					//// Compute current density for particle i
+					//density = mass[i] * CubicKernel::W_zero();
+					//for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
+					//{
+					//	const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+					//	//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
+					//	if (neighborIndex < nParticles)		// Test if fluid particle
+					//	{
+					//		density += mass[neighborIndex] * CubicKernel::W(x[i] - x[neighborIndex]);
+					//	}
+					//	else
+					//	{
+					//		// Boundary: Akinci2012
+					//		density += boundaryPsi[neighborIndex - nParticles] * CubicKernel::W(x[i] - boundaryX[neighborIndex - nParticles]);
+					//	}
+					//}
+					//density_err = std::max(density, density0) - density0;
 				}
-				density_err = std::max(density, density0) - density0;
+				GPUDensitySum += density_err;
+				CPUDensitySum += density_err_CPU;
 
 				/*PositionBasedFluids::computePBFLagrangeMultiplier(corrIdx, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
 					&model.getBoundaryPsi(0), model.getDensity(corrIdx), model.getNeighborhoodSearch()->n_neighbors(corrIdx), model.getNeighborhoodSearch()->neighbors(corrIdx),
 					model.getDensity0(), true, model.getLambda(corrIdx));*/
-				const Real constDensity = density;
-				Real& lambda = model.getLambda(i);
-
-				const Real eps = static_cast<Real>(1.0e-6);
-
-				// Evaluate constraint function
-				const Real C = std::max(constDensity / density0 - static_cast<Real>(1.0), static_cast<Real>(0.0));			// clamp to prevent particle clumping at surface
-
-				if (C != 0.0)
 				{
-					// Compute gradients dC/dx_j 
-					Real sum_grad_C2 = 0.0;
-					Vector3r gradC_i(0.0, 0.0, 0.0);
+					
+					const Vector3r* x = &pd.getPosition(0);
+					const Real* mass = &pd.getMass(0);
+					const Vector3r* boundaryX = &model.getBoundaryX(0);
+					const Real* boundaryPsi = &model.getBoundaryPsi(0);
+					const Real constDensity = model.getDensity(i);
+					const Real density0 = model.getDensity0();
+					Real& lambda = model.getLambda(i);
 
-					for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
+					const Real eps = static_cast<Real>(1.0e-6);
+
+					// Evaluate constraint function
+					const Real C = std::max(constDensity / density0 - static_cast<Real>(1.0), static_cast<Real>(0.0));			// clamp to prevent particle clumping at surface
+
+					if (C != 0.0)
 					{
-						const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
-						//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
-						if (neighborIndex < nParticles)		// Test if fluid particle
+						// Compute gradients dC/dx_j 
+						Real sum_grad_C2 = 0.0;
+						Vector3r gradC_i(0.0, 0.0, 0.0);
+
+						for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 						{
-							const Vector3r gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[i] - x[neighborIndex]);
-							sum_grad_C2 += gradC_j.squaredNorm();
-							gradC_i -= gradC_j;
+							const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+							//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
+							if (neighborIndex < nParticles)		// Test if fluid particle
+							{
+								const Vector3r gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[i] - x[neighborIndex]);
+								sum_grad_C2 += gradC_j.squaredNorm();
+								gradC_i -= gradC_j;
+							}
+							else
+							{
+								// Boundary: Akinci2012
+								const Vector3r gradC_j = -boundaryPsi[neighborIndex - nParticles] / density0 * CubicKernel::gradW(x[i] - boundaryX[neighborIndex - nParticles]);
+								sum_grad_C2 += gradC_j.squaredNorm();
+								gradC_i -= gradC_j;
+							}
 						}
-						else
-						{
-							// Boundary: Akinci2012
-							const Vector3r gradC_j = -boundaryPsi[neighborIndex - nParticles] / density0 * CubicKernel::gradW(x[i] - boundaryX[neighborIndex - nParticles]);
-							sum_grad_C2 += gradC_j.squaredNorm();
-							gradC_i -= gradC_j;
-						}
+
+						sum_grad_C2 += gradC_i.squaredNorm();
+
+						// Compute lambda
+						lambda = -C / (sum_grad_C2 + eps);
 					}
-
-					sum_grad_C2 += gradC_i.squaredNorm();
-
-					// Compute lambda
-					lambda = -C / (sum_grad_C2 + eps);
+					else
+					{
+						lambda = 0.0;
+					}
 				}
-				else
-					lambda = 0.0;
 #elif defined(nSearch)
 				int sortIdx = i;//model.getNeighborhoodSearch()->sortIdx(i);
 				/*PositionBasedFluids::computePBFDensity(corrIdx, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0),
@@ -797,43 +978,56 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 			{
 				Vector3r corr;
 #if defined(FSPH)
+				/*PositionBasedFluids::solveDensityConstraint(i, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0),
+					numNeighbors[i], neighbors[i], model.getDensity0(), true, &model.getLambda(0), corr);
+				model.getDeltaX(i) = corr;*/
 				int sortIdx = model.getNeighborhoodSearch()->partIdx(i);
 				/*PositionBasedFluids::solveDensityConstraint(corrIdx, nParticles, &pd.getPosition(0), &pd.getMass(0), &model.getBoundaryX(0), &model.getBoundaryPsi(0),
 					model.getNeighborhoodSearch()->n_neighbors(corrIdx), model.getNeighborhoodSearch()->neighbors(corrIdx), model.getDensity0(), true, &model.getLambda(0), corr);*/
-				const Real* mass = &pd.getMass(0);
-				const Vector3r* boundaryX = &model.getBoundaryX(0);
-				const Real* boundaryPsi = &model.getBoundaryPsi(0);
-				const Vector3r* x = &pd.getPosition(0);
-				const Real density0 = model.getDensity0();
-				const Real* lambda = &model.getLambda(0);
-
-				// Compute position correction
-				corr.setZero();
-				for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 				{
-					const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
-					//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
-					if (neighborIndex < nParticles)		// Test if fluid particle
+					const Vector3r* x = &pd.getPosition(0);
+					const Real* mass = &pd.getMass(0);
+					const Vector3r* boundaryX = &model.getBoundaryX(0);
+					const Real* boundaryPsi = &model.getBoundaryPsi(0);
+					const Real density0 = model.getDensity0();
+					const Real* lambda = &model.getLambda(0);
+
+					// Compute position correction
+					corr.setZero();
+					for (unsigned int j = 0; j < model.getNeighborhoodSearch()->n_neighbors(sortIdx); j++)
 					{
-						const Vector3r gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[i] - x[neighborIndex]);
-						corr -= (lambda[i] + lambda[neighborIndex]) * gradC_j;
+						const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+						//const unsigned int neighborIndex = model.getNeighborhoodSearch()->neighbor(sortIdx, j);
+						if (neighborIndex < nParticles)		// Test if fluid particle
+						{
+							const Vector3r gradC_j = -mass[neighborIndex] / density0 * CubicKernel::gradW(x[i] - x[neighborIndex]);
+							assert(!std::isnan(gradC_j[0]));
+							assert(!std::isnan(gradC_j[1]));
+							assert(!std::isnan(gradC_j[2]));
+							assert(!std::isinf(gradC_j[0]));
+							assert(!std::isinf(gradC_j[1]));
+							assert(!std::isinf(gradC_j[2]));
+							corr -= (lambda[i] + lambda[neighborIndex]) * gradC_j;
+						}
+						else
+						{
+							Vector3r tmp0 = x[i] - boundaryX[neighborIndex - nParticles];
+							Vector3r tmp1 = CubicKernel::gradW(x[i] - boundaryX[neighborIndex - nParticles]);;
+							Real tmp2 = -boundaryPsi[neighborIndex - nParticles];
+							// Boundary: Akinci2012
+							const Vector3r gradC_j = -boundaryPsi[neighborIndex - nParticles] / density0 * CubicKernel::gradW(x[i] - boundaryX[neighborIndex - nParticles]);
+							assert(!std::isnan(gradC_j[0]));
+							assert(!std::isnan(gradC_j[1]));
+							assert(!std::isnan(gradC_j[2]));
+							assert(!std::isinf(gradC_j[0]));
+							assert(!std::isinf(gradC_j[1]));
+							assert(!std::isinf(gradC_j[2]));
+							corr -= (lambda[i]) * gradC_j;
+						}
 					}
-					else
-					{
-						Vector3r tmp0 = x[i] - boundaryX[neighborIndex - nParticles];
-						Vector3r tmp1 = CubicKernel::gradW(x[i] - boundaryX[neighborIndex - nParticles]);;
-						Real tmp2 = -boundaryPsi[neighborIndex - nParticles];
-						// Boundary: Akinci2012
-						const Vector3r gradC_j = -boundaryPsi[neighborIndex - nParticles] / density0 * CubicKernel::gradW(x[i] - boundaryX[neighborIndex - nParticles]);
-						assert(!std::isnan(gradC_j[0]));
-						assert(!std::isnan(gradC_j[1]));
-						assert(!std::isnan(gradC_j[2]));
-						assert(!std::isinf(gradC_j[0]));
-						assert(!std::isinf(gradC_j[1]));
-						assert(!std::isinf(gradC_j[2]));
-						corr -= (lambda[i]) * gradC_j;
-					}
+
 				}
+
 				assert(!std::isnan(corr[0]));
 				assert(!std::isnan(corr[1]));
 				assert(!std::isnan(corr[2]));
@@ -881,6 +1075,11 @@ void TimeStepFluidModel::constraintProjection(FluidModel &model)
 				
 			}
 		}
+
+#if defined(FSPH)
+		/*printf("CPU density sum: %f\nGPU density sum: %f\n", CPUDensitySum, GPUDensitySum);
+		printf("Density difference CPU-GPU=%f\n", CPUDensitySum - GPUDensitySum);*/
+#endif
 
 		Vector3r* tmp = &model.getDeltaX(0);
 		int x = 0;

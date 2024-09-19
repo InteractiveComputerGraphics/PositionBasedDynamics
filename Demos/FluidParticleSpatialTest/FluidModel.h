@@ -48,6 +48,7 @@ namespace PBD
 			std::vector<Vector3r> m_deltaX;
 #if defined(FSPH)
 			Spatial_FSPH* m_neighborhoodSearch;
+			//NeighborhoodSearchSpatialHashing* m_neighborhoodSearch;
 #elif defined(nSearch)
 			Spatial_hipNSearch* m_neighborhoodSearch;
 #else
@@ -76,6 +77,7 @@ namespace PBD
 			void setParticleRadius(Real val) { m_particleRadius = val; m_supportRadius = static_cast<Real>(4.0)*m_particleRadius; }
 #if defined(FSPH)
 			Spatial_FSPH* getNeighborhoodSearch() { return m_neighborhoodSearch; }
+			//NeighborhoodSearchSpatialHashing* getNeighborhoodSearch() { return m_neighborhoodSearch; }
 #elif defined(nSearch)
 			Spatial_hipNSearch* getNeighborhoodSearch() { return m_neighborhoodSearch; }
 #else
@@ -139,6 +141,12 @@ namespace PBD
 			{
 				return m_density[i];
 			}
+
+			FORCE_INLINE std::vector<Real> getDensities()
+			{
+				return m_density;
+			}
+
 
 			FORCE_INLINE void setDensity(const unsigned int i, const Real &val)
 			{

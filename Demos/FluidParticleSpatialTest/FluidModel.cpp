@@ -370,7 +370,7 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 		printf("Intersection (%d): ", intersection.size());
 		for (unsigned int intersec : intersection)
 		{
-			printf("\t(%d, [%f, %f, %f]]\n); ", intersec, m_boundaryX[intersec][0], m_boundaryX[intersec][1], m_boundaryX[intersec][2]);
+			//printf("\t(%d, [%f, %f, %f]]\n); ", intersec, m_boundaryX[intersec][0], m_boundaryX[intersec][1], m_boundaryX[intersec][2]);
 		}
 	}
 	printf("\n");
@@ -385,6 +385,9 @@ void FluidModel::initModel(const unsigned int nFluidParticles, Vector3r* fluidPa
 	neighborhoodSearchSH.~Spatial_FSPH();
 	if (m_neighborhoodSearch == NULL)
 		m_neighborhoodSearch = new Spatial_FSPH(m_supportRadius, nBoundaryParticles, m_particles.size());
+	/*if (m_neighborhoodSearch == NULL)
+		m_neighborhoodSearch = new NeighborhoodSearchSpatialHashing(m_particles.size(), m_supportRadius);
+	m_neighborhoodSearch->setRadius(m_supportRadius);*/
 
 #elif defined(nSearch)
 	Spatial_hipNSearch neighborhoodSearchSH(m_supportRadius, 0, nBoundaryParticles);

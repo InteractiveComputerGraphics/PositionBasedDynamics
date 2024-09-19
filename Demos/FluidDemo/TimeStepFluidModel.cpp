@@ -6,6 +6,8 @@
 #include "Simulation/Simulation.h"
 #include "Utils/Timing.h"
 
+//#include <numeric>
+
 using namespace PBD;
 using namespace std;
 
@@ -180,6 +182,8 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 			}
 		}
 	}
+	/*Vector3r cpuVelSum = std::accumulate(&pd.getVelocity(0), &pd.getVelocity(0) + pd.getNumberOfParticles(), Vector3r(0.0f, 0.0f, 0.0f));
+	printf("CPU velocity sum: %f, %f, %f\n", cpuVelSum[0], cpuVelSum[1], cpuVelSum[2]);*/
 }
 
 

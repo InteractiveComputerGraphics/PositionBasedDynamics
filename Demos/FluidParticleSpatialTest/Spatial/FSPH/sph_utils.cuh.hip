@@ -27,6 +27,14 @@ namespace sph
 			floorf(pos.y / cell_size),
 			floorf(pos.z / cell_size));
 	}
+	/*__device__
+		inline ushort3 ParticlePos2CellPosM(const float3& pos, float cell_size)
+	{
+		double rat = 4.f / (double)cell_size;
+		return make_ushort3(floor((double)pos.x * rat),
+			floor((double)pos.y * rat),
+			floor((double)pos.z * rat));
+	}*/
 	__device__
 		inline ushort3 ParticlePos2CellPosM(const float3 &pos, float cell_size)
 	{
