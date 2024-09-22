@@ -122,6 +122,7 @@ namespace PBD
 		Shader& getShader() { return m_shader; }
 		Shader& getShaderTex() { return m_shaderTex; }
 		Shader& getShaderFlat() { return m_shaderFlat; }
+		void destroyShaders();
 		void shaderTexBegin(const float *col);
 		void shaderTexEnd();
 		void shaderBegin(const float *col);

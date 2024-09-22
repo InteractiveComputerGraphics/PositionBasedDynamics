@@ -17,11 +17,7 @@ Shader::Shader(void)
 
 Shader::~Shader(void)
 {
-	m_initialized = false;
-	m_attributes.clear();
-	m_uniforms.clear();
-	if (m_program)
-		glDeleteProgram(m_program);
+	destroy();
 }
 
 void Shader::compileShaderString(GLenum type, const std::string &source) 
@@ -83,6 +79,18 @@ void Shader::createAndLinkProgram()
 
 	for (unsigned char i = 0; i < 3; i++)
 		glDeleteShader(m_shaders[i]);
+}
+
+void Shader::destroy()
+{
+	m_initialized = false;
+	m_attributes.clear();
+	m_uniforms.clear();
+	if (m_program)
+	{
+		glDeleteProgram(m_program);
+		m_program = 0;
+	}
 }
 
 void Shader::begin() 

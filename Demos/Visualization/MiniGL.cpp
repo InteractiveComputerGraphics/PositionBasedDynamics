@@ -13,10 +13,8 @@
 
 #ifdef __APPLE__
 #include <OpenGL/GL.h>
-#include <OpenGL/GLU.h>
 #else
 #include "GL/gl.h"
-#include "GL/glu.h"
 #endif
 
 #define _USE_MATH_DEFINES
@@ -36,6 +34,9 @@ MiniGL::DestroyFct MiniGL::destroyfunc = nullptr;
 void (*MiniGL::exitfunc)(void) = NULL;
 int MiniGL::m_width = 0;
 int MiniGL::m_height = 0;
+int MiniGL::m_windowWidth = 0;
+int MiniGL::m_windowHeight = 0;
+Real MiniGL::m_devicePixelRatio = 1.0;
 Quaternionr MiniGL::m_rotation;
 Real MiniGL::m_zoom = 1.0;
 Vector3r MiniGL::m_translation;
@@ -60,7 +61,6 @@ GLint MiniGL::m_context_minor_version = 0;
 GLint MiniGL::m_context_profile = 0;
 bool MiniGL::m_breakPointActive = true;
 bool MiniGL::m_breakPointLoop = false;
-GLUquadricObj* MiniGL::m_sphereQuadric = nullptr;
 std::vector<MiniGL::ReshapeFct> MiniGL::m_reshapeFct;
 std::vector<MiniGL::KeyboardFct> MiniGL::m_keyboardFct;
 std::vector<MiniGL::CharFct> MiniGL::m_charFct;
@@ -73,6 +73,20 @@ std::vector<MiniGL::Line> MiniGL::m_drawLines;
 std::vector<MiniGL::Point> MiniGL::m_drawPoints;
 bool MiniGL::m_vsync = false;
 double MiniGL::m_lastTime;
+Shader MiniGL::m_shader;
+Shader MiniGL::m_shader_screen;
+Matrix4r MiniGL::m_modelview_matrix;
+Matrix4r MiniGL::m_projection_matrix;
+Vector3f MiniGL::m_ambientIntensity;
+unsigned int MiniGL::m_numLights = 0;
+VectorXf MiniGL::m_diffuseIntensity;
+VectorXf MiniGL::m_specularIntensity;
+VectorXf MiniGL::m_lightPosition;
+GLuint MiniGL::m_vao = 0;
+GLuint MiniGL::m_vbo_vertices = 0;
+GLuint MiniGL::m_vbo_normals = 0;
+GLuint MiniGL::m_vbo_texcoords = 0;
+GLuint MiniGL::m_vbo_faces = 0;
 
 
 void MiniGL::bindTexture()
@@ -93,222 +107,207 @@ void MiniGL::getOpenGLVersion(int &major_version, int &minor_version)
 
 void MiniGL::coordinateSystem() 
 {
-	Eigen::Vector3f a(0,0,0);
-	Eigen::Vector3f b(2,0,0);
-	Eigen::Vector3f c(0,2,0);
-	Eigen::Vector3f d(0,0,2);
+	Vector3r a(0,0,0);
+	Vector3r b(2,0,0);
+	Vector3r c(0,2,0);
+	Vector3r d(0,0,2);
+	float lineWidth = 3.0;
+	Vector3f color;
 
-	float diffcolor [4] = {1,0,0,1};
-	float speccolor [4] = {1,1,1,1};
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, diffcolor);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, diffcolor);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glLineWidth (2);
-
-	glBegin (GL_LINES);
-		glVertex3fv (&a[0]);
-		glVertex3fv (&b[0]);
-	glEnd ();
-
-	float diffcolor2[4] = { 0, 1, 0, 1 };
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, diffcolor2);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, diffcolor2);
-
-	glBegin (GL_LINES);
-		glVertex3fv (&a[0]);
-		glVertex3fv (&c[0]);
-	glEnd ();
-
-	float diffcolor3[4] = { 0, 0, 1, 1 };
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, diffcolor3);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, diffcolor3);
-
-	glBegin (GL_LINES);
-		glVertex3fv (&a[0]);
-		glVertex3fv (&d[0]);
-	glEnd ();
-	glLineWidth (1);
+	color << 1,0,0;
+	drawVector(a, b, lineWidth, &color(0));
+	color << 0,1,0;
+	drawVector(a, c, lineWidth, &color(0));
+	color << 0,0,1;
+	drawVector(a, d, lineWidth, &color(0));
 }
 
 void MiniGL::drawVector(const Vector3r &a, const Vector3r &b, const float w, float *color)
 {
-	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(color);
+	float thickness = 0.005f * w;
 
-	glLineWidth (w);
-
-	glBegin (GL_LINES);
-		glVertex3v(&a[0]);
-		glVertex3v(&b[0]);
-	glEnd ();
-	
-	glLineWidth (1);
+	// Draw a thick line as a cylinder with constant color.
+	drawCylinder(a, b, color, thickness, 32, false);
 }
 
-void MiniGL::drawCylinder(const Vector3r &a, const Vector3r &b, const float *color, const float radius, const unsigned int subdivisions)
+void MiniGL::drawCylinder(const Vector3r &a, const Vector3r &b, const float *color, const float radius, const unsigned int subdivisions, const bool lighting)
 {
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(color);
+	Vector3f diffcolor(color);
+	Vector3f speccolor(1.0, 1.0, 1.0);
 
-	Real vx = (b.x() - a.x());
-	Real vy = (b.y() - a.y());
-	Real vz = (b.z() - a.z());
-	//handle the degenerate case with an approximation
-	if (vz == 0)
-		vz = .00000001;
-	Real v = sqrt(vx*vx + vy*vy + vz*vz);
-	Real ax = static_cast<Real>(57.2957795)*acos(vz / v);
-	if (vz < 0.0)
-		ax = -ax;
-	Real rx = -vy*vz;
-	Real ry = vx*vz;
+	// To simplify computations, the cylinder of height v is generated
+	// along the z axis from z=0 to z=v and then transformed to the axis ab.
+	Vector3r ab = b - a;
+	Real v = ab.norm();
+	Eigen::Transform<Real, 3, Eigen::Affine> transform =
+		Eigen::Translation<Real, 3>(a) *
+		Quaternionr::FromTwoVectors(Vector3r(0.0, 0.0, v), ab);
+	Vector3r xMid = transform * Vector3r(0.0, 0.0, 0.5 * v);
 
-	GLUquadricObj *quadric = gluNewQuadric();
-	gluQuadricNormals(quadric, GLU_SMOOTH);
+	// Both the lateral surface and the base disks are subdivided into n slices (cf. gluCylinder & gluDisk).
+	// For this purpose, the base circle is parametrized as a function of the angle theta.
+	// The lateral slices are again subdivided into two triangles each for rendering.
+	// Smooth normals are obtained by going outward from the midpoint.
+	unsigned int n = subdivisions;
+	VectorXr vertices((n+1) * 2 * 3);
+	VectorXr normals((n+1) * 2 * 3);
+	std::vector<unsigned int> faces;
+	unsigned int iMidBottom = 2 * n;
+	unsigned int iMidTop = 2 * n + 1;
+	for (unsigned int i = 0; i < n; i++)
+	{
+		Real theta = (Real)i / (Real)n * 2.0 * M_PI;
+		Vector3r x(radius * cos(theta), radius * sin(theta), 0.0);
+		Vector3r xBottom = transform * x;
+		x(2) = v;
+		Vector3r xTop = transform * x;
+		vertices.segment<3>(2 * 3 * i) = xBottom;
+		vertices.segment<3>(2 * 3 * i + 3) = xTop;
+		normals.segment<3>(2 * 3 * i) = (xBottom - xMid).normalized();
+		normals.segment<3>(2 * 3 * i + 3) = (xTop - xMid).normalized();
 
-	glPushMatrix();
-	glTranslatef((float)a.x(), (float)a.y(), (float)a.z());
-	glRotatef((float)ax, (float)rx, (float)ry, 0.0f);
-	//draw the cylinder
-	gluCylinder(quadric, radius, radius, v, subdivisions, 1);
-	gluQuadricOrientation(quadric, GLU_INSIDE);
-	//draw the first cap
-	gluDisk(quadric, 0.0, radius, subdivisions, 1);
-	glTranslatef(0, 0, (float)v);
-	//draw the second cap
-	gluQuadricOrientation(quadric, GLU_OUTSIDE);
-	gluDisk(quadric, 0.0, radius, subdivisions, 1);
-	glPopMatrix();
+		// [TESSELLATION]
+		//      iMidTop
+		//     /        \
+		//  iTop ---- iNextTop
+		//    |   \      |
+		//    |     \    |
+		// iBottom - iNextBottom
+		//     \        /
+		//     iMidBottom
+		unsigned int iBottom = 2 * i;
+		unsigned int iTop = 2 * i + 1;
+		unsigned int iNextBottom = (2 * (i+1)) % (2 * n);
+		unsigned int iNextTop = (2 * (i+1) + 1) % (2 * n);
+		faces.insert(faces.end(), {iTop, iNextTop, iMidTop});
+		faces.insert(faces.end(), {iBottom, iNextBottom, iTop});
+		faces.insert(faces.end(), {iTop, iNextBottom, iNextTop});
+		faces.insert(faces.end(), {iBottom, iMidBottom, iNextBottom});
+	}
+	Vector3r xMidBottom = transform * Vector3r(0.0, 0.0, 0.0);
+	Vector3r xMidTop = transform * Vector3r(0.0, 0.0, v);
+	vertices.segment<3>(3 * iMidBottom) = xMidBottom;
+	vertices.segment<3>(3 * iMidTop) = xMidTop;
+	normals.segment<3>(3 * iMidBottom) = (xMidBottom - xMid).normalized();
+	normals.segment<3>(3 * iMidTop) = (xMidTop - xMid).normalized();
 
-	gluDeleteQuadric(quadric);
+	enableShader(diffcolor, diffcolor, speccolor, 100.0);
+	if (!lighting) glUniform1i(m_shader.getUniform("lighting"), GL_FALSE);
+	supplyVertices(0, (n+1) * 2, &vertices(0));
+	supplyNormals(1, (n+1) * 2, &normals(0));
+	supplyFaces(faces.size(), &faces[0]);
+	glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, (void*)0);
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	disableShader();
 }
 
 void MiniGL::drawSphere(const Vector3r &translation, float radius, float *color, const unsigned int subDivision)
 {
-	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(color);
+	Vector3f diffcolor(color);
+	Vector3f speccolor(1.0, 1.0, 1.0);
 
-	if (m_sphereQuadric == nullptr)
+	// The surface of the sphere is subdivided into n slices and stacks (cf. gluSphere).
+	// For this purpose, it is parametrized as a function of the longitude theta and the colatitude phi.
+	// The slices and stacks are again subdivided into two triangles each for rendering.
+	// Smooth normals are obtained by going outward from the midpoint.
+	unsigned int n = subDivision;
+	VectorXr vertices((n+1) * n * 3);
+	VectorXr normals((n+1) * n * 3);
+	std::vector<unsigned int> faces;
+	for (unsigned int i = 0; i <= n; i++)
 	{
-		m_sphereQuadric = gluNewQuadric();
-		gluQuadricNormals(m_sphereQuadric, GLU_SMOOTH);
+		Real phi = (Real)i / (Real)n * M_PI;
+		Real xy = radius * sin(phi);
+		Vector3r x(xy, xy, radius * cos(phi));
+		for (unsigned int j = 0; j < n; j++)
+		{
+			Real theta = (Real)j / (Real)n * 2.0 * M_PI;
+			x(0) = xy * cos(theta);
+			x(1) = xy * sin(theta);
+			vertices.segment<3>(n * 3 * i + 3 * j) = x + translation;
+			normals.segment<3>(n * 3 * i + 3 * j) = x.normalized();
+
+			if (i < n)
+			{
+				// [TESSELATION]
+				//  iTop ---- iNextTop
+				//    |   \      |
+				//    |     \    |
+				// iBottom - iNextBottom
+				unsigned int iBottom = n * i + j;
+				unsigned int iTop = n * (i+1) + j;
+				unsigned int iNextBottom = n * i + ((j+1) % n);
+				unsigned int iNextTop = n * (i+1) + ((j+1) % n);
+				faces.insert(faces.end(), {iBottom, iNextBottom, iTop});
+				faces.insert(faces.end(), {iTop, iNextBottom, iNextTop});
+			}
+		}
 	}
 
-	glPushMatrix ();
-	glTranslated ((translation)[0], (translation)[1], (translation)[2]);
-
-	gluSphere(m_sphereQuadric, radius, subDivision, subDivision);
-	glPopMatrix();
+	enableShader(diffcolor, diffcolor, speccolor, 100.0);
+	supplyVertices(0, (n+1) * n, &vertices(0));
+	supplyNormals(1, (n+1) * n, &normals(0));
+	supplyFaces(faces.size(), &faces[0]);
+	glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, (void*)0);
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	disableShader();
 }
 
 void MiniGL::drawPoint(const Vector3r &translation, const float pointSize, const float * const color)
 {	
-	float speccolor [4] = {1.0, 1.0, 1.0, 1.0};
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(color);
+	Vector3f diffcolor(color);
+	Vector3f speccolor(1.0, 1.0, 1.0);
 
-	glPointSize(pointSize);
-
-	glBegin (GL_POINTS);
-	glVertex3v(&translation[0]);
-	glEnd ();
-
-	glPointSize(1);
+	enableShader(diffcolor, diffcolor, speccolor, 100.0, pointSize);
+	supplyVertices(0, 1, &translation(0));
+	glDrawArrays(GL_POINTS, 0, 1);
+	glDisableVertexAttribArray(0);
+	disableShader();
 }
 
 void MiniGL::drawMesh(const std::vector<Vector3r> &vertices, const std::vector<unsigned int> &faces,
 		const std::vector<Vector3r> &vertexNormals, const float * const color)
 {
 	// draw mesh 
-	if (MiniGL::checkOpenGLVersion(3, 3))
+	supplyVertices(0, vertices.size(), &vertices[0][0]);
+	if (vertexNormals.size() > 0)
 	{
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_REAL, GL_FALSE, 0, &vertices[0][0]);
-		if (vertexNormals.size() > 0)
-		{
-			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 3, GL_REAL, GL_FALSE, 0, &vertexNormals[0][0]);
-		}
+		supplyNormals(2, vertexNormals.size(), &vertexNormals[0][0]);
 	}
-	else
-	{
-		float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0f);
-		glColor3fv(color);
+	supplyFaces(faces.size(), faces.data());
 
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_REAL, 0, &vertices[0][0]);
-		if (vertexNormals.size() > 0)
-		{
-			glEnableClientState(GL_NORMAL_ARRAY);
-			glNormalPointer(GL_REAL, 0, &vertexNormals[0][0]);
-		}
-	}
+	glDrawElements(GL_TRIANGLES, (GLsizei) faces.size(), GL_UNSIGNED_INT, (void*)0);
 
-	glDrawElements(GL_TRIANGLES, (GLsizei) faces.size(), GL_UNSIGNED_INT, faces.data());
-
-	if (MiniGL::checkOpenGLVersion(3, 3))
-	{
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(2);
-	}
-	else
-	{
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-	}
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(2);
 }
 
 void MiniGL::drawQuad(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d, const Vector3r &norm, float *color)
 {
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-
-	glBegin (GL_QUADS);
-		glNormal3v(&norm[0]);
-		glVertex3v(&a[0]);
-		glVertex3v(&b[0]);
-		glVertex3v(&c[0]);
-		glVertex3v(&d[0]);
-	glEnd ();
+	// The quad is subdivided into two triangles for rendering.
+	drawTriangle(a, b, c, norm, color);
+	drawTriangle(a, c, d, norm, color);
 }
 
 void MiniGL::drawTriangle (const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &norm, float *color)
 {
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+	VectorXr triangle(3 * 3);
+	triangle << a, b, c;
 
-	glBegin (GL_TRIANGLES);
-		glNormal3v(&norm[0]);
-		glVertex3v(&a[0]);
-		glVertex3v(&b[0]);
-		glVertex3v(&c[0]);
-	glEnd ();
+	Vector3f diffcolor(color);
+	Vector3f speccolor(1.0, 1.0, 1.0);
+
+	glVertexAttrib3rv(1, &norm(0));
+
+	enableShader(diffcolor, diffcolor, speccolor, 100.0);
+	supplyVertices(0, 3, &triangle(0));
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDisableVertexAttribArray(0);
+	disableShader();
+
+	glVertexAttrib3r(1, 0.0, 0.0, 1.0);
 }
 
 void MiniGL::drawTetrahedron(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d, float *color)
@@ -325,60 +324,62 @@ void MiniGL::drawTetrahedron(const Vector3r &a, const Vector3r &b, const Vector3
 
 void MiniGL::drawGrid_xz(float *color)
 {
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+	Vector3f diffcolor(color);
+	Vector3f speccolor(1.0, 1.0, 1.0);
 
 	const int size = 5;
 
-	glBegin(GL_LINES);
+	VectorXr grid((2*size + 1) * 4 * 3);
 	for (int i = -size; i <= size; i++)
 	{
-		glVertex3f((float) i, 0.0f, (float) -size);
-		glVertex3f((float) i, 0.0f, (float) size);
-		glVertex3f((float) -size, 0.0f, (float) i);
-		glVertex3f((float) size, 0.0f, (float) i);
+		grid.segment<12>((i+size) * 12) << (float) i, 0.0f, (float) -size,
+										   (float) i, 0.0f, (float) size,
+										   (float) -size, 0.0f, (float) i,
+										   (float) size, 0.0f, (float) i;
 	}
-	glEnd();
+	enableShader(diffcolor, diffcolor, speccolor, 100.0);
+	glUniform1i(m_shader.getUniform("lighting"), GL_FALSE);
+	supplyVertices(0, (2*size + 1) * 4, &grid(0));
+	glDrawArrays(GL_LINES, 0, (2*size + 1) * 4);
+	glDisableVertexAttribArray(0);
+	disableShader();
 
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-	glVertex3f((float)-size, 0.0f, 0.0f);
-	glVertex3f((float)size, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, (float) -size);
-	glVertex3f(0.0f, 0.0f, (float) size);
-	glEnd();
+	float lineWidth = 3.0;
+
+	drawVector(Vector3r(-size, 0.0, 0.0), Vector3r(0.0, 0.0, 0.0), lineWidth, color);
+	drawVector(Vector3r(2.0, 0.0, 0.0), Vector3r(size, 0.0, 0.0), lineWidth, color);
+	drawVector(Vector3r(0.0, 0.0, -size), Vector3r(0.0, 0.0, 0.0), lineWidth, color);
+	drawVector(Vector3r(0.0, 0.0, 2.0), Vector3r(0.0, 0.0, size), lineWidth, color);
 }
 
 void MiniGL::drawGrid_xy(float *color)
 {
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
+	Vector3f diffcolor(color);
+	Vector3f speccolor(1.0, 1.0, 1.0);
 
 	const int size = 5;
 
-	glBegin(GL_LINES);
+	VectorXr grid((2*size + 1) * 4 * 3);
 	for (int i = -size; i <= size; i++)
 	{
-		glVertex3f((float)i, (float)-size, 0.0f );
-		glVertex3f((float)i, (float)size, 0.0f);
-		glVertex3f((float)-size, (float)i, 0.0f);
-		glVertex3f((float)size, (float)i, 0.0f);
+		grid.segment<12>((i+size) * 12) << (float)i, (float)-size, 0.0f,
+										   (float)i, (float)size, 0.0f,
+										   (float)-size, (float)i, 0.0f,
+										   (float)size, (float)i, 0.0f;
 	}
-	glEnd();
+	enableShader(diffcolor, diffcolor, speccolor, 100.0);
+	glUniform1i(m_shader.getUniform("lighting"), GL_FALSE);
+	supplyVertices(0, (2*size + 1) * 4, &grid(0));
+	glDrawArrays(GL_LINES, 0, (2*size + 1) * 4);
+	glDisableVertexAttribArray(0);
+	disableShader();
 
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-	glVertex3f((float)-size, 0.0f, 0.0f);
-	glVertex3f((float)size, 0.0f, 0.0f);
-	glVertex3f(0.0f, (float)-size, 0.0f);
-	glVertex3f(0.0f, (float)size, 0.0f);
-	glEnd();
+	float lineWidth = 3.0;
+
+	drawVector(Vector3r(-size, 0.0, 0.0), Vector3r(0.0, 0.0, 0.0), lineWidth, color);
+	drawVector(Vector3r(2.0, 0.0, 0.0), Vector3r(size, 0.0, 0.0), lineWidth, color);
+	drawVector(Vector3r(0.0, -size, 0.0), Vector3r(0.0, 0.0, 0.0), lineWidth, color);
+	drawVector(Vector3r(0.0, 2.0, 0.0), Vector3r(0.0, size, 0.0), lineWidth, color);
 }
 
 void MiniGL::setViewport(float pfovy, float pznear, float pzfar, const Vector3r &peyepoint, const Vector3r &plookat)
@@ -387,13 +388,20 @@ void MiniGL::setViewport(float pfovy, float pznear, float pzfar, const Vector3r 
 	znear = pznear;
 	zfar = pzfar;
 
-	glLoadIdentity ();
-	gluLookAt (peyepoint [0], peyepoint [1], peyepoint [2], plookat[0], plookat[1], plookat[2], 0, 1, 0);
-
-	Matrix4r transformation;
-	Real *lookAtMatrix = transformation.data();
-	glGetRealv(GL_MODELVIEW_MATRIX, &lookAtMatrix[0]);
+	// Compute the lookAt modelview matrix (cf. gluLookAt).
+	Vector3r f = (plookat - peyepoint).normalized();
+	Vector3r up(0.0, 1.0, 0.0);
+	Vector3r s = f.cross(up);
+	Vector3r u = s.normalized().cross(f);
+	m_modelview_matrix.setIdentity();
+	m_modelview_matrix.block<1,3>(0,0) = s;
+	m_modelview_matrix.block<1,3>(1,0) = u;
+	m_modelview_matrix.block<1,3>(2,0) = -f;
+	m_modelview_matrix(0,3) = -s.dot(peyepoint);
+	m_modelview_matrix(1,3) = -u.dot(peyepoint);
+	m_modelview_matrix(2,3) = f.dot(peyepoint);
 	
+	const Matrix4r& transformation = m_modelview_matrix;
 	Matrix3r rot;
 	Vector3r scale;
 
@@ -411,8 +419,6 @@ void MiniGL::setViewport(float pfovy, float pznear, float pzfar, const Vector3r 
 
 	m_zoom = scale[0];
 	m_rotation = Quaternionr(rot);
-
-	glLoadIdentity ();
 }
 
 void MiniGL::setViewport(float pfovy, float pznear, float pzfar)
@@ -444,10 +450,11 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 
-	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_FALSE);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (maximized)
 		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
@@ -478,9 +485,8 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	LOG_INFO << "Renderer: " << glGetString(GL_RENDERER);
 	LOG_INFO << "Version: " << glGetString(GL_VERSION);
 
+	glEnable(GL_MULTISAMPLE);
 	glEnable (GL_DEPTH_TEST);
-	glEnable (GL_NORMALIZE);
-	glShadeModel (GL_SMOOTH);
 	glEnable (GL_BLEND); 
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -492,10 +498,16 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	glfwSetCursorPosCallback(m_glfw_window, mouseMove);
 	glfwSetScrollCallback(m_glfw_window, mouseWheel);
 
-	int w, h;
-	glfwGetWindowSize(m_glfw_window, &w, &h);
-
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+
+	glGenVertexArrays(1, &m_vao);
+	glBindVertexArray(m_vao);
+	glGenBuffers(1, &m_vbo_vertices);
+	glGenBuffers(1, &m_vbo_normals);
+	glGenBuffers(1, &m_vbo_texcoords);
+	glGenBuffers(1, &m_vbo_faces);
+	// Set the default normal (cf. glNormal).
+	glVertexAttrib3r(1, 0.0, 0.0, 1.0);
 
 	m_lastTime = glfwGetTime();
 }
@@ -521,17 +533,12 @@ void MiniGL::initTexture()
 
 	glGenTextures(1, &m_texId);
 	glBindTexture(GL_TEXTURE_2D, m_texId);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, IMAGE_COLS, IMAGE_ROWS, 0, GL_RGB,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, IMAGE_COLS, IMAGE_ROWS, 0, GL_RGB,
 		GL_UNSIGNED_BYTE, texData);  // Create texture from image data
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-	glEnable(GL_TEXTURE_2D);  // Enable 2D texture 
-
-	// Correct texture distortion in perpective projection
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -551,7 +558,11 @@ void MiniGL::setSelectionFunc(void(*func) (const Vector2i&, const Vector2i&, voi
 
 void MiniGL::destroy ()
 {
-	gluDeleteQuadric(m_sphereQuadric);
+	glDeleteBuffers(1, &m_vbo_vertices);
+	glDeleteBuffers(1, &m_vbo_normals);
+	glDeleteBuffers(1, &m_vbo_texcoords);
+	glDeleteBuffers(1, &m_vbo_faces);
+	glDeleteVertexArrays(1, &m_vao);
 }
 
 void MiniGL::reshape (GLFWwindow* glfw_window, int w, int h)
@@ -646,77 +657,165 @@ void MiniGL::char_callback(GLFWwindow* window, unsigned int codepoint)
 }
 
 void MiniGL::setProjectionMatrix (int width, int height) 
-{ 
-	glMatrixMode(GL_PROJECTION); 
-	glLoadIdentity(); 
-	gluPerspective(fovy, (Real)width / (Real)height, znear, zfar);
+{
+	// Compute the perspective projection matrix (cf. gluPerspective).
+	Real aspect = (Real)width / (Real)height;
+	Real fovy_rad = fovy * M_PI / 180.0;
+	Real f = cos(0.5 * fovy_rad) / sin(0.5 * fovy_rad);
+	m_projection_matrix.setZero();
+	m_projection_matrix(0,0) = f / aspect;
+	m_projection_matrix(1,1) = f;
+	m_projection_matrix(2,2) = (zfar + znear) / (znear - zfar);
+	m_projection_matrix(2,3) = 2.0 * zfar * znear / (znear - zfar);
+	m_projection_matrix(3,2) = -1.0;
 }
 
 void MiniGL::viewport ()
 {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glRenderMode (GL_RENDER);
 	glfwGetFramebufferSize(m_glfw_window, &m_width, &m_height);
+	getWindowSize(m_windowWidth, m_windowHeight);
+	m_devicePixelRatio = static_cast<Real>(m_width) / static_cast<Real>(m_windowWidth);
 	glViewport (0, 0, m_width, m_height);
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity ();
 	setProjectionMatrix (m_width, m_height);
-	glMatrixMode (GL_MODELVIEW);
 
-	glTranslatef((float)m_translation[0], (float)m_translation[1], (float)m_translation[2]);
 	Matrix3r rot;
 	rot = m_rotation.toRotationMatrix();
-	Matrix4r transform(Matrix4r::Identity());
+	Matrix4r& transform = m_modelview_matrix;
+	transform.setIdentity();
 	Vector3r scale(m_zoom, m_zoom, m_zoom);
 	transform.block<3,3>(0,0) = rot;
 	transform.block<3,1>(0,3) = m_translation;
 	transform(0,0) *= scale[0];
 	transform(1,1) *= scale[1];
 	transform(2,2) *= scale[2];
-	Real *transformMatrix = transform.data();
-	glLoadMatrix(&transformMatrix[0]);
 }
 
 void MiniGL::initLights ()
 {
-	float t = 0.9f;
-	float a = 0.2f;
-	float amb0 [4] = {a,a,a,1};
-	float diff0 [4] = {t,0,0,1};
-	float spec0 [4] = {1,1,1,1};
-	float pos0 [4] = {-10,10,10,1};
-	glLightfv(GL_LIGHT0, GL_AMBIENT,  amb0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE,  diff0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
-	glLightfv(GL_LIGHT0, GL_POSITION, pos0);
-	glEnable(GL_LIGHT0);
+	m_ambientIntensity << 0.2f, 0.2f, 0.2f;
 
-	float amb1 [4] = {a,a,a,1};
-	float diff1 [4] = {0,0,t,1};
-	float spec1 [4] = {1,1,1,1};
-	float pos1 [4] = {10,10,10,1};
-	glLightfv(GL_LIGHT1, GL_AMBIENT,  amb1);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE,  diff1);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
-	glLightfv(GL_LIGHT1, GL_POSITION, pos1);
-	glEnable(GL_LIGHT1);
+	m_numLights = 3;
+	m_diffuseIntensity.resize(m_numLights * 3);
+	m_specularIntensity.resize(m_numLights * 3);
+	m_lightPosition.resize(m_numLights * 3);
 
-	float amb2 [4] = {a,a,a,1};
-	float diff2 [4] = {0,t,0,1};
-	float spec2 [4] = {1,1,1,1};
-	float pos2 [4] = {0,10,10,1};
-	glLightfv(GL_LIGHT2, GL_AMBIENT,  amb2);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE,  diff2);
-	glLightfv(GL_LIGHT2, GL_SPECULAR, spec2);
-	glLightfv(GL_LIGHT2, GL_POSITION, pos2);
-	glEnable(GL_LIGHT2);
+	m_diffuseIntensity.segment<3>(0) << 0.9f, 0.0f, 0.0f;
+	m_specularIntensity.segment<3>(0) << 1.0f, 1.0f, 1.0f;
+	m_lightPosition.segment<3>(0) << -10.0f, 10.0f, 10.0f;
 
+	m_diffuseIntensity.segment<3>(1 * 3) << 0.0f, 0.0f, 0.9f;
+	m_specularIntensity.segment<3>(1 * 3) << 1.0f, 1.0f, 1.0f;
+	m_lightPosition.segment<3>(1 * 3) << 10.0f, 10.0f, 10.0f;
 
-	glEnable(GL_LIGHTING);
-	glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+	m_diffuseIntensity.segment<3>(2 * 3) << 0.0f, 0.9f, 0.0f;
+	m_specularIntensity.segment<3>(2 * 3) << 1.0f, 1.0f, 1.0f;
+	m_lightPosition.segment<3>(2 * 3) << 0.0f, 10.0f, 10.0f;
+}
 
+void MiniGL::initShaders(const std::string& shaderPath)
+{
+	Shader& shader = m_shader;
+	shader.compileShaderFile(GL_VERTEX_SHADER, shaderPath + "/mini.vert");
+	shader.compileShaderFile(GL_FRAGMENT_SHADER, shaderPath + "/mini.frag");
+	shader.createAndLinkProgram();
+	shader.begin();
+	shader.addUniform("modelview_matrix");
+	shader.addUniform("projection_matrix");
+	shader.addUniform("pointSize");
+	shader.addUniform("lighting");
+	shader.addUniform("ambientIntensity");
+	shader.addUniform("diffuseIntensity");
+	shader.addUniform("specularIntensity");
+	shader.addUniform("lightPosition");
+	shader.addUniform("ambientReflectance");
+	shader.addUniform("diffuseReflectance");
+	shader.addUniform("specularReflectance");
+	shader.addUniform("shininess");
+	shader.end();
+
+	Shader& screenShader = m_shader_screen;
+	screenShader.compileShaderFile(GL_VERTEX_SHADER, shaderPath + "/mini_screen.vert");
+	screenShader.compileShaderFile(GL_FRAGMENT_SHADER, shaderPath + "/mini_screen.frag");
+	screenShader.createAndLinkProgram();
+	screenShader.begin();
+	screenShader.addUniform("width");
+	screenShader.addUniform("height");
+	screenShader.addUniform("color");
+	screenShader.end();
+}
+
+void MiniGL::destroyShaders()
+{
+	m_shader.destroy();
+	m_shader_screen.destroy();
+}
+
+void MiniGL::enableShader(const Vector3f& ambientReflectance, const Vector3f& diffuseReflectance, const Vector3f& specularReflectance, const float shininess, const float pointSize)
+{
+	Shader& shader = m_shader;
+	shader.begin();
+	const Matrix4f modelview_matrix(m_modelview_matrix.cast<float>());
+	glUniformMatrix4fv(shader.getUniform("modelview_matrix"), 1, GL_FALSE, &modelview_matrix(0,0));
+	const Matrix4f projection_matrix(m_projection_matrix.cast<float>());
+	glUniformMatrix4fv(shader.getUniform("projection_matrix"), 1, GL_FALSE, &projection_matrix(0,0));
+	glUniform1f(shader.getUniform("pointSize"), pointSize);
+	glUniform1i(shader.getUniform("lighting"), GL_TRUE);
+	glUniform3fv(shader.getUniform("ambientIntensity"), 1, &m_ambientIntensity(0));
+	glUniform3fv(shader.getUniform("diffuseIntensity"), m_numLights, &m_diffuseIntensity(0));
+	glUniform3fv(shader.getUniform("specularIntensity"), m_numLights, &m_specularIntensity(0));
+	glUniform3fv(shader.getUniform("lightPosition"), m_numLights, &m_lightPosition(0));
+	glUniform3fv(shader.getUniform("ambientReflectance"), 1, &ambientReflectance(0));
+	glUniform3fv(shader.getUniform("diffuseReflectance"), 1, &diffuseReflectance(0));
+	glUniform3fv(shader.getUniform("specularReflectance"), 1, &specularReflectance(0));
+	glUniform1f(shader.getUniform("shininess"), shininess);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_PROGRAM_POINT_SIZE);
+}
+
+void MiniGL::disableShader()
+{
+	Shader& shader = m_shader;
+	shader.end();
+}
+
+void MiniGL::enableScreenShader(const Vector3f& color)
+{
+	Shader& shader = m_shader_screen;
+	shader.begin();
+	glUniform1f(shader.getUniform("width"), static_cast<float>(m_windowWidth));
+	glUniform1f(shader.getUniform("height"), static_cast<float>(m_windowHeight));
+	glUniform3fv(shader.getUniform("color"), 1, &color(0));
+}
+
+void MiniGL::disableScreenShader()
+{
+	Shader& shader = m_shader_screen;
+	shader.end();
+}
+
+void MiniGL::supplyVectors(GLuint index, GLuint vbo, unsigned int dim, unsigned int n, const float* data)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, n * dim * sizeof(float), data, GL_STREAM_DRAW);
+	glVertexAttribPointer(index, dim, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(index);
+}
+
+void MiniGL::supplyVectors(GLuint index, GLuint vbo, unsigned int dim, unsigned int n, const double* data)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, n * dim * sizeof(double), data, GL_STREAM_DRAW);
+	glVertexAttribPointer(index, dim, GL_DOUBLE, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(index);
+}
+
+void MiniGL::supplyIndices(GLuint vbo, unsigned int n, const unsigned int* data)
+{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, n * sizeof(unsigned int), data, GL_STREAM_DRAW);
 }
 
 void MiniGL::move(Real x, Real y, Real z)
@@ -841,16 +940,34 @@ void MiniGL::mouseMove (GLFWwindow* window, double x, double y)
 void MiniGL::unproject(const int x, const int y, Vector3r &pos)
 {
 	GLint viewport[4];
-	GLdouble mv[16], pm[16];
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	glGetDoublev(GL_MODELVIEW_MATRIX, mv);
-	glGetDoublev(GL_PROJECTION_MATRIX, pm);
 
-	GLdouble resx, resy, resz;
-	gluUnProject(x, viewport[3] - y, znear, mv, pm, viewport, &resx, &resy, &resz);
-	pos[0] = (Real) resx;
-	pos[1] = (Real) resy;
-	pos[2] = (Real) resz;
+	unproject(
+		Vector3r(
+			static_cast<Real>(x) * m_devicePixelRatio,
+			static_cast<Real>(viewport[3]) - static_cast<Real>(y) * m_devicePixelRatio,
+			static_cast<Real>(znear)
+		),
+		pos
+	);
+}
+
+void MiniGL::unproject(const Vector3r& win, Vector3r& pos)
+{
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	// Map the specified window coordinates to object coordinates (cf. gluUnProject).
+	Vector4r ndc;
+	ndc(0) = static_cast<Real>(2.0) * (win(0) - static_cast<Real>(viewport[0])) / static_cast<Real>(viewport[2]) - static_cast<Real>(1.0);
+	ndc(1) = static_cast<Real>(2.0) * (win(1) - static_cast<Real>(viewport[1])) / static_cast<Real>(viewport[3]) - static_cast<Real>(1.0);
+	ndc(2) = static_cast<Real>(2.0) * win(2) - static_cast<Real>(1.0);
+	ndc(3) = static_cast<Real>(1.0);
+	Vector4r obj = (m_projection_matrix * m_modelview_matrix).inverse() * ndc;
+	if (obj(3) == static_cast<Real>(0.0)) obj.setZero();
+	else obj /= obj(3);
+
+	pos = obj.segment<3>(0);
 }
 
 float MiniGL::getZNear()
@@ -892,20 +1009,16 @@ bool MiniGL::checkOpenGLVersion(const int major_version, const int minor_version
 
 Shader *MiniGL::createShader(const std::string &vertexShader, const std::string &geometryShader, const std::string &fragmentShader)
 {
-	if (checkOpenGLVersion(3,3))
-	{
-		Shader *shader = new Shader();
+	Shader *shader = new Shader();
 
-		if (vertexShader != "")
-			shader->compileShaderFile(GL_VERTEX_SHADER, vertexShader);
-		if (geometryShader != "")
-			shader->compileShaderFile(GL_GEOMETRY_SHADER, geometryShader);
-		if (fragmentShader != "")
-			shader->compileShaderFile(GL_FRAGMENT_SHADER, fragmentShader);
-		shader->createAndLinkProgram();
-		return shader;
-	}
-	return NULL;
+	if (vertexShader != "")
+		shader->compileShaderFile(GL_VERTEX_SHADER, vertexShader);
+	if (geometryShader != "")
+		shader->compileShaderFile(GL_GEOMETRY_SHADER, geometryShader);
+	if (fragmentShader != "")
+		shader->compileShaderFile(GL_FRAGMENT_SHADER, fragmentShader);
+	shader->createAndLinkProgram();
+	return shader;
 }
 
 void MiniGL::drawElements()
@@ -975,11 +1088,11 @@ void MiniGL::mainLoop()
 	if (destroyfunc != nullptr)
 		destroyfunc();
 
+	destroy();
+
 	glfwDestroyWindow(m_glfw_window);
 
 	glfwTerminate();
-
-	destroy();
 }
 
 void MiniGL::leaveMainLoop()
