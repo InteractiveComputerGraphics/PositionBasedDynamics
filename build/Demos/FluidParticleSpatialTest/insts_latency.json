@@ -1,0 +1,23 @@
+{
+	"I_ADD_SUB" : 6.047,
+	"I_MAD_MUL" : 13.164,
+	"I_DIV_REM" : 255.544,
+	"I_MIN_MAX" : 12.047,
+	"I_ABS" : 15.086,
+	"I_MUL24" : 19.3,
+	"I_LOGICAL" : 0.145,
+	"I_SHL_SHR" : 6.051,
+	"I_SAD" : 6.074,
+	"F_ADD_SUB" : 6.047,
+	"F_MAD_MUL" : 6.047,
+	"F_DIV" : 365.641,
+	"F_DIVIDEF" : 34.07,
+	"F_EXP2" : 40.117,
+	"F_LOG2" : 34.07,
+	"F_SIN_COS" : 15.094,
+	"F_SQRT" : 130.840,
+	"F_RSQRT" : 34.07,
+	"F_MIN_MAX" : 12.074,
+	"F_RCP" : 132.703,
+	"DEFAULT" : 10.0
+}

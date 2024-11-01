@@ -146,7 +146,7 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numParticl
 	std::copy(boundaryX[0].data(), boundaryX[0].data() + numBoundaryParticles * 3, (float*)tmp1 + nump_ * 3);*/
 
 	host_buff_.transfer(device_buff_, 0, nump_, hipMemcpyHostToDevice);
-	printf("Host buffer transfer success\n");
+	//printf("Host buffer transfer success\n");
 
 	int* d_index = arrangement_->getDevCellIndex();
 	int* offset_data = arrangement_->getDevOffsetData();
@@ -156,21 +156,21 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numParticl
 	int middle = nump_;
 
 	middle = arrangement_->arrangeHybridMode9M();
-	printf("Arranged HybridMode success\n");
+	//printf("Arranged HybridMode success\n");
 
 	float3 f0 = thrust::reduce(thrust::device, device_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d + nump_);
-	printf("GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	//printf("GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
 	float3 f2 = std::accumulate(host_buff_.get_buff_list().position_d, host_buff_.get_buff_list().position_d + nump_, make_float3(0.0f, 0.0f, 0.0f));
-	printf("CPUHost sum: (%f,%f,%f)\n", f2.x, f2.y, f2.z);
+	//printf("CPUHost sum: (%f,%f,%f)\n", f2.x, f2.y, f2.z);
 	Vector3r f1x = std::accumulate(x, x + numParticles, Vector3r(0.0f, 0.0f, 0.0f));
 	Vector3r f1 = std::accumulate(boundaryX, boundaryX + numBoundaryParticles, f1x);
-	printf("CPUx sum: (%f,%f,%f)\n", f1[0], f1[1], f1[2]);
+	//printf("CPUx sum: (%f,%f,%f)\n", f1[0], f1[1], f1[2]);
 
 	sph::ParticleIdxRange tra_range(0, middle);      // [0, middle)
-	printf("Gotten middle\n");
+	//printf("Gotten middle\n");
 
 	sph::computeNeighbours(cell_offsetM, tra_range, device_buff_.get_buff_list(), d_index, cell_offset, cell_nump, arrangement_->getBlockTasks(), arrangement_->getNumBlockSMSMode(), neigh);
-	printf("Computed neighbours\n");
+	//printf("Computed neighbours\n");
 
 	//CUDA_SAFE_CALL(hipMemcpy(host_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d, nump_ * sizeof(float3), hipMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(hipMemcpy(part2Idx, arrangement_->part2Idx, nump_ * sizeof(int), hipMemcpyDeviceToHost));

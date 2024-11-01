@@ -1,0 +1,645 @@
+﻿  "C:\Program Files\AMD\ROCm\5.5\bin\clang.exe"  -x hip -c -std=c++17 -Xclang -fdefault-calling-conv=cdecl -ggdb -gcodeview -fno-standalone-debug -Wall -Wextra -fstandalone-debug -fhip-new-launch-api -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\eigen -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\freeglut\\include -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glew\\include -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\include -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\include -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\..\\deps -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\imgui -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Discregrid\\include -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\GenericParameters\\include -I D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH -I "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -O0 -fno-fast-math -fno-inline-functions -fno-caret-diagnostics -fshow-column -fms-extensions -fms-compatibility -fdiagnostics-format=msvc -v -fexceptions -fno-function-sections -fstack-protector -frtti --offload-arch=gfx1030 --offload-arch=gfx1100 --offload-arch=gfx1101 --offload-arch=gfx1102 -D__HIP_ARCH_GFX1030__=1 -D__HIP_ARCH_GFX1100__=1 -D__HIP_ARCH_GFX1101__=1 -D__HIP_ARCH_GFX1102__=1  -fopenmp=libiomp5 -D_DEBUG -D_MT -D_DLL -Xclang --dependent-lib=msvcrtd -Xclang --dependent-lib=oldnames --hip-device-lib-path="C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode" -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -fuse-line-directives ..\\..\\..\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH\\sph_kernel.cu.hip -o "FluidParticleSpatialTest.dir\\Debug\\sph_kernel.cu.hip.obj"
+  sph_kernel.cu.hip
+  clang version 17.0.0 (git@github.amd.com:Compute-Mirrors/llvm-project e3201662d21c48894f2156d302276eb1cf47c7be)
+  Target: x86_64-pc-windows-msvc
+  Thread model: posix
+  InstalledDir: C:\Program Files\AMD\ROCm\5.5\bin
+  Found HIP installation: C:\Program Files\AMD\ROCm\5.5, version 5.5.0
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\clang.exe" -cc1 -triple amdgcn-amd-amdhsa -aux-triple x86_64-pc-windows-msvc -emit-obj -mrelax-all -mincremental-linker-compatible -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name sph_kernel.cu.hip -mrelocation-model pic -pic-level 2 -fhalf-no-semantic-interposition -mframe-pointer=all -fno-rounding-math -mconstructor-aliases -aux-target-cpu x86-64 -fcuda-is-device -mllvm -amdgpu-internalize-symbols -fcuda-allow-variadic-functions -fvisibility=hidden -fapply-global-visibility-to-externs -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\hip.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ocml.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ockl.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_daz_opt_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_unsafe_math_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_finite_only_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_correctly_rounded_sqrt_on.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_wavefrontsize64_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_isa_version_1030.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_abi_version_400.bc" -target-cpu gfx1030 -mllvm -treat-scalable-fixed-error-as-warning -gno-column-info -gcodeview -debug-info-kind=standalone -debugger-tuning=gdb -v -resource-dir "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include\\cuda_wrappers" -idirafter "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -include __clang_hip_runtime_wrapper.h -I "C:\\Program Files\\AMD\\ROCm\\5.5\\bin/../include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\eigen" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\freeglut\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glew\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\..\\deps" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\imgui" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Discregrid\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\GenericParameters\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH" -I "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -O0 -Wall -Wextra -std=c++17 -fdeprecated-macro -fno-autolink "-fdebug-compilation-dir=D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Demos\\FluidParticleSpatialTest" -ferror-limit 19 -stack-protector 1 -fhip-new-launch-api -fuse-line-directives -fms-extensions -fms-compatibility -fms-compatibility-version=19.37.32826 -fdelayed-template-parsing -fno-inline-functions -fcxx-exceptions -fexceptions -fno-caret-diagnostics -fdiagnostics-format msvc -fdefault-calling-conv=cdecl --dependent-lib=msvcrtd --dependent-lib=oldnames -cuid=8c96f72f1a27e7e9 -fcuda-allow-variadic-functions -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-78555b\\sph_kernel.cu-gfx1030.o" -x hip "..\\..\\..\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH\\sph_kernel.cu.hip"
+  clang -cc1 version 17.0.0 based upon LLVM 17.0.0git default target x86_64-pc-windows-msvc
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\freeglut\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glew\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\include"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "/usr/local/include"
+  ignoring nonexistent directory "/usr/include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  #include "..." search starts here:
+  #include <...> search starts here:
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\eigen
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\..\deps
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\imgui
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\Discregrid\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\GenericParameters\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include\cuda_wrappers
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include
+   C:\Program Files\AMD\ROCm\5.5\bin/../include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt
+   D:\GitPrograms\vcpkg\installed\x64-windows\include
+  End of search list.
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+  In file included from D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip:16:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/device_vector.h:26:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.h:586:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/equal.h:235:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.h:46:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/mismatch.h:257:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.h:56:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/find.h:381:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/find.inl:22:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.h:61:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.inl:21:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/reduce.h:781:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/reduce.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.h:87:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.inl:32:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/scan.h:1656:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/scan.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/adl/scan.h:44:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/hip/detail/scan.h:48:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\rocprim/rocprim.hpp:34:
+C:\Program Files\AMD\ROCm\5.5\include\rocprim/functional.hpp(44,2): warning : "GPU printf warnings for invalid rocPRIM warp operations on Navi GPUs temporarily disabled, due to performance issues with printf." 	 [-W#warnings]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(71,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(72,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(73,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:12:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(70,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(131,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(266,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(314,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(376,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(522,5): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(571,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(633,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(780,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(56,32): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(59,13): warning : comparison of integers of different signs: 'unsigned int' and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(130,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(150,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,41): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,75): warning : unused parameter 'step' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(313,136): warning : unused parameter 'neighborCounts' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(317,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(325,55): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(336,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(344,54): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(624,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(720,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(873,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(874,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(878,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(879,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(895,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(899,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(869,27): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(891,30): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(21,11): warning : unused variable 'kDefaultNumThreadSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(22,11): warning : unused variable 'kDefulatMinBlocksSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(23,11): warning : unused variable 'kDefaultNumThreadSMS2' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(24,11): warning : unused variable 'kDefaultNumThreadTRA' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(25,11): warning : unused variable 'kNumberNeighborCells' [-Wunused-const-variable]
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\lld" -flavor gnu -m elf64_amdgpu --no-undefined -shared -plugin-opt=-amdgpu-internalize-symbols -plugin-opt=mcpu=gfx1030 -plugin-opt=O0 --lto-CGO0 -plugin-opt=-debugger-tune=gdb -plugin-opt=-function-sections=0 -plugin-opt=-amdgpu-spill-cfi-saved-regs -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-a0330b\\sph_kernel.cu-gfx1030.out" "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-78555b\\sph_kernel.cu-gfx1030.o"
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\clang.exe" -cc1 -triple amdgcn-amd-amdhsa -aux-triple x86_64-pc-windows-msvc -emit-obj -mrelax-all -mincremental-linker-compatible -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name sph_kernel.cu.hip -mrelocation-model pic -pic-level 2 -fhalf-no-semantic-interposition -mframe-pointer=all -fno-rounding-math -mconstructor-aliases -aux-target-cpu x86-64 -fcuda-is-device -mllvm -amdgpu-internalize-symbols -fcuda-allow-variadic-functions -fvisibility=hidden -fapply-global-visibility-to-externs -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\hip.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ocml.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ockl.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_daz_opt_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_unsafe_math_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_finite_only_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_correctly_rounded_sqrt_on.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_wavefrontsize64_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_isa_version_1100.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_abi_version_400.bc" -target-cpu gfx1100 -mllvm -treat-scalable-fixed-error-as-warning -gno-column-info -gcodeview -debug-info-kind=standalone -debugger-tuning=gdb -v -resource-dir "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include\\cuda_wrappers" -idirafter "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -include __clang_hip_runtime_wrapper.h -I "C:\\Program Files\\AMD\\ROCm\\5.5\\bin/../include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\eigen" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\freeglut\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glew\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\..\\deps" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\imgui" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Discregrid\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\GenericParameters\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH" -I "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -O0 -Wall -Wextra -std=c++17 -fdeprecated-macro -fno-autolink "-fdebug-compilation-dir=D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Demos\\FluidParticleSpatialTest" -ferror-limit 19 -stack-protector 1 -fhip-new-launch-api -fuse-line-directives -fms-extensions -fms-compatibility -fms-compatibility-version=19.37.32826 -fdelayed-template-parsing -fno-inline-functions -fcxx-exceptions -fexceptions -fno-caret-diagnostics -fdiagnostics-format msvc -fdefault-calling-conv=cdecl --dependent-lib=msvcrtd --dependent-lib=oldnames -cuid=8c96f72f1a27e7e9 -fcuda-allow-variadic-functions -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-f16fed\\sph_kernel.cu-gfx1100.o" -x hip "..\\..\\..\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH\\sph_kernel.cu.hip"
+  clang -cc1 version 17.0.0 based upon LLVM 17.0.0git default target x86_64-pc-windows-msvc
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\freeglut\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glew\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\include"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "/usr/local/include"
+  ignoring nonexistent directory "/usr/include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  #include "..." search starts here:
+  #include <...> search starts here:
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\eigen
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\..\deps
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\imgui
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\Discregrid\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\GenericParameters\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include\cuda_wrappers
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include
+   C:\Program Files\AMD\ROCm\5.5\bin/../include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt
+   D:\GitPrograms\vcpkg\installed\x64-windows\include
+  End of search list.
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+  In file included from D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip:16:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/device_vector.h:26:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.h:586:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/equal.h:235:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.h:46:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/mismatch.h:257:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.h:56:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/find.h:381:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/find.inl:22:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.h:61:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.inl:21:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/reduce.h:781:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/reduce.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.h:87:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.inl:32:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/scan.h:1656:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/scan.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/adl/scan.h:44:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/hip/detail/scan.h:48:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\rocprim/rocprim.hpp:34:
+C:\Program Files\AMD\ROCm\5.5\include\rocprim/functional.hpp(44,2): warning : "GPU printf warnings for invalid rocPRIM warp operations on Navi GPUs temporarily disabled, due to performance issues with printf." 	 [-W#warnings]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(71,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(72,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(73,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:12:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(70,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(131,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(266,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(314,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(376,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(522,5): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(571,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(633,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(780,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(56,32): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(59,13): warning : comparison of integers of different signs: 'unsigned int' and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(130,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(150,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,41): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,75): warning : unused parameter 'step' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(313,136): warning : unused parameter 'neighborCounts' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(317,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(325,55): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(336,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(344,54): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(624,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(720,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(873,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(874,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(878,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(879,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(895,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(899,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(869,27): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(891,30): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(21,11): warning : unused variable 'kDefaultNumThreadSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(22,11): warning : unused variable 'kDefulatMinBlocksSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(23,11): warning : unused variable 'kDefaultNumThreadSMS2' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(24,11): warning : unused variable 'kDefaultNumThreadTRA' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(25,11): warning : unused variable 'kNumberNeighborCells' [-Wunused-const-variable]
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\lld" -flavor gnu -m elf64_amdgpu --no-undefined -shared -plugin-opt=-amdgpu-internalize-symbols -plugin-opt=mcpu=gfx1100 -plugin-opt=O0 --lto-CGO0 -plugin-opt=-debugger-tune=gdb -plugin-opt=-function-sections=0 -plugin-opt=-amdgpu-spill-cfi-saved-regs -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-b4991d\\sph_kernel.cu-gfx1100.out" "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-f16fed\\sph_kernel.cu-gfx1100.o"
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\clang.exe" -cc1 -triple amdgcn-amd-amdhsa -aux-triple x86_64-pc-windows-msvc -emit-obj -mrelax-all -mincremental-linker-compatible -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name sph_kernel.cu.hip -mrelocation-model pic -pic-level 2 -fhalf-no-semantic-interposition -mframe-pointer=all -fno-rounding-math -mconstructor-aliases -aux-target-cpu x86-64 -fcuda-is-device -mllvm -amdgpu-internalize-symbols -fcuda-allow-variadic-functions -fvisibility=hidden -fapply-global-visibility-to-externs -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\hip.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ocml.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ockl.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_daz_opt_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_unsafe_math_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_finite_only_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_correctly_rounded_sqrt_on.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_wavefrontsize64_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_isa_version_1101.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_abi_version_400.bc" -target-cpu gfx1101 -mllvm -treat-scalable-fixed-error-as-warning -gno-column-info -gcodeview -debug-info-kind=standalone -debugger-tuning=gdb -v -resource-dir "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include\\cuda_wrappers" -idirafter "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -include __clang_hip_runtime_wrapper.h -I "C:\\Program Files\\AMD\\ROCm\\5.5\\bin/../include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\eigen" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\freeglut\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glew\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\..\\deps" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\imgui" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Discregrid\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\GenericParameters\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH" -I "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -O0 -Wall -Wextra -std=c++17 -fdeprecated-macro -fno-autolink "-fdebug-compilation-dir=D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Demos\\FluidParticleSpatialTest" -ferror-limit 19 -stack-protector 1 -fhip-new-launch-api -fuse-line-directives -fms-extensions -fms-compatibility -fms-compatibility-version=19.37.32826 -fdelayed-template-parsing -fno-inline-functions -fcxx-exceptions -fexceptions -fno-caret-diagnostics -fdiagnostics-format msvc -fdefault-calling-conv=cdecl --dependent-lib=msvcrtd --dependent-lib=oldnames -cuid=8c96f72f1a27e7e9 -fcuda-allow-variadic-functions -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-74b27e\\sph_kernel.cu-gfx1101.o" -x hip "..\\..\\..\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH\\sph_kernel.cu.hip"
+  clang -cc1 version 17.0.0 based upon LLVM 17.0.0git default target x86_64-pc-windows-msvc
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\freeglut\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glew\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\include"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "/usr/local/include"
+  ignoring nonexistent directory "/usr/include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  #include "..." search starts here:
+  #include <...> search starts here:
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\eigen
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\..\deps
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\imgui
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\Discregrid\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\GenericParameters\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include\cuda_wrappers
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include
+   C:\Program Files\AMD\ROCm\5.5\bin/../include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt
+   D:\GitPrograms\vcpkg\installed\x64-windows\include
+  End of search list.
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+  In file included from D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip:16:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/device_vector.h:26:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.h:586:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/equal.h:235:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.h:46:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/mismatch.h:257:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.h:56:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/find.h:381:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/find.inl:22:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.h:61:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.inl:21:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/reduce.h:781:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/reduce.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.h:87:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.inl:32:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/scan.h:1656:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/scan.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/adl/scan.h:44:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/hip/detail/scan.h:48:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\rocprim/rocprim.hpp:34:
+C:\Program Files\AMD\ROCm\5.5\include\rocprim/functional.hpp(44,2): warning : "GPU printf warnings for invalid rocPRIM warp operations on Navi GPUs temporarily disabled, due to performance issues with printf." 	 [-W#warnings]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(71,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(72,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(73,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:12:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(70,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(131,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(266,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(314,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(376,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(522,5): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(571,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(633,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(780,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(56,32): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(59,13): warning : comparison of integers of different signs: 'unsigned int' and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(130,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(150,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,41): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,75): warning : unused parameter 'step' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(313,136): warning : unused parameter 'neighborCounts' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(317,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(325,55): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(336,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(344,54): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(624,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(720,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(873,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(874,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(878,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(879,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(895,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(899,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(869,27): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(891,30): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(21,11): warning : unused variable 'kDefaultNumThreadSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(22,11): warning : unused variable 'kDefulatMinBlocksSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(23,11): warning : unused variable 'kDefaultNumThreadSMS2' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(24,11): warning : unused variable 'kDefaultNumThreadTRA' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(25,11): warning : unused variable 'kNumberNeighborCells' [-Wunused-const-variable]
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\lld" -flavor gnu -m elf64_amdgpu --no-undefined -shared -plugin-opt=-amdgpu-internalize-symbols -plugin-opt=mcpu=gfx1101 -plugin-opt=O0 --lto-CGO0 -plugin-opt=-debugger-tune=gdb -plugin-opt=-function-sections=0 -plugin-opt=-amdgpu-spill-cfi-saved-regs -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-83bf6e\\sph_kernel.cu-gfx1101.out" "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-74b27e\\sph_kernel.cu-gfx1101.o"
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\clang.exe" -cc1 -triple amdgcn-amd-amdhsa -aux-triple x86_64-pc-windows-msvc -emit-obj -mrelax-all -mincremental-linker-compatible -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name sph_kernel.cu.hip -mrelocation-model pic -pic-level 2 -fhalf-no-semantic-interposition -mframe-pointer=all -fno-rounding-math -mconstructor-aliases -aux-target-cpu x86-64 -fcuda-is-device -mllvm -amdgpu-internalize-symbols -fcuda-allow-variadic-functions -fvisibility=hidden -fapply-global-visibility-to-externs -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\hip.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ocml.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\ockl.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_daz_opt_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_unsafe_math_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_finite_only_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_correctly_rounded_sqrt_on.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_wavefrontsize64_off.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_isa_version_1102.bc" -mlink-builtin-bitcode "C:\\Program Files\\AMD\\ROCm\\5.5\\amdgcn\\bitcode\\oclc_abi_version_400.bc" -target-cpu gfx1102 -mllvm -treat-scalable-fixed-error-as-warning -gno-column-info -gcodeview -debug-info-kind=standalone -debugger-tuning=gdb -v -resource-dir "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include\\cuda_wrappers" -idirafter "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -include __clang_hip_runtime_wrapper.h -I "C:\\Program Files\\AMD\\ROCm\\5.5\\bin/../include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\eigen" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\freeglut\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glew\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\..\\deps" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\imgui" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Discregrid\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\GenericParameters\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH" -I "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -O0 -Wall -Wextra -std=c++17 -fdeprecated-macro -fno-autolink "-fdebug-compilation-dir=D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Demos\\FluidParticleSpatialTest" -ferror-limit 19 -stack-protector 1 -fhip-new-launch-api -fuse-line-directives -fms-extensions -fms-compatibility -fms-compatibility-version=19.37.32826 -fdelayed-template-parsing -fno-inline-functions -fcxx-exceptions -fexceptions -fno-caret-diagnostics -fdiagnostics-format msvc -fdefault-calling-conv=cdecl --dependent-lib=msvcrtd --dependent-lib=oldnames -cuid=8c96f72f1a27e7e9 -fcuda-allow-variadic-functions -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-60ef75\\sph_kernel.cu-gfx1102.o" -x hip "..\\..\\..\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH\\sph_kernel.cu.hip"
+  clang -cc1 version 17.0.0 based upon LLVM 17.0.0git default target x86_64-pc-windows-msvc
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\freeglut\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glew\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\include"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "/usr/local/include"
+  ignoring nonexistent directory "/usr/include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  #include "..." search starts here:
+  #include <...> search starts here:
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\eigen
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\..\deps
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\imgui
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\Discregrid\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\GenericParameters\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include\cuda_wrappers
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include
+   C:\Program Files\AMD\ROCm\5.5\bin/../include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt
+   D:\GitPrograms\vcpkg\installed\x64-windows\include
+  End of search list.
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+  In file included from D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip:16:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/device_vector.h:26:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.h:586:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/equal.h:235:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.h:46:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/mismatch.h:257:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.h:56:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/find.h:381:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/find.inl:22:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.h:61:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.inl:21:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/reduce.h:781:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/reduce.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.h:87:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.inl:32:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/scan.h:1656:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/scan.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/adl/scan.h:44:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/hip/detail/scan.h:48:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\rocprim/rocprim.hpp:34:
+C:\Program Files\AMD\ROCm\5.5\include\rocprim/functional.hpp(44,2): warning : "GPU printf warnings for invalid rocPRIM warp operations on Navi GPUs temporarily disabled, due to performance issues with printf." 	 [-W#warnings]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(71,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(72,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(73,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:12:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(70,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(131,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(266,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(314,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(376,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(522,5): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(571,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(633,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(780,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(56,32): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(59,13): warning : comparison of integers of different signs: 'unsigned int' and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(130,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(150,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,41): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,75): warning : unused parameter 'step' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(313,136): warning : unused parameter 'neighborCounts' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(317,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(325,55): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(336,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(344,54): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(624,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(720,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(873,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(874,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(878,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(879,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(895,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(899,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(869,27): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(891,30): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(21,11): warning : unused variable 'kDefaultNumThreadSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(22,11): warning : unused variable 'kDefulatMinBlocksSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(23,11): warning : unused variable 'kDefaultNumThreadSMS2' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(24,11): warning : unused variable 'kDefaultNumThreadTRA' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(25,11): warning : unused variable 'kNumberNeighborCells' [-Wunused-const-variable]
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\lld" -flavor gnu -m elf64_amdgpu --no-undefined -shared -plugin-opt=-amdgpu-internalize-symbols -plugin-opt=mcpu=gfx1102 -plugin-opt=O0 --lto-CGO0 -plugin-opt=-debugger-tune=gdb -plugin-opt=-function-sections=0 -plugin-opt=-amdgpu-spill-cfi-saved-regs -o "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-724c4d\\sph_kernel.cu-gfx1102.out" "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-60ef75\\sph_kernel.cu-gfx1102.o"
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\clang-offload-bundler" -type=o -bundle-align=4096 -targets=host-x86_64-unknown-linux,hipv4-amdgcn-amd-amdhsa--gfx1030,hipv4-amdgcn-amd-amdhsa--gfx1100,hipv4-amdgcn-amd-amdhsa--gfx1101,hipv4-amdgcn-amd-amdhsa--gfx1102 -input=nul "-input=C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-a0330b\\sph_kernel.cu-gfx1030.out" "-input=C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-b4991d\\sph_kernel.cu-gfx1100.out" "-input=C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-83bf6e\\sph_kernel.cu-gfx1101.out" "-input=C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-724c4d\\sph_kernel.cu-gfx1102.out" "-output=C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-ebb896.hipfb"
+   "C:\\Program Files\\AMD\\ROCm\\5.5\\bin\\clang.exe" -cc1 -triple x86_64-pc-windows-msvc19.37.32826 -aux-triple amdgcn-amd-amdhsa -emit-obj -mrelax-all -mincremental-linker-compatible -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name sph_kernel.cu.hip -mrelocation-model pic -pic-level 2 -mframe-pointer=none -fmath-errno -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -mllvm -treat-scalable-fixed-error-as-warning -gno-column-info -gcodeview -debug-info-kind=standalone -debugger-tuning=gdb -v "-fcoverage-compilation-dir=D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Demos\\FluidParticleSpatialTest" -resource-dir "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include\\cuda_wrappers" -idirafter "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -include __clang_hip_runtime_wrapper.h -I "C:\\Program Files\\AMD\\ROCm\\5.5\\bin/../include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\eigen" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\freeglut\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glew\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\glfw\\src\\..\\deps" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\extern\\imgui" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Discregrid\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\GenericParameters\\include" -I "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH" -I "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -D __HIP_ARCH_GFX1030__=1 -D __HIP_ARCH_GFX1100__=1 -D __HIP_ARCH_GFX1101__=1 -D __HIP_ARCH_GFX1102__=1 -D _DEBUG -D _MT -D _DLL -D _MBCS -D _CONSOLE -D __clang__ -D __HIP__ -D WIN32 -D _WINDOWS -D _CRT_SECURE_NO_DEPRECATE -D USE_DOUBLE -D IMGUI_IMPL_OPENGL_LOADER_GLAD -D "CMAKE_INTDIR=\"Debug\"" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\lib\\clang\\17.0.0\\include" -internal-isystem "C:\\Program Files\\AMD\\ROCm\\5.5\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.37.32822\\atlmfc\\include" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt" -internal-isystem "E:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\VS\\UnitTest\\include" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" -internal-isystem "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" -internal-isystem "Include\\um" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -internal-isystem "D:\\GitPrograms\\vcpkg\\installed\\x64-windows\\include" -O0 -Wall -Wextra -std=c++17 -fdeprecated-macro "-fdebug-compilation-dir=D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\build\\Demos\\FluidParticleSpatialTest" -ferror-limit 19 -fopenmp -fno-openmp-target-fast -fno-openmp-target-ignore-env-vars -fno-openmp-target-big-jump-loop -fopenmp-target-new-runtime -fno-openmp-assume-no-thread-state -fno-openmp-assume-no-nested-parallelism -stack-protector 1 -fhip-new-launch-api -fno-use-cxa-atexit -fuse-line-directives -fms-extensions -fms-compatibility -fms-compatibility-version=19.37.32826 -fdelayed-template-parsing -fno-inline-functions -fcxx-exceptions -fexceptions -fno-caret-diagnostics -fdiagnostics-format msvc -fdefault-calling-conv=cdecl --dependent-lib=msvcrtd --dependent-lib=oldnames -fcuda-include-gpubinary "C:\\Users\\Jacob\\AppData\\Local\\Temp\\sph_kernel.cu-ebb896.hipfb" -cuid=8c96f72f1a27e7e9 -fcuda-allow-variadic-functions -faddrsig -o "FluidParticleSpatialTest.dir\\Debug\\sph_kernel.cu.hip.obj" -x hip "..\\..\\..\\Demos\\FluidParticleSpatialTest\\Spatial\\FSPH\\sph_kernel.cu.hip"
+  clang -cc1 version 17.0.0 based upon LLVM 17.0.0git default target x86_64-pc-windows-msvc
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\freeglut\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glew\include"
+  ignoring nonexistent directory "D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\include"
+  ignoring nonexistent directory "Include\um"
+  ignoring nonexistent directory "Include\um"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+    as it is a non-system directory that duplicates a system directory
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt"
+  ignoring duplicate directory "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt"
+  ignoring duplicate directory "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "D:\GitPrograms\vcpkg\installed\x64-windows\include"
+  ignoring duplicate directory "C:\Program Files\AMD\ROCm\5.5\bin/../include"
+  #include "..." search starts here:
+  #include <...> search starts here:
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\eigen
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\..\deps
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\imgui
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\Discregrid\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\GenericParameters\include
+   D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include\cuda_wrappers
+   C:\Program Files\AMD\ROCm\5.5\lib\clang\17.0.0\include
+   C:\Program Files\AMD\ROCm\5.5\bin/../include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\atlmfc\include
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt
+   E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\VS\UnitTest\include
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt
+   C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt
+   D:\GitPrograms\vcpkg\installed\x64-windows\include
+  End of search list.
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+  In file included from D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip:16:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/device_vector.h:26:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.h:586:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/vector_base.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/equal.h:235:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.h:46:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/equal.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/mismatch.h:257:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.h:56:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/mismatch.inl:23:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/find.h:381:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/find.inl:22:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.h:61:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/find.inl:21:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/reduce.h:781:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/reduce.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.h:87:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/generic/reduce_by_key.inl:32:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/scan.h:1656:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/detail/scan.inl:25:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/detail/adl/scan.h:44:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\thrust/system/hip/detail/scan.h:48:
+  In file included from C:\Program Files\AMD\ROCm\5.5\include\rocprim/rocprim.hpp:34:
+C:\Program Files\AMD\ROCm\5.5\include\rocprim/functional.hpp(44,2): warning : "GPU printf warnings for invalid rocPRIM warp operations on Navi GPUs temporarily disabled, due to performance issues with printf." 	 [-W#warnings]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:11:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(71,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(72,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel.cuh.hip(73,3): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+  In file included from ..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip:12:
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(70,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(131,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(266,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(314,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(376,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(522,5): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(571,9): warning : variable 'nc' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(633,18): warning : variable 'nid_mid' set but not used [-Wunused-but-set-variable]
+D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH/sph_kernel_shared_data.cuh.hip(780,2): warning : non-void function does not return a value in all control paths [-Wreturn-type]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(56,32): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(59,13): warning : comparison of integers of different signs: 'unsigned int' and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(130,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(150,34): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,41): warning : unused parameter 'buff_list' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(168,75): warning : unused parameter 'step' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(313,136): warning : unused parameter 'neighborCounts' [-Wunused-parameter]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(317,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(325,55): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(336,36): warning : comparison of integers of different signs: 'size_t' (aka 'unsigned long long') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(344,54): warning : comparison of integers of different signs: 'int' and 'size_t' (aka 'unsigned long long') [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(624,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(720,20): warning : comparison of integers of different signs: 'R' (aka 'unsigned int') and 'int' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(873,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(874,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(878,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(879,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(895,13): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(899,9): warning : ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(869,27): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(891,30): warning : comparison of integers of different signs: 'int' and 'unsigned long long' [-Wsign-compare]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(21,11): warning : unused variable 'kDefaultNumThreadSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(22,11): warning : unused variable 'kDefulatMinBlocksSMS' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(23,11): warning : unused variable 'kDefaultNumThreadSMS2' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(24,11): warning : unused variable 'kDefaultNumThreadTRA' [-Wunused-const-variable]
+..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip(25,11): warning : unused variable 'kNumberNeighborCells' [-Wunused-const-variable]
+  "E:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64\link.exe"
+  Microsoft (R) Incremental Linker Version 14.37.32826.1
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  "/OUT:D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\bin\FluidParticleSpatialTest.exe" /INCREMENTAL "/ILK:FluidParticleSpatialTest.dir\Debug\FluidParticleSpatialTest.ilk" "/LIBPATH:C:\Program Files\AMD\ROCm\5.5\lib" "/LIBPATH:D:\GitPrograms\vcpkg\installed\x64-windows\debug\lib" "/LIBPATH:D:\GitPrograms\vcpkg\installed\x64-windows\debug\lib\manual-link" msvcrtd.lib amdhip64.lib "-NODEFAULTLIB:libcmt" opengl32.lib glu32.lib ..\..\lib\Debug\imgui_d.lib ..\..\lib\Debug\glfw3_d.lib ..\..\lib\Debug\PositionBasedDynamics_d.lib ..\..\lib\Debug\Simulation_d.lib ..\..\lib\Debug\Utils_d.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib libomp.lib ..\..\..\Demos\FluidParticleSpatialTest\Spatial\hipNSearch\cuNSearch_d.lib "D:\GitPrograms\vcpkg\installed\x64-windows\debug\lib\*.lib" /MANIFEST "/MANIFESTUAC:level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG:FASTLINK "/PDB:D:/projects/master_thesis/code/PBDSpatialPartitioningThesis/bin/FluidParticleSpatialTest.pdb" /SUBSYSTEM:CONSOLE /OPT:NOREF /OPT:NOICF /TLBID:1 /DYNAMICBASE /NXCOMPAT "/IMPLIB:D:/projects/master_thesis/code/PBDSpatialPartitioningThesis/build/Demos/FluidParticleSpatialTest/Debug/FluidParticleSpatialTest.lib" /MACHINE:X64 /machine:x64 FluidParticleSpatialTest.dir\Debug\cuda_call_check.h.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\cuda_math.cuh.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\gpu_model.cu.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\gpu_model.cuh.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\gpu_model.h.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\gpu_model_reader.cpp.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\gpu_model_reader.h.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\scan.cu.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\scan.cuh.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_arrangement.cu.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_arrangement.cuh.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_kernel.cu.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_kernel.cuh.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_kernel_shared_data.cuh.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_parameter.h.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_particle.cpp.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_particle.h.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\sph_utils.cuh.hip.obj 
+  FluidParticleSpatialTest.dir\Debug\main.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\LogWindow.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\Simulator_GUI_imgui.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\imguiParameters.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\DemoBase.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\TimeStepFluidModel.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\FluidModel.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\Spatial_FSPH.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\Spatial_hipNSearch.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\glad_gl.c.obj 
+  FluidParticleSpatialTest.dir\Debug\MiniGL.cpp.obj 
+  FluidParticleSpatialTest.dir\Debug\Shader.cpp.obj 
+  FluidParticleSpatialTest.vcxproj -> D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\bin\FluidParticleSpatialTest.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.

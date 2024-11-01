@@ -68,7 +68,6 @@ GLint context_major_version, context_minor_version;
 string exePath;
 string dataPath;
 
-
 // main 
 int main( int argc, char **argv )
 {
@@ -76,6 +75,12 @@ int main( int argc, char **argv )
 
 	base = new DemoBase();
 	base->init(argc, argv, "Fluid demo");
+
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 
 	// we use an own time step controller
 	delete PBD::Simulation::getCurrent()->getTimeStep();
@@ -86,10 +91,21 @@ int main( int argc, char **argv )
 	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);
 	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 3.0, 8.0), Vector3r (0.0, 0.0, 0.0));
-
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 	buildModel();
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 
 	base->createParameterGUI();
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 
 	// add additional parameter just for this demo
 	imguiParameters::imguiEnumParameter* eparam = new imguiParameters::imguiEnumParameter();
@@ -111,6 +127,11 @@ int main( int argc, char **argv )
 	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
 	if (context_major_version >= 3)
 		createSphereBuffers((Real)particleRadius, 8);
+	
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 
 	MiniGL::mainLoop();	
 
@@ -175,12 +196,21 @@ void selection(const Vector2i &start, const Vector2i &end, void *clientData)
 
 void timeStep ()
 {
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 	const Real pauseAt = base->getValue<Real>(DemoBase::PAUSE_AT);
 	if ((pauseAt > 0.0) && (pauseAt < TimeManager::getCurrent()->getTime()))
 		base->setValue(DemoBase::PAUSE, true);
 
 	if (base->getValue<bool>(DemoBase::PAUSE))
+	{
+		//printf("Simulation is PAUSED\n");
 		return;
+	}
+		
 
 	// Simulation code
 	const unsigned int numSteps = base->getValue<unsigned int>(DemoBase::NUM_STEPS_PER_RENDER);
@@ -208,6 +238,12 @@ void render ()
 	const ParticleData &pd = model.getParticles();
 	const unsigned int nParticles = pd.size();
 
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
+
 	float surfaceColor[4] = { 0.2f, 0.6f, 0.8f, 1 };
 	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
@@ -217,6 +253,11 @@ void render ()
 	glColor3fv(surfaceColor);
 
 	glPointSize(4.0);
+
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 
 	const Real supportRadius = model.getSupportRadius();
 	Real vmax = static_cast<Real>(0.4*2.0)*supportRadius / TimeManager::getCurrent()->getTimeStepSize();
@@ -236,6 +277,10 @@ void render ()
 
 // 		for (unsigned int i = 0; i < model.numBoundaryParticles(); i++)
 // 			renderSphere(model.getBoundaryX(i), surfaceColor);
+		while ((err = glGetError()) != GL_NO_ERROR)
+		{
+			printf("FUCK AN ERROR %#04x\n", err);
+		}
 	}
 	else
 	{
@@ -264,6 +309,10 @@ void render ()
 		// 	glEnd();
 
 		glEnable(GL_LIGHTING);
+		while ((err = glGetError()) != GL_NO_ERROR)
+		{
+			printf("FUCK AN ERROR %#04x\n", err);
+		}
 	}
 
 
@@ -273,9 +322,15 @@ void render ()
 	{
 		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
 	}
-
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 	base->render();
-
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		printf("FUCK AN ERROR %#04x\n", err);
+	}
 }
 
 const Real nudge = 0;// particleRadius * 2.1;
@@ -314,7 +369,7 @@ void createBreakingDam()
 		}
 	}
 
-	Real* temp = fluidParticles[0].data();
+	//Real* temp = fluidParticles[0].data();
 
 	model.setParticleRadius(particleRadius);
 

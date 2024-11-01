@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\x64\Debug\ZERO_CHECK</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\x64\Debug\CopyImguiFonts</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\x64\Debug\CopyPBDShaders</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\x64\Debug\Ext_Discregrid</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\x64\Debug\Ext_GenericParameters</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\bin\FluidParticleSpatialTest.exe</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles />
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

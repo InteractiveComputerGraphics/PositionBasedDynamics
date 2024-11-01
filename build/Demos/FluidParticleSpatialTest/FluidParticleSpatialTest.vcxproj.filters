@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\LogWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\Simulator_GUI_imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\imguiParameters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\DemoBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\TimeStepFluidModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\FluidModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\deps\glad_gl.c">
+      <Filter>Source Files\Visualization</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\MiniGL.cpp">
+      <Filter>Source Files\Visualization</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Shader.cpp">
+      <Filter>Source Files\Visualization</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\cuda_call_check.h.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\cuda_math.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model.h.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model_reader.h.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\scan.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_arrangement.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel_shared_data.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_parameter.h.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_particle.h.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_utils.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.cpp">
+      <Filter>Source Files\Spatial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model.cu.hip">
+      <Filter>Source Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model_reader.cpp.hip">
+      <Filter>Source Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\scan.cu.hip">
+      <Filter>Source Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_arrangement.cu.hip">
+      <Filter>Source Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip">
+      <Filter>Source Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_particle.cpp.hip">
+      <Filter>Source Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.cpp">
+      <Filter>Source Files\Spatial</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\LogWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\Simulator_GUI_imgui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\imguiParameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\DemoBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\TimeStepFluidModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\FluidModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\MiniGL.h">
+      <Filter>Header Files\Visualization</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Selection.h">
+      <Filter>Header Files\Visualization</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Shader.h">
+      <Filter>Header Files\Visualization</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Visualization.h">
+      <Filter>Header Files\Visualization</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Common\Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.h">
+      <Filter>Header Files\Spatial</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.h">
+      <Filter>Header Files\Spatial</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{DF25B43D-B44E-3260-B85B-FFA0068CA346}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Visualization">
+      <UniqueIdentifier>{53783033-62E5-3C51-84F3-A95E529E42B0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4CB07C79-01F9-3CAC-92E4-34DC2E703581}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Visualization">
+      <UniqueIdentifier>{0CAA7372-47C3-31C2-A33F-CC38BA9B588E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Spatial">
+      <UniqueIdentifier>{496d9fed-5129-4565-9897-192362e2c808}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Spatial">
+      <UniqueIdentifier>{cb562a39-2d82-4782-a77f-40bf84c2d2c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Spatial\FSPH">
+      <UniqueIdentifier>{3a914d2c-1291-48ed-92ba-aaab3e182b3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Spatial\FSPH">
+      <UniqueIdentifier>{39c8d946-021a-42a1-81ce-95cc9ec771ea}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

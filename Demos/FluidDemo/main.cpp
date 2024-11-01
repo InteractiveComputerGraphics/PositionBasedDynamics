@@ -278,9 +278,12 @@ void createBreakingDam()
 {
 	LOG_INFO << "Initialize fluid particles";
 	const Real diam = 2.0*particleRadius;
-	const Real startX = -static_cast<Real>(0.5)*containerWidth + diam;
+	/*const Real startX = -static_cast<Real>(0.5)*containerWidth + diam;
 	const Real startY = diam;
-	const Real startZ = -static_cast<Real>(0.5)*containerDepth + diam;
+	const Real startZ = -static_cast<Real>(0.5)*containerDepth + diam;*/
+	const Real startX = diam;
+	const Real startY = diam;
+	const Real startZ = diam;
 	const Real yshift = sqrt(static_cast<Real>(3.0)) * particleRadius;
 
 	std::vector<Vector3r> fluidParticles;
@@ -343,12 +346,18 @@ void addWall(const Vector3r &minX, const Vector3r &maxX, std::vector<Vector3r> &
 
 void initBoundaryData(std::vector<Vector3r> &boundaryParticles)
 {
-	const Real x1 = -containerWidth / 2.0;
+	/*const Real x1 = -containerWidth / 2.0;
 	const Real x2 = containerWidth / 2.0;
 	const Real y1 = 0.0;
 	const Real y2 = containerHeight;
 	const Real z1 = -containerDepth / 2.0;
-	const Real z2 = containerDepth / 2.0;
+	const Real z2 = containerDepth / 2.0;*/
+	const Real x1 = 0.0;// + 0.03125f;
+	const Real x2 = containerWidth;// + 0.03125f;
+	const Real y1 = 0.0;// + 0.03125f;
+	const Real y2 = containerHeight;// + 0.03125f;
+	const Real z1 = 0.0;// + 0.03125f;
+	const Real z2 = containerDepth;// + 0.03125f;
 
 	const Real diam = 2.0*particleRadius;
 

@@ -4,20 +4,18 @@
 #include "Simulation/ParticleData.h"
 #include <vector>
 #include "Simulation/NeighborhoodSearchSpatialHashing.h"
-#include "Spatial/Spatial_FSPH.h"
-#include "Spatial/Spatial_hipNSearch.h"
 
-
-//#if defined(FSPH)
-//#include "Spatial/Spatial_FSPH.h"
-//#elif defined(nSearch)
-//#include "Spatial/Spatial_hipNSearch.h"
-//#else
-//
-//#endif
 
 //#define nSearch
 #define FSPH
+
+#if defined(FSPH)
+#include "Spatial/Spatial_FSPH.h"
+#elif defined(nSearch)
+#include "Spatial/Spatial_hipNSearch.h"
+#else
+
+#endif
 
 //#if defined(FSPH)
 //

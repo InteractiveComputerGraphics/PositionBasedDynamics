@@ -73,7 +73,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\eigen;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\freeglut\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glew\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\..\deps;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\imgui;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\Discregrid\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\GenericParameters\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) -fopenmp=libiomp5</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -106,7 +106,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;..\..\lib\Debug\imgui_d.lib;..\..\lib\Debug\glfw3_d.lib;..\..\lib\Debug\PositionBasedDynamics_d.lib;..\..\lib\Debug\Simulation_d.lib;..\..\lib\Debug\Utils_d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;..\..\..\Demos\FluidParticleSpatialTest\Spatial\hipNSearch\cuNSearch_d.lib</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;..\..\lib\Debug\imgui_d.lib;..\..\lib\Debug\glfw3_d.lib;..\..\lib\Debug\PositionBasedDynamics_d.lib;..\..\lib\Debug\Simulation_d.lib;..\..\lib\Debug\Utils_d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;libomp.lib;..\..\..\Demos\FluidParticleSpatialTest\Spatial\hipNSearch\cuNSearch_d.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -116,6 +116,7 @@
       <ImportLibrary>D:/projects/master_thesis/code/PBDSpatialPartitioningThesis/build/Demos/FluidParticleSpatialTest/Debug/FluidParticleSpatialTest.lib</ImportLibrary>
       <ProgramDataBaseFile>D:/projects/master_thesis/code/PBDSpatialPartitioningThesis/bin/FluidParticleSpatialTest.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -124,6 +125,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>D:\projects\master_thesis\code\PBDSpatialPartitioningThesis;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\eigen;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\freeglut\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glew\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\glfw\src\..\deps;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\extern\imgui;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\Discregrid\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\build\GenericParameters\include;D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\FSPH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) -fopenmp=libiomp5</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ExceptionHandling>Sync</ExceptionHandling>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -220,8 +222,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_particle.cpp.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_particle.h.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_utils.cuh.hip" />
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.cpp" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\main.cpp" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\LogWindow.cpp" />
+    <ClInclude Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\LogWindow.h" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\Simulator_GUI_imgui.cpp" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\Simulator_GUI_imgui.h" />
@@ -235,8 +239,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\FluidModel.h" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.cpp" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.h" />
-    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.cpp" />
-    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\MiniGL.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Selection.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Shader.h" />

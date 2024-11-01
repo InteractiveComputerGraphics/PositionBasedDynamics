@@ -836,16 +836,16 @@ void computeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuffe
     neigh->dNeighborOffsets.resize(neigh->particleCount);
 
     CUDA_SAFE_CALL(hipMemcpy(touchedParticlesCPU, touchedParticles, sizeof(int) * neigh->particleCount, hipMemcpyDeviceToHost));
-    printf("Number of times particles have been touched: ");
-    for (int i = 0; i < neigh->particleCount; i++)
-    {
-        //printf("%d, ", touchedParticlesCPU[i]);
-        if (touchedParticlesCPU[i] != 1)
-        {
-            printf("(%d: %d), ", i, touchedParticlesCPU[i]);
-        }
-    }
-    printf("\n");
+    //printf("Number of times particles have been touched: ");
+    //for (int i = 0; i < neigh->particleCount; i++)
+    //{
+    //    //printf("%d, ", touchedParticlesCPU[i]);
+    //    if (touchedParticlesCPU[i] != 1)
+    //    {
+    //        printf("(%d: %d), ", i, touchedParticlesCPU[i]);
+    //    }
+    //}
+    //printf("\n");
 
     CUDA_SAFE_CALL(hipDeviceSynchronize());
 
@@ -899,7 +899,7 @@ void computeNeighbours(int* cell_offset_M, ParticleIdxRange range, ParticleBuffe
         hipHostMalloc(&neigh->neighbors, neigh->neighborsSize);
     }
 
-    printf("Number of GPU Neighbours: %d\n", totalNeighborCount);
+    //printf("Number of GPU Neighbours: %d\n", totalNeighborCount);
 
     //Return host arrays neighbours per particle, number of neighbours per particle, offset for each particle
     CUDA_SAFE_CALL(hipMemcpy(neigh->neighbors, thrust::raw_pointer_cast(&neigh->dNeighbors[0]), sizeof(int) * totalNeighborCount, hipMemcpyDeviceToHost));
