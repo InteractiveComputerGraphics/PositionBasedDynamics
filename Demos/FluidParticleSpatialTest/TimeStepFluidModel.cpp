@@ -349,9 +349,9 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 
 	// Compute viscosity forces (XSPH)
 	//printf("GPU version:\n");
-	#pragma omp parallel default(shared)
+	//#pragma omp parallel default(shared)
 	{
-		#pragma omp for schedule(static)
+		//#pragma omp for schedule(static)
 		for (int i = 0; i < (int)numParticles; i++)
 		{
 			int sortIdx = model.getNeighborhoodSearch()->partIdx(i);
@@ -361,9 +361,12 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 			const unsigned int numNeighbors = model.getNeighborhoodSearch()->n_neighbors(sortIdx);
 			//if (i < 22) printf("%d %d (%d): ", i, sortIdx, model.getNeighborhoodSearch()->n_neighbors(sortIdx));
 			//numGPUNeigh += numNeighbors;
+			//std::vector<int> tmp; //Remove
+			//tmp.reserve(numNeighbors); //Remove
 			for (unsigned int j = 0; j < numNeighbors; j++)
 			{
 				const unsigned int neighborIndex = model.getNeighborhoodSearch()->invNeighbor(sortIdx, j);
+				//tmp.push_back(neighborIndex); //Remove
 				if (neighborIndex < numParticles)		// Test if fluid particle
 				{
 					// Viscosity
@@ -385,6 +388,15 @@ void TimeStepFluidModel::computeXSPHViscosity(FluidModel &model)
 				// 				}
 			}
 			//if (i < 22) printf("\n");
+			//std::sort(tmp.begin(), tmp.end()); //Remove
+
+			//auto point = tmp.begin(); //Remove start
+			//while (point != tmp.end())
+			//{
+			//	point = std::adjacent_find(point, tmp.end());
+			//	if (point == tmp.end()) break;
+			//	printf("(%d, %d) has duplicate neighbors with index %d\n", i, sortIdx, *point);
+			//} //Remove end
 		}
 	}
 	//printf("\n");

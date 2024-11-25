@@ -427,6 +427,20 @@ void MiniGL::setClientSceneFunc (SceneFct func)
 	scenefunc = func;
 }
 
+void GLAPIENTRY
+MessageCallback(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam)
+{
+	printf("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+		(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+		type, severity, message);
+}
+
 void MiniGL::init(int argc, char **argv, const int width, const int height, const char *name, const bool vsync, const bool maximized)
 {
 	fovy = 60;
@@ -483,6 +497,9 @@ void MiniGL::init(int argc, char **argv, const int width, const int height, cons
 	glShadeModel (GL_SMOOTH);
 	glEnable (GL_BLEND); 
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// During init, enable debug output
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
 
 	glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 
