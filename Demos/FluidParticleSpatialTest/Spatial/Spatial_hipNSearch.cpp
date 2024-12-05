@@ -14,17 +14,17 @@ void Spatial_hipNSearch::cleanup()
 
 unsigned int Spatial_hipNSearch::getNumParticles() const
 {
-	return nSearch.point_set(particleIndex).n_points();
+	return hipNSearch.point_set(particleIndex).n_points();
 }
 
 void Spatial_hipNSearch::setRadius(const Real radius)
 {
-	nSearch.set_radius(radius);
+	hipNSearch.set_radius(radius);
 }
 
 Real Spatial_hipNSearch::getRadius() const
 {
-	return nSearch.radius();
+	return hipNSearch.radius();
 }
 
 void Spatial_hipNSearch::update()
@@ -44,7 +44,7 @@ void Spatial_hipNSearch::addParticles(const unsigned int numParticles, Vector3r*
 {
 	particles.insert(particles.begin(), numParticles, Vector3r(0.0f, 0.0f, 0.0f));
 	particles.insert(particles.begin() + numParticles, boundryX, boundryX + numBoundry);
-	particleIndex = nSearch.add_point_set(particles[0].data(), particles.size(), true, true);
+	particleIndex = hipNSearch.add_point_set(particles[0].data(), particles.size(), true, true);
 	//nSearch.find_neighbors();
 	//nSearch.point_set(particleIndex).makeInv();
 	
@@ -53,7 +53,7 @@ void Spatial_hipNSearch::addParticles(const unsigned int numParticles, Vector3r*
 void Spatial_hipNSearch::addBoundry(Vector3r* x, const unsigned int numParticles)
 {
 	particles.insert(particles.begin(), x, x + numParticles);
-	boundryIndex = nSearch.add_point_set(particles[0].data(), particles.size(), true, true);
+	boundryIndex = hipNSearch.add_point_set(particles[0].data(), particles.size(), true, true);
 	//nSearch.find_neighbors();
 	//nSearch.point_set(boundryIndex).makeInv();
 	//printf("AH\n");
@@ -68,7 +68,7 @@ void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numP
 	//nSearch.sort(nSearch.point_set(particleIndex));
 	//nSearch.point_set(particleIndex).makeInverse();
 	//const float* tmp1 = nSearch.point_set(particleIndex).GetPoints();
-	nSearch.find_neighbors(true);
+	hipNSearch.find_neighbors(true);
 	assert(particles.size() == numberOfParticles);
 }
 
@@ -81,7 +81,7 @@ void Spatial_hipNSearch::neighborhoodSearchBoundry(Vector3r* x, const unsigned i
 	//nSearch.point_set(boundryIndex).makeInverse();
 	//const float* tmp1 = nSearch.point_set(boundryIndex).GetPoints();
 	//const unsigned int* tmp1 = nSearch.point_set(boundryIndex).sortIndices.data();
-	nSearch.find_neighbors(true);
+	hipNSearch.find_neighbors(true);
 	//const float* tmp2 = nSearch.point_set(boundryIndex).GetPoints();
 	//const unsigned int* tmp2= nSearch.point_set(boundryIndex).sortIndices.data();
 	//int i = 0;

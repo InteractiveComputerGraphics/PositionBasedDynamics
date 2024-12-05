@@ -159,7 +159,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;..\..\lib\Release\imgui.lib;..\..\lib\Release\glfw3.lib;..\..\lib\Release\PositionBasedDynamics.lib;..\..\lib\Release\Simulation.lib;..\..\lib\Release\Utils.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;..\..\..\Demos\FluidParticleSpatialTest\Spatial\hipNSearch\cuNSearch.lib</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;..\..\lib\Release\imgui.lib;..\..\lib\Release\glfw3.lib;..\..\lib\Release\PositionBasedDynamics.lib;..\..\lib\Release\Simulation.lib;..\..\lib\Release\Utils.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;libomp.lib;..\..\..\Demos\FluidParticleSpatialTest\Spatial\hipNSearch\cuNSearch.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -167,6 +167,7 @@
       <ImportLibrary>D:/projects/master_thesis/code/PBDSpatialPartitioningThesis/build/Demos/FluidParticleSpatialTest/Release/FluidParticleSpatialTest.lib</ImportLibrary>
       <ProgramDataBaseFile>D:/projects/master_thesis/code/PBDSpatialPartitioningThesis/bin/FluidParticleSpatialTest.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -211,8 +212,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model.h.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model_reader.cpp.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model_reader.h.hip" />
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\prefix_sum.cu.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\scan.cu.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\scan.cuh.hip" />
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\scan_kern.cuh.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_arrangement.cu.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_arrangement.cuh.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_kernel.cu.hip" />
@@ -222,9 +225,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_particle.cpp.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_particle.h.hip" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_utils.cuh.hip" />
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.cpp" />
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.cpp" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\main.cpp" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\LogWindow.cpp" />
+    <ClInclude Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.h" />
     <ClInclude Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\LogWindow.h" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Common\Simulator_GUI_imgui.cpp" />
@@ -237,8 +242,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\TimeStepFluidModel.h" />
     <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\FluidModel.cpp" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\FluidModel.h" />
-    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.cpp" />
-    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\MiniGL.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Selection.h" />
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\Visualization\Shader.h" />
