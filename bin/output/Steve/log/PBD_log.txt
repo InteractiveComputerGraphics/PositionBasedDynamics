@@ -1,0 +1,95 @@
+[2025-01-28 20:25:24] Debug:   Git refspec: refs/heads/master
+[2025-01-28 20:25:24] Debug:   Git SHA1:    047489129820fc81b86d74fe43042a3551ff487a
+[2025-01-28 20:25:24] Debug:   Git status:  DIRTY
+[2025-01-28 20:25:24] Debug:   Host name:   BETTAN
+[2025-01-28 20:25:24] Info:    PositionBasedDynamics 2.2.0
+[2025-01-28 20:25:24] Info:    OpenGL version 4.6
+[2025-01-28 20:25:24] Info:    Vendor: ATI Technologies Inc.
+[2025-01-28 20:25:24] Info:    Renderer: AMD Radeon RX 7900 XTX
+[2025-01-28 20:25:24] Info:    Version: 4.6.0 Compatibility Profile Context 24.2.1.240215
+[2025-01-28 20:25:24] Info:    Initialize fluid particles
+[2025-01-28 20:25:25] Info:    Number of particles: 36000
+[2025-01-28 20:25:32] Info:    Average time neighborhood search with 8 calls: 3.28373 ms
+[2025-01-28 20:25:32] Info:    Average time constraint projection with 8 calls: 22.9062 ms
+[2025-01-28 20:25:32] Info:    Average time XSPH viscosity computation with 8 calls: 3.80296 ms
+[2025-01-28 20:25:32] Info:    Average time SimStep with 8 calls: 30.457 ms
+[2025-01-28 20:25:32] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:32] Info:    Average time neighborhood search with 16 calls: 3.12049 ms
+[2025-01-28 20:25:32] Info:    Average time constraint projection with 16 calls: 23.4095 ms
+[2025-01-28 20:25:32] Info:    Average time XSPH viscosity computation with 16 calls: 3.89766 ms
+[2025-01-28 20:25:32] Info:    Average time SimStep with 16 calls: 30.9152 ms
+[2025-01-28 20:25:32] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:32] Info:    Average time neighborhood search with 24 calls: 3.04843 ms
+[2025-01-28 20:25:32] Info:    Average time constraint projection with 24 calls: 24.0963 ms
+[2025-01-28 20:25:32] Info:    Average time XSPH viscosity computation with 24 calls: 4.03226 ms
+[2025-01-28 20:25:32] Info:    Average time SimStep with 24 calls: 31.6685 ms
+[2025-01-28 20:25:32] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:32] Info:    Average time neighborhood search with 32 calls: 3.0148 ms
+[2025-01-28 20:25:32] Info:    Average time constraint projection with 32 calls: 24.385 ms
+[2025-01-28 20:25:32] Info:    Average time XSPH viscosity computation with 32 calls: 4.06288 ms
+[2025-01-28 20:25:32] Info:    Average time SimStep with 32 calls: 31.9549 ms
+[2025-01-28 20:25:32] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:33] Info:    Average time neighborhood search with 40 calls: 3.0104 ms
+[2025-01-28 20:25:33] Info:    Average time constraint projection with 40 calls: 24.7345 ms
+[2025-01-28 20:25:33] Info:    Average time XSPH viscosity computation with 40 calls: 4.02055 ms
+[2025-01-28 20:25:33] Info:    Average time SimStep with 40 calls: 32.2587 ms
+[2025-01-28 20:25:33] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:33] Info:    Average time neighborhood search with 48 calls: 3.01477 ms
+[2025-01-28 20:25:33] Info:    Average time constraint projection with 48 calls: 25.5113 ms
+[2025-01-28 20:25:33] Info:    Average time XSPH viscosity computation with 48 calls: 4.17594 ms
+[2025-01-28 20:25:33] Info:    Average time SimStep with 48 calls: 33.1977 ms
+[2025-01-28 20:25:33] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:33] Info:    Average time neighborhood search with 56 calls: 3.01485 ms
+[2025-01-28 20:25:33] Info:    Average time constraint projection with 56 calls: 26.3431 ms
+[2025-01-28 20:25:33] Info:    Average time XSPH viscosity computation with 56 calls: 4.24142 ms
+[2025-01-28 20:25:33] Info:    Average time SimStep with 56 calls: 34.0962 ms
+[2025-01-28 20:25:33] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:34] Info:    Average time neighborhood search with 64 calls: 3.0121 ms
+[2025-01-28 20:25:34] Info:    Average time constraint projection with 64 calls: 27.5166 ms
+[2025-01-28 20:25:34] Info:    Average time XSPH viscosity computation with 64 calls: 4.33474 ms
+[2025-01-28 20:25:34] Info:    Average time SimStep with 64 calls: 35.3582 ms
+[2025-01-28 20:25:34] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:34] Info:    Average time neighborhood search with 72 calls: 3.01233 ms
+[2025-01-28 20:25:34] Info:    Average time constraint projection with 72 calls: 28.3082 ms
+[2025-01-28 20:25:34] Info:    Average time XSPH viscosity computation with 72 calls: 4.41683 ms
+[2025-01-28 20:25:34] Info:    Average time SimStep with 72 calls: 36.2304 ms
+[2025-01-28 20:25:34] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:35] Info:    Average time neighborhood search with 80 calls: 3.01116 ms
+[2025-01-28 20:25:35] Info:    Average time constraint projection with 80 calls: 29.072 ms
+[2025-01-28 20:25:35] Info:    Average time XSPH viscosity computation with 80 calls: 4.49177 ms
+[2025-01-28 20:25:35] Info:    Average time SimStep with 80 calls: 37.0661 ms
+[2025-01-28 20:25:35] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:35] Info:    Average time neighborhood search with 88 calls: 3.01764 ms
+[2025-01-28 20:25:35] Info:    Average time constraint projection with 88 calls: 29.8709 ms
+[2025-01-28 20:25:35] Info:    Average time XSPH viscosity computation with 88 calls: 4.59655 ms
+[2025-01-28 20:25:35] Info:    Average time SimStep with 88 calls: 37.9758 ms
+[2025-01-28 20:25:35] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:35] Info:    Average time neighborhood search with 96 calls: 3.02595 ms
+[2025-01-28 20:25:35] Info:    Average time constraint projection with 96 calls: 30.4819 ms
+[2025-01-28 20:25:35] Info:    Average time XSPH viscosity computation with 96 calls: 4.62578 ms
+[2025-01-28 20:25:35] Info:    Average time SimStep with 96 calls: 38.6238 ms
+[2025-01-28 20:25:35] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:36] Info:    Average time neighborhood search with 104 calls: 3.02938 ms
+[2025-01-28 20:25:36] Info:    Average time constraint projection with 104 calls: 30.987 ms
+[2025-01-28 20:25:36] Info:    Average time XSPH viscosity computation with 104 calls: 4.68513 ms
+[2025-01-28 20:25:36] Info:    Average time SimStep with 104 calls: 39.1908 ms
+[2025-01-28 20:25:36] Info:    ---------------------------------------------------------------------------
+
+[2025-01-28 20:25:36] Info:    Average time neighborhood search with 112 calls: 3.034 ms
+[2025-01-28 20:25:36] Info:    Average time constraint projection with 112 calls: 31.3732 ms
+[2025-01-28 20:25:36] Info:    Average time XSPH viscosity computation with 112 calls: 4.72216 ms
+[2025-01-28 20:25:36] Info:    Average time SimStep with 112 calls: 39.6181 ms
+[2025-01-28 20:25:36] Info:    ---------------------------------------------------------------------------
+

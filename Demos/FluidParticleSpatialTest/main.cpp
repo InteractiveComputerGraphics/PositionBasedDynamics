@@ -16,6 +16,8 @@
 #include "math.h"
 
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 
 #include <limits>
 #undef max
@@ -39,23 +41,23 @@ void initBoundaryData(std::vector<Vector3r> &boundaryParticles);
 void render ();
 void cleanup();
 void reset();
-void selection(const Vector2i &start, const Vector2i &end, void *clientData);
+void selection(const Vector2i& start, const Vector2i& end, void* clientData);
 void createSphereBuffers(Real radius, int resolution);
-void renderSphere(const Vector3r &x, const float color[]);
+void renderSphere(const Vector3r& x, const float color[]);
 void releaseSphereBuffers();
-
 
 FluidModel model;
 TimeStepFluidModel simulation;
 DemoBase* base;
 
-const Real particleRadius = static_cast<Real>(0.025);
-const unsigned int width = 15;
-const unsigned int depth = 15;
-const unsigned int height = 20;
-const Real containerWidth = (width + 1)*particleRadius*static_cast<Real>(2.0 * 5.0);
-const Real containerDepth = (depth + 1)*particleRadius*static_cast<Real>(2.0);
-const Real containerHeight = 4.0;
+#define MULT * 0//>> 2
+Real particleRadius = static_cast<Real>(0.025);
+/*const*/ unsigned int width = 15 + (15 MULT);
+/*const*/ unsigned int depth = 15 + (15 MULT);
+/*const*/ unsigned int height = 20 + (20 MULT);
+/*const*/ Real containerWidth = (width + 1) * particleRadius * static_cast<Real>(2.0 * 5.0);
+/*const*/ Real containerDepth = (depth + 1) * particleRadius * static_cast<Real>(2.0);
+/*const*/ Real containerHeight = (height + 1 - 5) * particleRadius * static_cast<Real>(2.0 * 5.0);
 bool doPause = true;
 std::vector<unsigned int> selectedParticles;
 Vector3r oldMousePos;
@@ -68,19 +70,66 @@ GLint context_major_version, context_minor_version;
 string exePath;
 string dataPath;
 
+std::ofstream Utilities::graphingData;
+string dataFilename = "D:\\projects\\master_thesis\\code\\PBDSpatialPartitioningThesis\\bin\\output\\Fluid demo\\log\\graphingData";
+
 // main 
-int main( int argc, char **argv )
+int main(int argc, char** argv)
 {
-	REPORT_MEMORY_LEAKS
+	printf("#Arguments: %d\n", argc);
+	printf("Argument 0: %s\n", argv[0]);
+
+	if (argc != 1)
+	{
+		if (argc != 3)
+		{
+			return 0;
+		}
+
+		printf("Argument 1: %s\n", argv[1]);
+
+		if (argv[1][0] == 'd')
+		{
+			width = 15;
+			depth = 15;
+			height = 20;
+		}
+		else
+		{
+			int shift = stoi(argv[1]); //Make into an int
+			if (shift < 0)
+			{
+				width = 15 + (double)(15 >> (-1) * shift);
+				depth = 15 + (15 >> (-1) * shift);
+				height = 20 + (20 >> (-1) * shift);
+			}
+			else
+			{
+				 width = 15 + (double)(15 << shift);
+				 depth = 15 + (15 << shift);
+				 height = 20 + (20 << shift);
+			}
+		}
+
+		containerWidth = (width + 1) * particleRadius * static_cast<Real>(2.0 * 5.0);
+		containerDepth = (depth + 1) * particleRadius * static_cast<Real>(2.0);
+		containerHeight = (height + 1 - 5) * particleRadius * static_cast<Real>(2.0 * 5.0);
+
+		printf("Argument 2: %s\n", argv[2]);
+		dataFilename += string(argv[2]);
+	}
+
+#ifdef TAKETIME
+	Utilities::graphingData.open(dataFilename + ".csv", std::ios::out);
+	if (Utilities::graphingData.fail())
+		std::cerr << "Failed to open file: graphingData.csv\n";
+#endif // TAKETIME
 
 	base = new DemoBase();
 	base->init(argc, argv, "Fluid demo");
 
-	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
+	printf("%d, %d, %d\n", width, depth, height);
+	printf("%f, %f, %f\n", containerWidth, containerDepth, containerHeight);
 
 	// we use an own time step controller
 	delete PBD::Simulation::getCurrent()->getTimeStep();
@@ -90,22 +139,10 @@ int main( int argc, char **argv )
 	MiniGL::setClientIdleFunc(timeStep);
 	MiniGL::addKeyFunc('r', reset);
 	MiniGL::setClientSceneFunc(render);
-	MiniGL::setViewport (40.0, 0.1f, 500.0, Vector3r (0.0, 3.0, 8.0), Vector3r (0.0, 0.0, 0.0));
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
+	MiniGL::setViewport(40.0, 0.1f, 500.0, Vector3r(0.0, 3.0, 8.0), Vector3r(0.0, 0.0, 0.0));
 	buildModel();
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
 
 	base->createParameterGUI();
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
 
 	// add additional parameter just for this demo
 	imguiParameters::imguiEnumParameter* eparam = new imguiParameters::imguiEnumParameter();
@@ -127,15 +164,16 @@ int main( int argc, char **argv )
 	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
 	if (context_major_version >= 3)
 		createSphereBuffers((Real)particleRadius, 8);
-	
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
 
-	MiniGL::mainLoop();	
+	base->setValue<bool>(DemoBase::PAUSE, false);
 
-	cleanup ();
+	MiniGL::mainLoop();
+
+#ifdef TAKETIME
+	Utilities::graphingData.close();
+#endif // TAKETIME
+
+	cleanup();
 	base->cleanup();
 
 	Utilities::Timing::printAverageTimes();
@@ -194,16 +232,38 @@ void selection(const Vector2i &start, const Vector2i &end, void *clientData)
 	MiniGL::unproject(end[0], end[1], oldMousePos);
 }
 
+#ifdef TAKETIME
+int numberOfTimeSteps = 0;
+int numResets = 0;
+#define STOPATTIMESTEP 512
+#define RESETNUM 2
+#endif // TAKETIME
 void timeStep ()
 {
-	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
-	const Real pauseAt = base->getValue<Real>(DemoBase::PAUSE_AT);
+	/*const Real pauseAt = base->getValue<Real>(DemoBase::PAUSE_AT);
 	if ((pauseAt > 0.0) && (pauseAt < TimeManager::getCurrent()->getTime()))
-		base->setValue(DemoBase::PAUSE, true);
+		base->setValue(DemoBase::PAUSE, true);*/
+
+#ifdef TAKETIME
+	if (numberOfTimeSteps == STOPATTIMESTEP)
+	{
+		if (numResets < RESETNUM)
+		{
+			numResets++;
+			numberOfTimeSteps = 0;
+			//graphingData << "\nHARD RESET TIME BABY,\n";
+			Utilities::graphingData.close();
+			Utilities::graphingData.open(dataFilename + ".csv", std::ios::out);
+			if (Utilities::graphingData.fail())
+				std::cerr << "Failed to open file: graphingData.csv\n";
+			reset();
+		}
+		else
+		{
+			MiniGL::leaveMainLoop();
+		}
+	}
+#endif // TAKETIME
 
 	if (base->getValue<bool>(DemoBase::PAUSE))
 	{
@@ -216,12 +276,25 @@ void timeStep ()
 	const unsigned int numSteps = base->getValue<unsigned int>(DemoBase::NUM_STEPS_PER_RENDER);
 	for (unsigned int i = 0; i < numSteps; i++)
 	{
+#ifdef TAKETIME
+		graphingData << numberOfTimeSteps << ",";
+		//if (numberOfTimeSteps == 0) graphingData << "0,0,0,0,";
 		START_TIMING("SimStep");
+#endif // TAKETIME
+
 		simulation.step(model);
+
+#ifdef TAKETIME
 		STOP_TIMING_AVG;
+		graphingData << "\n";
+		numberOfTimeSteps++;
+#endif // TAKETIME
 
 		base->step();
 	}
+//#ifdef TAKETIME
+//	Timing::printAverageTimes();
+//#endif // TAKETIME
 }
 
 void buildModel ()
@@ -238,12 +311,6 @@ void render ()
 	const ParticleData &pd = model.getParticles();
 	const unsigned int nParticles = pd.size();
 
-	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
-
 	float surfaceColor[4] = { 0.2f, 0.6f, 0.8f, 1 };
 	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
@@ -253,11 +320,6 @@ void render ()
 	glColor3fv(surfaceColor);
 
 	glPointSize(4.0);
-
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
 
 	const Real supportRadius = model.getSupportRadius();
 	Real vmax = static_cast<Real>(0.4*2.0)*supportRadius / TimeManager::getCurrent()->getTimeStepSize();
@@ -277,10 +339,6 @@ void render ()
 
 // 		for (unsigned int i = 0; i < model.numBoundaryParticles(); i++)
 // 			renderSphere(model.getBoundaryX(i), surfaceColor);
-		while ((err = glGetError()) != GL_NO_ERROR)
-		{
-			printf("FUCK AN ERROR %#04x\n", err);
-		}
 	}
 	else
 	{
@@ -309,10 +367,6 @@ void render ()
 		// 	glEnd();
 
 		glEnable(GL_LIGHTING);
-		while ((err = glGetError()) != GL_NO_ERROR)
-		{
-			printf("FUCK AN ERROR %#04x\n", err);
-		}
 	}
 
 
@@ -322,15 +376,7 @@ void render ()
 	{
 		MiniGL::drawSphere(pd.getPosition(selectedParticles[j]), 0.08f, red);
 	}
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
 	base->render();
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		printf("FUCK AN ERROR %#04x\n", err);
-	}
 }
 
 const Real nudge = 0;// particleRadius * 2.1;

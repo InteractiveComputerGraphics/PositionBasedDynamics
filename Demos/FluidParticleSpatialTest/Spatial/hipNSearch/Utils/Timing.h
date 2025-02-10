@@ -16,8 +16,23 @@
 #include "IDFactory.h"
 #include "cuNSearch_export.h"
 
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+
+#ifdef DEBUG
+#define PRINT_STATS true
+#define USE_TIMING(x) x;
+#else
+#define PRINT_STATS true
+#define USE_TIMING(x) x;
+#endif
+
 namespace cuNSearch
 {
+	//USE_TIMING(extern std::ofstream graphingData;);
+	USE_TIMING(extern std::ofstream* graphingData;);
+
 	struct TimingHelper
 	{
 		std::chrono::time_point<std::chrono::high_resolution_clock> start;
@@ -69,8 +84,12 @@ namespace cuNSearch
 				std::chrono::duration<double> elapsed_seconds = stop - h.start;
 				double t = elapsed_seconds.count() * 1000.0;
 
-				if (print)
+				/*if (print)
+				{
 					std::cout << "time " << h.name.c_str() << ": " << t << " ms\n" << std::flush;
+				}*/
+				USE_TIMING((*graphingData) << t << ",";);
+					
 				return t;
 		}
 			return 0;
@@ -99,6 +118,7 @@ namespace cuNSearch
 					iter = Timing::m_averageTimes.find(id);
 					if (iter != Timing::m_averageTimes.end())
 					{
+						USE_TIMING((*graphingData) << t << ",";);
 						Timing::m_averageTimes[id].totalTime += t;
 						Timing::m_averageTimes[id].counter++;
 					}
@@ -109,6 +129,9 @@ namespace cuNSearch
 						at.totalTime = t;
 						at.name = h.name;
 						Timing::m_averageTimes[id] = at;
+						USE_TIMING((*graphingData) << t << ",";);
+						Timing::m_averageTimes[id].totalTime += t;
+						Timing::m_averageTimes[id].counter++;
 					}
 				}
 				return t;

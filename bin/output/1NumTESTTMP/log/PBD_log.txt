@@ -1,0 +1,11 @@
+[2025-02-08 07:28:02] Debug:   Git refspec: refs/heads/master
+[2025-02-08 07:28:02] Debug:   Git SHA1:    047489129820fc81b86d74fe43042a3551ff487a
+[2025-02-08 07:28:02] Debug:   Git status:  DIRTY
+[2025-02-08 07:28:02] Debug:   Host name:   BETTAN
+[2025-02-08 07:28:02] Info:    PositionBasedDynamics 2.2.0
+[2025-02-08 07:28:02] Info:    OpenGL version 4.6
+[2025-02-08 07:28:02] Info:    Vendor: ATI Technologies Inc.
+[2025-02-08 07:28:02] Info:    Renderer: AMD Radeon RX 7900 XTX
+[2025-02-08 07:28:02] Info:    Version: 4.6.0 Compatibility Profile Context 24.2.1.240215
+[2025-02-08 07:28:02] Info:    Initialize fluid particles
+[2025-02-08 07:28:03] Info:    Number of particles: 121500

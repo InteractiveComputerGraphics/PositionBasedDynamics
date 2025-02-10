@@ -62,6 +62,7 @@ GLint context_major_version, context_minor_version;
 string exePath;
 string dataPath;
 
+std::ofstream Utilities::graphingData; //TO DELETE
 
 // main 
 int main( int argc, char **argv )

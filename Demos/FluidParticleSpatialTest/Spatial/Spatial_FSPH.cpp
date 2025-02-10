@@ -24,13 +24,13 @@ Spatial_FSPH::Spatial_FSPH(const Real radius, const unsigned int numBoundry, con
 
 	sysPara.cell_size = sysPara.kernel;
 	sysPara.grid_size = make_ushort3(
-		(ushort)ceil(5.01f / sysPara.cell_size),
-		(ushort)ceil(5.01f / sysPara.cell_size),
-		(ushort)ceil(1.81f / sysPara.cell_size)
+		(ushort)ceil((containerWidth + 0.01f) / sysPara.cell_size),
+		(ushort)ceil((containerHeight + 0.01f) / sysPara.cell_size),
+		(ushort)ceil((containerDepth + 0.01f) / sysPara.cell_size)
 	);
 	
-	CUDA_SAFE_CALL(hipHostMalloc(&part2Idx, nump_ * sizeof(int) * 64)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
-	CUDA_SAFE_CALL(hipHostMalloc(&idx2Part, nump_ * sizeof(int) * 64)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
+	CUDA_SAFE_CALL(hipHostMalloc(&part2Idx, nump_ * sizeof(int)));// * 64)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
+	CUDA_SAFE_CALL(hipHostMalloc(&idx2Part, nump_ * sizeof(int)));// * 64)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
 
 	transSysParaToDevice(&sysPara);
 	
@@ -140,13 +140,24 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numParticl
 	//TODO Add points from the test data
 	void* tmp0 = &host_buff_.get_buff_list().position_d[0];
 	//void* tmp1 = host_buff_.get_buff_list().final_position;
+#ifdef TAKETIME
+	START_TIMING("Unnecessary Copy");
+#endif // TAKETIME
 	std::copy(x[0].data(), x[0].data() + numParticles * 3, (float*)tmp0);
 	std::copy(boundaryX[0].data(), boundaryX[0].data() + numBoundaryParticles * 3, (float*)tmp0 + numParticles * 3);
+#ifdef TAKETIME
+	STOP_TIMING_AVG;
+#endif // TAKETIME	
 	/*std::copy(x[0].data(), x[0].data() + nump_ * 3, (float*)tmp1);
 	std::copy(boundaryX[0].data(), boundaryX[0].data() + numBoundaryParticles * 3, (float*)tmp1 + nump_ * 3);*/
-
+#ifdef TAKETIME
+	START_TIMING("Copy to GPU");
+#endif // TAKETIME
 	host_buff_.transfer(device_buff_, 0, nump_, hipMemcpyHostToDevice);
 	//printf("Host buffer transfer success\n");
+#ifdef TAKETIME
+	STOP_TIMING_AVG;
+#endif // TAKETIME	
 
 	int* d_index = arrangement_->getDevCellIndex();
 	int* offset_data = arrangement_->getDevOffsetData();
@@ -155,16 +166,22 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numParticl
 	int* cell_nump = arrangement_->getDevCellNumP();
 	int middle = nump_;
 
+#ifdef TAKETIME
+	START_TIMING("Arrange data");
+#endif // TAKETIME
 	middle = arrangement_->arrangeHybridMode9M();
 	//printf("Arranged HybridMode success\n");
+#ifdef TAKETIME
+	STOP_TIMING_AVG;
+#endif // TAKETIME	
 
-	float3 f0 = thrust::reduce(thrust::device, device_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d + nump_);
-	//printf("GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
-	float3 f2 = std::accumulate(host_buff_.get_buff_list().position_d, host_buff_.get_buff_list().position_d + nump_, make_float3(0.0f, 0.0f, 0.0f));
-	//printf("CPUHost sum: (%f,%f,%f)\n", f2.x, f2.y, f2.z);
-	Vector3r f1x = std::accumulate(x, x + numParticles, Vector3r(0.0f, 0.0f, 0.0f));
-	Vector3r f1 = std::accumulate(boundaryX, boundaryX + numBoundaryParticles, f1x);
-	//printf("CPUx sum: (%f,%f,%f)\n", f1[0], f1[1], f1[2]);
+	//float3 f0 = thrust::reduce(thrust::device, device_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d + nump_);
+	////printf("GPU sum: (%f,%f,%f)\n", f0.x, f0.y, f0.z);
+	//float3 f2 = std::accumulate(host_buff_.get_buff_list().position_d, host_buff_.get_buff_list().position_d + nump_, make_float3(0.0f, 0.0f, 0.0f));
+	////printf("CPUHost sum: (%f,%f,%f)\n", f2.x, f2.y, f2.z);
+	//Vector3r f1x = std::accumulate(x, x + numParticles, Vector3r(0.0f, 0.0f, 0.0f));
+	//Vector3r f1 = std::accumulate(boundaryX, boundaryX + numBoundaryParticles, f1x);
+	////printf("CPUx sum: (%f,%f,%f)\n", f1[0], f1[1], f1[2]);
 
 	sph::ParticleIdxRange tra_range(0, middle);      // [0, middle)
 	//printf("Gotten middle\n");
@@ -172,7 +189,13 @@ void Spatial_FSPH::neighborhoodSearch(Vector3r* x, const unsigned int numParticl
 	sph::computeNeighbours(cell_offsetM, tra_range, device_buff_.get_buff_list(), d_index, cell_offset, cell_nump, arrangement_->getBlockTasks(), arrangement_->getNumBlockSMSMode(), neigh);
 	//printf("Computed neighbours\n");
 
+#ifdef TAKETIME
+	START_TIMING("Copy sorting indexes to CPU");
+#endif // TAKETIME
 	//CUDA_SAFE_CALL(hipMemcpy(host_buff_.get_buff_list().position_d, device_buff_.get_buff_list().position_d, nump_ * sizeof(float3), hipMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(hipMemcpy(part2Idx, arrangement_->part2Idx, nump_ * sizeof(int), hipMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(hipMemcpy(idx2Part, arrangement_->idx2Part, nump_ * sizeof(int), hipMemcpyDeviceToHost));
+#ifdef TAKETIME
+	STOP_TIMING_AVG;
+#endif // TAKETIME	
 }

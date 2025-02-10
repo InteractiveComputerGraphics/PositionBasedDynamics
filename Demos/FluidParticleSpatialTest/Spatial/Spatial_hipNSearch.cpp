@@ -57,19 +57,31 @@ void Spatial_hipNSearch::addBoundry(Vector3r* x, const unsigned int numParticles
 	//nSearch.find_neighbors();
 	//nSearch.point_set(boundryIndex).makeInv();
 	//printf("AH\n");
-	assert(particles.size() == numberOfParticles);
+	//assert(particles.size() == numberOfParticles);
 }
 
 void Spatial_hipNSearch::neighborhoodSearch(Vector3r* x, const unsigned int numParticles, Vector3r* boundryX, const unsigned int numBoundry)
 {
+#ifdef TAKETIME
+	START_TIMING("Unnecessary Copy");
+#endif // TAKETIME
 	std::copy(x, x + numParticles, particles.begin()); //particles.insert(particles.begin(), x, x + numParticles);
 	std::copy(boundryX, boundryX + numBoundry, particles.begin() + numParticles); //particles.insert(particles.begin() + numParticles, boundryX, boundryX + numBoundry);
+#ifdef TAKETIME
+	STOP_TIMING_AVG;
+#endif // TAKETIME	
 	//const float* tmp0 = particles[0].data();
 	//nSearch.sort(nSearch.point_set(particleIndex));
 	//nSearch.point_set(particleIndex).makeInverse();
 	//const float* tmp1 = nSearch.point_set(particleIndex).GetPoints();
+#ifdef TAKETIME
+	START_TIMING("Run hipNSearch");
+#endif // TAKETIME
 	hipNSearch.find_neighbors(true);
-	assert(particles.size() == numberOfParticles);
+#ifdef TAKETIME
+	STOP_TIMING_AVG;
+#endif // TAKETIME	
+	//assert(particles.size() == numberOfParticles);
 }
 
 void Spatial_hipNSearch::neighborhoodSearchBoundry(Vector3r* x, const unsigned int numParticles)
@@ -85,5 +97,5 @@ void Spatial_hipNSearch::neighborhoodSearchBoundry(Vector3r* x, const unsigned i
 	//const float* tmp2 = nSearch.point_set(boundryIndex).GetPoints();
 	//const unsigned int* tmp2= nSearch.point_set(boundryIndex).sortIndices.data();
 	//int i = 0;
-	assert(particles.size() == numberOfParticles);
+	//assert(particles.size() == numberOfParticles);
 }

@@ -1,0 +1,49 @@
+[2025-02-08 07:27:58] Debug:   Git refspec: refs/heads/master
+[2025-02-08 07:27:58] Debug:   Git SHA1:    047489129820fc81b86d74fe43042a3551ff487a
+[2025-02-08 07:27:58] Debug:   Git status:  DIRTY
+[2025-02-08 07:27:58] Debug:   Host name:   BETTAN
+[2025-02-08 07:27:58] Info:    PositionBasedDynamics 2.2.0
+[2025-02-08 07:27:58] Info:    OpenGL version 4.6
+[2025-02-08 07:27:58] Info:    Vendor: ATI Technologies Inc.
+[2025-02-08 07:27:58] Info:    Renderer: AMD Radeon RX 7900 XTX
+[2025-02-08 07:27:58] Info:    Version: 4.6.0 Compatibility Profile Context 24.2.1.240215
+[2025-02-08 07:27:58] Info:    Initialize fluid particles
+[2025-02-08 07:27:59] Info:    Number of particles: 36000
+[2025-02-08 07:28:02] Info:    Average time Full count array and resize neighbour array with 58 calls: 0.0622155 ms
+[2025-02-08 07:28:02] Info:    Average time Execute kncomputeNeighboursCount and resize neighbour offsets with 58 calls: 0.0088931 ms
+[2025-02-08 07:28:02] Info:    Average time Execute exclusive_scan over counts with 58 calls: 0.350428 ms
+[2025-02-08 07:28:02] Info:    Average time Count resize with 58 calls: 0.000260345 ms
+[2025-02-08 07:28:02] Info:    Average time Count GPU to CPU with 58 calls: 0.0868966 ms
+[2025-02-08 07:28:02] Info:    Average time Execute kncomputeNeighbours with 58 calls: 0.198309 ms
+[2025-02-08 07:28:02] Info:    Average time Neighbour resize with 58 calls: 1.63666 ms
+[2025-02-08 07:28:02] Info:    Average time Copy neighbour & offset to CPU with 58 calls: 0.42604 ms
+[2025-02-08 07:28:02] Info:    Average time Compute neighbours with 58 calls: 2.7911 ms
+[2025-02-08 07:28:02] Info:    Average time Unnecessary Copy with 57 calls: 0.0436772 ms
+[2025-02-08 07:28:02] Info:    Average time Copy to GPU with 57 calls: 0.28136 ms
+[2025-02-08 07:28:02] Info:    Average time Arrange data with 57 calls: 1.03107 ms
+[2025-02-08 07:28:02] Info:    Average time Copy sorting indexes to CPU with 57 calls: 0.144484 ms
+[2025-02-08 07:28:02] Info:    Average time neighborhood search with 57 calls: 4.37901 ms
+[2025-02-08 07:28:02] Info:    Average time constraint projection with 57 calls: 23.4768 ms
+[2025-02-08 07:28:02] Info:    Average time XSPH viscosity computation with 57 calls: 3.52425 ms
+[2025-02-08 07:28:02] Info:    Average time SimStep with 57 calls: 31.8534 ms
+[2025-02-08 07:28:02] Info:    ---------------------------------------------------------------------------
+
+[2025-02-08 07:28:02] Info:    Time sum Full count array and resize neighbour array: 3.6085 ms
+[2025-02-08 07:28:02] Info:    Time sum Execute kncomputeNeighboursCount and resize neighbour offsets: 0.5158 ms
+[2025-02-08 07:28:02] Info:    Time sum Execute exclusive_scan over counts: 20.3248 ms
+[2025-02-08 07:28:02] Info:    Time sum Count resize: 0.0151 ms
+[2025-02-08 07:28:02] Info:    Time sum Count GPU to CPU: 5.04 ms
+[2025-02-08 07:28:02] Info:    Time sum Execute kncomputeNeighbours: 11.5019 ms
+[2025-02-08 07:28:02] Info:    Time sum Neighbour resize: 94.9262 ms
+[2025-02-08 07:28:02] Info:    Time sum Copy neighbour & offset to CPU: 24.7103 ms
+[2025-02-08 07:28:02] Info:    Time sum Compute neighbours: 161.884 ms
+[2025-02-08 07:28:02] Info:    Time sum Unnecessary Copy: 2.4896 ms
+[2025-02-08 07:28:02] Info:    Time sum Copy to GPU: 16.0375 ms
+[2025-02-08 07:28:02] Info:    Time sum Arrange data: 58.7709 ms
+[2025-02-08 07:28:02] Info:    Time sum Copy sorting indexes to CPU: 8.2356 ms
+[2025-02-08 07:28:02] Info:    Time sum neighborhood search: 249.604 ms
+[2025-02-08 07:28:02] Info:    Time sum constraint projection: 1338.18 ms
+[2025-02-08 07:28:02] Info:    Time sum XSPH viscosity computation: 200.882 ms
+[2025-02-08 07:28:02] Info:    Time sum SimStep: 1815.64 ms
+[2025-02-08 07:28:02] Info:    ---------------------------------------------------------------------------
+

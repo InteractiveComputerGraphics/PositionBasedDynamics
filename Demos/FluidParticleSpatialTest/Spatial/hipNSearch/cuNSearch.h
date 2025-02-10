@@ -5,6 +5,8 @@
 #include "include/ActivationTable.h"
 #include "include/PointSet.h"
 
+#include "Utils/Timing.h"
+
 namespace cuNSearch
 {
 	class cuNSearchDeviceData;
@@ -20,8 +22,6 @@ namespace cuNSearch
 		std::vector<PointSet> pointSets;
 
 	public:
-		// Implementation and cuda data are hidden in the cuNSearchDeviceData class to avoid unnecessary dependencies in public headers.
-		std::unique_ptr<cuNSearchDeviceData> deviceData;
 
 		/**
 		* Constructor.
@@ -185,10 +185,15 @@ namespace cuNSearch
 
 		void sort(PointSet& pointSet);
 
+		USE_TIMING(void setFileOutput(std::ofstream* fileOutputPtr) { cuNSearch::graphingData = fileOutputPtr; })
+
 	private:
 		bool isInitialized = false;
 		Real searchRadius;
 		ActivationTable m_activation_table;
+
+		// Implementation and cuda data are hidden in the cuNSearchDeviceData class to avoid unnecessary dependencies in public headers.
+		std::unique_ptr<cuNSearchDeviceData> deviceData;
 
 		void updatePointSet(PointSet &pointSet);
 	};

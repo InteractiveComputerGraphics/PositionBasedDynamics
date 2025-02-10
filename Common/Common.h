@@ -41,6 +41,10 @@ using AlignedBox3r = Eigen::AlignedBox<Real, 3>;
 using AngleAxisr = Eigen::AngleAxis<Real>;
 using Quaternionr = Eigen::Quaternion<Real, Eigen::DontAlign>;
 
+extern /*const*/ Real containerWidth;
+extern /*const*/ Real containerDepth;
+extern /*const*/ Real containerHeight;
+
 #if defined(WIN32) || defined(_WIN32) || defined(WIN64)
 	// Enable memory leak detection
 #ifdef _DEBUG

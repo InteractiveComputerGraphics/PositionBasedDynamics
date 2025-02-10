@@ -7,8 +7,16 @@
 #include "Logger.h"
 #include <chrono>
 
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+
+#define TAKETIME
+
 namespace Utilities
 {
+	extern std::ofstream graphingData;
+
 	#define START_TIMING(timerName) \
 	Utilities::Timing::startTiming(timerName);
 
@@ -21,13 +29,13 @@ namespace Utilities
 	#define STOP_TIMING_AVG \
 	{ \
 	static int timing_timerId = -1; \
-	Utilities::Timing::stopTiming(false, timing_timerId); \
+	Utilities::Timing::stopTiming(false, timing_timerId, Utilities::graphingData); \
 	}
 
 	#define STOP_TIMING_AVG_PRINT \
 	{ \
 	static int timing_timerId = -1; \
-	Utilities::Timing::stopTiming(true, timing_timerId); \
+	Utilities::Timing::stopTiming(true, timing_timerId, Utilities::graphingData); \
 	}
 
 	#define INIT_TIMING \
@@ -37,6 +45,7 @@ namespace Utilities
 		bool Utilities::Timing::m_dontPrintTimes = false; \
 		unsigned int Utilities::Timing::m_startCounter = 0; \
 		unsigned int Utilities::Timing::m_stopCounter = 0;
+		
 
 
 	/** \brief Struct to store a time measurement.
@@ -115,7 +124,7 @@ namespace Utilities
 			return 0;
 		}
 
-		FORCE_INLINE static double stopTiming(bool print, int &id)
+		FORCE_INLINE static double stopTiming(bool print, int &id, std::ofstream& graphingData)
 		{
 			if (id == -1)
 				id = IDFactory::getId();
@@ -129,8 +138,8 @@ namespace Utilities
 				std::chrono::duration<double> elapsed_seconds = stop - h.start;
 				double t = elapsed_seconds.count() * 1000.0;
 
-				if (print && !Timing::m_dontPrintTimes)
-					LOG_INFO << "time " << h.name.c_str() << ": " << t << " ms";
+				/*if (print && !Timing::m_dontPrintTimes)
+					LOG_INFO << "time " << h.name.c_str() << ": " << t << " ms";*/
 
 				if (id >= 0)
 				{
@@ -138,6 +147,7 @@ namespace Utilities
 					iter = Timing::m_averageTimes.find(id);
 					if (iter != Timing::m_averageTimes.end())
 					{
+						graphingData << t << ",";
 						Timing::m_averageTimes[id].totalTime += t;
 						Timing::m_averageTimes[id].counter++;
 					}
@@ -148,6 +158,9 @@ namespace Utilities
 						at.totalTime = t;
 						at.name = h.name;
 						Timing::m_averageTimes[id] = at;
+						graphingData << t << ",";
+						Timing::m_averageTimes[id].totalTime += t;
+						Timing::m_averageTimes[id].counter++;
 					}
 				}
 				return t;
@@ -162,7 +175,7 @@ namespace Utilities
 			{
 				AverageTime &at = iter->second;
 				const double avgTime = at.totalTime / at.counter;
-				LOG_INFO << "Average time " << at.name.c_str() << ": " << avgTime << " ms";
+				LOG_INFO << "Average time " << at.name.c_str() << " with " << at.counter << " calls: " << avgTime << " ms";
 			}
 			if (Timing::m_startCounter != Timing::m_stopCounter)
 				LOG_INFO << "Problem: " << Timing::m_startCounter << " calls of startTiming and " << Timing::m_stopCounter << " calls of stopTiming. ";

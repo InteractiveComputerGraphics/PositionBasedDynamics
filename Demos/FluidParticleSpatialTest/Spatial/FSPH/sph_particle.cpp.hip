@@ -89,7 +89,7 @@ void ParticleBufferObject::allocate(unsigned int nump, BufferType type)
     }
     if (kBuffTypeHostPinned == type)
     {
-        CUDA_SAFE_CALL(hipHostMalloc(&buff_list_.position_d, nump * sizeof(float3) * 1.5 * 32)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
+        CUDA_SAFE_CALL(hipHostMalloc(&buff_list_.position_d, nump * sizeof(float3)));// * 1.5 * 32)); //Increase allocation size to force hip to actually allocate. What the hell HIP?
         //CUDA_SAFE_CALL(hipHostMalloc(&buff_list_.velocity, nump * sizeof(float3)));
         //CUDA_SAFE_CALL(hipHostMalloc(&buff_list_.final_position, nump * sizeof(float3) * 1.5 * 32));
         //CUDA_SAFE_CALL(hipHostMalloc(&buff_list_.color, nump * sizeof(unsigned int)));

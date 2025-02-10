@@ -1,1 +1,0 @@
-.\SceneLoaderDemo.exe ../data/scenes/ClothCollisionScene.json

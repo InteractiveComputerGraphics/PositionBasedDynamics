@@ -7,7 +7,7 @@
 
 
 //#define nSearch
-#define FSPH
+//#define FSPH
 
 #if defined(FSPH)
 #include "Spatial/Spatial_FSPH.h"

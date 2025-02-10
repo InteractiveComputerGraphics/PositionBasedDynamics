@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "Utils/Timing.h"
+
 #include "hipNSearch/cuNSearch.h"
 
 using Real3 = std::array<Real, 3>;
@@ -15,6 +17,7 @@ namespace PBD
 			numberOfParticles = numBoundry + numParticle;
 			particles.reserve(numberOfParticles);
 			printf("Real3: %d; Vector3r: %d\n", sizeof(Real3), sizeof(Vector3r));
+			hipNSearch.setFileOutput(&Utilities::graphingData);
 		};
 		~Spatial_hipNSearch();
 
@@ -44,19 +47,19 @@ namespace PBD
 		{
 			return hipNSearch.point_set(particleIndex).neighbor(particleIndex, i, k);
 		}
-		unsigned int sortIdx(unsigned int i) const
-		{
-			return hipNSearch.point_set(particleIndex).sortIndices[i];
-		}
-		unsigned int invSortIdx(unsigned int i) const
-		{
-			return hipNSearch.point_set(particleIndex).invSortIndices[i];
-		}
-		unsigned int invNeighbor(unsigned int i, unsigned int k) const
-		{
-			return invSortIdx(neighbor(i, k));
-			//return sortIdx(neighbor(i, k));
-		}
+		//unsigned int sortIdx(unsigned int i) const
+		//{
+		//	return hipNSearch.point_set(particleIndex).sortIndices[i];
+		//}
+		//unsigned int invSortIdx(unsigned int i) const
+		//{
+		//	return hipNSearch.point_set(particleIndex).invSortIndices[i];
+		//}
+		//unsigned int invNeighbor(unsigned int i, unsigned int k) const
+		//{
+		//	return invSortIdx(neighbor(i, k));
+		//	//return sortIdx(neighbor(i, k));
+		//}
 
 		unsigned int n_neighborsBoundry(unsigned int i) const
 		{
@@ -66,7 +69,7 @@ namespace PBD
 		{
 			return hipNSearch.point_set(boundryIndex).neighbor(boundryIndex, i, k);
 		}
-		unsigned int sortIdxBoundry(unsigned int i) const
+		/*unsigned int sortIdxBoundry(unsigned int i) const
 		{
 			return hipNSearch.point_set(boundryIndex).sortIndices[i];
 		}
@@ -77,7 +80,7 @@ namespace PBD
 		unsigned int invNeighborBoundry(unsigned int i, unsigned int k) const
 		{
 			return invSortIdxBoundry(neighborBoundry(i, k));
-		}
+		}*/
 
 	private:
 		int particleIndex;

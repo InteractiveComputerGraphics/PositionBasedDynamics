@@ -2,6 +2,8 @@
 
 #include "Common/Common.h"
 
+#include "Utils/Timing.h"
+
 #include "sph_kernel.cuh.hip"
 #include "sph_arrangement.cuh.hip"
 #include "sph_particle.h.hip"

@@ -67,9 +67,6 @@
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\sph_utils.cuh.hip">
       <Filter>Header Files\Spatial\FSPH</Filter>
     </ClCompile>
-    <ClCompile Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.cpp">
-      <Filter>Source Files\Spatial</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\gpu_model.cu.hip">
       <Filter>Source Files\Spatial\FSPH</Filter>
     </ClCompile>
@@ -90,6 +87,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.cpp">
       <Filter>Source Files\Spatial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.cpp">
+      <Filter>Source Files\Spatial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\scan_kern.cuh.hip">
+      <Filter>Header Files\Spatial\FSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\FSPH\prefix_sum.cu.hip">
+      <Filter>Source Files\Spatial\FSPH</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -126,10 +132,10 @@
     <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Common\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D:\projects\master_thesis\code\PBDSpatialPartitioningThesis\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.h">
+    <ClInclude Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.h">
       <Filter>Header Files\Spatial</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_hipNSearch.h">
+    <ClInclude Include="..\..\..\Demos\FluidParticleSpatialTest\Spatial\Spatial_FSPH.h">
       <Filter>Header Files\Spatial</Filter>
     </ClInclude>
   </ItemGroup>
