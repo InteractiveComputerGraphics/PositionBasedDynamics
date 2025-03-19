@@ -5,6 +5,7 @@
 #include "Simulation/CollisionDetection.h"
 #include "AABB.h"
 #include "BoundingSphereHierarchy.h"
+#include <unordered_set>
 
 namespace PBD
 {
@@ -120,9 +121,11 @@ namespace PBD
 			unsigned int m_elementIndex2;
 			Vector3r m_bary1;
 			Vector3r m_bary2;
-		};
+		};		
 
 	protected:
+		std::unordered_set<unsigned long long> m_exclusionPairs;
+
 		void collisionDetectionRigidBodies(RigidBody *rb1, DistanceFieldCollisionObject *co1, RigidBody *rb2, DistanceFieldCollisionObject *co2,
 			const Real restitutionCoeff, const Real frictionCoeff
 			, std::vector<std::vector<ContactData> > &contacts_mt
@@ -142,6 +145,14 @@ namespace PBD
 		bool findRefTetAt(const ParticleData &pd, TetModel *tm, const DistanceFieldCollisionDetection::DistanceFieldCollisionObject *co, const Vector3r &X, 
 			unsigned int &tetIndex, Vector3r &barycentricCoordinates);
 
+		inline unsigned long long getPairHash(uint32_t bodyIndex1, uint32_t bodyIndex2)
+		{
+			// decode two 32 bits into a single 64 bit
+			if (bodyIndex2 < bodyIndex1)
+				std::swap(bodyIndex1, bodyIndex2);
+			return bodyIndex1 + (((unsigned long long)bodyIndex2) << 32);
+		}
+
 
 	public:
 		DistanceFieldCollisionDetection();
@@ -150,6 +161,8 @@ namespace PBD
 		virtual void collisionDetection(SimulationModel &model);
 
 		virtual bool isDistanceFieldCollisionObject(CollisionObject *co) const;
+
+		void addExclusionPair(unsigned int bodyIndex1, unsigned int bodyIndex2);
 
 		void addCollisionBox(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector3r &box, const bool testMesh = true, const bool invertSDF = false);
 		void addCollisionSphere(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Real radius, const bool testMesh = true, const bool invertSDF = false);
@@ -165,6 +178,8 @@ namespace PBD
 		 * @param  dim (radius, height) of cylinder
 		 */		
 		void addCollisionCylinder(const unsigned int bodyIndex, const unsigned int bodyType, const Vector3r *vertices, const unsigned int numVertices, const Vector2r &dim, const bool testMesh = true, const bool invertSDF = false);
+
+		void cleanup() override;
 	};
 }
 
