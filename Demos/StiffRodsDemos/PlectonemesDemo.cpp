@@ -43,7 +43,7 @@ void changeSolver();
 DemoBase *base;
 DistanceFieldCollisionDetection* cd;
 
-const int numberOfBodies = 40;
+const int numberOfBodies = 60;
 const Real width = static_cast<Real>(0.5);
 const Real height = static_cast<Real>(0.3);
 const Real depth = static_cast<Real>(0.3);
@@ -136,12 +136,12 @@ void timeStep ()
 	const float totalRodLength = width * numberOfBodies;
 	for (unsigned int i = 0; i < numSteps; i++)
 	{
-		auto curOffset = tm->getTime();
+		auto curOffset = tm->getTime()*2;
 		if (curOffset < totalRodLength*0.6)
 			rodLeftEdge->setPosition(initialPos + Vector3r(curOffset,0,0));
 
-		const Real maxRotationAngle = M_PI * 5;
-		auto angle = tm->getTime();
+		const Real maxRotationAngle = M_PI * 10;
+		auto angle = tm->getTime()*2;
 		if (angle < maxRotationAngle)
 		{
 			AngleAxisr angleAxis(angle, Vector3r(0, 1, 0));
@@ -162,11 +162,13 @@ void timeStep ()
 
 void buildModel ()
 {
-	TimeManager::getCurrent ()->setTimeStepSize (static_cast<Real>(0.0002));
+	TimeManager::getCurrent ()->setTimeStepSize (static_cast<Real>(0.0004));
 	Simulation::getCurrent()->getTimeStep()->setValue<unsigned int>(TimeStepController::NUM_SUB_STEPS, 1);
-	cd->setValue<Real>(CollisionDetection::CONTACT_TOLERANCE, 0.1);
+	cd->setValue<Real>(CollisionDetection::CONTACT_TOLERANCE, 0.1);	
+	
 	SimulationModel* model = Simulation::getCurrent()->getModel();
 	Simulation::getCurrent()->getTimeStep()->setCollisionDetection(*model, cd);
+	model->setValue<Real>(SimulationModel::CONTACT_STIFFNESS_RB, 100);
 
 	createRodModel();
 }
