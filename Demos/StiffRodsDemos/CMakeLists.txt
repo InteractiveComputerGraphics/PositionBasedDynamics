@@ -85,6 +85,36 @@ set_target_properties(DirectPositionBasedSolverForStiffRodsDemo PROPERTIES MINSI
 add_dependencies(DirectPositionBasedSolverForStiffRodsDemo ${SIMULATION_DEPENDENCIES})
 target_link_libraries(DirectPositionBasedSolverForStiffRodsDemo ${SIMULATION_LINK_LIBRARIES})
 
+####  plectonemesDemo
+
+add_executable(PlectonemesDemo
+	  PlectonemesDemo.cpp
+
+	  ../Common/LogWindow.cpp
+	  ../Common/LogWindow.h
+	  ../Common/Simulator_GUI_imgui.cpp
+	  ../Common/Simulator_GUI_imgui.h
+	  ../Common/imguiParameters.cpp
+	  ../Common/imguiParameters.h
+	  ../Common/DemoBase.cpp
+	  ../Common/DemoBase.h
+	  
+	  ${VIS_FILES}          
+	  ${PROJECT_PATH}/Common/Common.h
+
+	  CMakeLists.txt
+)
+
+set_target_properties(PlectonemesDemo PROPERTIES FOLDER "Demos")
+set_target_properties(PlectonemesDemo PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+set_target_properties(PlectonemesDemo PROPERTIES RELWITHDEBINFO_POSTFIX ${CMAKE_RELWITHDEBINFO_POSTFIX})
+set_target_properties(PlectonemesDemo PROPERTIES MINSIZEREL_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
+add_dependencies(PlectonemesDemo ${SIMULATION_DEPENDENCIES})
+target_link_libraries(PlectonemesDemo ${SIMULATION_LINK_LIBRARIES})
+
+####
+
+
 find_package( Eigen3 REQUIRED )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories(${PROJECT_PATH}/extern/freeglut/include)
