@@ -1,6 +1,6 @@
 # GLFW
 
-[![Build status](https://travis-ci.org/glfw/glfw.svg?branch=master)](https://travis-ci.org/glfw/glfw)
+[![Build status](https://github.com/glfw/glfw/actions/workflows/build.yml/badge.svg)](https://github.com/glfw/glfw/actions)
 [![Build status](https://ci.appveyor.com/api/projects/status/0kf0ct9831i5l6sp/branch/master?svg=true)](https://ci.appveyor.com/project/elmindreda/glfw)
 [![Coverity Scan](https://scan.coverity.com/projects/4884/badge.svg)](https://scan.coverity.com/projects/glfw-glfw)
 
@@ -14,18 +14,18 @@ GLFW natively supports Windows, macOS and Linux and other Unix-like systems.  On
 Linux both X11 and Wayland are supported.
 
 GLFW is licensed under the [zlib/libpng
-license](http://www.glfw.org/license.html).
+license](https://www.glfw.org/license.html).
 
-You can [download](http://www.glfw.org/download.html) the latest stable release
+You can [download](https://www.glfw.org/download.html) the latest stable release
 as source or Windows binaries, or fetch the `latest` branch from GitHub.  Each
 release starting with 3.0 also has a corresponding [annotated
 tag](https://github.com/glfw/glfw/releases) with source and binary archives.
 
-The [documentation](http://www.glfw.org/docs/latest/) is available online and is
+The [documentation](https://www.glfw.org/docs/latest/) is available online and is
 included in all source and binary archives.  See the [release
 notes](https://www.glfw.org/docs/latest/news.html) for new features, caveats and
 deprecations in the latest release.  For more details see the [version
-history](http://www.glfw.org/changelog.html).
+history](https://www.glfw.org/changelog.html).
 
 The `master` branch is the stable integration branch and _should_ always compile
 and run on all supported platforms, although details of newly added features may
@@ -34,10 +34,15 @@ fixes live in [other branches](https://github.com/glfw/glfw/branches/all) until
 they are stable enough to merge.
 
 If you are new to GLFW, you may find the
-[tutorial](http://www.glfw.org/docs/latest/quick.html) for GLFW 3 useful.  If
+[tutorial](https://www.glfw.org/docs/latest/quick.html) for GLFW 3 useful.  If
 you have used GLFW 2 in the past, there is a [transition
-guide](http://www.glfw.org/docs/latest/moving.html) for moving to the GLFW
+guide](https://www.glfw.org/docs/latest/moving.html) for moving to the GLFW
 3 API.
+
+GLFW exists because of the contributions of [many people](CONTRIBUTORS.md)
+around the world, whether by reporting bugs, providing community support, adding
+features, reviewing or testing code, debugging, proofreading docs, suggesting
+features or fixing bugs.
 
 
 ## Compiling GLFW
@@ -52,16 +57,16 @@ MinGW-w64, on macOS with Clang and on Linux and other Unix-like systems with GCC
 and Clang.  It will likely compile in other environments as well, but this is
 not regularly tested.
 
-There are [pre-compiled Windows binaries](http://www.glfw.org/download.html)
+There are [pre-compiled Windows binaries](https://www.glfw.org/download.html)
 available for all supported compilers.
 
-See the [compilation guide](http://www.glfw.org/docs/latest/compile.html) for
+See the [compilation guide](https://www.glfw.org/docs/latest/compile.html) for
 more information about how to compile GLFW yourself.
 
 
 ## Using GLFW
 
-See the [documentation](http://www.glfw.org/docs/latest/) for tutorials, guides
+See the [documentation](https://www.glfw.org/docs/latest/) for tutorials, guides
 and the API reference.
 
 
@@ -79,7 +84,7 @@ Unix-like systems running the X Window System are supported even without
 a desktop environment or modern extensions, although some features require
 a running window or clipboard manager.  The OSMesa backend requires Mesa 6.3.
 
-See the [compatibility guide](http://www.glfw.org/docs/latest/compat.html)
+See the [compatibility guide](https://www.glfw.org/docs/latest/compat.html)
 in the documentation for more information.
 
 
@@ -101,10 +106,10 @@ located in the `deps/` directory.
    functions
  - [linmath.h](https://github.com/datenwolf/linmath.h) for linear algebra in
    examples
- - [Nuklear](https://github.com/vurtun/nuklear) for test and example UI
+ - [Nuklear](https://github.com/Immediate-Mode-UI/Nuklear) for test and example UI
  - [stb\_image\_write](https://github.com/nothings/stb) for writing images to disk
 
-The documentation is generated with [Doxygen](http://doxygen.org/) if CMake can
+The documentation is generated with [Doxygen](https://doxygen.org/) if CMake can
 find that tool.
 
 
@@ -118,26 +123,84 @@ information on what to include when reporting a bug.
 
 ## Changelog
 
- - [Win32] Bugfix: Super key was not released after Win+V hotkey (#1622)
- - [Win32] Bugfix: `glfwGetKeyName` could access out of bounds and return an
-   invalid pointer
- - [Win32] Bugfix: Some synthetic key events were reported as `GLFW_KEY_UNKNOWN`
-   (#1623)
- - [Cocoa] Added support for `VK_EXT_metal_surface` (#1619)
- - [Cocoa] Added locating the Vulkan loader at runtime in an application bundle
- - [X11] Bugfix: `glfwFocusWindow` could terminate on older WMs or without a WM
- - [X11] Bugfix: Creating an undecorated window could fail with BadMatch (#1620)
- - [X11] Bugfix: Querying a disconnected monitor could segfault (#1602)
+ - Added `GLFW_NATIVE_INCLUDE_NONE` for disabling inclusion of native headers (#1348)
+ - Bugfix: `glfwMakeContextCurrent` would access TLS slot before initialization
+ - Bugfix: `glfwSetGammaRamp` could emit `GLFW_INVALID_VALUE` before initialization
+ - Bugfix: `glfwGetJoystickUserPointer` returned `NULL` during disconnection (#2092)
+ - [Win32] Bugfix: `Alt+PrtSc` would emit `GLFW_KEY_UNKNOWN` and a different
+   scancode than `PrtSc` (#1993)
+ - [Win32] Bugfix: `GLFW_KEY_PAUSE` scancode from `glfwGetKeyScancode` did not
+   match event scancode (#1993)
+ - [Win32] Bugfix: Instance-local operations used executable instance (#469,#1296,#1395)
+ - [Win32] Bugfix: The OSMesa library was not unloaded on termination
+ - [Win32] Bugfix: Right shift emitted `GLFW_KEY_UNKNOWN` when using a CJK IME (#2050)
+ - [Cocoa] Disabled macOS fullscreen when `GLFW_RESIZABLE` is false
+ - [Cocoa] Bugfix: A connected Apple AirPlay would emit a useless error (#1791)
+ - [Cocoa] Bugfix: The EGL and OSMesa libraries were not unloaded on termination
+ - [Cocoa] Bugfix: `GLFW_MAXIMIZED` was always true when `GLFW_RESIZABLE` was false
+ - [Cocoa] Bugfix: Changing `GLFW_DECORATED` in macOS fullscreen would abort
+   application (#1886)
+ - [Cocoa] Bugfix: Setting a monitor from macOS fullscreen would abort
+   application (#2110)
+ - [Cocoa] Bugfix: The Vulkan loader was not loaded from the `Frameworks` bundle
+   subdirectory (#2113,#2120)
+ - [X11] Bugfix: The OSMesa libray was not unloaded on termination
+ - [X11] Bugfix: A malformed response during selection transfer could cause a segfault
+ - [X11] Bugfix: Some calls would reset Xlib to the default error handler (#2108)
+ - [Wayland] Added support for file path drop events (#2040)
+ - [Wayland] Added support for more human-readable monitor names where available
+ - [Wayland] Removed support for the deprecated wl\_shell protocol
+ - [Wayland] Bugfix: `glfwSetClipboardString` would fail if set to result of
+   `glfwGetClipboardString`
+ - [Wayland] Bugfix: Data source creation error would cause double free at termination
+ - [Wayland] Bugfix: Partial writes of clipboard string would cause beginning to repeat
+ - [Wayland] Bugfix: Some errors would cause clipboard string transfer to hang
+ - [Wayland] Bugfix: Drag and drop data was misinterpreted as clipboard string
+ - [Wayland] Bugfix: MIME type matching was not performed for clipboard string
+ - [Wayland] Bugfix: The OSMesa library was not unloaded on termination
+ - [Wayland] Bugfix: `glfwCreateWindow` could emit `GLFW_PLATFORM_ERROR`
+ - [Wayland] Bugfix: Lock key modifier bits were only set when lock keys were pressed
+ - [Wayland] Bugfix: A window leaving full screen mode would be iconified (#1995)
+ - [Wayland] Bugfix: A window leaving full screen mode ignored its desired size
+ - [Wayland] Bugfix: `glfwSetWindowMonitor` did not update windowed mode size
+ - [Wayland] Bugfix: `glfwRestoreWindow` would make a full screen window windowed
+ - [Wayland] Bugfix: A window maximized or restored by the user would enter an
+   inconsistent state
+ - [Wayland] Bugfix: Window maximization events were not emitted
+ - [Wayland] Bugfix: `glfwRestoreWindow` assumed it was always in windowed mode
+ - [Wayland] Bugfix: `glfwSetWindowSize` would resize a full screen window
+ - [Wayland] Bugfix: A window content scale event would be emitted every time
+   the window resized
+ - [Wayland] Bugfix: If `glfwInit` failed it would close stdin
+ - [Wayland] Bugfix: Manual resizing with fallback decorations behaved erratically
+   (#1991,#2115,#2127)
+ - [Wayland] Bugfix: Size limits included frame size for fallback decorations
+ - [Wayland] Bugfix: Updating `GLFW_DECORATED` had no effect on server-side
+   decorations
+ - [Wayland] Bugfix: A monitor would be reported as connected again if its scale
+   changed
+ - [Wayland] Bugfix: `glfwTerminate` would segfault if any monitor had changed
+   scale
+ - [Wayland] Bugfix: Window content scale events were not emitted when monitor
+   scale changed
+ - [Wayland] Bugfix: `glfwSetWindowAspectRatio` reported an error instead of
+   applying the specified ratio
+ - [Wayland] Bugfix: `GLFW_MAXIMIZED` window hint had no effect
+ - [Wayland] Bugfix: `glfwRestoreWindow` had no effect before first show
+ - [Wayland] Bugfix: Hiding and then showing a window caused program abort on
+   wlroots compositors (#1268)
+ - [Wayland] Bugfix: `GLFW_DECORATED` was ignored when showing a window with XDG
+   decorations
 
 
 ## Contact
 
-On [glfw.org](http://www.glfw.org/) you can find the latest version of GLFW, as
+On [glfw.org](https://www.glfw.org/) you can find the latest version of GLFW, as
 well as news, documentation and other information about the project.
 
 If you have questions related to the use of GLFW, we have a
 [forum](https://discourse.glfw.org/), and the `#glfw` IRC channel on
-[Freenode](http://freenode.net/).
+[Libera.Chat](https://libera.chat/).
 
 If you have a bug to report, a patch to submit or a feature you'd like to
 request, please file it in the
@@ -145,200 +208,4 @@ request, please file it in the
 
 Finally, if you're interested in helping out with the development of GLFW or
 porting it to your favorite platform, join us on the forum, GitHub or IRC.
-
-
-## Acknowledgements
-
-GLFW exists because people around the world donated their time and lent their
-skills.
-
- - Bobyshev Alexander
- - Matt Arsenault
- - David Avedissian
- - Keith Bauer
- - John Bartholomew
- - Coşku Baş
- - Niklas Behrens
- - Andrew Belt
- - Niklas Bergström
- - Denis Bernard
- - Doug Binks
- - blanco
- - Kyle Brenneman
- - Rok Breulj
- - Kai Burjack
- - Martin Capitanio
- - David Carlier
- - Arturo Castro
- - Chi-kwan Chan
- - Ian Clarkson
- - Michał Cichoń
- - Lambert Clara
- - Anna Clarke
- - Yaron Cohen-Tal
- - Omar Cornut
- - Andrew Corrigan
- - Bailey Cosier
- - Noel Cower
- - Jason Daly
- - Jarrod Davis
- - Olivier Delannoy
- - Paul R. Deppe
- - Michael Dickens
- - Роман Донченко
- - Mario Dorn
- - Wolfgang Draxinger
- - Jonathan Dummer
- - Ralph Eastwood
- - Fredrik Ehnbom
- - Robin Eklind
- - Siavash Eliasi
- - Felipe Ferreira
- - Michael Fogleman
- - Gerald Franz
- - Mário Freitas
- - GeO4d
- - Marcus Geelnard
- - Charles Giessen
- - Ryan C. Gordon
- - Stephen Gowen
- - Kovid Goyal
- - Eloi Marín Gratacós
- - Stefan Gustavson
- - Jonathan Hale
- - Sylvain Hellegouarch
- - Matthew Henry
- - heromyth
- - Lucas Hinderberger
- - Paul Holden
- - Warren Hu
- - Charles Huber
- - IntellectualKitty
- - Aaron Jacobs
- - Erik S. V. Jansson
- - Toni Jovanoski
- - Arseny Kapoulkine
- - Cem Karan
- - Osman Keskin
- - Josh Kilmer
- - Byunghoon Kim
- - Cameron King
- - Peter Knut
- - Christoph Kubisch
- - Yuri Kunde Schlesner
- - Rokas Kupstys
- - Konstantin Käfer
- - Eric Larson
- - Francis Lecavalier
- - Robin Leffmann
- - Glenn Lewis
- - Shane Liesegang
- - Anders Lindqvist
- - Leon Linhart
- - Eyal Lotem
- - Aaron Loucks
- - Luflosi
- - lukect
- - Tristam MacDonald
- - Hans Mackowiak
- - Дмитри Малышев
- - Zbigniew Mandziejewicz
- - Adam Marcus
- - Célestin Marot
- - Kyle McDonald
- - David Medlock
- - Bryce Mehring
- - Jonathan Mercier
- - Marcel Metz
- - Liam Middlebrook
- - Ave Milia
- - Jonathan Miller
- - Kenneth Miller
- - Bruce Mitchener
- - Jack Moffitt
- - Jeff Molofee
- - Alexander Monakov
- - Pierre Morel
- - Jon Morton
- - Pierre Moulon
- - Martins Mozeiko
- - Julian Møller
- - ndogxj
- - Kristian Nielsen
- - Kamil Nowakowski
- - Denis Ovod
- - Ozzy
- - Andri Pálsson
- - Peoro
- - Braden Pellett
- - Christopher Pelloux
- - Arturo J. Pérez
- - Anthony Pesch
- - Orson Peters
- - Emmanuel Gil Peyrot
- - Cyril Pichard
- - Keith Pitt
- - Stanislav Podgorskiy
- - Konstantin Podsvirov
- - Nathan Poirier
- - Alexandre Pretyman
- - Pablo Prietz
- - przemekmirek
- - pthom
- - Guillaume Racicot
- - Philip Rideout
- - Eddie Ringle
- - Max Risuhin
- - Jorge Rodriguez
- - Ed Ropple
- - Aleksey Rybalkin
- - Riku Salminen
- - Brandon Schaefer
- - Sebastian Schuberth
- - Christian Sdunek
- - Matt Sealey
- - Steve Sexton
- - Arkady Shapkin
- - Yoshiki Shibukawa
- - Dmitri Shuralyov
- - Daniel Skorupski
- - Bradley Smith
- - Cliff Smolinsky
- - Patrick Snape
- - Erlend Sogge Heggen
- - Julian Squires
- - Johannes Stein
- - Pontus Stenetorp
- - Michael Stocker
- - Justin Stoecker
- - Elviss Strazdins
- - Paul Sultana
- - Nathan Sweet
- - TTK-Bandit
- - Sergey Tikhomirov
- - Arthur Tombs
- - Ioannis Tsakpinis
- - Samuli Tuomola
- - Matthew Turner
- - urraka
- - Elias Vanderstuyft
- - Stef Velzel
- - Jari Vetoniemi
- - Ricardo Vieira
- - Nicholas Vitovitch
- - Simon Voordouw
- - Corentin Wallez
- - Torsten Walluhn
- - Patrick Walton
- - Xo Wang
- - Jay Weisskopf
- - Frank Wille
- - Ryogo Yoshimura
- - Lukas Zanner
- - Andrey Zholos
- - Santi Zupancic
- - Jonas Ådahl
- - Lasse Öörni
- - All the unmentioned and anonymous contributors in the GLFW community, for bug
-   reports, patches, feedback, testing and encouragement
 

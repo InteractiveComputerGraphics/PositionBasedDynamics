@@ -1,3 +1,10 @@
+2.2.2
+	- bugfix in TimeStepFluidModel
+	- updated DiscreGrid
+	- updated glfw
+	- updated pybind11
+	- support for CMake 4
+
 2.2.1	
 	- bugfix in XPBD FEM code
 	- updated GenericParameters

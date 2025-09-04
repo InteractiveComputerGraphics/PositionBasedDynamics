@@ -11,6 +11,7 @@ using namespace std;
 
 TimeStepFluidModel::TimeStepFluidModel()
 {
+	m_velocityUpdateMethod = 0;
 }
 
 TimeStepFluidModel::~TimeStepFluidModel(void)

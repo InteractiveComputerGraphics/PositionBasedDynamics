@@ -1,11 +1,15 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.20 FATAL_ERROR)
 
-project(GLFW VERSION 3.3.2 LANGUAGES C)
+project(GLFW VERSION 3.3.8 LANGUAGES C)
 
 set(CMAKE_LEGACY_CYGWIN_WIN32 OFF)
 
 if (POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
+endif()
+
+if (POLICY CMP0069)
+    cmake_policy(SET CMP0069 NEW)
 endif()
 
 if (POLICY CMP0077)
@@ -14,9 +18,9 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(BUILD_SHARED_LIBS OFF)
-set(GLFW_INSTALL OFF)
-set(GLFW_VULKAN_STATIC OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(GLFW_INSTALL "Generate installation target" OFF)
+option(GLFW_VULKAN_STATIC "Assume the Vulkan loader is linked with the application" OFF)
 
 include(GNUInstallDirs)
 include(CMakeDependentOption)
@@ -60,7 +64,8 @@ if (GLFW_BUILD_DOCS)
 endif()
 
 #--------------------------------------------------------------------
-# Set compiler specific flags
+# Apply Microsoft C runtime library option
+# This is here because it also applies to tests and examples
 #--------------------------------------------------------------------
 if (MSVC)
     if (MSVC90)
@@ -73,22 +78,26 @@ if (MSVC)
         # Workaround for VS 2008 not shipping with stdint.h
         list(APPEND glfw_INCLUDE_DIRS "${GLFW_SOURCE_DIR}/deps/vs2008")
     endif()
+endif()
 
-    if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
+if (MSVC AND NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
+    if (CMAKE_VERSION VERSION_LESS 3.15)
         foreach (flag CMAKE_C_FLAGS
                       CMAKE_C_FLAGS_DEBUG
                       CMAKE_C_FLAGS_RELEASE
                       CMAKE_C_FLAGS_MINSIZEREL
                       CMAKE_C_FLAGS_RELWITHDEBINFO)
 
-            if (${flag} MATCHES "/MD")
+            if (flag MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
             endif()
-            if (${flag} MATCHES "/MDd")
+            if (flag MATCHES "/MDd")
                 string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
             endif()
 
         endforeach()
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     endif()
 endif()
 
@@ -125,6 +134,9 @@ if (MINGW)
     if (_GLFW_HAS_64ASLR)
         set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--high-entropy-va ${CMAKE_SHARED_LINKER_FLAGS}")
     endif()
+
+    # Clear flags again to avoid breaking later tests
+    set(CMAKE_REQUIRED_FLAGS)
 endif()
 
 #--------------------------------------------------------------------
@@ -241,7 +253,7 @@ if (_GLFW_WAYLAND)
     find_package(WaylandScanner REQUIRED)
     find_package(WaylandProtocols 1.15 REQUIRED)
 
-    list(APPEND glfw_PKG_DEPS "wayland-egl")
+    list(APPEND glfw_PKG_DEPS "wayland-client")
 
     list(APPEND glfw_INCLUDE_DIRS "${Wayland_INCLUDE_DIRS}")
     list(APPEND glfw_LIBRARIES "${Wayland_LIBRARIES}" "${CMAKE_THREAD_LIBS_INIT}")
@@ -251,10 +263,9 @@ if (_GLFW_WAYLAND)
 
     include(CheckIncludeFiles)
     include(CheckFunctionExists)
-    check_include_files(xkbcommon/xkbcommon-compose.h HAVE_XKBCOMMON_COMPOSE_H)
     check_function_exists(memfd_create HAVE_MEMFD_CREATE)
 
-    if (NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux"))
+    if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
         find_package(EpollShim)
         if (EPOLLSHIM_FOUND)
             list(APPEND glfw_INCLUDE_DIRS "${EPOLLSHIM_INCLUDE_DIRS}")
