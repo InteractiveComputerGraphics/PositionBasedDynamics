@@ -34,9 +34,6 @@ void render ();
 void cleanup();
 void reset();
 void selection(const Vector2i &start, const Vector2i &end, void *clientData);
-void createSphereBuffers(Real radius, int resolution);
-void renderSphere(const Vector3r &x, const float color[]);
-void releaseSphereBuffers();
 
 
 FluidModel model;
@@ -53,12 +50,6 @@ const Real containerHeight = 4.0;
 bool doPause = true;
 std::vector<unsigned int> selectedParticles;
 Vector3r oldMousePos;
-// initiate buffers
-GLuint elementbuffer;
-GLuint normalbuffer;
-GLuint vertexbuffer;
-int vertexBufferSize = 0;
-GLint context_major_version, context_minor_version;
 string exePath;
 string dataPath;
 
@@ -102,10 +93,6 @@ int main( int argc, char **argv )
 	param->setFct = [&](Real v) -> void { model.setViscosity(v); };
 	imguiParameters::addParam("Simulation", "PBD", param);
 
-	MiniGL::getOpenGLVersion(context_major_version, context_minor_version);
-	if (context_major_version >= 3)
-		createSphereBuffers((Real)particleRadius, 8);
-
 	MiniGL::mainLoop();	
 
 	cleanup ();
@@ -122,8 +109,6 @@ int main( int argc, char **argv )
 void cleanup()
 {
 	delete TimeManager::getCurrent();
-	if (context_major_version >= 3)
-		releaseSphereBuffers();
 }
 
 void reset()
@@ -202,64 +187,23 @@ void render ()
 	const ParticleData &pd = model.getParticles();
 	const unsigned int nParticles = pd.size();
 
-	float surfaceColor[4] = { 0.2f, 0.6f, 0.8f, 1 };
-	float speccolor[4] = { 1.0, 1.0, 1.0, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, surfaceColor);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, speccolor);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
-	glColor3fv(surfaceColor);
-
-	glPointSize(4.0);
-
 	const Real supportRadius = model.getSupportRadius();
 	Real vmax = static_cast<Real>(0.4*2.0)*supportRadius / TimeManager::getCurrent()->getTimeStepSize();
 	Real vmin = 0.0;
 
-	if (context_major_version > 3)
+	for (unsigned int i = 0; i < nParticles; i++)
 	{
-		for (unsigned int i = 0; i < nParticles; i++)
-		{
-			Real v = pd.getVelocity(i).norm();
-			v = static_cast<Real>(0.5)*((v - vmin) / (vmax - vmin));
-			v = min(static_cast<Real>(128.0)*v*v, static_cast<Real>(0.5));
-			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
-			MiniGL::hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
-			renderSphere(pd.getPosition(i), fluidColor);
-		}
-
-// 		for (unsigned int i = 0; i < model.numBoundaryParticles(); i++)
-// 			renderSphere(model.getBoundaryX(i), surfaceColor);
-	}
-	else
-	{
-		glDisable(GL_LIGHTING);
-		glBegin(GL_POINTS);
-		for (unsigned int i = 0; i < nParticles; i++)
-		{
-			Real v = pd.getVelocity(i).norm();
-			v = static_cast<Real>(0.5)*((v - vmin) / (vmax - vmin));
-			v = min(static_cast<Real>(128.0)*v*v, static_cast<Real>(0.5));
-			float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
-			MiniGL::hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
-
-			glColor3fv(fluidColor);
-			glVertex3v(&pd.getPosition(i)[0]);
-		}
-		glEnd();
-
-		// 	glBegin(GL_POINTS);
-		// 	for (unsigned int i = 0; i < model.numBoundaryParticles(); i++)
-		// 	{
-		// 		glColor3fv(surfaceColor);
-		// 		glVertex3fv(&model.getBoundaryX(i)[0]);
-		// 	}
-		// 	glEnd();
-
-		glEnable(GL_LIGHTING);
+		Real v = pd.getVelocity(i).norm();
+		v = static_cast<Real>(0.5)*((v - vmin) / (vmax - vmin));
+		v = min(static_cast<Real>(128.0)*v*v, static_cast<Real>(0.5));
+		float fluidColor[4] = { 0.2f, 0.2f, 0.2f, 1.0 };
+		MiniGL::hsvToRgb(0.55f, 1.0f, 0.5f + (float)v, fluidColor);
+		MiniGL::drawSphere(pd.getPosition(i), particleRadius, fluidColor, 8);
 	}
 
-
+//	float surfaceColor[4] = { 0.2f, 0.6f, 0.8f, 1 };
+//	for (unsigned int i = 0; i < model.numBoundaryParticles(); i++)
+//		MiniGL::drawSphere(model.getBoundaryX(i), particleRadius, surfaceColor, 8);
 
 	float red[4] = { 0.8f, 0.0f, 0.0f, 1 };
 	for (unsigned int j = 0; j < selectedParticles.size(); j++)
@@ -364,142 +308,4 @@ void initBoundaryData(std::vector<Vector3r> &boundaryParticles)
 	addWall(Vector3r(x1, y1, z1), Vector3r(x2, y2, z1), boundaryParticles);
 	// Front
 	addWall(Vector3r(x1, y1, z2), Vector3r(x2, y2, z2), boundaryParticles);
-}
-
-
-void createSphereBuffers(Real radius, int resolution)
-{
-	Real PI = static_cast<Real>(M_PI);
-	// vectors to hold our data
-	// vertice positions
-	std::vector<Vector3r> v;
-	// normals
-	std::vector<Vector3r> n;
-	std::vector<unsigned short> indices;
-
-	// initiate the variable we are going to use
-	Real X1, Y1, X2, Y2, Z1, Z2;
-	Real inc1, inc2, inc3, inc4, radius1, radius2;
-
-	for (int w = 0; w < resolution; w++)
-	{
-		for (int h = (-resolution / 2); h < (resolution / 2); h++)
-		{
-			inc1 = (w / (Real)resolution) * 2 * PI;
-			inc2 = ((w + 1) / (Real)resolution) * 2 * PI;
-			inc3 = (h / (Real)resolution)*PI;
-			inc4 = ((h + 1) / (Real)resolution)*PI;
-
-			X1 = sin(inc1);
-			Y1 = cos(inc1);
-			X2 = sin(inc2);
-			Y2 = cos(inc2);
-
-			// store the upper and lower radius, remember everything is going to be drawn as triangles
-			radius1 = radius*cos(inc3);
-			radius2 = radius*cos(inc4);
-
-			Z1 = radius*sin(inc3);
-			Z2 = radius*sin(inc4);
-
-			// insert the triangle coordinates
-			v.push_back(Vector3r(radius1*X1, Z1, radius1*Y1));
-			v.push_back(Vector3r(radius1*X2, Z1, radius1*Y2));
-			v.push_back(Vector3r(radius2*X2, Z2, radius2*Y2));
-
-			indices.push_back((unsigned short)v.size() - 3);
-			indices.push_back((unsigned short)v.size() - 2);
-			indices.push_back((unsigned short)v.size() - 1);
-
-			v.push_back(Vector3r(radius1*X1, Z1, radius1*Y1));
-			v.push_back(Vector3r(radius2*X2, Z2, radius2*Y2));
-			v.push_back(Vector3r(radius2*X1, Z2, radius2*Y1));
-
-			indices.push_back((unsigned short)v.size() - 3);
-			indices.push_back((unsigned short)v.size() - 2);
-			indices.push_back((unsigned short)v.size() - 1);
-
-			// insert the normal data
-			n.push_back(Vector3r(X1, Z1, Y1));
-			n.push_back(Vector3r(X2, Z1, Y2));
-			n.push_back(Vector3r(X2, Z2, Y2));
-			n.push_back(Vector3r(X1, Z1, Y1));
-			n.push_back(Vector3r(X2, Z2, Y2));
-			n.push_back(Vector3r(X1, Z2, Y1));
-		}
-	}
-
-	for (unsigned int i = 0; i < n.size(); i++)
-		n[i].normalize();
-
-
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vector3r), &v[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &normalbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, n.size() * sizeof(Vector3r), &n[0], GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// Generate a buffer for the indices as well
-	glGenBuffers(1, &elementbuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	// store the number of indices for later use
-	vertexBufferSize = (unsigned int)indices.size();
-
-	// clean up after us
-	indices.clear();
-	n.clear();
-	v.clear();
-}
-
-void renderSphere(const Vector3r &x, const float color[])
-{
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-
-
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glVertexPointer(3, GL_REAL, 0, 0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glNormalPointer(GL_REAL, 0, 0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-
-	glPushMatrix();
-	glTranslated(x[0], x[1], x[2]);
-	glDrawElements(GL_TRIANGLES, (GLsizei)vertexBufferSize, GL_UNSIGNED_SHORT, 0);
-	glPopMatrix();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
-}
-
-void releaseSphereBuffers()
-{
-	if (elementbuffer != 0)
-	{
-		glDeleteBuffers(1, &elementbuffer);
-		elementbuffer = 0;
-	}
-	if (normalbuffer != 0)
-	{
-		glDeleteBuffers(1, &normalbuffer);
-		normalbuffer = 0;
-	}
-	if (vertexbuffer != 0)
-	{
-		glDeleteBuffers(1, &vertexbuffer);
-		vertexbuffer = 0;
-	}
 }
