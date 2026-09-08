@@ -23,6 +23,18 @@ DistanceFieldCollisionDetection::~DistanceFieldCollisionDetection()
 {
 }
 
+void DistanceFieldCollisionDetection::cleanup()
+{
+	CollisionDetection::cleanup();
+	m_exclusionPairs.clear();
+}
+
+void DistanceFieldCollisionDetection::addExclusionPair(unsigned int bodyIndex1, unsigned int bodyIndex2)
+{
+	auto hashCode = getPairHash(bodyIndex1, bodyIndex2);
+	m_exclusionPairs.insert(hashCode);
+}
+
 void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 {
 	model.resetContacts();
@@ -101,6 +113,10 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 			CollisionDetection::CollisionObject *co1 = m_collisionObjects[coPair.first];
 			CollisionDetection::CollisionObject *co2 = m_collisionObjects[coPair.second];
 
+			auto hashCode = getPairHash(coPair.first, coPair.second);
+			if (m_exclusionPairs.find(hashCode) != m_exclusionPairs.end())
+				continue;
+
 			if (((co2->m_bodyType != CollisionDetection::CollisionObject::RigidBodyCollisionObjectType) &&
 				(co2->m_bodyType != CollisionDetection::CollisionObject::TetModelCollisionObjectType)) ||
 				!isDistanceFieldCollisionObject(co1) ||
@@ -173,6 +189,7 @@ void DistanceFieldCollisionDetection::collisionDetection(SimulationModel &model)
 		}
 	}
 
+	
 	for (unsigned int i = 0; i < contacts_mt.size(); i++)
 	{
 		for (unsigned int j = 0; j < contacts_mt[i].size(); j++)

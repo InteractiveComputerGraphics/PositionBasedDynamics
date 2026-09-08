@@ -67,7 +67,7 @@ namespace PBD
 
 		void init();
 
-		void cleanup();
+		virtual void cleanup();
 
 		Real getTolerance() const { return m_tolerance; }
 		void setTolerance(Real val) { m_tolerance = val; }
