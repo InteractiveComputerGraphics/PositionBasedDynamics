@@ -10,7 +10,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_opengl2.h"
 
 
 using namespace PBD;
@@ -167,7 +167,7 @@ void Simulator_GUI_imgui::initImgui()
 	// Setup Platform/Renderer bindings
 	ImGui_ImplGlfw_InitForOpenGL(MiniGL::getWindow(), false);
 	const char* glsl_version = "#version 330";
-	ImGui_ImplOpenGL3_Init(glsl_version);
+	ImGui_ImplOpenGL2_Init();
 }
 
 void Simulator_GUI_imgui::initImguiParameters()
@@ -343,8 +343,8 @@ void Simulator_GUI_imgui::initSimulationParameterGUI()
 void Simulator_GUI_imgui::update()
 {
 	// Start the Dear ImGui frame
-	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
+	ImGui_ImplOpenGL2_NewFrame();
 	ImGui::NewFrame();
 
 	// init dock space
@@ -401,13 +401,13 @@ void Simulator_GUI_imgui::update()
 
 	// Rendering
 	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Simulator_GUI_imgui::destroy()
 {
 	// Cleanup
-	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplOpenGL2_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
