@@ -36,7 +36,7 @@ void main()
     float cos_nh = max(dot(eye_n, h), 0.0);   
     
 	vec3 color = surface_color * (ambient + diffuse * cos_ln + specular_factor * specular * pow(cos_nh, shininess));
-	vec4 color2 = texture2D(tex, inData.texCoord) * vec4(color, 1.0);
+	vec4 color2 = texture(tex, inData.texCoord) * vec4(color, 1.0);
 
 	frag_color = color2;
 }

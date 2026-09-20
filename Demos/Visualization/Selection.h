@@ -10,10 +10,8 @@
 
 #ifdef __APPLE__
 #include <OpenGL/GL.h>
-#include <OpenGL/GLU.h>
 #else
 #include "GL/gl.h"
-#include "GL/glu.h"
 #endif
 
 #include <vector>
@@ -43,34 +41,25 @@ namespace PBD
 			int itop = ip1y > ip2y ? ip1y : ip2y;
 			int ibottom = ip1y < ip2y ? ip1y : ip2y;
 
-			float left = (float)ileft;
-			float right = (float)iright;
-			float top = (float)itop;
-			float bottom = (float)ibottom;
+			float left = (float)ileft * MiniGL::getDevicePixelRatio();
+			float right = (float)iright * MiniGL::getDevicePixelRatio();
+			float top = (float)itop * MiniGL::getDevicePixelRatio();
+			float bottom = (float)ibottom * MiniGL::getDevicePixelRatio();
 
 			if (left != right && top != bottom)
 			{
 				GLint viewport[4];
-				GLdouble mv[16],pm[16];
 				glGetIntegerv(GL_VIEWPORT, viewport);
-				glGetDoublev(GL_MODELVIEW_MATRIX, mv);
-				glGetDoublev(GL_PROJECTION_MATRIX, pm);
 
-				GLdouble resx,resy,resz;
 				float zNear = MiniGL::getZNear();
 				float zFar = MiniGL::getZFar();
-				gluUnProject(left, viewport[3] - top, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Vector3r vector0((Real)resx, (Real)resy, (Real)resz);
-				gluUnProject(left, viewport[3] - top, zFar , mv, pm, viewport, &resx, &resy, &resz);
-				const Vector3r vector1((Real)resx, (Real)resy, (Real)resz);
-				gluUnProject(left, viewport[3] - bottom, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Vector3r vector2((Real)resx, (Real)resy, (Real)resz);
-				gluUnProject(right, viewport[3] - top, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Vector3r vector3((Real)resx, (Real)resy, (Real)resz);
-				gluUnProject(right, viewport[3] - bottom, zNear , mv, pm, viewport, &resx, &resy, &resz);
-				const Vector3r vector4((Real)resx, (Real)resy, (Real)resz);
-				gluUnProject(right, viewport[3] - bottom, zFar , mv, pm, viewport, &resx, &resy, &resz);
-				const Vector3r vector5((Real)resx, (Real)resy, (Real)resz);
+				Vector3r vector0, vector1, vector2, vector3, vector4, vector5;
+				MiniGL::unproject(Vector3r(left, viewport[3] - top, zNear), vector0);
+				MiniGL::unproject(Vector3r(left, viewport[3] - top, zFar), vector1);
+				MiniGL::unproject(Vector3r(left, viewport[3] - bottom, zNear), vector2);
+				MiniGL::unproject(Vector3r(right, viewport[3] - top, zNear), vector3);
+				MiniGL::unproject(Vector3r(right, viewport[3] - bottom, zNear), vector4);
+				MiniGL::unproject(Vector3r(right, viewport[3] - bottom, zFar), vector5);
 
 				SelectionPlane plane[4];
 				plane[0].normal = (vector3-vector0).cross(vector1-vector0);

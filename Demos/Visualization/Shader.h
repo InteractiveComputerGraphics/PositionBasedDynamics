@@ -16,6 +16,7 @@ namespace PBD
 		void compileShaderString(GLenum whichShader, const std::string &source);
 		void compileShaderFile(GLenum whichShader, const std::string &filename);
 		void createAndLinkProgram();
+		void destroy();
 		void addAttribute(const std::string &attribute);
 		void addUniform(const std::string &uniform);
 		bool isInitialized();

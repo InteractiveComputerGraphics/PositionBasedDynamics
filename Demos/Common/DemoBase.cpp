@@ -217,8 +217,7 @@ void DemoBase::init(int argc, char **argv, const char *demoName)
 	MiniGL::setViewport(40.0, 0.1f, 500.0, Vector3r(0.0, 3.0, 8.0), Vector3r(0.0, 0.0, 0.0));
 	MiniGL::setSelectionFunc(selection, this);
 
-	if (MiniGL::checkOpenGLVersion(3, 3))
-		initShaders();
+	initShaders();
 
 	m_gui->initImgui();
 }
@@ -237,6 +236,8 @@ void DemoBase::readScene()
 
 void DemoBase::initShaders()
 {
+	MiniGL::initShaders(m_exePath + "/resources/shaders");
+
 	std::string vertFile = m_exePath + "/resources/shaders/vs_smooth.glsl";
 	std::string fragFile = m_exePath + "/resources/shaders/fs_smooth.glsl";
 	m_shader.compileShaderFile(GL_VERTEX_SHADER, vertFile);
@@ -279,6 +280,13 @@ void DemoBase::initShaders()
 	m_shaderFlat.end();
 }
 
+void DemoBase::destroyShaders()
+{
+	m_shader.destroy();
+	m_shaderTex.destroy();
+	m_shaderFlat.destroy();
+	MiniGL::destroyShaders();
+}
 
 void DemoBase::shaderTexBegin(const float *col)
 {
@@ -286,12 +294,10 @@ void DemoBase::shaderTexBegin(const float *col)
 	glUniform1f(m_shaderTex.getUniform("shininess"), 5.0f);
 	glUniform1f(m_shaderTex.getUniform("specular_factor"), 0.2f);
 
-	GLfloat matrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-	glUniformMatrix4fv(m_shaderTex.getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-	GLfloat pmatrix[16];
-	glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-	glUniformMatrix4fv(m_shaderTex.getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
+	const Matrix4f matrix(MiniGL::getModelviewMatrix().cast<float>());
+	glUniformMatrix4fv(m_shaderTex.getUniform("modelview_matrix"), 1, GL_FALSE, &matrix(0,0));
+	const Matrix4f pmatrix(MiniGL::getProjectionMatrix().cast<float>());
+	glUniformMatrix4fv(m_shaderTex.getUniform("projection_matrix"), 1, GL_FALSE, &pmatrix(0,0));
 	glUniform3fv(m_shaderTex.getUniform("surface_color"), 1, col);
 }
 
@@ -306,12 +312,10 @@ void DemoBase::shaderBegin(const float *col)
 	glUniform1f(m_shader.getUniform("shininess"), 5.0f);
 	glUniform1f(m_shader.getUniform("specular_factor"), 0.2f);
 
-	GLfloat matrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-	glUniformMatrix4fv(m_shader.getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-	GLfloat pmatrix[16];
-	glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-	glUniformMatrix4fv(m_shader.getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
+	const Matrix4f matrix(MiniGL::getModelviewMatrix().cast<float>());
+	glUniformMatrix4fv(m_shader.getUniform("modelview_matrix"), 1, GL_FALSE, &matrix(0,0));
+	const Matrix4f pmatrix(MiniGL::getProjectionMatrix().cast<float>());
+	glUniformMatrix4fv(m_shader.getUniform("projection_matrix"), 1, GL_FALSE, &pmatrix(0,0));
 	glUniform3fv(m_shader.getUniform("surface_color"), 1, col);
 }
 
@@ -326,12 +330,10 @@ void DemoBase::shaderFlatBegin(const float* col)
 	glUniform1f(m_shaderFlat.getUniform("shininess"), 5.0f);
 	glUniform1f(m_shaderFlat.getUniform("specular_factor"), 0.2f);
 
-	GLfloat matrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-	glUniformMatrix4fv(m_shaderFlat.getUniform("modelview_matrix"), 1, GL_FALSE, matrix);
-	GLfloat pmatrix[16];
-	glGetFloatv(GL_PROJECTION_MATRIX, pmatrix);
-	glUniformMatrix4fv(m_shaderFlat.getUniform("projection_matrix"), 1, GL_FALSE, pmatrix);
+	const Matrix4f matrix(MiniGL::getModelviewMatrix().cast<float>());
+	glUniformMatrix4fv(m_shaderFlat.getUniform("modelview_matrix"), 1, GL_FALSE, &matrix(0,0));
+	const Matrix4f pmatrix(MiniGL::getProjectionMatrix().cast<float>());
+	glUniformMatrix4fv(m_shaderFlat.getUniform("projection_matrix"), 1, GL_FALSE, &pmatrix(0,0));
 	glUniform3fv(m_shaderFlat.getUniform("surface_color"), 1, col);
 }
 
@@ -652,15 +654,14 @@ void DemoBase::renderTetModels()
 
 void DemoBase::renderAABB(AABB &aabb)
 {
+	float color[4] = { 0.5f, 0.5f, 0.5f, 0.3f };
+
 	Vector3r p1, p2;
-	glBegin(GL_LINES);
 	for (unsigned char i = 0; i < 12; i++)
 	{
 		AABB::getEdge(aabb, i, p1, p2);
-		glVertex3d(p1[0], p1[1], p1[2]);
-		glVertex3d(p2[0], p2[1], p2[2]);
+		MiniGL::drawVector(p1, p2, 1.0f, color);
 	}
-	glEnd();
 }
 
 void DemoBase::renderSDF(CollisionDetection::CollisionObject* co)
