@@ -989,7 +989,7 @@ bool PBD::DirectPositionBasedSolverForStiffRods::solve(int intervalIndex, std::l
 			RodSegment *segment = (RodSegment *)node->object;
 			if (!segment->isDynamic())
 			{
-				break;
+				continue;
 			}
 
 			const Vector6r & soln(node->soln);
