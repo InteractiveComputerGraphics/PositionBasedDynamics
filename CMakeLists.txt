@@ -82,6 +82,13 @@ endif()
 add_subdirectory(PositionBasedDynamics)
 add_subdirectory(Simulation)
 add_subdirectory(Utils)
+
+option(PBD_BUILD_TESTS "Build regression tests" OFF)
+if (PBD_BUILD_TESTS)
+	enable_testing()
+	add_subdirectory(Tests)
+endif()
+
 if (NOT PBD_LIBS_ONLY)
 	include(DataCopyTargets)
 	add_subdirectory(extern/glfw)

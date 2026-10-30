@@ -1,0 +1,5 @@
+add_executable(StiffRodsStaticSegmentsTest StiffRodsStaticSegments.cpp)
+target_include_directories(StiffRodsStaticSegmentsTest PRIVATE ${EIGEN3_INCLUDE_DIR})
+target_link_libraries(StiffRodsStaticSegmentsTest PRIVATE PositionBasedDynamics)
+
+add_test(NAME StiffRodsStaticSegments COMMAND StiffRodsStaticSegmentsTest)
